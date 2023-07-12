@@ -1045,7 +1045,7 @@ if [[ "$opt_version" ]]; then
   echo "$__version__"
   exit $STS_SUCCESS
 fi
-ACTIONS="(help|emulate|force-lint|lint|force-test|test|force-test-multi|test-multi|force-testdeps|testdeps|force-translate|translate|chkconfig|parseyaml|show-log|show-color|summary|wep-db)"
+ACTIONS="(help|emulate|force-lint|lint|force-test|test|force-test-multi|test-multi|force-testdeps|testdeps|force-translate|translate|chkconfig|parseyaml|show|show-log|show-color|summary|wep-db)"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: ${ACTIONS//|/,}" \
   "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -1211,7 +1211,7 @@ elif [[ $action == "summary" ]]; then
     sts=1
   fi
   exit $sts
-elif [[ $action == "show-log" ]]; then
+elif [[ $action =~ ^(show|show-log)$ ]]; then
   [[ "$sub" == "old" ]] && logfile=$OLD_LOGFILE || logfile=$LOGFILE
   if [[ ${opt_dry_run:-0} -gt 0 ]]; then
     echo "> travis > $logfile"

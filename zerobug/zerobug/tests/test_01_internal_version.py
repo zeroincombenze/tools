@@ -5,40 +5,27 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
-
-import os.path
+import os
 import sys
-from zerobug import z0test
-
+import unittest
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0testlib                                             # noqa: E402
 
 __version__ = "2.0.9"
-
-MODULE_ID = 'zerobug'
-TEST_FAILED = 1
-TEST_SUCCESS = 0
 
 
 def version():
     return __version__
 
 
-# Run main if executed as a script
+class PypiTest(z0testlib.PypiTest):
+
+    def test_01_version(self):
+        self.assertEqual(version(), self.version(), msg_info="Version")
+
+
 if __name__ == "__main__":
-    ctx = z0test.parseoptest(sys.argv[1:], version=version())
-    z0lib_file = ''
-    for fn in (
-        '../../z0lib/z0lib/z0librc',
-        '../z0lib/z0librc',
-        os.path.expanduser('~/tools/z0lib/z0librc'),
-    ):
-        if os.path.isfile(fn):
-            z0lib_file = fn
-            break
-    # UT_LIST = ["__version_0_" + __version__]
-    UT_LIST = []
-    # if z0lib_file:
-    #     UT_LIST.append("__version_1_1.0.2%s" % z0lib_file)
-    UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
-    UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
-    UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
-    exit(z0test.main(ctx, UT=UT_LIST))
+    exit(unittest.main())

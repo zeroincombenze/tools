@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+* [IMP] New param IS_MULTI
 
 2.0.6 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~

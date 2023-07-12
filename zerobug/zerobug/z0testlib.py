@@ -3,6 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
+from builtins import str as text
+from io import open
 
 import argparse
 import glob
@@ -15,6 +17,8 @@ import subprocess
 import sys
 from string import Template
 from subprocess import PIPE, Popen
+
+import unittest
 
 import magic
 
@@ -148,6 +152,123 @@ exclude_lines =
 """
 
 
+class PypiTest(unittest.TestCase):
+
+    def setUp(self):
+        self.assert_counter = 0
+
+    def tearDown(self):
+        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        print("%d tests SUCCESSFULLY completed" % self.assert_counter)
+
+    def version(self):
+        return __version__
+
+    # ----------------------------------
+    # --  Counted assertion functions --
+    # ----------------------------------
+
+    def assertFalse(self, expr, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertFalse(expr, msg=msg)
+
+    def assertTrue(self, expr, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertTrue(expr, msg=msg)
+
+    def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
+        self.assert_counter += 1
+        return super(PypiTest, self).assertRaises(expected_exception, *args, **kwargs)
+
+    def assertEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertEqual(first, second, msg=msg)
+
+    def assertNotEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertNotEqual(first, second, msg=msg)
+
+    def assertIn(self, member, container, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIn(member, container, msg=msg)
+
+    def assertNotIn(self, member, container, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertNotIn(member, container, msg=msg)
+
+    def assertIs(self, expr1, expr2, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIs(expr1, expr2, msg=msg)
+
+    def assertIsNot(self, expr1, expr2, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsNot(expr1, expr2, msg=msg)
+
+    def assertLess(self, a, b, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertLess(a, b, msg=msg)
+
+    def assertLessEqual(self, a, b, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertLessEqual(a, b, msg=msg)
+
+    def assertGreater(self, a, b, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertGreater(a, b, msg=msg)
+
+    def assertGreaterEqual(self, a, b, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertGreaterEqual(a, b, msg=msg)
+
+    def assertIsNone(self, obj, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsNone(obj, msg=msg)
+
+    def assertIsNotNone(self, obj, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsNotNone(obj, msg=msg)
+
+    def assertIsInstance(self, obj, cls, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsInstance(obj, cls, msg=msg)
+
+    def assertNotIsInstance(self, obj, cls, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertNotIsInstance(obj, cls, msg=msg)
+
+
 class Macro(Template):
     delimiter = '${'
     idpattern = r'[^}]+?}'
@@ -174,6 +295,7 @@ class SanityTest:
         self.Z = zarlib
 
     def test_01(self, z0ctx):
+        """Sanity autotest #1"""
         """Sanity autotest #1"""
         opts = ['-n']
         ctx = self.Z.parseoptest(opts)
@@ -388,13 +510,16 @@ class Z0test(object):
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
         this = os.path.splitext(os.path.basename(this_fqn))[0]
-        this_dir = os.getcwd()
-        if not os.path.basename(this_dir) == 'tests' and not os.path.isdir('./tests'):
+        this_dir = os.path.abspath(os.getcwd())
+        if (
+                not os.path.basename(this_dir) == 'tests'
+                and not os.path.isdir(os.path.join(this_dir, 'tests'))
+        ):
             this_dir = os.path.dirname(this_fqn)
         self.this_dir = this_dir
         if os.path.basename(this_dir) == 'tests':
             self.testdir = self.this_dir
-            self.rundir = os.path.abspath(os.path.join(self.this_dir, '..'))
+            self.rundir = os.path.dirname(self.this_dir)
         else:  # pragma: no cover
             if os.path.isdir('./tests'):
                 self.testdir = os.path.join(self.this_dir, 'tests')
@@ -1033,6 +1158,11 @@ class Z0test(object):
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
                 if mime == 'text/x-python':
+                    with open(os.path.realpath(testname), "r", encoding="utf-8") as fd:
+                        content = fd.read()
+                    if "\nimport unittest\n" in content:
+                        opt4childs = []
+                        del content
                     if os.environ.get('TRAVIS_PDB') == 'true':
                         if ctx.get('python3', False):
                             test_w_args = [
@@ -1513,9 +1643,9 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
         else:
             ffn = os.path.join(moduledir, '__manifest__.py')
             ffn_del = os.path.join(moduledir, '__openerp__.py')
-        with open(ffn, 'w') as fd:
+        with open(ffn, 'w', encoding="utf-8") as fd:
             fd.write(
-                str(
+                text(
                     {
                         'name': name,
                         'version': version,
