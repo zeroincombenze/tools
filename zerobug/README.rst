@@ -353,6 +353,10 @@ Current version via Git
 History
 -------
 
+2.0.7.1 (2023-07-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] zerobug implementation with unittest
 2.0.7 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
 
@@ -417,11 +421,6 @@ History
 * [FIX] travis_install_env: minor fixes
 * [IMP] z0testlib: show coverage result
 
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
 
 
 
