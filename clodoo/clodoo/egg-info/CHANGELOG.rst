@@ -1,13 +1,9 @@
-2.0.6.1 (2023-06-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
-* [IMP] New param IS_MULTI
-
-2.0.6 (2023-05-14)
+2.0.6 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] Incorpored new pypi oerlib3
+* [IMP] Incorporated new pypi oerlib3
+* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+* [IMP] New param IS_MULTI
 
 2.0.5 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~

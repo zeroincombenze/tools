@@ -53,7 +53,10 @@ class PleaseCwd(object):
             "--no-verify", action="store_true", help="Disable pre-commit on replace"
         )
         parser.add_argument(
-            "--vme", action="store_true", help="Update $HOME/VME virtual environmens"
+            "--odoo-venv", action="store_true", help="Update Odoo virtual environmens"
+        )
+        parser.add_argument(
+            "--vme", action="store_true", help="Update $HOME/VME virtual environments"
         )
         parser.add_argument("args", nargs="*")
         return parser
@@ -61,14 +64,16 @@ class PleaseCwd(object):
     def do_clean(self):
         please = self.please
         is_odoo = please.is_odoo_pkg()
+        is_pypi = please.is_pypi_pkg()
         if (
-                please.is_odoo_pkg()
+                is_odoo
+                or is_pypi
                 or please.is_repo_odoo()
                 or please.is_repo_ocb()
-                or please.is_pypi_pkg()
         ):
             sts = 0
-            for root, dirs, files in os.walk(os.getcwd()):
+            for root, dirs, files in os.walk(
+                    os.path.dirname(os.getcwd()) if is_pypi else os.getcwd()):
                 for fn in files:
                     if not fn.endswith(".bak") and not fn.endswith("~"):
                         continue
@@ -92,6 +97,20 @@ class PleaseCwd(object):
                                 break
             return sts
         return please.do_iter_action("do_clean", act_all_pypi=True, act_tools=True)
+
+    def do_clean_db(self):
+        please = self.please
+        if (
+                please.is_odoo_pkg()
+                or please.is_repo_odoo()
+                or please.is_repo_ocb()
+                or please.is_pypi_pkg()
+        ):
+            cmd = please.build_sh_me_cmd(
+                cmd=os.path.join(os.path.dirname(__file__), "travis.sh")
+            )
+            return please.run_traced(cmd, rtime=True)
+        return 126
 
     def do_defcon(self):
         print("Missed sepcification:\nplease defcon precommit|gitignore")
@@ -370,8 +389,33 @@ class PleaseCwd(object):
                 )
             if sts == 0 and please.opt_args.vme:
                 sts = self.do_update_vme()
+            if sts == 0 and please.opt_args.odoo_venv:
+                sts = self.do_update_venv()
             return sts
         return please.do_iter_action("do_update", act_all_pypi=True, act_tools=False)
+
+    def do_update_venv(self):
+        please = self.please
+        sts = 126
+        if please.is_pypi_pkg():
+            srcdir = os.getcwd()
+            pkgname = os.path.basename(srcdir)
+            if pkgname != "tools":
+                rex = re.compile(r"[a-z0-9][a-z0-9_.]+$")
+                for root, dirs, files in os.walk(os.path.expanduser("~/")):
+                    for fn in sorted(dirs):
+                        if not rex.match(fn):
+                            continue
+                        tgtdir = os.path.join(root, fn, "venv_odoo")
+                        if not os.path.isdir(tgtdir):
+                            continue
+                        sts = please.run_traced(
+                            "vem %s update %s" % (tgtdir, os.path.dirname(srcdir)),
+                            rtime=True,
+                        )
+                        if sts:
+                            break
+        return sts
 
     def do_update_vme(self):
         please = self.please
@@ -381,7 +425,7 @@ class PleaseCwd(object):
             pkgname = os.path.basename(srcdir)
             if pkgname != "tools":
                 vme_dir = os.path.expanduser("~/VME")
-                for fn in os.listdir(vme_dir):
+                for fn in sorted(os.listdir(vme_dir)):
                     tgtdir = os.path.join(vme_dir, fn)
                     if not os.path.isdir(tgtdir) or not os.path.isdir(
                         os.path.join(tgtdir, "bin")
@@ -394,20 +438,6 @@ class PleaseCwd(object):
                     if sts:
                         break
         return sts
-
-    def do_wep_db(self):
-        please = self.please
-        if (
-                please.is_odoo_pkg()
-                or please.is_repo_odoo()
-                or please.is_repo_ocb()
-                or please.is_pypi_pkg()
-        ):
-            cmd = please.build_sh_me_cmd(
-                cmd=os.path.join(os.path.dirname(__file__), "travis.sh")
-            )
-            return please.run_traced(cmd, rtime=True)
-        return 126
 
     def do_action(self):
         return 126

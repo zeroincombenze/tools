@@ -115,7 +115,7 @@ set_log_filename() {
     [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
     [[ -n $m ]] && UMLI="${UMLI}.$m"
     LOGDIR="$PKGPATH/tests/logs"
-    LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
+    export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
 }
 
@@ -194,9 +194,12 @@ set_confn() {
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
 }
 
-wait_idle() {
-    local p=$1 ctr t sz x
+wait_process_idle() {
+    local p ctr t sz x
+    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || p=""
+    [[ -z $p ]] && echo "Warning! File $LOGDIR/odoo.pid not found!"
     if [[ -n $p ]]; then
+        sleep 2
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         echo -e "$x $p DAEMON ? $(basename $0): Waiting for process $p idle ..."
         ctr=60
@@ -213,32 +216,14 @@ wait_idle() {
     fi
 }
 
-test_with_external_process() {
-    local c m p x
-    x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo -e "\e[37;43mStarting $ext_test ...\e[0m"
-    sleep 2
+stop_bg_process() {
+    local p
     [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || p=""
-    [[ -z $p ]] && echo "Warning! File $LOGDIR/odoo.pid not found!"
-    [[ -n $p ]] && wait_idle $p
-    m=$(grep -e "^ *MODULE_LIST *=.*" $ext_test|cut -d"=" -f2|tr -d '"'|tr -d "'")
-    if [[ -n $m ]]; then
-      echo "Loading modules to run external test .."
-      [[ $odoo_ver -le 10 ]] && run_traced "cd $ODOO_RUNDIR && $script -d$opt_db $OPT_CONF -i $m --stop-after-init --no-xmlrpc"
-      [[ $odoo_ver -gt 10 ]] && run_traced "cd $ODOO_RUNDIR && $script -d$opt_db $OPT_CONF -i $m --stop-after-init --no-http"
-      [[ -n $p ]] && wait_idle $p
-    else
-      echo "No module to load before run external test .."
-    fi
-    export TEST_DB="$opt_db"
-    x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo -e "$x $p DAEMON ? $ext_test: starting ..."
-    echo -e "$x $p DAEMON ? $ext_test: starting ..." >> $LOGFILE
-    run_traced "$ext_test"
-    x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m"
-    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m" >> $LOGFILE
-    [[ -n $p ]] && run_traced "kill $p" && rm -f $LOGDIR/odoo.pid
+    [[ -n $p ]] && wait_process_idle $p && run_traced "kill $p" && rm -f $LOGDIR/odoo.pid
+}
+
+clean_old_templates() {
+    local c d m x
     m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
@@ -252,6 +237,28 @@ test_with_external_process() {
         fi
     done
 }
+
+test_with_external_process() {
+    local p x
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "\e[37;43mStarting $ext_test ...\e[0m"
+    export TEST_DB="$opt_db"
+    echo "\$ export LOGFILE=$LOGFILE"
+    echo "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
+    echo "\$ export TEST_CONFN=$TEST_CONFN"
+    echo "\$ export TEST_DB=$TEST_DB"
+    echo "\$ export TEST_VDIR=$TEST_VDIR"
+    wait_process_idle
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "$x $p DAEMON ? $ext_test: starting ..."
+    echo -e "$x $p DAEMON ? $ext_test: starting ..." >> $LOGFILE
+    run_traced "python $ext_test"
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m"
+    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m" >> $LOGFILE
+    stop_bg_process
+}
+
 
 OPTOPTS=(h        B       b          c        C           d        D       e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
 OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
@@ -523,16 +530,17 @@ fi
 
 ext_test=""
 [[ -x $PKGPATH/tests/_test_synchro.py ]] && ext_test="$PKGPATH/tests/_test_synchro.py"
-[[ -x $PKGPATH/tests/_test_synchro.sh ]] && ext_test="$PKGPATH/tests/_test_synchro.sh"
+# [[ -x $PKGPATH/tests/_test_synchro.sh ]] && ext_test="$PKGPATH/tests/_test_synchro.sh"
 [[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m"
 [[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
 
 if [[ $opt_stop -gt 0 ]]; then
     [[ $opt_dae -ne 0 ]] && OPTS="$OPTS --pidfile=$LOGDIR/odoo.pid" || OPTS="$OPTS --stop-after-init"
     if [[ $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
-        [[ $opt_test -ne 0 && $odoo_ver -lt 12 ]] && OPTS="$OPTS --test-commit"
+        [[ $opt_keep -ne 0 && $opt_test -ne 0 && $odoo_ver -lt 12 ]] && OPTS="$OPTS --test-commit"
     fi
 fi
+[[ $opt_stop -ne 0 || $opt_dae -ne 0 ]] && stop_bg_process
 if [[ -n "$opt_db" ]]; then
     OPTS="$OPTS -d $opt_db"
     OPTDB="$OPTDB -d $opt_db"
@@ -636,6 +644,7 @@ if [[ $opt_touch -eq 0 ]]; then
             [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
             [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS &"
         fi
+        [[ -n $ext_test ]] && test_with_external_process
     elif [[ opt_dbg -gt 1 ]]; then
         echo ""
         echo "Now you can test module $opt_modules on pycharm"
@@ -684,7 +693,9 @@ if [[ $opt_touch -eq 0 ]]; then
         echo "# Translation imported from '$src' file"
     fi
 
+    [[ $opt_opt_keep -eq 0 && $opt_dae -ne 0 ]] && stop_bg_process
     if [[ $drop_db -gt 0 ]]; then
+        clean_old_templates
         if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
             [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
             run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists '$opt_db'"

@@ -1,6 +1,6 @@
 
 ======
- 2.0.5
+ 2.0.6
 ======
 
 
@@ -325,7 +325,7 @@ History
 
 * [IMP] Incorpored new pypi oerlib3
 
-2.0.5 (2023-05-08)
+2.0.6 (2023-05-08)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo.py: minor fixes

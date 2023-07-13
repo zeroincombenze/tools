@@ -1,4 +1,4 @@
-2.0.8 (2023-06-26)
+2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: werkzeug for Odoo 16.0
