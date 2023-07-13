@@ -106,7 +106,6 @@ coverage_report() {
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    local m
     [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
     [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
     [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
@@ -115,20 +114,9 @@ set_log_filename() {
     [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_ver}" || UMLI="${GIT_ORGID}"
     [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
     [[ -n $m ]] && UMLI="${UMLI}.$m"
-#    if [[ -n $opt_flog ]]; then
-#      LOGDIR="$(dirname $opt_flog)"
-#      LOGFILE="$opt_flog"
-#    else
-#      LOGDIR="$(get_cfg_value "" "LOGDIR")"
-#      [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"
-#      [[ -d $LOGDIR ]] || mkdir $LOGDIR
-#      LOGFILE="$LOGDIR/${UMLI}.log"
-#    fi
     LOGDIR="$PKGPATH/tests/logs"
-    # [[ -d $LOGDIR ]] || mkdir $LOGDIR
     LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
-    # OLD_LOGFILE=${LOGFILE/.log/_old.log}
 }
 
 check_path_n_branch() {
@@ -145,10 +133,10 @@ replace_web_module() {
     local l m param z w woca
     woca="$ODOO_RUNDIR/addons/_web_oca"
     w="$ODOO_RUNDIR/addons/web"
-    if [[ $odoo_ver -le 7 && -f $FULL_LCONFN ]]; then
+    if [[ $odoo_ver -le 7 && -f $TEST_CONFN ]]; then
         z=""
         l=""
-        param=$(grep -E "^server_wide_modules *=.*" $FULL_LCONFN|cut -d"=" -f2|tr -d " ")
+        param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
         [[ $param == "Non" ]] && param=""
         if [[ -n $param ]]; then
           for m in ${param//,/ }; do
@@ -171,19 +159,113 @@ replace_web_module() {
     fi
 }
 
+set_confn() {
+    run_traced_debug "sed -e \"s|^admin_passwd *=.*|admin_passwd = admin|\" -i $TEST_CONFN"
+    run_traced_debug "sed -e \"s|^server_wide_modules *=|# server_wide_modules =|\" -i $TEST_CONFN"
+    if [[ $opt_dae -ne 0 ]]; then
+      run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $LOGFILE|\" -i $TEST_CONFN"
+    else
+      tty -s
+      if [[ $? == 0 ]]; then
+          run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $TEST_CONFN"
+      else
+          run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $TEST_CONFN"
+      fi
+    fi
+    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
+        run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $TEST_CONFN"
+        run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $TEST_CONFN"
+    fi
+    if [[ $odoo_ver -le 10 ]]; then
+        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $TEST_CONFN"
+        OPT_CONFPORT="--xmlrpc-port=$RPCPORT"
+    else
+        run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $TEST_CONFN"
+        OPT_CONFPORT="--http-port=$RPCPORT"
+    fi
+    if [[ -n "$DB_USER" ]]; then
+        run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $TEST_CONFN"
+        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
+    fi
+    if [[ -n "$opt_llvl" ]]; then
+        run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $TEST_CONFN"
+        OPT_LLEV="--log-level=$opt_llvl"
+    fi
+    run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
+}
 
-OPTOPTS=(h        B       b          c        C           d        e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
-OPTLONG=(help     debug   branch     config   no-coverage database export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       1        "=")
-OPTDEFL=(1        0       ""         ""       0           ""       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0        0         ""         0       ""          -1          0       0        "")
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
+wait_idle() {
+    local p=$1 ctr t sz x
+    if [[ -n $p ]]; then
+        x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        echo -e "$x $p DAEMON ? $(basename $0): Waiting for process $p idle ..."
+        ctr=60
+        t=""
+        sz=0
+        for ctr in {0..30}; do
+          [[ $t == $(ps --no-headers -o time -p $p) && $sz -eq $(stat -c%s $LOGFILE) ]] && break
+          t=$(ps --no-headers -o time -p $p)
+          sz=$(stat -c%s $LOGFILE)
+          sleep 1;
+          x=$(date +"%Y-%m-%d %H:%M:%S,000")
+          echo -e "$x $p DAEMON ? $(basename $0): Waiting for process idle ($ctr) ..."
+        done
+    fi
+}
+
+test_with_external_process() {
+    local c m p x
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "\e[37;43mStarting $ext_test ...\e[0m"
+    sleep 2
+    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || p=""
+    [[ -z $p ]] && echo "Warning! File $LOGDIR/odoo.pid not found!"
+    [[ -n $p ]] && wait_idle $p
+    m=$(grep -e "^ *MODULE_LIST *=.*" $ext_test|cut -d"=" -f2|tr -d '"'|tr -d "'")
+    if [[ -n $m ]]; then
+      echo "Loading modules to run external test .."
+      [[ $odoo_ver -le 10 ]] && run_traced "cd $ODOO_RUNDIR && $script -d$opt_db $OPT_CONF -i $m --stop-after-init --no-xmlrpc"
+      [[ $odoo_ver -gt 10 ]] && run_traced "cd $ODOO_RUNDIR && $script -d$opt_db $OPT_CONF -i $m --stop-after-init --no-http"
+      [[ -n $p ]] && wait_idle $p
+    else
+      echo "No module to load before run external test .."
+    fi
+    export TEST_DB="$opt_db"
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "$x $p DAEMON ? $ext_test: starting ..."
+    echo -e "$x $p DAEMON ? $ext_test: starting ..." >> $LOGFILE
+    run_traced "$ext_test"
+    x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m"
+    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m" >> $LOGFILE
+    [[ -n $p ]] && run_traced "kill $p" && rm -f $LOGDIR/odoo.pid
+    m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
+    for x in ${m//,/ }; do
+        [[ $x == $opt_modules ]] && continue
+        d="template_$x"
+        [[ $opt_verbose -gt 1 ]] && echo "Searching for $d ..."
+        if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d"; then
+          run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
+          c=$(pg_db_active -c "$d")
+          [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$d\"" && continue
+          [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
+        fi
+    done
+}
+
+OPTOPTS=(h        B       b          c        C           d        D       e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
+OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       1        "=")
+OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0        0         ""         0       ""          -1          0       0        "")
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
     "odoo branch (version id)"
     "odoo configuration file"
     "no use coverage to run test"
     "db name to test,translate o upgrade (require -m switch)"
+    "run odoo as daemon"
     "export translation (conflict with -i -u -I)"
     "force update or install modules or default parameters or create db template"
     "do not create new DB and keep it after run"
@@ -218,7 +300,7 @@ if [[ "$opt_version" ]]; then
     exit 0
 fi
 if [[ $opt_help -gt 0 ]]; then
-    print_help "Run odoo for debug mode" \
+    print_help "Run odoo for debug" \
         "(C) 2015-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
@@ -290,10 +372,10 @@ odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
 script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
-ODOO_RUNDIR=$(dirname $script)
-VDIR=$(build_odoo_param VDIR "$odoo_root")
-[[ ! -d $VDIR ]] && VDIR=""
-[[ $opt_verbose -gt 1 && -n "$VDIR" ]] && echo "# Found $VDIR virtual directory"
+export ODOO_RUNDIR=$(dirname $script)
+export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+[[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
+[[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && echo "# Found $TEST_VDIR virtual directory"
 set_log_filename
 
 if [[ -n $opt_rport ]]; then
@@ -331,6 +413,7 @@ fi
 create_db=0
 drop_db=0
 depmods=""
+TEMPLATE=""
 
 if [[ $opt_test -ne 0 ]]; then
     opt_web=0
@@ -338,6 +421,7 @@ if [[ $opt_test -ne 0 ]]; then
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
+    TEMPLATE="template_${UDI}"
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}" && drop_db=0
     create_db=1
@@ -436,9 +520,15 @@ if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 ||
         [[ $opt_stop -gt 0 && $opt_keep -eq 0 ]] && drop_db=1
     fi
 fi
-OPTDB="$OPTDB --stop-after-init"
+
+ext_test=""
+[[ -x $PKGPATH/tests/_test_synchro.py ]] && ext_test="$PKGPATH/tests/_test_synchro.py"
+[[ -x $PKGPATH/tests/_test_synchro.sh ]] && ext_test="$PKGPATH/tests/_test_synchro.sh"
+[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m"
+[[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
+
 if [[ $opt_stop -gt 0 ]]; then
-    OPTS="$OPTS --stop-after-init"
+    [[ $opt_dae -ne 0 ]] && OPTS="$OPTS --pidfile=$LOGDIR/odoo.pid" || OPTS="$OPTS --stop-after-init"
     if [[ $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
         [[ $opt_test -ne 0 && $odoo_ver -lt 12 ]] && OPTS="$OPTS --test-commit"
     fi
@@ -448,7 +538,7 @@ if [[ -n "$opt_db" ]]; then
     OPTDB="$OPTDB -d $opt_db"
 fi
 if [[ $opt_stat -ne 0 ]]; then
-    if [[ -n "$VDIR" ]]; then
+    if [[ -n "$TEST_VDIR" ]]; then
         coverage_set
         coverage_report
     fi
@@ -456,13 +546,12 @@ if [[ $opt_stat -ne 0 ]]; then
 fi
 
 if [[ $opt_touch -eq 0 ]]; then
-    [[ -n "$VDIR" ]] && ve_root=$VDIR || ve_root=$HOME
+    [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
     OPT_LLEV=
-    # [[ $opt_test -ne 0 && ! -d $HOME/tmp ]] && mkdir $HOME/tmp
     [[ $opt_test -ne 0 && ! -d $LOGDIR ]] && mkdir -p $LOGDIR
-    [[ $opt_test -ne 0 ]] && FULL_LCONFN="$LOGDIR/${UMLI}.conf" || FULL_LCONFN="$ve_root/$LCONFN"
-    [[ $opt_test -gt 1 ]] && FULL_LCONFN="$ve_root/pycharm_odoo.conf"
-    OPT_CONF="--config=$FULL_LCONFN"
+    [[ $opt_test -ne 0 ]] && export TEST_CONFN="$LOGDIR/${UMLI}.conf" || export TEST_CONFN="$ve_root/$LCONFN"
+    [[ $opt_test -gt 1 ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
+    OPT_CONF="--config=$TEST_CONFN"
     if [[ $opt_dry_run -eq 0 ]]; then
         for f in .openerp_serverrc .odoorc; do
             for d in $HOME $ve_root; do
@@ -470,44 +559,18 @@ if [[ $opt_touch -eq 0 ]]; then
             done
         done
     fi
-    [[ -f "$CONFN" ]] && run_traced "cp $CONFN $FULL_LCONFN"
+    [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"
     replace_web_module
-    # [[ $opt_verbose -gt 0 ]] && echo "===================================================================="
     [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
-    tty -s
-    if [[ $? == 0 ]]; then
-        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $FULL_LCONFN"
-    else
-        run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $FULL_LCONFN"
-    fi
-    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
-        run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $FULL_LCONFN"
-        run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $FULL_LCONFN"
-    fi
-    if [[ $odoo_ver -le 10 ]]; then
-        run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $FULL_LCONFN"
-        OPT_CONFPORT="--xmlrpc-port=$RPCPORT"
-    else
-        run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $FULL_LCONFN"
-        OPT_CONFPORT="--http-port=$RPCPORT"
-    fi
-    if [[ -n "$DB_USER" ]]; then
-        run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $FULL_LCONFN"
-        [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
-    fi
-    if [[ -n "$opt_llvl" ]]; then
-        run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $FULL_LCONFN"
-        OPT_LLEV="--log-level=$opt_llvl"
-    fi
-    run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $FULL_LCONFN"
-
-    if [[ -n "$VDIR" ]]; then
+    set_confn
+    if [[ -n "$TEST_VDIR" ]]; then
       coverage_set
       x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate"
-      [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $VDIR; source ./bin/activate" | tee -a $LOGFILE
+      [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $TEST_VDIR && source ./bin/activate"
+      [[ ! -f $LOGFILE ]] && touch $LOGFILE
+      [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
       if [[ $opt_dry_run -eq 0 ]]; then
-        cd $VDIR
+        cd $TEST_VDIR
         source ./bin/activate
         if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
           cov=$(which coverage 2>/dev/null)
@@ -524,44 +587,31 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
     if [[ $create_db -gt 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-        if [[ -n "$depmods" && $opt_test -ne 0 ]]; then
-            c="cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error -i $depmods"
-            cmd="$c $OPT_CONFPORT"
-            TEMPLATE="${opt_db/test/template}"
-            [[ $opt_keep -ne 0 ]] && TEMPLATE="${MQT_TEMPLATE_DB}_${odoo_ver}"
-            [[ opt_dbg -gt 1 && $opt_keep -eq 0 ]] && TEMPLATE="template_${UDI}"
-            cmd="${cmd/$opt_db/$TEMPLATE}"
-            fnparam="$LOGDIR/${UDI}.sh"
-            if [[ $opt_force -ne 0 || ! -f $fnparam ]] || ! echo $c|diff -qw $fnparam - || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-              # Create DB for test
-              run_traced "pg_db_active -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
-              c=$(pg_db_active -c "$TEMPLATE")
-              [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
-              # if [[ $opt_dry_run -eq 0 ]]; then
-                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
-                [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                run_traced "$cmd"
-                run_traced "pg_db_active -L \"$TEMPLATE\""
-              # fi
+        if [[ $opt_test -ne 0 ]]; then
+            if [[ -n "$depmods" ]]; then
+                fnparam="$LOGDIR/${UDI}.sh"
+                if [[ $opt_force -ne 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+                    run_traced "pg_db_active -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
+                    c=$(pg_db_active -c "$TEMPLATE")
+                    [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
+                    [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
+                    [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
+                    [[ $odoo_ver -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
+                    [[ $odoo_ver -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
+                    run_traced "$cmd"
+                fi
             fi
-            if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-              [[ $opt_dry_run -eq 0 ]] && echo $c > $fnparam
-              run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
-              c=$(pg_db_active -c \"$opt_db\")
-              [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-              # if [[ $opt_dry_run -eq 0 ]]; then
-                psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
-                run_traced "pg_db_active -L -wa \"$TEMPLATE\""
-                run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
-              # fi
-            else
-              echo "Template \"$TEMPLATE\" not found!"
-              cmd="${cmd/$TEMPLATE$opt_db/}"
-              run_traced "$cmd"
+            if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+                run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
+                c=$(pg_db_active -c \"$opt_db\")
+                [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
+                [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
             fi
-       else
-            run_traced "cd $ODOO_RUNDIR; $script $OPTDB $OPT_CONF --log-level=error"
-       fi
+            if [[ $opt_dry_run -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+                [[ -n "$depmods" ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
+                [[ -z "$depmods" ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template template1'"
+            fi
+        fi
     fi
 
     [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
@@ -570,12 +620,21 @@ if [[ $opt_touch -eq 0 ]]; then
         if [[ -n $COVERAGE_PROCESS_START ]]; then
             v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
             if [[ $v -ge 6 ]]; then
-                run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
+                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
             else
-                run_traced "cd $ODOO_RUNDIR; coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
+                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
             fi
         else
-            run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS &
+            [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS &"
         fi
     elif [[ opt_dbg -gt 1 ]]; then
         echo ""
@@ -594,21 +653,21 @@ if [[ $opt_touch -eq 0 ]]; then
         echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
         echo ""
     else
-        run_traced "cd $ODOO_RUNDIR; $script $OPT_CONF $OPT_LLEV $OPTS"
+        run_traced "cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS"
     fi
 
-    if [[ -n "$VDIR" ]]; then
+    if [[ -n "$TEST_VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
         [[ $opt_dry_run -eq 0 ]] && deactivate
     fi
-    [[ $opt_test -ne 0 && -f $FULL_LCONFN ]] && rm -f FULL_LCONFN
+    [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
     [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
         if [[ $opt_dry_run -eq 0 ]]; then
             echo -e "\n+===================================================================" | tee -a $LOGFILE
-            grep -Eq " (ERROR|CRITICAL) " $LOGFILE && x="\e[31mFAILED!\e[0m" || x="\e[32mSUCCESS!\e[0m"
+            grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m" || x="\e[32mSUCCESS!\e[0m"
             echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
             echo -e "+===================================================================\n"  | tee -a $LOGFILE
             coverage_report | tee -a $LOGFILE
@@ -631,7 +690,6 @@ if [[ $opt_touch -eq 0 ]]; then
             run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists '$opt_db'"
             c=$(pg_db_active -c "$opt_db")
             [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-            # [[ opt_dbg -ne 1 ]] && run_traced "pg_db_active -L -wa '$TEMPLATE'; dropdb $opts --if-exists '$TEMPLATE'"
         fi
     fi
 fi

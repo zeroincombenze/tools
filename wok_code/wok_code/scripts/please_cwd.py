@@ -76,16 +76,17 @@ class PleaseCwd(object):
                     sts = please.run_traced(cmd)
                     if sts:
                         break
-            if is_odoo and os.path.isdir(os.path.join("logs", "logs")):
+            logdir = os.path.join(os.getcwd(), "tests", "logs")
+            if is_odoo and os.path.isdir(logdir):
                 last = " "
-                for root, dirs, files in os.walk(os.getcwd()):
+                for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[:12] > last:
+                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] > last:
                             last = fn[12:]
-                for root, dirs, files in os.walk(os.getcwd()):
+                for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[:12] != last:
-                            cmd = "rm " + os.unlink(os.path.join(root, fn))
+                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] != last:
+                            cmd = "rm " + os.path.join(root, fn)
                             sts = please.run_traced(cmd)
                             if sts:
                                 break

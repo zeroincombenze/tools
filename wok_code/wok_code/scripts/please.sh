@@ -1120,7 +1120,7 @@ do_translate() {
 
 do_lint() {
     wlog "do_lint '$1' '$2' '$3'"
-    local sts=$STS_FAILED s x VDIR
+    local sts=$STS_FAILED opts s x VDIR
     [[ $PRJNAME == "Odoo" ]] && VDIR=$(build_odoo_param VDIR ./)
     [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
     if [[ -z $FLAKE8_CONFIG ]]; then
@@ -1128,12 +1128,17 @@ do_lint() {
       [[ -n $x ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $x/zerobug/_travis/cfg/travis_run_flake8.cfg)"
     fi
     [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
+    opts="--extend-ignore=B006 --max-line-length=88"
+    if [[ $PRJNAME == "Odoo" ]]; then
+      x=$(build_odoo_param MAJVER ./)
+      [[ $x -le 7 ]] && opts="$opts --per-file-ignores='__openerp__.py:E501,E128'"
+    fi
     if [[ -n $VDIR ]]; then
       x=$(vem $VDIR info flake8 2>/dev/null|grep -Eo "[0-9]+\.[0-9]+"|head -n1|tr -d ".")
       [[ $x -lt 39 ]] && vem $VDIR exec "pip install -U \"flake8>3.9.0,<=6.0.0\""
-      run_traced "vem $VDIR exec \"flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./\""
+      run_traced "vem $VDIR exec \"flake8 --config=$FLAKE8_CONFIG $opts ./\""
     else
-      run_traced "flake8 --config=$FLAKE8_CONFIG --extend-ignore=B006 --max-line-length=88 ./"
+      run_traced "flake8 --config=$FLAKE8_CONFIG $opts ./"
     fi
     sts=$?
     [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"

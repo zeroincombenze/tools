@@ -320,7 +320,7 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
             return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(args, {})
         if opt_unk:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+            with Popen(argv, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
                 proc.wait()
                 sts = proc.returncode
         else:
@@ -343,7 +343,7 @@ def run_traced(cmd, verbose=None, dry_run=None, disable_alias=None, is_alias=Non
         if sts:
             pass
         elif opt_unk or not params["-f"]:
-            with Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+            with Popen(argv, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
                 proc.wait()
                 sts = proc.returncode
         elif params["-R"]:
