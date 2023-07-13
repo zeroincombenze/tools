@@ -61,6 +61,11 @@ class RunOdoo(object):
             "-c", "--config", metavar="FILE", help="Odoo configuration file"
         )
         parser.add_argument(
+            "-D", "--daemon",
+            action="store_true",
+            help="Run odoo as daemon",
+        )
+        parser.add_argument(
             "-d", "--database", metavar="NAME", help="Database name"
         )
         parser.add_argument(
@@ -243,6 +248,8 @@ class RunOdoo(object):
             opts += "B"
         if self.opt_args.no_coverage:
             opts += "C"
+        if self.opt_args.daemon:
+            opts += "D"
         if self.opt_args.export_i18n:
             opts += "e"
         if self.opt_args.force:
