@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -603,6 +603,8 @@ if [[ $opt_touch -eq 0 ]]; then
                     c=$(pg_db_active -c "$TEMPLATE")
                     [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
                     [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
+                fi
+                if [[ $opt_force -ne 0 ]] || psql -U$DB_USER -Atl|cut -d"|" -f1|grep -qv "$TEMPLATE"; then
                     [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                     [[ $odoo_ver -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
                     [[ $odoo_ver -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"

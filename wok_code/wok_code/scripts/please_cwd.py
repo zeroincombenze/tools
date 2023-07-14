@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os.path
+from datetime import datetime, timedelta
 import re
 
-__version__ = "2.0.9"
+import psycopg2
+
+__version__ = "2.0.10"
 
 
 class PleaseCwd(object):
@@ -99,18 +102,34 @@ class PleaseCwd(object):
         return please.do_iter_action("do_clean", act_all_pypi=True, act_tools=True)
 
     def do_clean_db(self):
-        please = self.please
-        if (
-                please.is_odoo_pkg()
-                or please.is_repo_odoo()
-                or please.is_repo_ocb()
-                or please.is_pypi_pkg()
-        ):
-            cmd = please.build_sh_me_cmd(
-                cmd=os.path.join(os.path.dirname(__file__), "travis.sh")
+        def connect_db():
+            return psycopg2.connect(
+                dbname="template1",
+                user="odoo",
             )
-            return please.run_traced(cmd, rtime=True)
-        return 126
+
+        please = self.please
+        sts = 126
+        cr = connect_db().cursor()
+        cr.execute(
+            "SELECT datname,"
+            "(pg_stat_file('base/'||oid ||'/PG_VERSION')).modification as datmod,"
+            "datdba::regrole"
+            " FROM pg_database order by datmod"
+        )
+        rex = re.compile("^(test|template)_[a-z]+")
+        date_limit = datetime.strftime(datetime.now() - timedelta(30), "%Y-%m-%d")
+        for row in cr.fetchall():
+            db_name, db_date, db_user = row[0], row[1], row[2]
+            if (
+                    datetime.strftime(db_date, "%Y-%m-%d") < date_limit
+                    and rex.match(db_name)
+            ):
+                sts = please.run_traced("dropdb -U%s %s" % (db_user, db_name),
+                                        rtime=True)
+                if sts:
+                    break
+        return sts
 
     def do_defcon(self):
         print("Missed sepcification:\nplease defcon precommit|gitignore")

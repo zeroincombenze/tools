@@ -11,7 +11,7 @@ import yaml
 from python_plus import _b
 from z0lib import z0lib
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 # RULES: every rule is list has the following format:
 # EREGEX, (ACTION, PARAMETERS), ...
