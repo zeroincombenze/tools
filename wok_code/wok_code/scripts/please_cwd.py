@@ -76,7 +76,9 @@ class PleaseCwd(object):
         ):
             sts = 0
             for root, dirs, files in os.walk(
-                    os.path.dirname(os.getcwd()) if is_pypi else os.getcwd()):
+                    os.path.dirname(os.getcwd())
+                    if is_pypi and os.path.basename(os.getcwd()) != "tools"
+                    else os.getcwd()):
                 for fn in files:
                     if not fn.endswith(".bak") and not fn.endswith("~"):
                         continue

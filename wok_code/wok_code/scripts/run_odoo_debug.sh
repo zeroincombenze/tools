@@ -81,14 +81,16 @@ check_for_modules() {
 }
 
 coverage_set() {
-    if [[ $opt_dry_run -eq 0 && $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
+    if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
+      [[ ! -d $HOME/coverage ]] && run_traced "mkdir $HOME/coverage"
       COVERAGE_DATA_FILE="$HOME/coverage/${UDI}"
       COVERAGE_PROCESS_START="$HOME/coverage/${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
-      cp $coverage_tmpl $COVERAGE_PROCESS_START
-      grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
-      [[ $PKGNAME == "mk_test_env" || $REPOSNAME == "zerobug-test"  ]] && sed -e "/\/tests\//d" -i $COVERAGE_PROCESS_START
+      run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
+      if [[ $opt_dry_run -eq 0 ]]; then
+        grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
+        [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -e "/\/tests\//d" -i $COVERAGE_PROCESS_START
+      fi
     fi
 }
 
@@ -457,7 +459,7 @@ if [[ -n "$opt_modules" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
         else
-            [[ $opt_verbose -ne 0 ]] && echo "Searching for module paths ..."
+            [[ $opt_verbose -ne 0 ]] && echo "# Searching for module paths ..."
             if [[ "$opt_modules" == "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA mod "$opaths")
             else
@@ -546,6 +548,7 @@ if [[ -n "$opt_db" ]]; then
     OPTDB="$OPTDB -d $opt_db"
 fi
 if [[ $opt_stat -ne 0 ]]; then
+    # run only show stats
     if [[ -n "$TEST_VDIR" ]]; then
         coverage_set
         coverage_report
@@ -604,7 +607,7 @@ if [[ $opt_touch -eq 0 ]]; then
                     [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
                     [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
                 fi
-                if [[ $opt_force -ne 0 ]] || psql -U$DB_USER -Atl|cut -d"|" -f1|grep -qv "$TEMPLATE"; then
+                if [[ $opt_force -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                     [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                     [[ $odoo_ver -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
                     [[ $odoo_ver -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
@@ -627,25 +630,27 @@ if [[ $opt_touch -eq 0 ]]; then
     [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
         run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
+        run_traced "pushd $ODOO_RUNDIR &>/dev/null"
         if [[ -n $COVERAGE_PROCESS_START ]]; then
             v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
             if [[ $v -ge 6 ]]; then
-                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
-                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
+                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
             else
-                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
-                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
+                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
             fi
         else
-            [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS &
-            [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "$script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && $script $OPT_CONF $OPT_LLEV $OPTS &
+            [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS &"
         fi
+        run_traced "popd &>/dev/null"
         [[ -n $ext_test ]] && test_with_external_process
     elif [[ opt_dbg -gt 1 ]]; then
         echo ""
@@ -678,7 +683,9 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
         if [[ $opt_dry_run -eq 0 ]]; then
             echo -e "\n+===================================================================" | tee -a $LOGFILE
-            grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m" || x="\e[32mSUCCESS!\e[0m"
+            x="\e[32mSUCCESS!\e[0m"
+            grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m"
+            grep -Eq "[0-9]+ (ERROR|CRITICAL|WARNING) .*invalid module names.*$opt_modules" $LOGFILE && x="\e[31mFAILED!\e[0m"
             echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
             echo -e "+===================================================================\n"  | tee -a $LOGFILE
             coverage_report | tee -a $LOGFILE
