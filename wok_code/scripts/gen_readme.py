@@ -117,7 +117,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"

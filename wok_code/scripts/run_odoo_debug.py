@@ -16,7 +16,7 @@ except ImportError:
 
 import psycopg2
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 

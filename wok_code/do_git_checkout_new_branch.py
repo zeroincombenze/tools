@@ -9,7 +9,7 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 class RepoCheckout(object):

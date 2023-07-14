@@ -1,11 +1,16 @@
-2.0.9.1 (2023-06-28)
-~~~~~~~~~~~~~~~~~~~~
+2.0.10 (2023-07-10)
+~~~~~~~~~~~~~~~~~~~
 
-* [IMP] gen_readme.py: do not create .bak file; now can be used in pre-commit process
+* [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
 * [IMP] please replace now do "please docs" before
 * [IMP] please docs now do "please clean" after
-* [IMP] please lint and zerobug now do "pre-commit run" before
-* [IMP] please test and zerobug now do "please translate" after
+* [IMP] please lint and zerobug now do "pre-commit run" before (--no-verify)
+* [IMP] please test and zerobug now do "please translate" after (--no-translate)
+* [IMP] please update: new switches --vme --odoo-venv
+* [IMP] please clean db: new action replace old wep-db
+* [REF] run_odoo_debug: partial refactoring
+* [IMP] run_odoo_debug: new switch --daemon
+* [FIX] please test / run_odoo_debug: minor fixes
 
 2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~

@@ -35,7 +35,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
