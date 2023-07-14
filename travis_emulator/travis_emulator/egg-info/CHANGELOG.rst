@@ -1,7 +1,8 @@
-2.0.5.1 (2023-06-10)
-~~~~~~~~~~~~~~~~~~~~
+2.0.6 (2023-07-10)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] travis: check for dropped DB and abort if still exist
+* [IMP] travis: action show as alias of show-log for please integration
 
 2.0.5 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
