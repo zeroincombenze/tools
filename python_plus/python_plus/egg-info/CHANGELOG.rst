@@ -69,7 +69,7 @@
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] vem: new swith -d for Odoo dependencies path
+* [IMP] vem: new switch -d for Odoo dependencies path
 * [FIX] vem: create with best package list
 * [FIX] vem: install odoo/openerp
 

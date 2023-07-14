@@ -1,7 +1,10 @@
-2.0.7.1 (2023-07-12)
-~~~~~~~~~~~~~~~~~~~~
+2.0.9 (2023-07-12)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] zerobug implementation with unittest
+* [FIX] z0testlib.py: build_odoo_env, odoo-bin / openerp-server are executable
+* [FIX] z0testlib.py: minor fixes
+
 2.0.7 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
 

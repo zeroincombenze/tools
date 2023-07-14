@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path as pth
 import sys
 
 from setuptools import find_packages, setup
@@ -41,7 +42,7 @@ setup(
     version='2.0.9',
     description='Zeroincombenze continuous testing framework'
     ' and tools for python and bash programs',
-    long_description=open("README.rst").read(),
+    long_description=open(pth.join(pth.dirname(__file__), "README.rst")).read(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU Affero General Public License v3',
