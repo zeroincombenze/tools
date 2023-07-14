@@ -296,7 +296,6 @@ class SanityTest:
 
     def test_01(self, z0ctx):
         """Sanity autotest #1"""
-        """Sanity autotest #1"""
         opts = ['-n']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
