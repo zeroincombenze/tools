@@ -151,7 +151,7 @@ This module is part of  project.
 
 Last Update / Ultimo aggiornamento: 
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg

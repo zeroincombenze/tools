@@ -111,7 +111,7 @@ Usage
 
 
 Code example
-------------
+~~~~~~~~~~~~
 
 *zerobug* makes avaiable following functions to test:
 
