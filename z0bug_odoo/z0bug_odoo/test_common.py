@@ -41,7 +41,7 @@ class Z0bugBaseCase(test_common.BaseCase):
         """Create a new record for test"""
         if int(release.major_version.split('.')[0]) < 8:
             return self.registry(model).create(self.cr, self.uid, values)
-        return self.env[model].create(values).id
+        return self.env[model].create(values).name
 
     def create_rec(self, model, values):
         """Create a new record for test"""
@@ -92,7 +92,7 @@ class Z0bugBaseCase(test_common.BaseCase):
             except BaseException:
                 return False
         try:
-            return self.env.ref(xref).id
+            return self.env.ref(xref).name
         except BaseException:
             return False
 
