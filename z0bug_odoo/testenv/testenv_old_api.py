@@ -132,7 +132,7 @@ if release:
         from openerp import workflow  # noqa: F401
         from openerp.modules.module import get_module_resource  # noqa: F401
     else:
-        from odoo import api
+        # from odoo import api
         import odoo.tests.common as test_common
         from odoo.modules.module import get_module_resource  # noqa: F401
         from odoo.tools.safe_eval import safe_eval
@@ -462,7 +462,6 @@ class MainTest(test_common.TransactionCase):
         self.convey_record[ir_resource][xref] = conveyed_xref
         self._move_conveyed_xref(resource, xref, conveyed_xref, group=group)
 
-    @api.model
     def _get_conveyed_value(self, resource, field, value, fmt=None):
         if (
             resource in self.convey_record
@@ -504,7 +503,6 @@ class MainTest(test_common.TransactionCase):
                 "account.payment.term.line", "all", "_cvt_account_payment_term_line"
             )
 
-    @api.model
     def _cvt_account_payment_term_line(self, values):
         if values.get("months"):
             values["days"] = values["months"] * 30
@@ -572,7 +570,6 @@ class MainTest(test_common.TransactionCase):
                         )
                         self.log_lvl_2(" 🌍 childs_name[%s] = %s" % (resource, field))
 
-    @api.model
     def _add_child_records(self, resource, xref, values, group=None):
         if resource not in self.childs_name:
             return values
@@ -599,14 +596,12 @@ class MainTest(test_common.TransactionCase):
     # --  Data structure functions  --
     # --------------------------------
 
-    @api.model
     def _is_xref(self, xref):
         return (
             isinstance(xref, basestring)
             and re.match(r"[\w]+\.[\w][^\s]+$", xref)
         )
 
-    @api.model
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
         xref, ln = xref.rsplit("_", 1)
@@ -616,13 +611,11 @@ class MainTest(test_common.TransactionCase):
             ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
         return xref, ln
 
-    @api.model
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
             return self.env[resource]._transient                     # pragma: no cover
         return resource._transient
 
-    @api.model
     def _add_xref(self, xref, xid, resource):
         """Add external reference ID that will be used in next tests.
         If xref exist, result ID will be upgraded"""
@@ -642,7 +635,6 @@ class MainTest(test_common.TransactionCase):
         xrefs[0].write(values)  # pragma: no cover
         return xrefs[0]  # pragma: no cover
 
-    @api.model
     def _get_xref_id(self, resource, xref, fmt=None, group=None):
         res = xref
         if xref.isdigit() or (xref.startswith("-") and xref[1:].isdigit()):
@@ -667,7 +659,6 @@ class MainTest(test_common.TransactionCase):
             res = res.name if res else False if fmt else xref
         return res
 
-    @api.model
     def _get_model_of_xref(self, xref):
         resource = name = ln = None
         if xref in self.setup_xrefs:
@@ -688,7 +679,6 @@ class MainTest(test_common.TransactionCase):
                 self.setup_xrefs[xref] = (None, resource)
         return resource
 
-    @api.model
     def _get_depending_xref(self, resource, xref):
         resource_child = xref_child = field_child = field_parent = False
         if resource == "product.template":
@@ -767,7 +757,6 @@ class MainTest(test_common.TransactionCase):
     # ---------------------------------------------
     # Return unicode even on python2
 
-    @api.model
     def _cast_field(self, resource, field, value, fmt=None, group=None):
         ftype = self.struct[resource][field]["type"]
         if ftype not in ("text", "binary", "html"):
@@ -797,7 +786,6 @@ class MainTest(test_common.TransactionCase):
             value = getattr(self, method)(resource, field, value, fmt=fmt, group=group)
         return value
 
-    @api.model
     def _convert_field_to_write(self, record, field):
         value = record[field]
         if value is not None and value is not False:
@@ -806,15 +794,12 @@ class MainTest(test_common.TransactionCase):
             value = getattr(self, method)(record, field, value)
         return value
 
-    @api.model
     def _cast_field_base(self, resource, field, value, fmt=None, group=None):
         return value
 
-    @api.model
     def _upgrade_field_base(self, record, field, value):
         return value
 
-    @api.model
     def _convert_base_to_write(self, record, field, value):
         return value
 
@@ -823,7 +808,6 @@ class MainTest(test_common.TransactionCase):
     # ----------------------------------
     # Return unicode even on python2
 
-    @api.model
     def _cast_field_selection(self, resource, field, value, fmt=None, group=None):
         if fmt and resource == "res.partner" and field == "lang":
             if not self.env["res.lang"].search([("code", "=", value)]):
@@ -836,7 +820,6 @@ class MainTest(test_common.TransactionCase):
     # --------------------------------
     # Return boolean
 
-    @api.model
     def _cast_field_boolean(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
             if value.isdigit():
@@ -856,7 +839,6 @@ class MainTest(test_common.TransactionCase):
     # --------------------------------
     # Return integer and/or long on python2
 
-    @api.model
     def _cast_field_integer(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
             value = int(value)
@@ -867,7 +849,6 @@ class MainTest(test_common.TransactionCase):
     # ------------------------------
     # Return float
 
-    @api.model
     def _cast_field_float(self, resource, field, value, fmt=None, group=None):
         if value and isinstance(value, basestring):
             value = eval(value)
@@ -878,7 +859,6 @@ class MainTest(test_common.TransactionCase):
     # ---------------------------------
     # Return float
 
-    @api.model
     def _cast_field_monetary(self, resource, field, value, fmt=None, group=None):
         return self._cast_field_float(resource, field, value, fmt=fmt, group=group)
 
@@ -888,7 +868,6 @@ class MainTest(test_common.TransactionCase):
     # Return datetime (cast / upgrade)
     # Return datetime (convert Odoo 11+) or string (convert Odoo 10-)
 
-    @api.model
     def _cvt_to_datetime(self, value):
         if isinstance(value, date):
             if isinstance(value, datetime):
@@ -906,7 +885,6 @@ class MainTest(test_common.TransactionCase):
             value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
-    @api.model
     def _cast_field_datetime(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
             value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
@@ -916,7 +894,6 @@ class MainTest(test_common.TransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
-    @api.model
     def _convert_datetime_to_write(self, record, field, value):
         return self._cvt_to_datetime(value)
 
@@ -926,7 +903,6 @@ class MainTest(test_common.TransactionCase):
     # Return date (cast / upgrade)
     # Return date (convert Odoo 11+) or string (convert Odoo 10-)
 
-    @api.model
     def _cvt_to_date(self, value):
         if isinstance(value, datetime):
             value = value.date()
@@ -934,7 +910,6 @@ class MainTest(test_common.TransactionCase):
             value = datetime.strptime(value[:10], "%Y-%m-%d").date()
         return value
 
-    @api.model
     def _cast_field_date(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, (list, tuple)) and fmt:
             value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
@@ -944,7 +919,6 @@ class MainTest(test_common.TransactionCase):
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
-    @api.model
     def _convert_date_to_write(self, record, field, value):
         return self._cvt_to_date(value)
 
@@ -953,7 +927,6 @@ class MainTest(test_common.TransactionCase):
     # -------------------------------
     # Return base64 (binary data) or string (filename with len<=64)
 
-    @api.model
     def _get_binary_filename(self, xref, bin_types=None):
         binary_root = get_module_resource(self.module.name, "tests", "data")
         if not bin_types:
@@ -969,7 +942,6 @@ class MainTest(test_common.TransactionCase):
                 return binary_file
         return False  # pragma: no cover
 
-    @api.model
     def _get_binary_contents(self, value):
         if (
             not isinstance(value, basestring)
@@ -984,7 +956,6 @@ class MainTest(test_common.TransactionCase):
             return base64.b64encode(bin_contents)
         return False  # pragma: no cover
 
-    @api.model
     def _cast_field_binary(self, resource, field, value, fmt=None, group=None):
         bin_contents = self._get_binary_contents(value)
         if bin_contents:
@@ -998,7 +969,6 @@ class MainTest(test_common.TransactionCase):
     # ---------------------------------
     # Return int (fmt), string (for xref before bind)
 
-    @api.model
     def _cast_field_many2one(self, resource, field, value, fmt=None, group=None):
         if isinstance(value, basestring):
             value = self._get_xref_id(
@@ -1018,7 +988,6 @@ class MainTest(test_common.TransactionCase):
                                              (int, long)) else value.name.origin
         return value if value else None
 
-    @api.model
     def _convert_many2one_to_write(self, record, field, value):
         if not value:
             return None
@@ -1030,7 +999,6 @@ class MainTest(test_common.TransactionCase):
     # -----------------------------------------------
     # Return [*] (fmt), string (for xref before bind)
 
-    @api.model
     def _value2dict(self, resource, value, fmt=None, group=None, field2rm=None):
         if isinstance(value, dict):
             return self._purge_values(
@@ -1047,7 +1015,6 @@ class MainTest(test_common.TransactionCase):
             )
         return value                                                 # pragma: no cover
 
-    @api.model
     def _cast_2many(self, resource, field, value, fmt=None, group=None, levl=0):
         """ "One2many and many2many may have more representations.
         standard Odoo 2many:
@@ -1202,7 +1169,6 @@ class MainTest(test_common.TransactionCase):
                 self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
-    @api.model
     def _cast_field_one2many(self, resource, field, value, fmt=None, group=None):
         value = self._cast_2many(
             resource,  # self.struct[resource][field]["relation"],
@@ -1215,7 +1181,6 @@ class MainTest(test_common.TransactionCase):
             value = None
         return value
 
-    @api.model
     def _cast_field_many2many(self, resource, field, value, fmt=None, group=None):
         return self._cast_2many(
             resource,  # self.struct[resource][field]["relation"],
@@ -1225,7 +1190,6 @@ class MainTest(test_common.TransactionCase):
             group=group
         )
 
-    @api.model
     def _convert_one2many_to_write(self, record, field, value):
         if value:
             return [(6, 0, [
@@ -1233,7 +1197,6 @@ class MainTest(test_common.TransactionCase):
                 for x in value])]
         return False
 
-    @api.model
     def _convert_many2many_to_write(self, record, field, value):
         return self._convert_one2many_to_write(record, field, value)
 
@@ -1241,7 +1204,6 @@ class MainTest(test_common.TransactionCase):
     # --  ir.model / resource functions  --
     # -------------------------------------
 
-    @api.model
     def cast_types(self, resource, values, fmt=None, group=None):
         """Convert resource fields in appropriate type, based on Odoo type.
         The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
@@ -1319,7 +1281,6 @@ class MainTest(test_common.TransactionCase):
 
         return values
 
-    @api.model
     def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
@@ -1339,7 +1300,6 @@ class MainTest(test_common.TransactionCase):
                 values[field] = value
         return values
 
-    @api.model
     def _upgrade_record(self, record, values, default={}):
         for field in list(values.keys()):
             if field in SUPERMAGIC_COLUMNS:  # pragma: no cover
@@ -1354,7 +1314,6 @@ class MainTest(test_common.TransactionCase):
                     setattr(record, field, value)
         return record
 
-    @api.model
     def _purge_values(self, values, timed=None, fieldname=None):
         for field in BITTER_COLUMNS + [fieldname]:
             if field in values:
@@ -1369,7 +1328,6 @@ class MainTest(test_common.TransactionCase):
     # --  Wizard/Form internal functions  --
     # --------------------------------------
 
-    @api.model
     def _ctx_active_ids(self, records, ctx={}):
         if records:
             if is_iterable(records):
@@ -1396,7 +1354,6 @@ class MainTest(test_common.TransactionCase):
         elif "context" not in act_windows:
             act_windows["context"] = {}
 
-    @api.model
     def _create_object(self, resource, default={}, origin=None, ctx={}):
         if self.odoo_major_version < 13:
             if ctx:
@@ -1425,7 +1382,6 @@ class MainTest(test_common.TransactionCase):
                 method(record)
         return record
 
-    @api.model
     def for_xml_id(self, module, name):
         if self.odoo_major_version < 13:
             return self.env["ir.actions.act_window"].for_xml_id(module, name)
@@ -1433,7 +1389,6 @@ class MainTest(test_common.TransactionCase):
             record = self.env.ref("%s.%s" % (module, name))
             return record.read()[0]
 
-    @api.model
     def _set_origin(self, record, ctx={}):
         resource_model = self._get_model_from_records(record)
         origin = self.env[resource_model]
@@ -1446,7 +1401,6 @@ class MainTest(test_common.TransactionCase):
             )
         return origin
 
-    @api.model
     def _exec_action(self, record, action, default={}, web_changes=[], origin=None,
                      ctx={}):
         resource_model = self._get_model_from_records(record)
@@ -1510,13 +1464,11 @@ class MainTest(test_common.TransactionCase):
             )
         return act_windows
 
-    @api.model
     def _get_model_from_act_windows(self, act_windows):
         return act_windows.get(
             "model_name", act_windows.get("res_model", act_windows.get("model"))
         )
 
-    @api.model
     def _get_src_model_from_act_windows(self, act_windows):
         model_name = act_windows.get("src_model")
         if not model_name and act_windows.get("binding_model_id"):
@@ -1530,7 +1482,6 @@ class MainTest(test_common.TransactionCase):
                     model_name = records[0].model
         return model_name
 
-    @api.model
     def _get_model_from_records(self, records):
         if not records:  # pragma: no cover
             resource_model = None
@@ -1542,7 +1493,6 @@ class MainTest(test_common.TransactionCase):
             resource_model = records._name
         return resource_model
 
-    @api.model
     def _wiz_launch(self, act_windows, records=None, default=None, ctx={}):
         """Start a wizard from a windows action.
 
@@ -1654,7 +1604,6 @@ class MainTest(test_common.TransactionCase):
             self.env["ir.ui.view"].browse(act_windows["view_id"])  # pragma: no cover
         return act_windows
 
-    @api.model
     def _wiz_launch_by_act_name(
         self,
         module,
@@ -1705,7 +1654,6 @@ class MainTest(test_common.TransactionCase):
             records=records,
         )
 
-    @api.model
     def _wiz_edit(self, wizard, resource, field, value, onchange=None):
         """Simulate view editing on a field.
 
@@ -1754,7 +1702,6 @@ class MainTest(test_common.TransactionCase):
         if onchange:  # pragma: no cover
             getattr(wizard, onchange)()
 
-    @api.model
     def _wiz_execution(
         self,
         act_windows,
@@ -1841,7 +1788,6 @@ class MainTest(test_common.TransactionCase):
             self.setup_data_list[group].append(name)
         self.setup_xrefs[xref] = (group, resource)
 
-    @api.model
     def default_company(self):
         return self.env.user.company_id
 
@@ -1857,7 +1803,6 @@ class MainTest(test_common.TransactionCase):
         """
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
-    @api.model
     def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
@@ -1977,7 +1922,6 @@ class MainTest(test_common.TransactionCase):
             self.raise_error("External ID %s not found" % xref)  # pragma: no cover
         return False
 
-    @api.model
     def resource_create(self, resource, values=None, xref=None, group=None):
         """Create a test record and set external ID to next tests.
         This function works as standard Odoo create() with follow improvements:
@@ -2046,7 +1990,6 @@ class MainTest(test_common.TransactionCase):
                 )
         return res
 
-    @api.model
     def resource_write(
         self, resource, xref=None, values=None, raise_if_not_found=True, group=None
     ):
@@ -2111,7 +2054,6 @@ class MainTest(test_common.TransactionCase):
                 return None
         return record
 
-    @api.model
     def resource_make(self, resource, xref, values=None, group=None):
         """Create or write a test record.
         This function is a hook to resource_write() or resource_create().
@@ -2199,7 +2141,6 @@ class MainTest(test_common.TransactionCase):
                 resource, message[item], group=group, merge=merge
             )
 
-    @api.model
     def get_resource_data(self, resource, xref, group=None, try_again=True):
         """Get declared resource data; may be used to test compare.
 
@@ -2225,7 +2166,6 @@ class MainTest(test_common.TransactionCase):
             return self.get_resource_data(resource, xref, group=group, try_again=False)
         return {}  # pragma: no cover
 
-    @api.model
     def get_resource_data_list(self, resource, group=None):
         """Get declared resource data list.
 
@@ -2241,7 +2181,6 @@ class MainTest(test_common.TransactionCase):
             return list(self.setup_data[group][resource].keys())
         return []  # pragma: no cover
 
-    @api.model
     def get_resource_list(self, group=None):
         """Get declared resource list.
 
@@ -2288,7 +2227,6 @@ class MainTest(test_common.TransactionCase):
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
-    @api.model
     def setup_company(
         self,
         company,
@@ -2443,7 +2381,6 @@ class MainTest(test_common.TransactionCase):
     #                                          #
     ############################################
 
-    @api.model
     def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):
         """Server-side web form editing.
         Ordinary Odoo test use the primitive create() and write() functions to manage
@@ -2526,7 +2463,6 @@ class MainTest(test_common.TransactionCase):
                 resource = result
         return result
 
-    @api.model
     def field_download(self, record, field):
         """Execute the data download from a binary field.
 
@@ -2542,7 +2478,6 @@ class MainTest(test_common.TransactionCase):
             raise ValueError("Field %s not found in %s" % (field, record._name))
         return base64.b64decode(getattr(record, field))
 
-    @api.model
     def resource_download(
         self,
         module=None,
@@ -2609,7 +2544,6 @@ class MainTest(test_common.TransactionCase):
             getattr(self.env[res_model].browse(act_windows["res_id"]), field)
         )
 
-    @api.model
     def is_action(self, act_windows):
         return isinstance(act_windows, dict) and act_windows.get("type") in (
             "ir.actions.act_window",
@@ -2617,7 +2551,6 @@ class MainTest(test_common.TransactionCase):
             "ir.actions.act_window_close"
         )
 
-    @api.model
     def wizard(
         self,
         module=None,
@@ -2704,7 +2637,6 @@ class MainTest(test_common.TransactionCase):
             button_ctx=button_ctx,
         )
 
-    @api.model
     def get_records_from_act_windows(self, act_windows):
         """Get records from a windows message.
 

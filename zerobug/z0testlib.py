@@ -154,12 +154,16 @@ exclude_lines =
 
 class PypiTest(unittest.TestCase):
 
-    def setUp(self):
-        self.assert_counter = 0
+    assert_counter = 0
 
-    def tearDown(self):
+    # @classmethod
+    # def setUpClass(cls):
+    #     cls.assert_counter = 0
+
+    @classmethod
+    def tearDownClass(cls):
         # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
-        print("%d tests SUCCESSFULLY completed" % self.assert_counter)
+        print("%d tests SUCCESSFULLY completed" % cls.assert_counter)
 
     def version(self):
         return __version__
