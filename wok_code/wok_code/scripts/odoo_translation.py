@@ -1004,7 +1004,7 @@ class OdooTranslation(object):
                     clodoo.writeL8(
                         ctx,
                         model_translation,
-                        term.id,
+                        term.name,
                         {"value": value, "state": "translated"},
                     )
                 except BaseException as e:

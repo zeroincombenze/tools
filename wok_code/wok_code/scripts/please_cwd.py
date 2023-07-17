@@ -50,8 +50,10 @@ class PleaseCwd(object):
         self.please.add_argument(parser, "-c")
         if not for_help:
             self.please.add_argument(parser, "-n")
+        self.please.add_argument(parser, "-f")
+        if not for_help:
             self.please.add_argument(parser, "-q")
-            self.please.add_argument(parser, "-v")
+        self.please.add_argument(parser, "-v")
         parser.add_argument(
             "--no-verify", action="store_true", help="Disable pre-commit on replace"
         )
@@ -112,6 +114,21 @@ class PleaseCwd(object):
 
         please = self.please
         sts = 126
+        remove_ts = datetime.now() - timedelta(
+            seconds=30 if please.opt_args.force else 1800)
+        for fn in sorted(os.listdir(os.path.expanduser("~/"))):
+            if not fn.startswith("VENV_"):
+                continue
+            ffn = os.path.expanduser("~/%s" % fn)
+            fn_ts = max(
+                datetime.fromtimestamp(os.path.getmtime(ffn)),
+                datetime.fromtimestamp(os.path.getmtime(ffn))
+            )
+            if fn_ts < remove_ts:
+                sts = please.run_traced("rm -fR " + ffn, rtime=True)
+                if sts:
+                    break
+
         cr = connect_db().cursor()
         cr.execute(
             "SELECT datname,"

@@ -7,11 +7,13 @@
 """
 from __future__ import print_function, unicode_literals
 import os
-import sys
+# import sys
 from datetime import datetime, timedelta
+import unittest
 
 from z0lib import z0lib
-from zerobug import z0test
+# from zerobug import z0test
+from zerobug import z0testlib                                             # noqa: E402
 
 
 __version__ = "2.0.10"
@@ -25,16 +27,35 @@ def version():
     return __version__
 
 
-class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
-        self.root = ''
-        self.odoo_datadir = os.path.join(self.Z.testdir, "data")
+# class RegressionTest:
+class PypiTest(z0testlib.PypiTest):
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
+    #     self.root = ''
+    #     self.odoo_datadir = os.path.join(self.Z.testdir, "data")
+    #     if not os.path.isdir(self.odoo_datadir):
+    #         os.mkdir(self.odoo_datadir)
+    #     self.odoo_testdir = os.path.join(self.Z.testdir, "res")
+    #     if not os.path.isdir(self.odoo_testdir):
+    #         os.mkdir(self.odoo_testdir)
+
+    def setUp(self):
+        super(PypiTest, self).setUp()
+        if os.path.basename(os.getcwd()) == "tests":
+            self.testdir = os.getcwd()
+            self.rundir = os.path.dirname(os.getcwd())
+        else:
+            self.testdir = os.stat.join(os.getcwd(), "tests")
+            self.rundir = os.getcwd()
+        self.odoo_datadir = os.path.join(self.testdir, "data")
         if not os.path.isdir(self.odoo_datadir):
             os.mkdir(self.odoo_datadir)
-        self.odoo_testdir = os.path.join(self.Z.testdir, "res")
+        self.odoo_testdir = os.path.join(self.testdir, "res")
         if not os.path.isdir(self.odoo_testdir):
             os.mkdir(self.odoo_testdir)
+        z0lib.run_traced(
+            "build_cmd %s" % os.path.join(self.rundir, "scripts", "arcangelo.py")
+        )
 
     def get_fullname(self, fn):
         ffn = os.path.join(self.odoo_datadir, fn)
@@ -76,155 +97,87 @@ class RegressionTest:
             return False
         return True
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         sts, stdout, stderr = z0lib.run_traced("arcangelo --version")
-        if sts:
-            self.Z.test_result(z0ctx, "arcangelo --version", 0, sts)
-            return sts
-        self.Z.test_result(
-            z0ctx, "arcangelo --version", __version__, (stdout + stderr).split("\n")[0]
-        )
-        return sts
+        self.assertEqual(sts, 0, msg_info="arcangelo --version")
+        self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
-    def test_02(self, z0ctx):
+    def test_02(self):
         src_ffn = self.get_fullname("old_api_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("old_api_02.py")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("old_api_02.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("old_api_02.py")))
 
         src_ffn = self.get_fullname("new_api_py2_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F10.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
 
         src_ffn = self.get_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py2_02.py")
         cmd = "arcangelo -fw -F12.0 -b10.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py2_02.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py2_02.py")))
 
         src_ffn = self.get_fullname("old_api_b_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
 
-    def test_03(self, z0ctx):
+    def test_03(self):
         src_ffn = self.get_fullname("old_api_03.xml")
         tgt_ffn = self.get_test_fullname("new_api_03.xml")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_03.xml")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_03.xml")))
 
         src_ffn = self.get_fullname("new_api_03.xml")
         tgt_ffn = self.get_test_fullname("old_api_03.xml")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_03.xml")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_03.xml")))
 
-    def test_04(self, z0ctx):
+    def test_04(self):
         src_ffn = self.get_fullname("old_api_04.xml")
         tgt_ffn = self.get_test_fullname("new_api_04.xml")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_04.xml")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_04.xml")))
 
         src_ffn = self.get_fullname("new_api_04.xml")
         tgt_ffn = self.get_test_fullname("old_api_04.xml")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_04.xml")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_04.xml")))
 
-    def test_05(self, z0ctx):
+    def test_05(self):
         src_ffn = self.get_fullname("pkg_py2_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_05.py")
         cmd = "arcangelo -fw --pypi-package %s -o %s" % (
@@ -232,17 +185,10 @@ class RegressionTest:
             tgt_ffn,
         )
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
+        self.assertEqual(sts, 0, msg_info=cmd)
         # With future result is like python2
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
-            True,
-        )
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")))
 
         src_ffn = self.get_fullname("pkg_py3_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_05.py")
@@ -251,18 +197,11 @@ class RegressionTest:
             tgt_ffn,
         )
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")))
 
-    def test_06(self, z0ctx):
+    def test_06(self):
         src_ffn = self.get_fullname("pkg_py2_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_06.py")
         cmd = "arcangelo -fw --pypi-package %s -o %s" % (
@@ -270,17 +209,10 @@ class RegressionTest:
             tgt_ffn,
         )
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
+        self.assertEqual(sts, 0, msg_info=cmd)
         # With future result is like python2
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")),
-            True,
-        )
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")))
 
         src_ffn = self.get_fullname("pkg_py3_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_06.py")
@@ -289,18 +221,11 @@ class RegressionTest:
             tgt_ffn,
         )
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")))
 
-    def test_90(self, z0ctx):
+    def test_90(self):
         src_ffn = self.get_fullname("CHANGELOG.rst")
         tgt_ffn = self.get_fullname("history.rst")
         last_date = datetime.strftime((datetime.now() - timedelta(days=10)), "%Y-%m-%d")
@@ -315,35 +240,25 @@ class RegressionTest:
             fd.write(content)
 
         cmd = "arcangelo -f --test-res-msg='%s' %s" % (
-            "* [QUA] Valid result",
+            "* [QUA] Valid result 100% (14: 0+14) [10 TestPoint]",
             src_ffn,
         )
         sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            print("Error %d file %s" % (sts, src_ffn))
-            print(stderr)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            cmd.replace(self.Z.testdir, "."),
-            self.compare_fn(tgt_ffn, src_ffn),
-            True,
-        )
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, src_ffn))
 
-    def setup(self, z0ctx):
-        z0lib.run_traced(
-            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "arcangelo.py")
+        cmd = "arcangelo -f --test-res-msg='%s' %s" % (
+            "* [QUA] Valid result 100% (14: 0+14) [6 TestPoint]\n[4 TestPoint]",
+            src_ffn,
         )
-
-    def tearoff(self, z0ctx):
-        pass
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, src_ffn))
 
 
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(
-        z0test.main_local(
-            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
-        )
-    )
+    exit(unittest.main())

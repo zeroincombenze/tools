@@ -66,6 +66,7 @@ class PleaseZ0bug(object):
             help="Do not save virtual environment into ~/VME/... if does not exist",
         )
         parser.add_argument("-e", "--locale", metavar="ISO", help="use locale")
+        self.please.add_argument(parser, "-f")
         parser.add_argument(
             "--full",
             action="store_true",
@@ -188,6 +189,36 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
+            if not please.opt_args.no_verify and os.path.isdir("tests"):
+                sts, branch = please.get_odoo_branch_from_git()
+                if please.opt_args.debug:
+                    if os.environ.get("HOME_DEVEL"):
+                        srcpath = os.path.join(os.environ["HOME_DEVEL"], "pypi")
+                    elif os.path.isdir("~/odoo/tools"):
+                        srcpath = os.path.expanduser("~/odoo/devel/pypi")
+                    else:
+                        srcpath = os.path.expanduser("~/devel/pypi")
+                    srcpath = os.path.join(
+                        srcpath, "z0bug_odoo", "z0bug_odoo", "testenv")
+                else:
+                    if os.environ.get("HOME_DEVEL"):
+                        srcpath = os.path.join(
+                            os.path.dirname(os.environ["HOME_DEVEL"]), "tools"
+                        )
+                    elif os.path.isdir("~/odoo/tools"):
+                        srcpath = os.path.expanduser("~/odoo/tools")
+                    else:
+                        srcpath = os.path.expanduser("~/odoo/tools")
+                    srcpath = os.path.join(srcpath, "z0bug_odoo", "testenv")
+                if branch and int(branch.split(".")[0]) <= 7:
+                    please.run_traced(
+                        "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
+                        rtime=True)
+                else:
+                    please.run_traced(
+                        "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
+                please.run_traced(
+                    "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd()

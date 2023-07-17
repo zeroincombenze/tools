@@ -1,7 +1,20 @@
 # -*- coding: utf-8 -*-
+import os.path as pth
 import sys
 
 from setuptools import find_packages, setup
+
+name = "clodoo"
+github_url = "https://github.com/zeroincombenze/tools"
+author = "Antonio Maria Vigliotti"
+author_email = "<info@shs-av.com>"
+source_url = "%s/tree/master/%s" % (github_url, name)
+doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug"
+changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
+try:
+    long_description = open(pth.join(pth.dirname(__file__), "README.rst")).read()
+except IOError:
+    long_description = ""
 
 if sys.version_info >= (3, 0):
     install_requires = [
@@ -32,23 +45,10 @@ else:
     ]
 
 setup(
-    name="clodoo",
+    name=name,
     version="2.0.6",
     description="Do massive operations on Odoo Cloud",
-    long_description="""
-Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
-
-With clodoo you can do massive operations on 1 or more Odoo databases based on
-different Odoo versions. Main operation are:
-
-* create consistent database to run tests
-* repeat consistent action on many db with same or different Odoo version
-* repeat above actions on every new database
-
-clodoo is also a PYPI package to simplify RPC connection to Odoo.
-The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
-can execute any command to any Odoo version server (from 6.1 to 13.0)
-""",
+    long_description=long_description,
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU Affero General Public License v3",
@@ -62,14 +62,16 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
         "Topic :: Software Development",
     ],
     keywords="odoo",
-    url="https://zeroincombenze-tools.readthedocs.io",
+    url=github_url,
     project_urls={
-        "Documentation": "https://zeroincombenze-tools.readthedocs.io",
-        "Source": "https://github.com/zeroincombenze/tools",
+        "Documentation": doc_url,
+        "Source": source_url,
+        "Changelog": changelog_url,
     },
-    author="Antonio Maria Vigliotti",
-    author_email="antoniomaria.vigliotti@gmail.com",
+    author=author,
+    author_email=author_email,
     license="Affero GPL",
+    install_requires=install_requires,
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
@@ -81,7 +83,6 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
             "./transodoo.xlsx",
         ]
     },
-    install_requires=install_requires,
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",

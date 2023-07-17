@@ -97,7 +97,7 @@ def export_table(ctx):
     ctr = 0
     domain = eval(ctx.get("search_domain", []))
     for rec in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, domain)):
-        print("Reading id %d" % rec.id)
+        print("Reading id %d" % rec.name)
         out_dict = {}
         data_valid = True
         discard = False

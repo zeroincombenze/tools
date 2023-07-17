@@ -198,53 +198,53 @@ if [[ ! $opts =~ ^-.*k ]]; then
             exit 1
         fi
         # TODO> remove early: copy files
-        if [[ $pkg == "tools" ]]; then
-          [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
-        else
-          [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
-        fi
-        for fn in $flist; do
-            if [[ $fn == "." ]]; then
-                src="$srcdir"
-                tgt="$BINPATH/${pfn}"
-                ftype=d
-            elif [[ $fn == "readlink" ]]; then
-                READLINK=$(which greadlink 2>/dev/null)
-                if [[ -z "$READLINK" ]]; then
-                    [[ -L $BINPATH/readlink ]] && rm -f $BINPATH/readlink
-                    continue
-                fi
-                src=$READLINK
-                tgt="$BINPATH/${fn}"
-                ftype=f
-            else
-                src="$srcdir/$fn"
-                tgt="$BINPATH/$fn"
-                [[ -d "$src" ]] && ftype=d || ftype=f
-            fi
-            if $(echo "$src"|grep -Eq "\*"); then
-                src=$(dirname "$src")
-                tgt=$(dirname "$tgt")
-                ftype=d
-            fi
-            if [[ ! -e "$src" ]]; then
-                echo "# File $src not found!"
-            else
-                [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
-                [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
-                [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
-                [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
-                if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
-                    [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
-                    run_traced "ln -s $src $tgt"
-                else
-                    [[ $ftype == f ]] && copts="" || copts="-r"
-                    run_traced "cp $copts $src $tgt"
-                    [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
-                    set_hashbang $tgt
-                fi
-            fi
-        done
+#        if [[ $pkg == "tools" ]]; then
+#          [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
+#        else
+#          [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
+#        fi
+#        for fn in $flist; do
+#            if [[ $fn == "." ]]; then
+#                src="$srcdir"
+#                tgt="$BINPATH/${pfn}"
+#                ftype=d
+#            elif [[ $fn == "readlink" ]]; then
+#                READLINK=$(which greadlink 2>/dev/null)
+#                if [[ -z "$READLINK" ]]; then
+#                    [[ -L $BINPATH/readlink ]] && rm -f $BINPATH/readlink
+#                    continue
+#                fi
+#                src=$READLINK
+#                tgt="$BINPATH/${fn}"
+#                ftype=f
+#            else
+#                src="$srcdir/$fn"
+#                tgt="$BINPATH/$fn"
+#                [[ -d "$src" ]] && ftype=d || ftype=f
+#            fi
+#            if $(echo "$src"|grep -Eq "\*"); then
+#                src=$(dirname "$src")
+#                tgt=$(dirname "$tgt")
+#                ftype=d
+#            fi
+#            if [[ ! -e "$src" ]]; then
+#                echo "# File $src not found!"
+#            else
+#                [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
+#                [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
+#                [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
+#                [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
+#                if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
+#                    [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
+#                    run_traced "ln -s $src $tgt"
+#                else
+#                    [[ $ftype == f ]] && copts="" || copts="-r"
+#                    run_traced "cp $copts $src $tgt"
+#                    [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+#                    set_hashbang $tgt
+#                fi
+#            fi
+#        done
         [[ $pkg == "tools" ]] && continue
         # Tools PYPI installation
         if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then

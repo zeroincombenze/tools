@@ -47,7 +47,7 @@ class Model(object):
     >>> user_obj = oerp.get('res.users')
     >>> user_obj
     <oerplib.service.osv.osv.Model object at 0xb75ba4ac>
-    >>> user_obj.name_get(user.id) # Use any methods from the model instance
+    >>> user_obj.name_get(user.name) # Use any methods from the model instance
     [[1, 'Administrator']]
 
     .. warning::
@@ -146,9 +146,9 @@ class Model(object):
                     vals[field_name] = field_value
         try:
             if v(self._oerp.version) < v('6.1'):
-                res = self.write([obj.id], vals, context)
+                res = self.write([obj.name], vals, context)
             else:
-                res = self.write([obj.id], vals, context=context)
+                res = self.write([obj.name], vals, context=context)
         except error.Error as exc:
             raise exc
         else:
@@ -174,15 +174,15 @@ class Model(object):
             else:
                 obj_data['raw_data'][field_name] = None
         # Fill fields with values of the record
-        if obj.id:
+        if obj.name:
             if v(self._oerp.version) < v('6.1'):
-                data = self.read([obj.id], basic_fields, context)
+                data = self.read([obj.name], basic_fields, context)
                 if data:
                     obj_data['raw_data'].update(data[0])
                 else:
                     obj_data['raw_data'] = False
             else:
-                data = self.read([obj.id], basic_fields, context=context)
+                data = self.read([obj.name], basic_fields, context=context)
                 if data:
                     obj_data['raw_data'].update(data[0])
                 else:
@@ -190,7 +190,7 @@ class Model(object):
             if obj_data['raw_data'] is False:
                 raise error.RPCError(
                     "There is no '{model}' record with ID {obj_id}.".format(
-                        model=obj.__class__.__osv__['name'], obj_id=obj.id))
+                        model=obj.__class__.__osv__['name'], obj_id=obj.name))
         # No ID: fields filled with default values
         else:
             if v(self._oerp.version) < v('6.1'):
@@ -224,9 +224,9 @@ class Model(object):
         """Delete the object from the server."""
         context = context or self._oerp.context
         if v(self._oerp.version) < v('6.1'):
-            return self.unlink([obj.id], context)
+            return self.unlink([obj.name], context)
         else:
-            return self.unlink([obj.id], context=context)
+            return self.unlink([obj.name], context=context)
 
     def __getattr__(self, method):
         """Provide a dynamic access to a RPC method."""

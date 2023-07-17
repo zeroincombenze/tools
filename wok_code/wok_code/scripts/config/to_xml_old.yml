@@ -1,0 +1,30 @@
+-
+  - '^ *<odoo'
+  -
+    - '$'
+    - matches_odoo_tag
+-
+  - '^ *</odoo>'
+  -
+    - '$'
+    - matches_odoo_endtag
+-
+  - '^ *<openerp'
+  -
+    - '$'
+    - matches_openerp_tag
+-
+  - ' *</openerp>'
+  -
+    - '$'
+    - matches_openerp_endtag
+-
+  - '^ *<data'
+  -
+    - '$'
+    - matches_data_tag
+-
+  - '^ *</data>'
+  -
+    - '$'
+    - matches_data_endtag

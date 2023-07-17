@@ -305,13 +305,13 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
+            "/please.sh test -vn" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh translate -vn" in stdout.split("\n")[1],
+            "/please.sh translate -vn" in stdout.split("\n")[3],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -324,7 +324,7 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
+            "/please.sh test -vn" in stdout.split("\n")[2],
         )
         return sts
 
