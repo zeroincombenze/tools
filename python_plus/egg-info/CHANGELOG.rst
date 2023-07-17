@@ -1,4 +1,4 @@
-2.0.8 (2023-06-26)
+2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: werkzeug for Odoo 16.0
@@ -69,7 +69,7 @@
 2.0.0.1 (2022-09-06)
 ~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] vem: new swith -d for Odoo dependencies path
+* [IMP] vem: new switch -d for Odoo dependencies path
 * [FIX] vem: create with best package list
 * [FIX] vem: install odoo/openerp
 

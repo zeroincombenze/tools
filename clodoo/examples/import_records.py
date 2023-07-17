@@ -67,7 +67,7 @@ except ImportError:
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 
 msg_time = time.time()
@@ -306,7 +306,7 @@ def copy_db(ctx, src_ctx, MYDICT_C, MYDICT_S, TNL, skeys):
     for rec in clodoo.browseL8(
         src_ctx, ctx["model"], clodoo.searchL8(src_ctx, ctx["model"], [], order="id")
     ):
-        msg_burst("%d, %s" % (rec.id, rec.name))
+        msg_burst("%d, %s" % (rec.name, rec.name))
         row = clodoo.extract_vals_from_rec(src_ctx, ctx["model"], rec, format="str")
         add_item(ctx, row)
         ctr += 1

@@ -26,7 +26,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 
 MODULE_ID = "clodoo"
@@ -355,7 +355,7 @@ class RegressionTest:
             model = "res.users"
             if not z0ctx["dry_run"]:
                 user = clodoo.browseL8(ctx, "res.users", 1)
-                user_id = user.id
+                user_id = user.name
             else:
                 user_id = 1
             sts = self.Z.test_result(z0ctx, "browseL8(res.users)", 1, user_id)

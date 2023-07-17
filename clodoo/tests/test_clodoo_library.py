@@ -25,7 +25,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 ODOO_VERSION_TO_TEST = ("16.0", "12.0", "10.0", "7.0")
 

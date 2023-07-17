@@ -16,8 +16,8 @@
 # --use-features=in-tree-build  |   X  |   X  |   X  |   X  |  OK  |   X
 # -----------------------------------------------------------------------------
 # OK -> Use feature / X -> Feature unavailable / no -> Do use use
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
 # Based on template 2.0.0
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -343,6 +343,23 @@ pip_install_git() {
     return $sts
 }
 
+pip_install_tools() {
+    # pip_install_tools $srcdir
+    local srcdir pfn tmpdir
+    srcdir="$1"
+    pfn=$(basename $1)
+    tmpdir="$VIRTUAL_ENV/tmp"
+    [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
+    run_traced "mkdir -p $tmpdir/$pfn"
+    run_traced "cp -r $srcdir/ $tmpdir/$pfn/"
+    run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
+    [[ -f $tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
+    # x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
+    # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
+    run_traced "$PIP install $tmpdir/$pfn $popts"
+    return $?
+}
+
 pip_install() {
   #pip_install(pkg opts)
   local d pfn pkg popts pypath srcdir tmpdir v vpkg x DISTO FH sts=126
@@ -355,6 +372,7 @@ pip_install() {
   tmpdir=$VIRTUAL_ENV/tmp
   pkg=$(get_actual_pkg "$pkg")
   pfn=$(get_pkg_wo_version "$pkg")
+  [[ $pfn == "zerobug" ]] && set -x   #debug
   x="-qP"
   [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
   [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
@@ -391,14 +409,7 @@ pip_install() {
       [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
       [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
       if [[ $opt_debug -eq 2 ]]; then
-        [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
-        run_traced "mkdir -p $tmpdir/$pfn"
-        run_traced "cp -r $srcdir $tmpdir/$pfn/"
-        run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
-        [[ -f tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
-        x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
-        # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
-        run_traced "$PIP install $tmpdir/$pfn $popts"
+        pip_install_tools "$srcdir"
         sts=$?
         [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
         run_traced "rm -fR $tmpdir/$pfn"
@@ -487,14 +498,20 @@ pip_install() {
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     else
       [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
-      [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
-      run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
-      sts=$?
+      if [[ -d $vpkg && $vpkg =~ /tools/ ]]; then
+        pip_install_tools "$vpkg"
+        sts=$?
+      else
+        [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
+        run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
+        sts=$?
+      fi
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
+  set +x  #debug
   return $sts
 }
 
@@ -822,8 +839,8 @@ custom_env() {
   elif $(grep -q "^# export HOME=" $VIRTUAL_ENV/bin/activate); then
     sed -e 's|^# export HOME=.*|# export HOME="\$VIRTUAL_ENV"|g' -i $VIRTUAL_ENV/bin/activate
   else
-    sed -r "/deactivate *\(\) *\{/i\READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)" -i $VIRTUAL_ENV/bin/activate
-    sed -r "/deactivate *\(\) *\{/i\export READLINK\n" -i $VIRTUAL_ENV/bin/activate
+    # sed -r "/deactivate *\(\) *\{/i\READLINK=\$(which greadlink 2>/dev/null) || READLINK=\$(which readlink 2>/dev/null)" -i $VIRTUAL_ENV/bin/activate
+    # sed -r "/deactivate *\(\) *\{/i\export READLINK\n" -i $VIRTUAL_ENV/bin/activate
     [[ $opt_alone -gt 1 ]] && sed -r "/deactivate *\(\) *\{/a\    export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" -i $VIRTUAL_ENV/bin/activate
     [[ $opt_alone -le 1 ]] && sed -r "/deactivate *\(\) *\{/a\    # export HOME=\$(getent passwd \$USER|awk -F: '{print \$6}')" -i $VIRTUAL_ENV/bin/activate
     [[ $opt_alone -gt 1 ]] && echo "export HOME=\"\$VIRTUAL_ENV\"" >>$VIRTUAL_ENV/bin/activate

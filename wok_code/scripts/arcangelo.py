@@ -63,90 +63,57 @@ __version__ = "2.0.10"
 # - "=": execute python code
 #
 
-# _RULES_TO_ODOO_PY3 = [
+
+# RULES_TO_XML_NEW = [
 #     (
-#         r"^ *super\([^)]*\)",
-#         ("s", r"super\([^)]*\)", "super()"),
-#         ("s", r"\(cr, *uid, *", "("),
-#         ("s", r", *context=[^)]+", ""),
+#         "^ *<openerp",
+#         ("$", "matches_openerp_tag"),
+#     ),
+#     (
+#         "^ *</openerp>",
+#         ("$", "matches_openerp_endtag"),
+#     ),
+#     (
+#         "^ *<data",
+#         ("$", "matches_data_tag"),
+#     ),
+#     (
+#         "^ *</data>",
+#         ("$", "matches_data_endtag"),
+#     ),
+#     (
+#         "^ *<odoo",
+#         ("$", "matches_odoo_tag"),
+#     ),
+#     (
+#         "^ *</odoo>",
+#         ("$", "matches_odoo_endtag"),
 #     ),
 # ]
-# _RULES_TO_ODOO_PY2 = [
+# RULES_TO_XML_OLD = [
 #     (
-#         r"^ *super\([^)]*\)",
-#         ("s", r"super\(\)", "super(%(classname)s, self)"),
-#         ("-8s", r"(\)\.[^(]+)\(", r"\1(cr, uid, "),
-#         ("-8s", r"(super[^)]+\)[^)]+)", r"\1, context=context"),
+#         "^ *<odoo",
+#         ("$", "matches_odoo_tag"),
 #     ),
-# ]
-RULES_TO_XML_NEW = [
-    (
-        "^ *<openerp",
-        ("$", "matches_openerp_tag"),
-    ),
-    (
-        "^ *</openerp>",
-        ("$", "matches_openerp_endtag"),
-    ),
-    (
-        "^ *<data",
-        ("$", "matches_data_tag"),
-    ),
-    (
-        "^ *</data>",
-        ("$", "matches_data_endtag"),
-    ),
-    (
-        "^ *<odoo",
-        ("$", "matches_odoo_tag"),
-    ),
-    (
-        "^ *</odoo>",
-        ("$", "matches_odoo_endtag"),
-    ),
-]
-RULES_TO_XML_OLD = [
-    (
-        "^ *<odoo",
-        ("$", "matches_odoo_tag"),
-    ),
-    (
-        "^ *</odoo>",
-        ("$", "matches_odoo_endtag"),
-    ),
-    (
-        "^ *<openerp",
-        ("$", "matches_openerp_tag"),
-    ),
-    (
-        "^ *</openerp>",
-        ("$", "matches_openerp_endtag"),
-    ),
-    (
-        "^ *<data",
-        ("$", "matches_data_tag"),
-    ),
-    (
-        "^ *</data>",
-        ("$", "matches_data_endtag"),
-    ),
-]
-# RULES_TO_PYPI_PY3 = [
 #     (
-#         r"^ *super\([^)]*\)",
-#         ("s", r"super\([^)]*\)", "super()"),
+#         "^ *</odoo>",
+#         ("$", "matches_odoo_endtag"),
 #     ),
-# ]
-# RULES_TO_PYPI_PY2 = [
 #     (
-#         r"^ *super\(\)",
-#         ("s", r"super\(\)", "super(%(classname)s, self)"),
+#         "^ *<openerp",
+#         ("$", "matches_openerp_tag"),
 #     ),
-# ]
-# RULES_TO_PYPI_FUTURE = [
 #     (
-#         r"^ *super\(\)",
-#         ("s", r"super\(\)", "super(%(classname)s, self)"),
+#         "^ *</openerp>",
+#         ("$", "matches_openerp_endtag"),
+#     ),
+#     (
+#         "^ *<data",
+#         ("$", "matches_data_tag"),
+#     ),
+#     (
+#         "^ *</data>",
+#         ("$", "matches_data_endtag"),
 #     ),
 # ]
 
@@ -535,7 +502,7 @@ class MigrateFile(object):
                 )
         elif self.is_xml:
             TARGET += self.load_config(
-                "to_xml_old" if self.to_major_version < 8 else "to_xml_new"
+                "to_xml_old" if self.to_major_version < 9 else "to_xml_new"
             )
         elif self.from_major_version:
             if self.from_major_version < 8 and self.to_major_version >= 8:
@@ -619,6 +586,18 @@ class MigrateFile(object):
     def do_upgrade_history(self):
         if not self.opt_args.test_res_msg:
             return
+        test_res_msg = self.opt_args.test_res_msg.replace("\\n", "\n")
+        x = re.search("[0-9]+ TestPoint", test_res_msg)
+        if x and "\n" in test_res_msg:
+            left_mesg, suppl = test_res_msg.split("\n", 1)
+            right_mesg = left_mesg[x.end() - 10:]
+            ctr = int(left_mesg[x.start():].split(" ", 1)[0])
+            left_mesg = left_mesg[: x.start()]
+            for ln in suppl.split("\n"):
+                x = re.search("[0-9]+ TestPoint", ln)
+                if x:
+                    ctr += int(ln[x.start(): x.end() - 10])
+            test_res_msg = left_mesg + str(ctr) + right_mesg
         last_date = ""
         found_list = False
         title_nro = qua_nro = i_start = i_end = -1
@@ -644,10 +623,10 @@ class MigrateFile(object):
             and (datetime.now() - datetime.strptime(last_date, "%Y-%m-%d")).days < 20
         ):
             if qua_nro:
-                self.lines[qua_nro] = self.opt_args.test_res_msg
+                self.lines[qua_nro] = test_res_msg
             else:
                 nro -= nro - 1
-                self.lines.insert(nro, self.opt_args.test_res_msg)
+                self.lines.insert(nro, test_res_msg)
                 if not self.opt_args.dry_run:
                     with open(self.ffn, 'w') as fd:
                         fd.write("\n".join(self.lines))

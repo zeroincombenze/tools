@@ -19,7 +19,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 msg_time = time.time()
 
 
@@ -78,16 +78,16 @@ for fld_id in oerp.search(model_fld, [("ttype", "=", "one2many")]):
             try:
                 rec = oerp.browse(model2, id)
                 for kk in rec[fld.name]:
-                    msg_burst("search(%s, id=%d)" % (fld.relation, kk.id))
+                    msg_burst("search(%s, id=%d)" % (fld.relation, kk.name))
                     try:
-                        x = oerp.search(fld.relation, [("id", "=", kk.id)])
+                        x = oerp.search(fld.relation, [("id", "=", kk.name)])
                     except BaseException:
                         x = []
                     if len(x) != 1:
                         with open("check_one2many.log", "ab") as log:
                             log.write(
                                 "**** Error in model %s id %d! ****\n"
-                                % (fld.relation, kk.id)
+                                % (fld.relation, kk.name)
                             )
             except BaseException:
                 print("**** Error in model %s id %d! ****" % (model2, id))

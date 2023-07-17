@@ -1,4 +1,4 @@
-# __version__=2.0.5
+# __version__=2.0.6
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.0

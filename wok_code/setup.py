@@ -71,6 +71,7 @@ The available tools are:
             './to_pep8.2p8',
             './pypi.sh',
             './install_python_3_from_source.sh',
+            './cvt_csv_2_xml.py',
         ]
     },
     entry_points={

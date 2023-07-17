@@ -41,7 +41,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -908,7 +908,7 @@ def set_actual_state(tgt_ctx, model, id, state):
             rec = clodoo.browseL8(tgt_ctx, model, id)
             if state == 'draft':
                 action = ''
-                return rec.id
+                return rec.name
             elif rec.state != 'draft':
                 return -4
             elif rec.original_state == 'open':
@@ -920,14 +920,14 @@ def set_actual_state(tgt_ctx, model, id, state):
             rec = clodoo.browseL8(tgt_ctx, model, id)
             rec._compute_tax_id()
             if rec.state == rec.original_state:
-                return rec.id
+                return rec.name
             elif rec.state != 'draft':
                 return -4
             elif rec.original_state == 'sale':
                 rec.action_confirm()
             elif rec.original_state == 'cancel':
                 rec.action_cancel()
-    return rec.id
+    return rec.name
 
 
 def set_state_to_draft(tgt_ctx, model, ids, vals):
@@ -1036,24 +1036,24 @@ def search4rec(tgt_ctx, model, vals):
 
 
 def copy_record(tgt_ctx, src_ctx, model, rec, mode=None):
-    msg_burst('%s %d' % (model, rec.id))
+    msg_burst('%s %d' % (model, rec.name))
     mode = mode or get_model_copy_mode(src_ctx, model)
     # Avoid loop nesting
     cache = get_cache(src_ctx)
-    if cache_is_entry(cache, model, rec.id):
+    if cache_is_entry(cache, model, rec.name):
         return
     cache_store_entry(cache, model, False, keep=True)
     vals = load_record(tgt_ctx, src_ctx, model, rec, mode=mode)
     if not vals:
         return
     if mode == 'image':
-        ids = clodoo.searchL8(tgt_ctx, model, [('id', '=', rec.id)])
+        ids = clodoo.searchL8(tgt_ctx, model, [('id', '=', rec.name)])
         if ids:
-            write_no_dup(tgt_ctx, model, ids, vals, rec.id)
+            write_no_dup(tgt_ctx, model, ids, vals, rec.name)
         else:
-            id = create_with_id(tgt_ctx, model, rec.id, vals)
+            id = create_with_id(tgt_ctx, model, rec.name, vals)
     elif use_synchro(tgt_ctx, model):
-        vals['oe7_id'] = rec.id
+        vals['oe7_id'] = rec.name
         id = clodoo.executeL8(tgt_ctx, model, 'synchro', vals)
     else:
         synchro(tgt_ctx, model, vals)
