@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.10
+__version__=2.0.11
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -82,9 +82,9 @@ check_for_modules() {
 
 coverage_set() {
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      [[ ! -d $HOME/coverage ]] && run_traced "mkdir $HOME/coverage"
-      COVERAGE_DATA_FILE="$HOME/coverage/${UDI}"
-      COVERAGE_PROCESS_START="$HOME/coverage/${UDI}rc"
+      # [[ ! -d $HOME/coverage ]] && run_traced "mkdir $HOME/coverage"
+      COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
+      COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
       if [[ $opt_dry_run -eq 0 ]]; then
@@ -198,12 +198,12 @@ set_confn() {
 
 wait_process_idle() {
     local p ctr t sz x
-    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || p=""
-    [[ -z $p ]] && echo "Warning! File $LOGDIR/odoo.pid not found!"
+    [[ ! -f $LOGDIR/odoo.pid ]] && p="" && sleep 3
+    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || echo "Warning! File $LOGDIR/odoo.pid not found!"
     if [[ -n $p ]]; then
         sleep 2
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo -e "$x $p DAEMON ? $(basename $0): Waiting for process $p idle ..."
+        echo -e "$x $p DAEMON $opt_db $(basename $0): Waiting for process $p idle ..."
         ctr=60
         t=""
         sz=0
@@ -213,7 +213,7 @@ wait_process_idle() {
           sz=$(stat -c%s $LOGFILE)
           sleep 1;
           x=$(date +"%Y-%m-%d %H:%M:%S,000")
-          echo -e "$x $p DAEMON ? $(basename $0): Waiting for process idle ($ctr) ..."
+          echo -e "$x $p DAEMON $opt_db $(basename $0): Waiting for process idle ($ctr) ..."
         done
     fi
 }
@@ -241,65 +241,108 @@ clean_old_templates() {
 }
 
 test_with_external_process() {
-    local p x
+    local x
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
     echo -e "\e[37;43mStarting $ext_test ...\e[0m"
     export TEST_DB="$opt_db"
+    export ODOO_VERSION="$odoo_fver"
     echo "\$ export LOGFILE=$LOGFILE"
     echo "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
+    echo "\$ export ODOO_VERSION=$ODOO_VERSION"
     echo "\$ export TEST_CONFN=$TEST_CONFN"
     echo "\$ export TEST_DB=$TEST_DB"
     echo "\$ export TEST_VDIR=$TEST_VDIR"
     wait_process_idle
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo -e "$x $p DAEMON ? $ext_test: starting ..."
-    echo -e "$x $p DAEMON ? $ext_test: starting ..." >> $LOGFILE
+    echo -e "$x $$ DAEMON $opt_db $ext_test: starting ..."
+    echo -e "$x $$ DAEMON $opt_db $ext_test: starting ..." >> $LOGFILE
     run_traced "python $ext_test"
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m"
-    echo -e "$x $p DAEMON ? $ext_test: \e[37;43mTest terminated\e[0m" >> $LOGFILE
+    echo -e "$x $$ DAEMON $opt_db $ext_test: \e[37;43mTest terminated\e[0m"
+    echo -e "$x $$ DAEMON $opt_db $ext_test: \e[37;43mTest terminated\e[0m" >> $LOGFILE
     stop_bg_process
 }
 
+run_odoo_server() {
+    run_traced "pushd $ODOO_RUNDIR &>/dev/null"
+    if [[ -n $COVERAGE_PROCESS_START ]]; then
+        [[ -f $COVERAGE_DATA_FILE ]] && rm -f $COVERAGE_DATA_FILE
+        [[ $v -ge 6 ]] && coverage erase --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE || coverage erase --rcfile=$COVERAGE_PROCESS_START
+        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+        run_traced "popd &>/dev/null"
+        if [[ $opt_dae -eq 0 ]]; then
+            if [[ $v -ge 6 ]]; then
+                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+            else
+                run_traced " export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
+                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+            fi
+        else
+            if [[ $v -ge 6 ]]; then
+                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
+            else
+                run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
+                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
+                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
+            fi
+        fi
+    else
+        if [[ $opt_dae -eq 0 ]]; then
+            [[ $opt_dae -eq 0 ]] && run_traced "$script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+        else
+            [[ $opt_dry_run -ne 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ $script $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && $script $OPT_CONF $OPT_LLEV $OPTS &
+        fi
+    fi
+    [[ $opt_dae -ne 0 ]] && wait_process_idle
+    run_traced "popd &>/dev/null"
+}
 
-OPTOPTS=(h        B       b          c        C           d        D       e       f         k        i       I       l        L        m           M         n           o         O      p        P         q           S        s        T        t         U          u       V           v           w       W        x)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        ""     path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     ""       xmlrpc-port)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_rport)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1        1       1       1        "="      "="         1         1           "="       1      "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       1        "=")
-OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0        0       0       0        ""       ""          -1        0           ""        0      ""       ""        0           0        0        0        0         ""         0       ""          -1          0       0        "")
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    "port"    ""          ""       ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
+
+OPTOPTS=(h        B       b          c        C           d        D       e       f         k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        t         U          u       V           v           w       x)
+OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     ""        db-user    update  version     verbose     web     xmlrpc-port)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_rport)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        1         "="        1       "*>"        "+"         1       "=")
+OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        0         ""         0       ""          -1          0       "")
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
-    "odoo branch (version id)"
+    "odoo branch"
     "odoo configuration file"
     "no use coverage to run test"
     "db name to test,translate o upgrade (require -m switch)"
     "run odoo as daemon"
-    "export translation (conflict with -i -u -I)"
+    "export translation (conflict with -i -u -I -T)"
     "force update or install modules or default parameters or create db template"
     "do not create new DB and keep it after run"
-    "import translation (conflict with -e -u -I)"
-    "install module (conflict with -e -i -u)"
+    "import translation (conflict with -e -u -I -T)"
+    "install module (conflict with -e -i -u -T)"
     "load language"
     "set log level: may be info or debug"
     "modules to test, translate or upgrade"
     "multi-version odoo environment"
     "do nothing (dry-run)"
     "output file (if export multiple modules)"
-    "use openupgrade, if avaiable"
     "odoo root path"
     "psql port"
     "silent mode"
     "show coverage stats (do not run odoo)"
     "stop after init"
-    "execute odoo test on module"
+    "execute odoo test on module (conflict with -e -i -I -u)"
     "touch config file, do not run odoo"
     "db username"
-    "upgrade module (conflict with -e -i -I)"
+    "upgrade module (conflict with -e -i -I -T)"
     "show version"
     "verbose mode"
     "run as web server"
-    "run virtualenv if avaiable"
     "set odoo xmlrpc port")
 OPTARGS=()
 
@@ -478,7 +521,6 @@ if [[ -n "$opt_modules" ]]; then
     else
         check_for_modules
         OPTSIU="$OPTI $OPTU"
-        alt=
         if [[ $opt_exp -ne 0 && -n "$opt_ofile" ]]; then
             src=$(readlink -f $opt_ofile)
             OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
@@ -533,7 +575,7 @@ fi
 ext_test=""
 [[ -x $PKGPATH/tests/_test_synchro.py ]] && ext_test="$PKGPATH/tests/_test_synchro.py"
 # [[ -x $PKGPATH/tests/_test_synchro.sh ]] && ext_test="$PKGPATH/tests/_test_synchro.sh"
-[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m"
+[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m" && opt_dae=1
 [[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
 
 if [[ $opt_stop -gt 0 ]]; then
@@ -577,9 +619,9 @@ if [[ $opt_touch -eq 0 ]]; then
     if [[ -n "$TEST_VDIR" ]]; then
       coverage_set
       x=$(date +"%Y-%m-%d %H:%M:%S,000")
-      [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $TEST_VDIR && source ./bin/activate"
+      [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate"
       [[ ! -f $LOGFILE ]] && touch $LOGFILE
-      [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON ? $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
+      [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
       if [[ $opt_dry_run -eq 0 ]]; then
         cd $TEST_VDIR
         source ./bin/activate
@@ -627,30 +669,10 @@ if [[ $opt_touch -eq 0 ]]; then
         fi
     fi
 
-    [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
+    [[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
         run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
-        run_traced "pushd $ODOO_RUNDIR &>/dev/null"
-        if [[ -n $COVERAGE_PROCESS_START ]]; then
-            v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-            if [[ $v -ge 6 ]]; then
-                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
-                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
-            else
-                [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
-                [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> coverage run --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
-            fi
-        else
-            [[ $opt_dry_run -eq 0 && $opt_dae -eq 0 ]] && run_traced "$script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -eq 0 && $opt_dae -ne 0 ]] && $script $OPT_CONF $OPT_LLEV $OPTS &
-            [[ $opt_dry_run -ne 0 && $opt_dae -eq 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -ne 0 && $opt_dae -ne 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS &"
-        fi
-        run_traced "popd &>/dev/null"
+        run_odoo_server
         [[ -n $ext_test ]] && test_with_external_process
     elif [[ opt_dbg -gt 1 ]]; then
         echo ""
@@ -674,10 +696,10 @@ if [[ $opt_touch -eq 0 ]]; then
 
     if [[ -n "$TEST_VDIR" ]]; then
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && echo "$x $$ DAEMON ? $(basename $0): deactivate"
+        [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): deactivate"
         [[ $opt_dry_run -eq 0 ]] && deactivate
     fi
-    [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
+    # [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
     [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 
     if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then

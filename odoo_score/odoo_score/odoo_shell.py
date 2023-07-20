@@ -489,7 +489,8 @@ def make_refund_for_wrong_delivery(ctx):
                 'account_id': ln.account_id.name,
                 'product_id': ln.product_id.name,
                 'discount': ln.discount,
-                'invoice_line_tax_ids': [6, 0, [x.name for x in ln.invoice_line_tax_ids]],
+                'invoice_line_tax_ids':
+                    [6, 0, [x.name for x in ln.invoice_line_tax_ids]],
                 'name': ln.name,
                 'origin': inv.number,
                 'price_unit': ln.price_unit,
@@ -805,7 +806,8 @@ def set_fiscal_on_products(ctx):
             clodoo.writeL8(ctx, model, pp.name, {'taxes_id': [(6, 0, taxv_ids)]})
             ctr += 1
         if taxa_ids[0] not in pp.supplier_taxes_id.ids:
-            clodoo.writeL8(ctx, model, pp.name, {'supplier_taxes_id': [(6, 0, taxa_ids)]})
+            clodoo.writeL8(
+                ctx, model, pp.name, {'supplier_taxes_id': [(6, 0, taxa_ids)]})
             ctr += 1
         if accv_ids[0] != pp.property_account_income_id.name:
             clodoo.writeL8(
@@ -1408,7 +1410,8 @@ def manage_riba(ctx):
                     sub = sub[0].upper() if sub else 'S'
                     if sub == 'D':
                         unreconcile_move(ctx, move)
-                        clodoo.executeL8(ctx, 'account.move', 'button_cancel', move.name)
+                        clodoo.executeL8(
+                            ctx, 'account.move', 'button_cancel', move.name)
                         try:
                             clodoo.unlinkL8(ctx, 'account.move', move.name)
                         except BaseException:
@@ -1862,7 +1865,8 @@ def deduplicate_partner(ctx):
                         )
                     elif candidate == prior_partner:
                         clodoo.writeL8(ctx, model, partner.name, vals)
-                        print('Assigned vg7_id %d to record %d' % (vg7_id, partner.name))
+                        print('Assigned vg7_id %d to record %d'
+                              % (vg7_id, partner.name))
         prior_name = partner.name
         prior_partner = partner
 
@@ -2306,7 +2310,8 @@ def check_rec_links(ctx):
         if diff:
             os0.wlog(
                 '!!! Found some DdT %s in invoice %s (%d) header '
-                'not detected in invoice lines!!!' % (diff, invoice.number, invoice.name)
+                'not detected in invoice lines!!!'
+                % (diff, invoice.number, invoice.name)
             )
             err_ctr += 1
             do_write = True
@@ -2319,7 +2324,8 @@ def check_rec_links(ctx):
             err_ctr += 1
             do_write = True
         if do_write:
-            clodoo.writeL8(ctx, invoice_model, invoice.name, {'ddt_ids': [(6, 0, ddts)]})
+            clodoo.writeL8(
+                ctx, invoice_model, invoice.name, {'ddt_ids': [(6, 0, ddts)]})
 
     for ddt in clodoo.browseL8(
         ctx,
@@ -2359,7 +2365,8 @@ def check_rec_links(ctx):
                         ctx, ddtline_model, ddt_line.name, {'invoice_line_id': ids[0]}
                     )
                 err_ctr += 1
-                os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.name))
+                os0.wlog(
+                    '!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.name))
         diff = list(set(invoices) - {x.name for x in ddt.invoice_ids})
         if diff:
             ddt_state = ddt.state
@@ -2375,7 +2382,8 @@ def check_rec_links(ctx):
                     ddt.name,
                 )
                 clodoo.exec_sql(ctx, query)
-            clodoo.writeL8(ctx, ddt_model, ddt.name, {'invoice_ids': [(6, 0, invoices)]})
+            clodoo.writeL8(
+                ctx, ddt_model, ddt.name, {'invoice_ids': [(6, 0, invoices)]})
             if ctx['_cr']:
                 query = "update %s set %s=%s,%s='%s' where id=%d" % (
                     ddt_model.replace('.', '_'),
@@ -2483,9 +2491,10 @@ def link_sale_2_invoice(ctx):
     def link_sale_line(ctx, invl_model, inv, invline, soline):
         if ctx.get('_cr'):
             prior_state = inv.state
-            query = "UPDATE account_invoice set state='draft' " "where id=%d" % inv.name
+            query = "UPDATE account_invoice set state='draft' where id=%d" % inv.name
             clodoo.exec_sql(ctx, query)
-        clodoo.writeL8(ctx, invl_model, invline.name, {'sale_line_ids': [(3, soline.name)]})
+        clodoo.writeL8(
+            ctx, invl_model, invline.name, {'sale_line_ids': [(3, soline.name)]})
         print('Order line %d.%d linked ...' % (soline.name, soline.order_id.name))
         if ctx.get('_cr'):
             query = "UPDATE account_invoice set state='%s' " "where id=%d" % (
@@ -2945,7 +2954,8 @@ def reorder_invoice_lines(ctx):
                 )
             )
             # line.write({'sequence': sequence})
-            clodoo.writeL8(ctx, 'account.invoice.line', line.name, {'sequence': sequence})
+            clodoo.writeL8(
+                ctx, 'account.invoice.line', line.name, {'sequence': sequence})
 
     def add_inv_line(ilines, inv_line):
         if inv_line.name not in ilines:
@@ -3420,8 +3430,8 @@ def reset_statement(ctx):
                      ("journal_entry_ids", "!=", []),
                      ('move_name', '!=', False))])):
             clodoo.writeL8(
-                ctx, model_bank, stmt_line.name, {"move_name": False,
-                                                "journal_entry_ids": [(5, 0)]})
+                ctx, model_bank, stmt_line.name,
+                {"move_name": False, "journal_entry_ids": [(5, 0)]})
             ctr_upd += 1
         for move_line in clodoo.browseL8(
                 ctx, model_line, clodoo.searchL8(
@@ -3677,7 +3687,8 @@ def recalc_group_left_right(ctx):
                     ctr += 1
                     print("%s.group.parent_left %s -> %s, level %s -> %s " % (
                         group3.code_prefix, group3.parent_left, ctr, group3.level, 4))
-                    clodoo.writeL8(ctx, resorce_group, group3.name, {"parent_left": ctr})
+                    clodoo.writeL8(
+                        ctx, resorce_group, group3.name, {"parent_left": ctr})
                     for group4 in clodoo.browseL8(
                         ctx, resorce_group, clodoo.searchL8(
                             ctx, resorce_group, [("parent_id", "=", group3.name)],
@@ -3696,7 +3707,8 @@ def recalc_group_left_right(ctx):
                     ctr += 1
                     print("%s.group.parent_right %s -> %s" % (
                         group3.code_prefix, group3.parent_right, ctr))
-                    clodoo.writeL8(ctx, resorce_group, group3.name, {"parent_right": ctr})
+                    clodoo.writeL8(
+                        ctx, resorce_group, group3.name, {"parent_right": ctr})
                 ctr += 1
                 print("%s.group.parent_right %s -> %s" % (
                     group2.code_prefix, group2.parent_right, ctr))
@@ -3752,8 +3764,8 @@ def rebuild_database(ctx):
             #     ctx, resource_sequence_range, [x.id for x in ir_seq.date_range_ids])
             for move in ir_seq.date_range_ids:
                 clodoo.writeL8(
-                    ctx, resource_sequence_range, move.name, {"number_next": 1,
-                                                            "number_next_actual": 1})
+                    ctx, resource_sequence_range, move.name,
+                    {"number_next": 1, "number_next_actual": 1})
                 ctr += 1
         return ctr
 
@@ -4069,7 +4081,8 @@ def rebuild_database(ctx):
                         inv.name,
                         {"fatturapa_attachment_out_id": att_out})
                 except BaseException:
-                    print("Cannot link attachment %d to invoice %d" % (att_out, inv.name))
+                    print(
+                        "Cannot link attachment %d to invoice %d" % (att_out, inv.name))
                     continue
                 del attachments[inv.name]["out"]
                 if not attachments[inv.name]:
@@ -4084,7 +4097,8 @@ def rebuild_database(ctx):
                         inv.name,
                         {"fatturapa_attachment_in_id": att_in})
                 except BaseException:
-                    print("Cannot link attachment %d to invoice %d" % (att_in, inv.name))
+                    print(
+                        "Cannot link attachment %d to invoice %d" % (att_in, inv.name))
                     continue
                 clodoo.writeL8(
                     ctx, "fatturapa.attachment.in", att_in, {"registered": True})

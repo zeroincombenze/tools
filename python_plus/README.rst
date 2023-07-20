@@ -277,6 +277,11 @@ Current version via Git
 History
 -------
 
+2.0.10 (2023-07-18)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: werkzeug for Odoo 16.0
+
 2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~
 
@@ -344,14 +349,6 @@ History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: no input inquire
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: new switch -d for Odoo dependencies path
-* [FIX] vem: create with best package list
-* [FIX] vem: install odoo/openerp
-
 
 
 

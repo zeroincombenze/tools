@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 class PleaseZ0bug(object):
@@ -144,7 +144,6 @@ class PleaseZ0bug(object):
 
     def do_lint(self):
         please = self.please
-        # sts = 126
         if please.is_odoo_pkg():
             sts = 0
             if not please.opt_args.no_verify:

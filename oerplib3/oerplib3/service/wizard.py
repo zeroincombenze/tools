@@ -70,7 +70,7 @@ class Wizard(object):
             """Return the result of the RPC request."""
             try:
                 meth = getattr(self._oerp._connector.wizard, method, False)
-                return meth(self._oerp.database, self._oerp.user.name, *args)
+                return meth(self._oerp.database, self._oerp.user.id, *args)
             except rpc.error.ConnectorError as exc:
                 raise error.RPCError(exc.message, exc.oerp_traceback)
         return rpc_method

@@ -9,7 +9,11 @@ from __future__ import print_function, unicode_literals
 import os
 import sys
 from zerobug import z0test
-from z0lib import z0lib
+# sys.path.insert(0,
+#                 os.path.dirname(os.path.dirname(os.getcwd()))
+#                 if os.path.basename(os.getcwd()) == "tests"
+#                 else os.path.dirname(os.getcwd()))
+from z0lib import z0lib                                                    # noqa: E402
 
 __version__ = "2.0.6"
 
@@ -41,6 +45,10 @@ class RegressionTest:
         return sts
 
     def test_01(self, z0ctx):
+        # sts = self.Z.test_result(z0ctx,
+        #                          'which python',
+        #                          self.Z.rundir,
+        #                          os.path.dirname(z0lib.__file__))
         sts = self.Z.test_result(z0ctx,
                                  'python version',
                                  os.getenv("TRAVIS_PYTHON_VERSION"),

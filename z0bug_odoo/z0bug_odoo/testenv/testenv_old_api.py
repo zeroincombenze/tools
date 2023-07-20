@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.10
+"""Test Environment v2.0.11
 
 Copy this file in tests directory of your module.
 Please copy the documentation testenv.rst file too in your module.
@@ -128,20 +128,19 @@ except ImportError:
         release = None
 if release:
     if int(release.major_version.split('.')[0]) < 10:
+        if int(release.major_version.split('.')[0]) > 7:
+            from openerp import api
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
         from openerp.modules.module import get_module_resource  # noqa: F401
     else:
-        # from odoo import api
+        from odoo import api
         import odoo.tests.common as test_common
         from odoo.modules.module import get_module_resource  # noqa: F401
         from odoo.tools.safe_eval import safe_eval
 
 import python_plus
-# from z0bug_odoo.test_common import TransactionCase
 from z0bug_odoo import z0bug_odoo_lib
-
-# from clodoo import transodoo
 
 _logger = logging.getLogger(__name__)
 
@@ -656,7 +655,7 @@ class MainTest(test_common.TransactionCase):
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
                 )
-            res = res.name if res else False if fmt else xref
+            res = res.id if res else False if fmt else xref
         return res
 
     def _get_model_of_xref(self, xref):
@@ -779,7 +778,7 @@ class MainTest(test_common.TransactionCase):
             and not value
             and resource not in RESOURCE_WO_COMPANY
         ):
-            value = self.default_company().name
+            value = self.default_company().id
         else:
             method = "_cast_field_%s" % ftype
             method = method if hasattr(self, method) else "_cast_field_base"
@@ -984,15 +983,14 @@ class MainTest(test_common.TransactionCase):
             and "id" in value
         ):
             # Odoo 14.0 NewId requires origin
-            value = value.name if isinstance(value.name,
-                                             (int, long)) else value.name.origin
+            value = value.id if isinstance(value.id, (int, long)) else value.id.origin
         return value if value else None
 
     def _convert_many2one_to_write(self, record, field, value):
         if not value:
             return None
         # Odoo 14.0 NewId requires origin
-        return value.name if isinstance(value.name, (int, long)) else value.name.origin
+        return value.id if isinstance(value.id, (int, long)) else value.id.origin
 
     # -----------------------------------------------
     # --  Type <one2many> / <many2many> functions  --
@@ -1193,7 +1191,7 @@ class MainTest(test_common.TransactionCase):
     def _convert_one2many_to_write(self, record, field, value):
         if value:
             return [(6, 0, [
-                x.name if isinstance(x.name, (int, long)) else x.name.origin
+                x.id if isinstance(x.id, (int, long)) else x.id.origin
                 for x in value])]
         return False
 
@@ -1331,13 +1329,13 @@ class MainTest(test_common.TransactionCase):
     def _ctx_active_ids(self, records, ctx={}):
         if records:
             if is_iterable(records):
-                ctx["active_ids"] = [x.name for x in records]
+                ctx["active_ids"] = [x.id for x in records]
                 if len(records) == 1:
-                    ctx["active_id"] = records[0].name
+                    ctx["active_id"] = records[0].id
                 else:
                     ctx["active_id"] = False
             else:
-                ctx["active_id"] = records.name
+                ctx["active_id"] = records.id
         return ctx
 
     def _finalize_ctx_act_windows(self, records, act_windows, ctx={}):
@@ -1595,8 +1593,8 @@ class MainTest(test_common.TransactionCase):
                         )
                     )
                 )
-                act_windows["res_id"] = wizard.name
-        act_windows["res_id"] = wizard.name
+                act_windows["res_id"] = wizard.id
+        act_windows["res_id"] = wizard.id
         # Save wizard for furthermore use
         act_windows["_wizard_"] = wizard
         if act_windows.get("view_id"):
@@ -1840,7 +1838,7 @@ class MainTest(test_common.TransactionCase):
                     and "company_id" in self.struct[resource]
             ):
                 domain.append("|")
-                domain.append(("company_id", "=", self.default_company().name))
+                domain.append(("company_id", "=", self.default_company().id))
                 domain.append(("company_id", "=", False))
             return domain
 
@@ -1898,7 +1896,7 @@ class MainTest(test_common.TransactionCase):
                 self._logger.info(
                     "⚠ Parent xref %s.%s not found for %s" % (module, name, resource))
                 return False
-            domain = [(parent_name, "=", parent_rec.name)]
+            domain = [(parent_name, "=", parent_rec.id)]
         else:
             domain = []
             ln = parent_rec = False
@@ -1916,8 +1914,8 @@ class MainTest(test_common.TransactionCase):
                 record = self.env[resource].search(domain)
         if len(record) == 1:
             if self.odoo_major_version <= 7:
-                return self.registry(resource).browse(self.cr, self.uid, record[0].name)
-            return self.env[resource].browse(record[0].name)
+                return self.registry(resource).browse(self.cr, self.uid, record[0].id)
+            return self.env[resource].browse(record[0].id)
         if raise_if_not_found:
             self.raise_error("External ID %s not found" % xref)  # pragma: no cover
         return False
@@ -1971,7 +1969,7 @@ class MainTest(test_common.TransactionCase):
                              % (resource, e, self.dict_2_print(values)))
             return None
         if self._is_xref(xref):
-            self._add_xref(xref, res.name, resource)
+            self._add_xref(xref, res.id, resource)
             self.store_resource_data(resource, xref, values, group=group)
             (
                 resource_child,
@@ -1981,10 +1979,10 @@ class MainTest(test_common.TransactionCase):
             ) = self._get_depending_xref(resource, xref)
             if resource_child and xref_child:
                 self._add_xref(
-                    xref_child, getattr(res, field_child)[0].name, resource_child
+                    xref_child, getattr(res, field_child)[0].id, resource_child
                 )
                 values_child = {k: v for (k, v) in values.items()}
-                values_child[field_parent] = res.name
+                values_child[field_parent] = res.id
                 self.store_resource_data(
                     resource_child, xref_child, values_child, group=group
                 )
@@ -2269,12 +2267,12 @@ class MainTest(test_common.TransactionCase):
                     (
                         "user_type_id",
                         "=",
-                        self.env.ref(acc_type).name,
+                        self.env.ref(acc_type).id,
                     ),
                     ("code", "like", acc_code),
                 ]
             )
-            self._add_xref(xref, acc_ids[0].name, "account.account")
+            self._add_xref(xref, acc_ids[0].id, "account.account")
 
         self.log_stack()
         add_alias = True
@@ -2284,18 +2282,18 @@ class MainTest(test_common.TransactionCase):
         elif values:
             company.write(self.cast_types("res.company", values, fmt="cmd"))
         chart_template = self.env["account.chart.template"].search(
-            [("id", "=", company.chart_template_id.name)]
+            [("id", "=", company.chart_template_id.id)]
         )
         if xref:
             if not add_alias:
-                self.add_xref(xref, "res.company", company.name)  # pragma: no cover
+                self.add_xref(xref, "res.company", company.id)  # pragma: no cover
             elif not self.env.ref(xref, raise_if_not_found=False):
                 self.add_alias_xref(
                     xref, "base.main_company", resource="res.company", group=group
                 )
         if partner_xref:
             if not add_alias:  # pragma: no cover
-                self.add_xref(partner_xref, "res.partner", company.partner_id.name)
+                self.add_xref(partner_xref, "res.partner", company.partner_id.id)
             elif not self.env.ref(partner_xref, raise_if_not_found=False):
                 self.add_alias_xref(
                     partner_xref,
@@ -2348,7 +2346,7 @@ class MainTest(test_common.TransactionCase):
             None
         """
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.10 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.11 (debug_level=%s)" % (self.debug_level)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"
@@ -2878,7 +2876,7 @@ class MainTest(test_common.TransactionCase):
                               self.tmpl_repr([template]),
                               field,
                               template[field],
-                              "rec(%d)" % record.name,
+                              "rec(%d)" % record.id,
                               record[field],
                           ))
                 self.log_lvl_2(msg_id)

@@ -1,3 +1,9 @@
+2.0.6 (2023-07-18)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced return system exit code
+* [IMP] run_traced: nre rtime paramater
+
 2.0.5 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
 

@@ -372,7 +372,6 @@ pip_install() {
   tmpdir=$VIRTUAL_ENV/tmp
   pkg=$(get_actual_pkg "$pkg")
   pfn=$(get_pkg_wo_version "$pkg")
-  [[ $pfn == "zerobug" ]] && set -x   #debug
   x="-qP"
   [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
   [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
@@ -511,7 +510,6 @@ pip_install() {
     x="${pkgs//+/.}"
     [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
-  set +x  #debug
   return $sts
 }
 

@@ -11,7 +11,7 @@ import yaml
 from python_plus import _b
 from z0lib import z0lib
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 # RULES: every rule is list has the following format:
 # EREGEX, (ACTION, PARAMETERS), ...
@@ -549,33 +549,10 @@ class MigrateFile(object):
         while nro < len(self.lines):
             next_nro = nro + 1
             do_continue = False
-            # if not self.lines[nro]:
-            #     for rule in TGT_RULES:
-            #         if rule[0] != "$":
-            #             continue
-            #         do_continue, do_break, next_nro = run_sub_rules(
-            #             rule, nro, rule[0], next_nro)
-            #         if do_continue or do_break:
-            #             break
-            #     do_continue = True
-            # else:
             for rule in TGT_RULES:
-                # rule format: (action, )
-                #              (action, (params), ...)
-                # Match python expression and extract REGEX from EREGEX
                 regex = self.rule_matches(rule[0], nro)
                 do_continue, do_break, next_nro = run_sub_rules(
                     rule, nro, regex, next_nro)
-                # for subrule in rule[1:]:
-                #     # subrule may be: ("s", src, tgt) or ("d") or ...
-                #     do_break, offset = self.update_line(nro, subrule, regex)
-                #     if offset:
-                #         next_nro = nro + 1 + offset
-                #         if offset < 0:
-                #             do_continue = True
-                #             break
-                #     elif do_break:
-                #         break
                 if do_continue or do_break:
                     break
             if do_continue:

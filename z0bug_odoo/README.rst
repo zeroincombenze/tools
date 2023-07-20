@@ -1,6 +1,6 @@
 
 =======
- 2.0.10
+ 2.0.11
 =======
 
 
@@ -854,7 +854,7 @@ Ths TestEnv software requires:
 
 
 Model data declaration
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 Each model is declared in a dictionary which key which is the external
 reference used to retrieve the record.
@@ -1352,6 +1352,8 @@ Data stored is used by setup_env() function and/or by:
 
 def store_resource_data(self, resource, xref, values, group=None, name=None):
 
+::
+
     Args:
         resource (str): Odoo model name
         xref (str): external reference
@@ -1419,6 +1421,8 @@ This function returns a record using issued parameters. It works in follow ways:
 
 def resource_bind(self, xref, raise_if_not_found=True, resource=None):
 
+::
+
     Args:
         xref (str): external reference
         raise_if_not_found (bool): raise exception if xref not found or if more records found
@@ -1441,6 +1445,8 @@ This function works as standard Odoo create() with follow improvements:
 
 def resource_create(self, resource, values=None, xref=None, group=None):
 
+::
+
     Args:
         resource (str): Odoo model name, i.e. "res.partner"
         values (dict): record data (default stored data)
@@ -1461,6 +1467,8 @@ This function works as standard Odoo write() with follow improvements:
 * If values is not supplied, record is restored to stored data values
 
 def resource_write(self, resource, xref=None, values=None, raise_if_not_found=True, group=None):
+
+::
 
     Args:
         resource (str|obj): Odoo model name or record to update
@@ -1491,6 +1499,8 @@ Declare data to load on setup_env().
 
 def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
 
+::
+
     Args:
         resource (str): Odoo model name, i.e. "res.partner"
         data (dict): record data
@@ -1507,6 +1517,8 @@ declare_all_data
 Declare all data to load on setup_env().
 
 def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
+
+::
 
     Args:
         message (dict): data message
@@ -1526,6 +1538,8 @@ Get declared resource data; may be used to test compare.
 
 def get_resource_data(self, resource, xref, group=None):
 
+::
+
     Args:
         resource (str): Odoo model name or name assigned, i.e. "res.partner"
         xref (str): external reference
@@ -1541,6 +1555,8 @@ Get declared resource data list.
 
 def get_resource_data_list(self, resource, group=None):
 
+::
+
     Args:
         resource (str): Odoo model name or name assigned, i.e. "res.partner"
         group (str): if supplied select specific group data; default is "base"
@@ -1554,6 +1570,8 @@ get_resource_list
 Get declared resource list.
 
 def get_resource_list(self, group=None):
+
+::
 
     Args:
         group (str): if supplied select specific group data; default is "base"
@@ -1573,6 +1591,8 @@ after setup_env(), use the assigned partner data for company of the group.
 You can also create more companies and assign one of them to test by group.
 
 def setup_company(self, company, xref=None, partner_xref=None, values={}, group=None):
+
+::
 
     Args:
         company (obj): company to update; if not supplied a new company is created
@@ -1603,6 +1623,8 @@ even record created by different group.
 In this way you can test a complex process the evolved scenario.
 
 def setup_env(self, lang=None, locale=None, group=None):
+
+::
 
     Args:
         lang (str): install & load specific language
@@ -1657,6 +1679,8 @@ See test_testenv module for test examples
 https://github.com/zeroincombenze/zerobug-test/tree/12.0/test_testenv
 
 def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}):
+
+::
 
     Args:
         resource (str or obj): if field is a string simulate create web behavior of
@@ -1722,6 +1746,8 @@ exhausted. This behavior is the same of the form editing.
 
 def wizard(self, module=None, action_name=None, act_windows=None, records=None, default=None, ctx={}, button_name=None, web_changes=[], button_ctx={},):
 
+::
+
     Args:
         module (str): module name for wizard to test; if "." use current module name
         action_name (str): action name
@@ -1757,6 +1783,8 @@ This function do following steps:
 
 def validate_records(self, template, records):
 
+::
+
     Args:
          template (list of dict): list of dictionaries with expected values
          records (list or set): records to validate values
@@ -1773,6 +1801,8 @@ get_records_from_act_windows
 Get records from a windows message.
 
 def get_records_from_act_windows(self, act_windows):
+
+::
 
     Args:
         act_windows (dict): Odoo windows action returned by a wizard

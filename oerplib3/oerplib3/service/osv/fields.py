@@ -183,7 +183,7 @@ class Many2ManyField(BaseField):
         if ids is None:
             orig_ids = instance.__oerp__.read(
                 instance.__osv__['name'],
-                [instance.name], [self.name])[0][self.name]
+                [instance.id], [self.name])[0][self.name]
             instance.__data__['values'][self.name] = orig_ids
             ids = orig_ids and orig_ids[:] or []
         # Take updated values into account
@@ -242,7 +242,7 @@ class Many2OneField(BaseField):
         if id_ is None:
             id_ = instance.__oerp__.read(
                 instance.__osv__['name'],
-                [instance.name], [self.name])[0][self.name]
+                [instance.id], [self.name])[0][self.name]
             instance.__data__['values'][self.name] = id_
         if id_:
             context = instance.__data__['context'].copy()
@@ -263,7 +263,7 @@ class Many2OneField(BaseField):
                              "a browse_record object or False.")
         o_rel = self.check_value(o_rel)
         instance.__data__['updated_values'][self.name] = \
-            o_rel and [o_rel.name, False]
+            o_rel and [o_rel.id, False]
 
     def check_value(self, value):
         super(Many2OneField, self).check_value(value)
@@ -294,7 +294,7 @@ class One2ManyField(BaseField):
         if ids is None:
             orig_ids = instance.__oerp__.read(
                 instance.__osv__['name'],
-                [instance.name], [self.name])[0][self.name]
+                [instance.id], [self.name])[0][self.name]
             instance.__data__['values'][self.name] = orig_ids
             ids = orig_ids and orig_ids[:] or []
         # Take updated values into account
@@ -354,7 +354,7 @@ class ReferenceField(BaseField):
         if value is None:
             value = instance.__oerp__.read(
                 instance.__osv__['name'],
-                [instance.name], [self.name])[0][self.name]
+                [instance.id], [self.name])[0][self.name]
             instance.__data__['values'][self.name] = value
         if value:
             relation, sep, o_id = value.rpartition(',')

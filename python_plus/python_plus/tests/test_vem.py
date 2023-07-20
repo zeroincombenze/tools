@@ -269,6 +269,10 @@ class RegressionTest:
         # Isolated environment + devel packages + Odoo
         cmd = 'vem -qDIf -p%s create %s -O %s' % (pyver, self.venv_dir, odoo_ver)
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+        # Weird behavior for pyYAML with python 3.9
+        if odoo_ver == "16.0":
+            z0lib.run_traced('vem %s install pyyaml' % self.venv_dir,
+                             dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
         sts += self.check_4_paths(z0ctx)

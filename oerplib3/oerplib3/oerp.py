@@ -343,7 +343,7 @@ class OERP(object):
         }
         try:
             return self._connector.report.render_report(
-                self._database, self.user.name, self._password,
+                self._database, self.user.id, self._password,
                 report_name, obj_ids, data, context)
         except rpc.error.ConnectorError as exc:
             raise error.RPCError(exc.message, exc.oerp_traceback)
@@ -361,7 +361,7 @@ class OERP(object):
         }
         try:
             report_id = self._connector.report.report(
-                self._database, self.user.name, self._password,
+                self._database, self.user.id, self._password,
                 report_name, obj_ids, data, context)
         except rpc.error.ConnectorError as exc:
             raise error.RPCError(exc.message, exc.oerp_traceback)
@@ -370,7 +370,7 @@ class OERP(object):
         while not state:
             try:
                 pdf_data = self._connector.report.report_get(
-                    self._database, self.user.name, self._password,
+                    self._database, self.user.id, self._password,
                     report_id)
             except rpc.error.ConnectorError as exc:
                 raise error.RPCError("Unknown error occurred during the "

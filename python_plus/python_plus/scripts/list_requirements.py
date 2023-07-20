@@ -7,7 +7,6 @@
 # list['python2'] -> is the list with versioned packages
 #
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
 # from future.utils import PY2, PY3
 
 import ast
@@ -53,7 +52,8 @@ REQVERSION = {
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=38.0,<39.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
-    "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},       # By test pkgs
+    # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
+    "docutils": {"0": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -167,7 +167,7 @@ REQVERSION = {
     "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "16.0": ">=1.0.0b1"},
     "pyxb": {"6.1": "==1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
-    "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13"},
+    "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13", "3.9": "==6.0"},
     "qrcode": {"6.1": "==5.0.1", "7.0": "==5.1", "10.0": "==5.3"},
     "readme-renderer" : {"2.7": "<25.0", "3.5": "<29.0", "3.6": ">=30.0"},
     "restructuredtext_lint": {"6.1": "==0.12.2", "0": "==1.1.3"},
@@ -269,7 +269,7 @@ ALIAS_RHEL = {
     "zlib1g-dev": "zlib-devel",
 }
 FORCE_ALIAS2 = {
-    # "docutils==0.12": "docutils==0.14",
+    "docutils==0.12": "docutils==0.16",
     "pytz==2014.4": "pytz>=2014.4",
     "pytz==2014.10": "pytz>=2014.10",
     "pytz==2016.7": "pytz>=2016.7",
@@ -911,8 +911,6 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=Non
 def package_from_list(
     deps_list, kw, pkg_list, with_version=None, odoo_ver=None, pyver=None
 ):
-    if isinstance(pkg_list, basestring):
-        pkg_list = [pkg_list]
     for item in pkg_list:
         if isinstance(item, (list, tuple)):
             for sub in item:

@@ -3,12 +3,13 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-# import pdb
 import os
-
-# import sys
-# from zerobug import Z0test
-from z0lib import z0lib
+import sys
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from z0lib import z0lib                                                    # noqa: E402
 
 __version__ = "2.0.6"
 
