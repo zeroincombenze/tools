@@ -19,7 +19,7 @@ except ImportError:
 
 # from python_plus import unicodes
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 MODULE_SEP = "\ufffa"
@@ -1004,7 +1004,7 @@ class OdooTranslation(object):
                     clodoo.writeL8(
                         ctx,
                         model_translation,
-                        term.id,
+                        term.name,
                         {"value": value, "state": "translated"},
                     )
                 except BaseException as e:

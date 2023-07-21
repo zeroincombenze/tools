@@ -52,7 +52,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 KNOWN_ACTIONS = [
     "help",
@@ -354,6 +354,28 @@ class Please(object):
         return parser
 
     def pickle_params(self, cmd_subst=None, rm_obj=None, slist=[]):
+        """Command line has the follow format:  action object [switches] [sub-action]
+        This function returns a string with the command line list with single value
+        enclosed by quote if needed (i.e ['a>b'] -> ['"a>b"'] and specific adjustment:
+        * action can be replaced by cmd_subst parameter
+        * object can be removed by rm_obj flag
+        * every switch or sub-action can be replaced by another value from slist:
+            - ['a', 'b']:  action obj a -> action obj b
+            - ['a', '']:  action obj a -> action obj
+            - ['-a', '-b']: action obj -a -> action obj -b
+            - ['-a', '-b']: action obj -ax -> action obj -bx
+            - ['-a', '']: action obj -a -> action obj
+            - ['-a', '']: action obj -ax -> action obj
+            - ['--a', '--b']: action obj --a -> action obj --b
+            - ['--a', '']: action obj --a -> action obj
+            - ['--a=', '--b']: action obj --a=x -> action obj --b=x
+            - ['--a=', '']: action obj --a=x -> action obj
+            - ['--a=x', '--b']: action obj --a=x -> action obj --b
+            - ['--a=x', '--b=y']: action obj --a=x -> action obj --b=y
+            - ['--a=x', '']: action obj --a=x -> action obj
+            - ['--a=x', '']: action obj --a=x -> action obj
+        Returned value can be applied to python call()
+        """
         params = ""
         ignore_arg = False
         for arg in self.cli_args:
@@ -393,8 +415,6 @@ class Please(object):
                 arg = '"%s"' % arg.replace('"', r"\"")
             elif "'" in arg:
                 arg = '"%s"' % arg
-            # else:
-            #     arg = "%s" % arg
             params += arg + " "
         return params.strip()
 
@@ -618,7 +638,11 @@ class Please(object):
         return self.run_traced(cmd)
 
     def do_action_pypipkg(self, action, pkg, path=None):
-        path = path or os.path.join(self.home_devel, "pypi", pkg, pkg)
+        path = (
+            path
+            or os.path.join(self.home_devel, "pypi", pkg, pkg)
+            if pkg != "tools" else os.path.join(self.home_devel, "pypi", pkg)
+        )
         if self.opt_args.verbose:
             print("$ cd " + path)
         os.chdir(path)
@@ -636,9 +660,10 @@ class Please(object):
         if act_all_pypi and self.is_all_pypi(path=path):
             sts = 0
             for fn in self.pypi_list:
-                sts = self.do_action_pypipkg(action, fn)
-                if sts:
-                    break
+                if fn != "tools":
+                    sts = self.do_action_pypipkg(action, fn)
+                    if sts:
+                        break
                 os.chdir(path)
             if sts:
                 return sts

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import subprocess
 
 
 def main(cli_args=None):
@@ -28,7 +29,7 @@ def main(cli_args=None):
         else:
             arg = '%s' % arg
         cmd = '%s %s' % (cmd, arg)
-    return os.system(cmd)
+    return subprocess.call(cmd, shell=True)
 
 
 if __name__ == "__main__":

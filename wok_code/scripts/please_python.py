@@ -4,7 +4,7 @@ import os.path
 
 from z0lib import z0lib
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 class PleasePython(object):

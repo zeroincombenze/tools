@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 from z0lib import z0lib
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -41,6 +41,10 @@ class RegressionTest:
         return sts
 
     def test_01(self, z0ctx):
+        # sts = self.Z.test_result(z0ctx,
+        #                          'which python',
+        #                          self.Z.rundir,
+        #                          os.path.dirname(z0lib.__file__))
         sts = self.Z.test_result(z0ctx,
                                  'python version',
                                  os.getenv("TRAVIS_PYTHON_VERSION"),
