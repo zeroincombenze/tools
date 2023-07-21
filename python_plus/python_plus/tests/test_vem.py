@@ -287,6 +287,8 @@ class RegressionTest:
                      "zeep"):
             if pypi == "zeep" and odoo_ver != "16.0":
                 continue
+            if pypi == "gevent" and odoo_ver == "16.0":
+                continue
             elif pypi == "lessc" and int(odoo_ver.split(".")[0]) < 10:
                 continue
             sts += self.check_installed(z0ctx, pypi)

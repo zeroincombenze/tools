@@ -72,7 +72,7 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py manage_odoo.man transodoo.py"
+RFLIST__clodoo="bck_filestore.sh manage_odoo.man"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""

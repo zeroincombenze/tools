@@ -9,13 +9,9 @@ from __future__ import print_function, unicode_literals
 import os
 import sys
 from zerobug import z0test
-# sys.path.insert(0,
-#                 os.path.dirname(os.path.dirname(os.getcwd()))
-#                 if os.path.basename(os.getcwd()) == "tests"
-#                 else os.path.dirname(os.getcwd()))
-from z0lib import z0lib                                                    # noqa: E402
+from z0lib import z0lib
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1

@@ -129,14 +129,14 @@ except ImportError:
 if release:
     if int(release.major_version.split('.')[0]) < 10:
         if int(release.major_version.split('.')[0]) > 7:
-            from openerp import api
+            from openerp import api                                        # noqa: F401
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
-        from openerp.modules.module import get_module_resource  # noqa: F401
+        from openerp.modules.module import get_module_resource             # noqa: F401
     else:
-        from odoo import api
+        from odoo import api                                               # noqa: F401
         import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource  # noqa: F401
+        from odoo.modules.module import get_module_resource                # noqa: F401
         from odoo.tools.safe_eval import safe_eval
 
 import python_plus

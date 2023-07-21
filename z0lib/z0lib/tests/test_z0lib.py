@@ -11,7 +11,7 @@ sys.path.insert(0,
                 else os.path.dirname(os.getcwd()))
 from z0lib import z0lib                                                    # noqa: E402
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
