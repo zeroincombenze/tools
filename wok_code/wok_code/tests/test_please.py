@@ -450,6 +450,10 @@ class RegressionTest:
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py")
         )
+        # TODO> weird situation
+        z0lib.run_traced(
+            "find ~/tools/ -type f -name \"*~\" -delete"
+        )
         if not z0ctx['dry_run']:
             self.tool_pkgdir = os.path.expanduser("~/tools/wok_code")
 

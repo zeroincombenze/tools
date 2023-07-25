@@ -27,7 +27,7 @@ except ImportError:
 
 __version__ = "2.0.7"
 
-ODOO_VERSION_TO_TEST = ("16.0", "12.0", "10.0", "7.0")
+ODOO_VERSION_TO_TEST = ("16.0", "12.0", "10.0", "8.0", "7.0")
 
 
 def version():
@@ -83,11 +83,12 @@ class RegressionTest:
                 )
             self.version_default[odoo_version] = values
             print(
-                "  ... Odoo %s should be run on %s:%s for %s login user!"
+                "  ... Odoo %s should be run on %s:%s, DB=%s for %s login user!"
                 % (
                     odoo_version,
                     values["db_host"],
                     values.get("http_port") or values["xmlrpc_port"],
+                    values["db_name"],
                     values["login_user"],
                 )
             )
