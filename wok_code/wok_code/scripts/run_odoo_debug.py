@@ -211,7 +211,7 @@ class RunOdoo(object):
                 if item in GIT_ORGIDS:
                     self.git_org = item
                     break
-        elif self.git_org not in GIT_ORGIDS:
+        elif self.git_org and self.git_org not in GIT_ORGIDS:
             print("Invalid git organization %s" % self.git_org)
             self.git_org = None
         if items[1]:

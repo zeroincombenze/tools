@@ -150,13 +150,13 @@ class PleaseZ0bug(object):
                 sts = please.run_traced("pre-commit run", rtime=True)
             if sts == 0:
                 please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=[("--no-verify", "")])
+                    rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
                 cmd = please.build_sh_me_cmd()
                 return please.run_traced(cmd, rtime=True)
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=[("--no-verify", "")])
+                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
@@ -171,6 +171,14 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd)
         return please.do_iter_action("do_show", act_all_pypi=True, act_tools=False)
+
+    def do_show_docs(self):
+        please = self.please
+        if please.is_pypi_pkg():
+            please.sh_subcmd = please.pickle_params(rm_obj=True)
+            cmd = please.build_sh_me_cmd()
+            return please.run_traced(cmd)
+        return 126
 
     def do_summary(self):
         please = self.please
@@ -276,42 +284,3 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
-
-    #
-    # def do_action(self):
-    #     please = self.please
-    #     if please.is_odoo_pkg():
-    #         for action in please.actions:
-    #             if action == "show":
-    #                 cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
-    #                 sts = please.run_traced(cmd)
-    #                 if sts:
-    #                     break
-    #                 continue
-    #             if action == "zerobug":
-    #                 params = please.pickle_params(cmd_subst="lint")
-    #             else:
-    #                 params = please.pickle_params()
-    #             cmd = please.build_sh_me_cmd(params=params)
-    #             sts = please.run_traced(cmd)
-    #             if sts == 0 and action == "zerobug":
-    #                 params = please.pickle_params(cmd_subst="test")
-    #                 cmd = please.build_sh_me_cmd(params=params)
-    #                 sts = please.run_traced(cmd)
-    #             if sts:
-    #                 break
-    #         return sts
-    #     elif please.is_repo_odoo() or please.is_pypi_pkg():
-    #         for action in please.actions:
-    #             if action == "zerobug":
-    #                 please.sh_subcmd = please.pickle_params(cmd_subst="emulate")
-    #             elif action == "show":
-    #                 please.sh_subcmd = please.pickle_params(cmd_subst="show-log")
-    #             else:
-    #                 please.sh_subcmd = please.pickle_params()
-    #             cmd = please.build_sh_me_cmd(cmd="travis")
-    #             sts = please.run_traced(cmd)
-    #             if sts:
-    #                 break
-    #         return sts
-    #     return please.do_iter_action(self, act_all_pypi=True, act_tools=False)

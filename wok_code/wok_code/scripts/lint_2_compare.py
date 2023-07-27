@@ -21,10 +21,12 @@ REGEX_OO = re.compile(r"([\"'])https?://(www.)?odoo.com([\"'])")
 def get_names(left_path, right_path):
     left_base = right_base = ""
     while left_path and right_path and left_path != right_path:
-        left_base = os.path.basename(left_path)
-        right_base = os.path.basename(right_path)
-        left_path = os.path.dirname(left_path)
-        right_path = os.path.dirname(right_path)
+        if left_path:
+            left_base = os.path.basename(left_path)
+            left_path = os.path.dirname(left_path)
+        if right_path:
+            right_base = os.path.basename(right_path)
+            right_path = os.path.dirname(right_path)
     if not left_base:
         left_base = "left"
     if not right_base:
@@ -61,6 +63,9 @@ def format_xml(opt_args, source, target):
 def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base):
     if (
         base.endswith(".pyc")
+        or base.endswith(".bak")
+        or base.endswith("~")
+        or base.endswith(".po.orig")
         or ((base.endswith(".po") or base.endswith(".pot")) and opt_args.ignore_po)
         or (base.startswith("README") and opt_args.ignore_doc)
         or (base.startswith("LICENSE") and opt_args.ignore_doc)
@@ -189,10 +194,12 @@ def remove_comment(opt_args, root, files, compare_path=None):
 
 def lintdir(opt_args, left_path, right_path):
     z0lib.run_traced(
-        "black %s" % left_path, verbose=opt_args.dry_run, dry_run=opt_args.dry_run
+        "arcangelo %s --string-normalization" % left_path,
+        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
     z0lib.run_traced(
-        "black %s" % right_path, verbose=opt_args.dry_run, dry_run=opt_args.dry_run
+        "arcangelo %s --string-normalization" % right_path,
+        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
     if opt_args.ignore_doc:
         for root, _dirs, files in os.walk(left_path):
@@ -200,8 +207,21 @@ def lintdir(opt_args, left_path, right_path):
         for root, _dirs, files in os.walk(right_path):
             compare_path = None
             if root.startswith(right_path):
-                compare_path = left_path + root[len(right_path) :]
+                compare_path = left_path + root[len(right_path):]
             remove_comment(opt_args, root, files, compare_path=compare_path)
+
+
+def rm_dir(opt_args, path):
+    z0lib.run_traced(
+        "chmod -R +w %s" % path,
+        verbose=opt_args.dry_run,
+        dry_run=opt_args.dry_run,
+    )
+    z0lib.run_traced(
+        "rm -fR %s" % path,
+        verbose=opt_args.dry_run,
+        dry_run=opt_args.dry_run,
+    )
 
 
 def main(cli_args=None):
@@ -211,22 +231,30 @@ def main(cli_args=None):
         epilog="© 2021-2023 by SHS-AV s.r.l.",
     )
     parser.add_argument("-b", "--odoo-version")
-    parser.add_argument("-c", "--cache", action="store_true", help="Use cached values")
     parser.add_argument(
-        "-d",
-        "--ignore-doc",
+        "-c", "--cache",
+        action="store_true",
+        help="Use cached values (conflict with -r)")
+    parser.add_argument(
+        "-d", "--ignore-doc",
         action="store_true",
         help="Ignore README, docs and comment in files",
     )
-    parser.add_argument("-i", "--ignore-po", action="store_true")
+    parser.add_argument(
+        "-i", "--ignore-po",
+        action="store_true",
+        help="ignore PO files")
     parser.add_argument("-m", "--meld", action="store_true", help="Use meld")
     parser.add_argument(
-        "-P",
-        "--purge",
+        "-P", "--purge",
         action="store_true",
-        help="Purge identical files on temporary dirs",
+        help="Purge identical files on temporary compare directories",
     )
-    parser.add_argument("-n", "--dry-run", dest="dry_run", action="store_true")
+    parser.add_argument("-n", "--dry-run", action="store_true")
+    parser.add_argument(
+        "-r", "--remove-prior",
+        action="store_true",
+        help="remove previous temporary compare directories (conflict with -c)")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
     parser.add_argument("left_path")
@@ -248,6 +276,8 @@ def main(cli_args=None):
     ):
         print("Cannot compare file against dir!")
     diff_path = os.path.expanduser("~/tmp/diff")
+    if opt_args.remove_prior and os.path.isdir(diff_path):
+        rm_dir(opt_args, diff_path)
     if not os.path.isdir(os.path.dirname(diff_path)):
         os.mkdir(os.path.dirname(diff_path))
     if not os.path.isdir(diff_path):
@@ -261,27 +291,9 @@ def main(cli_args=None):
         or not os.path.isdir(right_diff_path)
     ):
         if os.path.isdir(left_diff_path):
-            z0lib.run_traced(
-                "chmod -R +w %s" % left_diff_path,
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run,
-            )
-            z0lib.run_traced(
-                "rm -fR %s" % left_diff_path,
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run,
-            )
+            rm_dir(opt_args, left_diff_path)
         if os.path.isdir(right_diff_path):
-            z0lib.run_traced(
-                "chmod -R +w %s" % right_diff_path,
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run,
-            )
-            z0lib.run_traced(
-                "rm -fR %s" % right_diff_path,
-                verbose=opt_args.dry_run,
-                dry_run=opt_args.dry_run,
-            )
+            rm_dir(opt_args, right_diff_path)
         z0lib.run_traced(
             "mkdir %s" % left_diff_path,
             verbose=opt_args.dry_run,
@@ -318,7 +330,7 @@ def main(cli_args=None):
         )
     else:
         sts, stdout, stderr = z0lib.run_traced(
-            "diff -r %s %s" % (left_diff_path, right_diff_path),
+            "diff -qr %s %s" % (left_diff_path, right_diff_path),
             verbose=True,
             dry_run=opt_args.dry_run,
         )

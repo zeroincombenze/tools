@@ -64,60 +64,6 @@ __version__ = "2.0.11"
 #
 
 
-# RULES_TO_XML_NEW = [
-#     (
-#         "^ *<openerp",
-#         ("$", "matches_openerp_tag"),
-#     ),
-#     (
-#         "^ *</openerp>",
-#         ("$", "matches_openerp_endtag"),
-#     ),
-#     (
-#         "^ *<data",
-#         ("$", "matches_data_tag"),
-#     ),
-#     (
-#         "^ *</data>",
-#         ("$", "matches_data_endtag"),
-#     ),
-#     (
-#         "^ *<odoo",
-#         ("$", "matches_odoo_tag"),
-#     ),
-#     (
-#         "^ *</odoo>",
-#         ("$", "matches_odoo_endtag"),
-#     ),
-# ]
-# RULES_TO_XML_OLD = [
-#     (
-#         "^ *<odoo",
-#         ("$", "matches_odoo_tag"),
-#     ),
-#     (
-#         "^ *</odoo>",
-#         ("$", "matches_odoo_endtag"),
-#     ),
-#     (
-#         "^ *<openerp",
-#         ("$", "matches_openerp_tag"),
-#     ),
-#     (
-#         "^ *</openerp>",
-#         ("$", "matches_openerp_endtag"),
-#     ),
-#     (
-#         "^ *<data",
-#         ("$", "matches_data_tag"),
-#     ),
-#     (
-#         "^ *</data>",
-#         ("$", "matches_data_endtag"),
-#     ),
-# ]
-
-
 class MigrateFile(object):
     def __init__(self, ffn, opt_args):
         self.sts = 0
@@ -648,7 +594,11 @@ class MigrateFile(object):
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
         else:
             opts = "--skip-source-first-line"
-            if self.py23 == 2 or self.python_future:
+            if (
+                    self.py23 == 2
+                    or self.python_future and
+                    not self.opt_args.string_normalization
+            ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_ffn)
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
@@ -710,6 +660,7 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
+    parser.add_argument("--string-normalization")
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)

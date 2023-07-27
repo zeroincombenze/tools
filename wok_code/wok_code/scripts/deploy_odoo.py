@@ -154,7 +154,9 @@ class OdooDeploy(object):
             self.master_branch = build_odoo_param(
                 "FULLVER", odoo_vid=opt_args.odoo_branch
             )
+
         if self.opt_args.action in ("clone", "reclone") and not self.opt_args.repos:
+            # Get infro from github about repositories of git organizations
             for git_org in opt_args.git_orgs:
                 self.get_repo_from_github(git_org=git_org)
             if "OCB" not in self.repo_list:
@@ -185,15 +187,27 @@ class OdooDeploy(object):
                     verbose=False
                 )
                 if sts == 0:
-                    org_url, rrepo, git_org = self.data_from_url(git_url)
-                self.repo_info[repo]["GIT_ORG"] = git_org
-                self.repo_info[repo]["URL"] = git_url
-                self.repo_info[repo]["BRANCH"] = repo_branch
+                    org_url, rrepo, rgit_org = self.data_from_url(git_url)
+                if self.opt_args.action == "clone":
+                    self.repo_info[repo]["GIT_ORG"] = git_org
+                    # self.repo_info[repo]["URL"] = git_url
+                    self.repo_info[repo]["BRANCH"] = self.opt_args.odoo_branch
+                else:
+                    self.repo_info[repo]["GIT_ORG"] = rgit_org
+                    self.repo_info[repo]["URL"] = git_url
+                    self.repo_info[repo]["BRANCH"] = repo_branch
                 self.repo_info[repo]["STS"] = sts
                 if stash_list:
                     self.repo_info[repo]["STASH"] = stash_list
             if git_org and git_org not in self.opt_args.git_orgs:
                 self.opt_args.git_orgs.append(git_org)
+            if (
+                    self.opt_args.action != "clone"
+                    and rgit_org
+                    and rgit_org not in self.opt_args.git_orgs
+            ):
+                self.opt_args.git_orgs.append(rgit_org)
+
             if repo == "OCB" or not self.master_branch:
                 self.master_branch = build_odoo_param(
                     "FULLVER", odoo_vid=self.repo_info[repo]["BRANCH"]
@@ -693,9 +707,11 @@ class OdooDeploy(object):
     ):
         root = os.path.dirname(tgtdir)
         base = os.path.basename(tgtdir)
-        if os.getcwd() != root:
-            cmd = "cd %s" % root
-            self.run_traced(cmd)
+        try:
+            if os.getcwd() != root:
+                self.run_traced("cd %s" % root)
+        except FileNotFoundError:
+            self.run_traced("cd %s" % root)
         remote_branch = branch
         alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
         for alt_branch in [branch] + alt_branches:
@@ -828,11 +844,15 @@ class OdooDeploy(object):
             if self.repo_is_ocb(repo):
                 bakdir = "%s~" % tgtdir
                 if os.path.isdir(bakdir):
+                    if os.getcwd() != bakdir:
+                        self.run_traced("cd %s" % os.path.dirname(bakdir))
                     cmd = "rm -fR %s" % bakdir
                     self.run_traced(cmd)
                 cmd = "mv %s %s" % (tgtdir, bakdir)
                 self.run_traced(cmd)
             elif not os.path.islink(tgtdir):
+                if os.getcwd() != tgtdir:
+                    self.run_traced("cd %s" % os.path.dirname(tgtdir))
                 cmd = "rm -fR %s" % tgtdir
                 self.run_traced(cmd)
         if os.path.isdir(tgtdir) and self.opt_args.action == "update":

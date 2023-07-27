@@ -11,7 +11,7 @@ except ImportError:
 __version__ = "2.0.11"
 
 APACHE_TEMPLATE = """##################################################################
-# Odoo service %(odoo_branch)s
+# Odoo service %(branch)s
 # Domain: <%(protocol)s://%(domain)s>
 #
 <VirtualHost *:%(apache_port)s>
@@ -129,11 +129,11 @@ class PleaseApache(object):
         odoo_confn = please.opt_args.odoo_config
         if odoo_confn:
             params = self._get_params_from_csv(
-                odoo_confn, odoo_branch=please.opt_args.odoo_branch
+                odoo_confn, branch=please.opt_args.branch
             )
         else:
-            params = self.default_config(please.opt_args.odoo_branch)
-        params["odoo_branch"] = please.opt_args.odoo_branch
+            params = self.default_config(please.opt_args.branch)
+        params["branch"] = please.opt_args.branch
         if please.opt_args.args[0]:
             params["domain"] = please.opt_args.args[0]
         else:
@@ -182,12 +182,12 @@ class PleaseApache(object):
         print("File %s created" % out_file)
         return 0
 
-    def default_config(self, odoo_branch=None):
-        if odoo_branch:
-            odoo_major_version = int(odoo_branch.split(".")[0])
+    def default_config(self, branch=None):
+        if branch:
+            odoo_major_version = int(branch.split(".")[0])
             if odoo_major_version < 6:
-                odoo_branch = None
-        if odoo_branch:
+                branch = None
+        if branch:
             return {
                 "http_port": 8160 + odoo_major_version,
                 "longpolling_port": 8130 + odoo_major_version,
@@ -199,8 +199,8 @@ class PleaseApache(object):
             "website_document_root": "/var/www/html/odoo",
         }
 
-    def _get_params_from_csv(self, odoo_fn, odoo_branch=None):
-        config = ConfigParser.ConfigParser(self.default_config(odoo_branch=odoo_branch))
+    def _get_params_from_csv(self, odoo_fn, branch=None):
+        config = ConfigParser.ConfigParser(self.default_config(branch=branch))
         config.read(odoo_fn)
         return {
             "http_port": self.please.opt_args.xmlrpc_port

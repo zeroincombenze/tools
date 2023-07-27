@@ -1186,7 +1186,7 @@ do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($*)"
   local f p pkg v VENV xpkgs SAVED_PATH x sts=126
-  local venvexe pyexe pypath
+  local venvexe pypath
   VENV="$1"
   [[ $VENV =~ /$ ]] && VENV="${VENV:0: -1}"
   if [[ -d $VENV ]]; then
@@ -1230,6 +1230,11 @@ do_venv_create() {
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
   if [[ -n "$venvexe" ]]; then
+    x=$($PYTHON --version 2>&1|grep --color=never -Eo "[Pp]ython *[23]"|grep --color=never -Eo "[23]")
+    [[ $x -eq 2 ]] && $PIP install virtualenv
+    venvexe=$(which virtualenv 2>/dev/null)
+  fi
+  if [[ -n "$venvexe" ]]; then
     v=$(virtualenv --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
     if [ $v -gt 17 ]; then
       [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
@@ -1241,12 +1246,12 @@ do_venv_create() {
     p="$p -q"
     p="$p -p $PYTHON"
   else
-    $pyexe -m venv --help &>/dev/null
+    $PYTHON -m venv --help &>/dev/null
     if [[ $? -ne 0 ]]; then
       echo "No virtualenv / venv package found!"
       exit 1
     fi
-    venvexe="$pyexe -m venv"
+    venvexe="$PYTHON -m venv"
     [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     [[ -d $VENV ]] && p="$p --clear"
     [[ $opt_alone -ne 0 ]] && p="$p --copies"

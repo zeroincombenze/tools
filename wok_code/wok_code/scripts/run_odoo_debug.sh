@@ -620,7 +620,7 @@ if [[ $opt_touch -eq 0 ]]; then
       coverage_set
       x=$(date +"%Y-%m-%d %H:%M:%S,000")
       [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate"
-      [[ ! -f $LOGFILE ]] && touch $LOGFILE
+      [[ -d LOGDIR && ! -f $LOGFILE ]] && touch $LOGFILE
       [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
       if [[ $opt_dry_run -eq 0 ]]; then
         cd $TEST_VDIR

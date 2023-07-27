@@ -9,7 +9,7 @@ from __future__ import print_function, unicode_literals
 import os
 # import sys
 from datetime import datetime, timedelta
-import unittest
+# import unittest
 
 from z0lib import z0lib
 # from zerobug import z0test
@@ -261,4 +261,5 @@ class PypiTest(z0testlib.PypiTest):
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(unittest.main())
+    # exit(unittest.main())
+    exit(z0testlib.main())

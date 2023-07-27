@@ -269,6 +269,7 @@ class Please(object):
             parser.add_argument(
                 "-b",
                 arg if arg != "-b" else "--odoo-branch",
+                dest="branch",
                 metavar="BRANCH",
                 help="default Odoo version",
             )

@@ -510,10 +510,10 @@ In this documentation VAR means the name of the macro while MACRO is the name of
 ::
 
     i.e.  .. $if branch == '12.0'
-          Current branch is 2.0
+          Current branch is 2.0.11
 
 In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item 2.0 is the macro, replaced by the value of varaibale branch.
+The word branch in the second line is a text. The item 2.0.11 is the macro, replaced by the value of varaibale branch.
 
 CONDITION may be a python condition or one of follow special condition:
 
@@ -838,8 +838,11 @@ History
 * [IMP] please test and zerobug now do "please translate" after (--no-translate)
 * [IMP] please update: new switches --vme --odoo-venv
 * [IMP] please clean db: new action replace old wep-db
+* [IMP] please version: new interface
+* [IMP] please show docs: new interface
 * [REF] run_odoo_debug: partial refactoring
 * [IMP] run_odoo_debug: new switch --daemon
+* [IMP] arcangelo: new swicth --string-normalization
 * [FIX] please test / run_odoo_debug: minor fixes
 
 2.0.9 (2023-06-26)
@@ -964,10 +967,10 @@ Last Update / Ultimo aggiornamento:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.11/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.11/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
