@@ -8,6 +8,7 @@ import re
 import psycopg2
 
 __version__ = "2.0.11"
+BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 
 
 class PleaseCwd(object):
@@ -53,14 +54,15 @@ class PleaseCwd(object):
             self.please.add_argument(parser, "-n")
         parser.add_argument('-F', '--from-version')
         self.please.add_argument(parser, "-f")
+        parser.add_argument('-m', '--message', help="Commit message")
+        parser.add_argument(
+            "--odoo-venv", action="store_true", help="Update Odoo virtual environments"
+        )
         if not for_help:
             self.please.add_argument(parser, "-q")
         self.please.add_argument(parser, "-v")
         parser.add_argument(
             "--no-verify", action="store_true", help="Disable pre-commit on replace"
-        )
-        parser.add_argument(
-            "--odoo-venv", action="store_true", help="Update Odoo virtual environmens"
         )
         parser.add_argument(
             "--vme", action="store_true", help="Update $HOME/VME virtual environments"
@@ -158,6 +160,97 @@ class PleaseCwd(object):
                 if sts:
                     break
         return sts
+
+    def do_commit(self):
+        please = self.please
+        sts = 126
+        if not please.opt_args.message:
+            print("Missed commit message! Please use -m 'message'")
+            sts = 1
+        elif please.is_pypi_pkg():
+            sts = self.do_docs()
+        else:
+            print("No PYPI directory found")
+        if sts == 0:
+            for root, dirs, files in os.walk(self.cur_path_of_pkg()):
+                for fn in files:
+                    if not fn.endswith(".bak") and not fn.endswith("~"):
+                        continue
+                    cmd = "rm -f " + pth.join(root, fn)
+                    sts = please.run_traced(cmd)
+                    if sts:
+                        print("Cannot remove file %s!" % pth.join(root, fn))
+                        break
+        if sts == 0:
+            if os.environ.get("HOME_DEVEL"):
+                tgtdir = pth.join(
+                    pth.dirname(os.environ["HOME_DEVEL"]), "tools"
+                )
+            elif pth.isdir("~/odoo/tools"):
+                tgtdir = pth.expanduser("~/odoo/tools")
+            else:
+                tgtdir = pth.expanduser("~/tools")
+            if not pth.isdir(tgtdir):
+                print("Tools directory %s not found!" % tgtdir)
+                return 2
+            srcdir = os.getcwd()
+            pkgname = pth.basename(srcdir)
+            sts = 0
+            if not please.opt_args.no_verify:
+                sts = please.run_traced("git add ../", rtime=True)
+                if sts == 0:
+                    sts = please.run_traced("pre-commit run", rtime=True)
+                if sts == 0:
+                    sts = please.run_traced(
+                        "git commit -m \"" + please.opt_args.message + "\"")
+            if pkgname != "tools":
+                if sts == 0:
+                    sts = please.run_traced(
+                        "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
+                        " --exclude='*.log' --exclude='*.bak' %s/ %s/"
+                        % (srcdir, pth.join(tgtdir, pkgname)),
+                        rtime=True,
+                    )
+                if sts == 0:
+                    for item in ("setup.py", "README.rst"):
+                        fn = pth.join(pth.dirname(srcdir), item)
+                        if not pth.isfile(fn):
+                            continue
+                        sts = please.run_traced(
+                            "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
+                        )
+                        if sts:
+                            break
+            else:
+                if sts == 0:
+                    for item in ("egg-info", "docs", "tests", "templates",
+                                 "license_text"):
+                        sts = please.run_traced(
+                            "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
+                            " --exclude='*.log' --exclude='*.bak' %s/ %s/"
+                            % (pth.join(srcdir, item), pth.join(tgtdir, item)),
+                            rtime=True,
+                        )
+                        if sts:
+                            break
+                if sts == 0:
+                    for item in (
+                        "install_tools.sh",
+                        "LICENSE",
+                        "odoo_default_tnl.xlsx",
+                        "odoo_template_tnl.xlsx",
+                        "README.rst",
+                    ):
+                        fn = pth.join(srcdir, item)
+                        if not pth.isfile(fn):
+                            continue
+                        sts = please.run_traced(
+                            "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
+                        )
+                        if sts:
+                            break
+            return sts
+        return please.do_iter_action("do_replace", act_all_pypi=True, act_tools=False)
 
     def do_defcon(self):
         print("Missed sepcification:\nplease defcon precommit|gitignore")
@@ -303,7 +396,7 @@ class PleaseCwd(object):
                        ("--from-version", ""),
                        ("--no-verify", ""),
                        ("--vme", ""),
-                       ("--odoo-ven", "")])
+                       ("--odoo-venv", "")])
             cmd = please.build_sh_me_cmd(
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
@@ -339,6 +432,7 @@ class PleaseCwd(object):
 
     def do_replace(self):
         please = self.please
+        print("Deprecated action! Please use 'please commit'")
         sts = 126
         if please.is_pypi_pkg():
             sts = self.do_docs()
@@ -390,20 +484,25 @@ class PleaseCwd(object):
                         if sts:
                             break
             else:
-                for item in ("egg-info", "docs", "tests", "templates", "license_text"):
-                    sts = please.run_traced(
-                        "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
-                        " --exclude='*.log' --exclude='*.bak' %s/ %s/"
-                        % (pth.join(srcdir, item), pth.join(tgtdir, item)),
-                        rtime=True,
-                    )
-                    if sts:
-                        break
+                if not please.opt_args.no_verify:
+                    sts = please.run_traced("git add ./", rtime=True)
+                if sts == 0:
+                    for item in ("egg-info", "docs", "tests", "templates",
+                                 "license_text"):
+                        sts = please.run_traced(
+                            "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
+                            " --exclude='*.log' --exclude='*.bak' %s/ %s/"
+                            % (pth.join(srcdir, item), pth.join(tgtdir, item)),
+                            rtime=True,
+                        )
+                        if sts:
+                            break
                 if sts == 0:
                     for item in (
                         "install_tools.sh",
                         "LICENSE",
                         "odoo_default_tnl.xlsx",
+                        "odoo_template_tnl.xlsx",
                         "README.rst",
                     ):
                         fn = pth.join(srcdir, item)
@@ -448,7 +547,11 @@ class PleaseCwd(object):
             if sts == 0 and please.opt_args.odoo_venv:
                 sts = self.do_update_venv()
             return sts
-        return please.do_iter_action("do_update", act_all_pypi=True, act_tools=False)
+        return please.do_iter_action(
+            "do_update", act_all_pypi=True, act_tools=False,
+            pypi_list=[x
+                       for x in please.get_pypi_list()
+                       if x not in ("os0", "travis_emulator", "wok_code", "zar")])
 
     def do_update_venv(self):
         please = self.please
@@ -499,28 +602,36 @@ class PleaseCwd(object):
         def change_version(ffn):
             target = ""
             do_rewrite = False
+            ext = ffn.rsplit(".", 1)
+            ext = ext[1] if len(ext) > 1 else ""
+            if ext in BIN_EXTS:
+                return 0
             with open(ffn) as fd:
-                for ln in fd.read().split("\n"):
-                    x = REGEX_VER.match(ln)
-                    if x:
-                        ver_text = ln[x.start(): x.end()].split("=")[1].strip()
-                        if ver_text.startswith("'") or ver_text.startswith("\""):
-                            ver_text = ver_text[1: -1]
-                        if pth.basename(ffn) == "setup.py":
-                            self.ref_version = ver_text
-                            print(ffn, "->", ver_text)
-                        elif ver_text != self.ref_version:
-                            print(ffn, "->", ver_text, "***")
-                        elif please.opt_args.verbose > 1:
-                            print(ffn)
-                        if (
-                                please.opt_args.branch
-                                and ver_text != please.opt_args.branch
-                        ):
-                            ln = ln.replace(ver_text, please.opt_args.branch)
-                            do_rewrite = True
-                    target += ln
-                    target += "\n"
+                try:
+                    for ln in fd.read().split("\n"):
+                        x = REGEX_VER.match(ln)
+                        if x:
+                            ver_text = ln[x.start(): x.end()].split("=")[1].strip()
+                            if ver_text.startswith("'") or ver_text.startswith("\""):
+                                ver_text = ver_text[1: -1]
+                            if pth.basename(ffn) == "setup.py":
+                                self.ref_version = ver_text
+                                print(ffn, "->", ver_text)
+                            elif ver_text != self.ref_version:
+                                print(ffn, "->", ver_text, "***")
+                            elif please.opt_args.verbose > 1:
+                                print(ffn)
+                            if (
+                                    please.opt_args.branch
+                                    and ver_text != please.opt_args.branch
+                            ):
+                                ln = ln.replace(ver_text, please.opt_args.branch)
+                                do_rewrite = True
+                        target += ln
+                        target += "\n"
+                except BaseException as e:
+                    do_rewrite = False
+                    print("Error %s reading %s" % (e, ffn))
                 if do_rewrite:
                     if please.opt_args.verbose:
                         print(ffn, "=>", please.opt_args.branch)
@@ -587,4 +698,7 @@ class PleaseCwd(object):
             if sts == 0:
                 sts = change_version(pth.join(os.getcwd(), "docs", "conf.py"))
             return sts
-        return 126
+        if (please.opt_args.branch or please.opt_args.from_version):
+            print("Version options are not applicable to all packages")
+            return 126
+        return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)

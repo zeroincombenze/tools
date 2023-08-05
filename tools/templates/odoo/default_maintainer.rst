@@ -1,5 +1,5 @@
 .. $if GIT_ORGID == 'librerp'
-This module is maintained by the / Questo modulo è mantenuto dalla rete di imprese `Powerp <http://www.powerp.it/>`__
+This module is maintained by the / Questo modulo è mantenuto dalla rete di imprese `Librerp <http://www.librerp.it/>`__
 
 Developer companies are / I soci sviluppatori sono:
 

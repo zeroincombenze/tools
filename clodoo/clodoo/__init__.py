@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import scripts
 
-from . import clodoo as clodoo
+from . import clodoo_main as clodoo
 from . import transodoo
 
 try:

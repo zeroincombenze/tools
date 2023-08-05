@@ -1436,7 +1436,7 @@ def read_manifest(ctx):
 
 def adj_version(ctx, version):
     if not version:
-        version = "0.1.0"
+        version = "2.0.11"
     if version[0].isdigit():
         if not version.startswith(ctx["branch"]):
             version = "%s.%s" % (ctx["branch"], version)
@@ -2156,7 +2156,8 @@ def generate_readme(ctx):
     set_default_values(ctx)
     ctx["license_mgnt"] = license_mgnt.License()
     ctx["license_mgnt"].add_copyright(ctx["git_orgid"], "", "", "", "")
-    for section in DEFINED_TAG + DEFINED_SECTIONS:
+
+    for section in DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(
             ctx, "%s.rst" % section, ignore_ntf=True, out_fmt=out_fmt, section=section
@@ -2171,6 +2172,14 @@ def generate_readme(ctx):
                     out_fmt=out_fmt,
                     section="%s_%s" % (section, sub),
                 )[1]
+
+    for tag in DEFINED_TAG:
+        out_fmt = None
+        if not ctx.get(tag):
+            ctx[tag] = parse_local_file(
+                ctx, "%s.rst" % tag, ignore_ntf=True, out_fmt=out_fmt, section=tag
+            )[1]
+
     if ctx["odoo_layer"]:
         if not ctx["configuration"]:
             ctx["configuration"] = parse_local_file(
@@ -2399,3 +2408,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

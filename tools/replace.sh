@@ -3,7 +3,7 @@ if [[ -z $HOME_DEVEL ]]; then
     [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
 tgtdir=$(readlink -f $HOME_DEVEL/..)/tools
-for f in .travis.yml install_tools.sh LICENSE odoo_default_tnl.xlsx README.rst; do
+for f in .travis.yml install_tools.sh LICENSE odoo_default_tnl.xlsx odoo_template_tnl.xlsx README.rst; do
     echo "\$ cp ./$f $tgtdir/"
     cp ./$f $tgtdir/
 done

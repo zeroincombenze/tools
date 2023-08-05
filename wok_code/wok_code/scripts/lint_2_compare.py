@@ -194,11 +194,11 @@ def remove_comment(opt_args, root, files, compare_path=None):
 
 def lintdir(opt_args, left_path, right_path):
     z0lib.run_traced(
-        "arcangelo %s --string-normalization" % left_path,
+        "arcangelo %s -ia --string-normalization" % left_path,
         verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
     z0lib.run_traced(
-        "arcangelo %s --string-normalization" % right_path,
+        "arcangelo %s -ia --string-normalization" % right_path,
         verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
     if opt_args.ignore_doc:

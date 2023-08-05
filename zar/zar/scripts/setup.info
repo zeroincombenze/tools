@@ -47,14 +47,19 @@ setup(
     package_data={
         "": [
             "scripts/setup.info",
+            "scripts/pg_db_active.sh",
             "./bck_filestore.sh",
-            "./pg_db_active",
             "./pg_db_reassign_owner",
             "./zar_bck",
             "./zar_cptbl",
             "./zar_purge",
             "./zar_rest",
             "./zarrc",
+        ]
+    },
+    entry_points={
+        'console_scripts': [
+            'pg_db_active = zar.scripts.pg_db_active:main',
         ]
     },
     zip_safe=False,

@@ -710,7 +710,7 @@ class OdooDeploy(object):
         try:
             if os.getcwd() != root:
                 self.run_traced("cd %s" % root)
-        except FileNotFoundError:
+        except FileNotFoundError:  # noqa: F821
             self.run_traced("cd %s" % root)
         remote_branch = branch
         alt_branches = self.get_alt_branches(branch, master_branch=master_branch)

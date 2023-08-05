@@ -21,7 +21,7 @@
 
 .. $if odoo_layer == 'module'
 From UI: go to:
-.. $if branch in '11.0' '10.0'
+.. $if branch in '16.0' '15.0' '14.0' '13.0' '12.0' '11.0' '10.0'
 
 * |menu| Setting > Activate Developer mode
 * |menu| Apps > Update Apps List

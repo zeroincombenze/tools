@@ -57,75 +57,7 @@ TECH_FIELDS = [
     'write_date',
     'write_uid',
 ]
-parser = z0lib.parseoptargs(
-    "Odoo test environment", "© 2017-2021 by SHS-AV s.r.l.", version=__version__
-)
-parser.add_argument('-h')
-parser.add_argument(
-    "-A",
-    "--action",
-    help="internal action to execute",
-    dest="function",
-    metavar="python_name",
-    default='',
-)
-parser.add_argument(
-    "-c",
-    "--config",
-    help="configuration command file",
-    dest="conf_fn",
-    metavar="file",
-    default='./inv2draft_n_restore.conf',
-)
-parser.add_argument(
-    "-d",
-    "--dbname",
-    help="DB name to connect",
-    dest="db_name",
-    metavar="file",
-    default='',
-)
-parser.add_argument('-n')
-parser.add_argument('-q')
-parser.add_argument('-V')
-parser.add_argument('-v')
-parser.add_argument(
-    "-w",
-    "--src-config",
-    help="Source DB configuration file",
-    dest="from_confn",
-    metavar="file",
-)
-parser.add_argument(
-    "-z",
-    "--src-db_name",
-    help="Source database name",
-    dest="from_dbname",
-    metavar="name",
-)
-parser.add_argument(
-    "-1", "--param-1", help="value to pass to called function", dest="param_1"
-)
-parser.add_argument(
-    "-2", "--param-2", help="value to pass to called function", dest="param_2"
-)
-parser.add_argument(
-    "-3", "--param-3", help="value to pass to called function", dest="param_3"
-)
-parser.add_argument(
-    "-4", "--param-4", help="value to pass to called function", dest="param_4"
-)
-parser.add_argument(
-    "-5", "--param-5", help="value to pass to called function", dest="param_5"
-)
-parser.add_argument(
-    "-6", "--param-6", help="value to pass to called function", dest="param_6"
-)
-
-ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx)
 msg_time = time.time()
-os0.set_tlog_file('./odoo_shell.log', echo=True)
 
 
 def msg_burst(text):
@@ -239,7 +171,7 @@ def _get_tax_record(ctx, code=None, company_id=None):
     return tax_id
 
 
-def param_date(param, date_field=None, ctx=ctx):
+def param_date(param, date_field=None):
     """Return record ids of model by user request;
     param values:
         'yyyy-mm-dd': specific date
@@ -278,14 +210,6 @@ def param_date(param, date_field=None, ctx=ctx):
     else:
         domain = [(date_field, '>=', param)]
     return domain
-
-
-def param_mode_commission(param):
-    mode = ctx['param_1'] or 'A'
-    while mode not in ('A', 'R', 'C'):
-        mode = input('Mode (Add_missed,Recalculate,Check)? ')
-        mode = mode[0].upper() if mode else ''
-    return mode
 
 
 def param_product_agent(param):
@@ -3349,19 +3273,6 @@ def reconcile_invoice(ctx):
     )
 
 
-def reset_einvoices_stats(ctx):
-    channel = clodoo.browseL8(ctx, 'res.users', uid).company_id.einvoice_sender_id
-    clodoo.writeL8(
-        ctx,
-        'italy.ade.sender',
-        channel.name,
-        {
-            'used_invoices_ctr': 0,
-            'bonus_invoices_ctr': 0,
-        },
-    )
-
-
 def store_einvoices_stats(ctx):
     wb = load_workbook('./Riepilogo-consumo-clienti.xlsx', data_only=True)
     sheet = wb.active
@@ -4565,42 +4476,118 @@ def display_stock(ctx):
                 print(fmt_m % params_m)
 
 
-if ctx['function']:
-    function = ctx['function']
-    globals()[function](ctx)
-    exit()
+def main(cli_args=[]):
+    if not cli_args:
+        cli_args = sys.argv[1:]
+    parser = z0lib.parseoptargs(
+        "Odoo test environment", "© 2017-2021 by SHS-AV s.r.l.", version=__version__
+    )
+    parser.add_argument('-h')
+    parser.add_argument(
+        "-A",
+        "--action",
+        help="internal action to execute",
+        dest="function",
+        metavar="python_name",
+        default='',
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration command file",
+        dest="conf_fn",
+        metavar="file",
+        default='./inv2draft_n_restore.conf',
+    )
+    parser.add_argument(
+        "-d",
+        "--dbname",
+        help="DB name to connect",
+        dest="db_name",
+        metavar="file",
+        default='',
+    )
+    parser.add_argument('-n')
+    parser.add_argument('-q')
+    parser.add_argument('-V')
+    parser.add_argument('-v')
+    parser.add_argument(
+        "-w",
+        "--src-config",
+        help="Source DB configuration file",
+        dest="from_confn",
+        metavar="file",
+    )
+    parser.add_argument(
+        "-z",
+        "--src-db_name",
+        help="Source database name",
+        dest="from_dbname",
+        metavar="name",
+    )
+    parser.add_argument(
+        "-1", "--param-1", help="value to pass to called function", dest="param_1"
+    )
+    parser.add_argument(
+        "-2", "--param-2", help="value to pass to called function", dest="param_2"
+    )
+    parser.add_argument(
+        "-3", "--param-3", help="value to pass to called function", dest="param_3"
+    )
+    parser.add_argument(
+        "-4", "--param-4", help="value to pass to called function", dest="param_4"
+    )
+    parser.add_argument(
+        "-5", "--param-5", help="value to pass to called function", dest="param_5"
+    )
+    parser.add_argument(
+        "-6", "--param-6", help="value to pass to called function", dest="param_6"
+    )
 
-print('Avaiable functions:')
-print(' SALE ORDER                      ACCOUNT INVOICE')
-print(' - order_commission_by_partner   - inv_commission_from_order')
-print(' - all_addr_same_customer        - inv_commission_by_partner')
-print(' - close_sale_orders             - revaluate_due_date_in_invoces')
-print(' - order_inv_group_by_partner    - update_einvoice_out_attachment')
-print(' PURCHASE ORDER                  - unlink_einvoice_out_attachment')
-print(' - close_purchase_orders         - set_tax_code_on_invoice')
-print(' PRODUCT                         - set_comment_on_invoice')
-print(' - set_products_2_consumable     - set_move_partner_from_invoice')
-print(' - set_products_delivery_policy  - unlink_ddt_from_invoice')
-print(' - set_fiscal_on_products        COMMISSION')
-print(' ACCOUNT                         - create_commission_env')
-print(' - create_RA_config              DELIVERY/SHIPPING')
-print(' - manage_due_line               - change_ddt_number')
-print(' PARTNER/USER                    - create_delivery_env')
-print(' - check_integrity_by_vg7        - show_empty_ddt')
-print('                                 RIBA')
-print(' - set_ppf_on_partner            - configure_RiBA')
-print(' - deduplicate_partner           - manage_riba')
-print(' - reset_email_admins             OTHER TABLES')
-print(' - solve_unamed                   - set_report_config')
-print(' - solve_flag_einvoice            - setup_balance_report')
-print(' - simulate_user_profile          - show_module_group')
-print(' SYSTEM                           - check_rec_links')
-print(' - clean_translations             - display_module')
-print(' - configure_email_template')
-print(' - test_synchro_vg7')
-print(' - set_db_4_test')
-print(' - fix_weburl')
+    ctx = parser.parseoptargs(cli_args, apply_conf=False)
+    uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx)
+    # os0.set_tlog_file('./odoo_shell.log', echo=True)
 
-pdb.set_trace()
-print('\n\n')
-pdb.set_trace()
+    if ctx['function']:
+        function = ctx['function']
+        globals()[function](ctx)
+        exit()
+
+    print('Avaiable functions:')
+    print(' SALE ORDER                      ACCOUNT INVOICE')
+    print(' - order_commission_by_partner   - inv_commission_from_order')
+    print(' - all_addr_same_customer        - inv_commission_by_partner')
+    print(' - close_sale_orders             - revaluate_due_date_in_invoces')
+    print(' - order_inv_group_by_partner    - update_einvoice_out_attachment')
+    print(' PURCHASE ORDER                  - unlink_einvoice_out_attachment')
+    print(' - close_purchase_orders         - set_tax_code_on_invoice')
+    print(' PRODUCT                         - set_comment_on_invoice')
+    print(' - set_products_2_consumable     - set_move_partner_from_invoice')
+    print(' - set_products_delivery_policy  - unlink_ddt_from_invoice')
+    print(' - set_fiscal_on_products        COMMISSION')
+    print(' ACCOUNT                         - create_commission_env')
+    print(' - create_RA_config              DELIVERY/SHIPPING')
+    print(' - manage_due_line               - change_ddt_number')
+    print(' PARTNER/USER                    - create_delivery_env')
+    print(' - check_integrity_by_vg7        - show_empty_ddt')
+    print('                                 RIBA')
+    print(' - set_ppf_on_partner            - configure_RiBA')
+    print(' - deduplicate_partner           - manage_riba')
+    print(' - reset_email_admins             OTHER TABLES')
+    print(' - solve_unamed                   - set_report_config')
+    print(' - solve_flag_einvoice            - setup_balance_report')
+    print(' - simulate_user_profile          - show_module_group')
+    print(' SYSTEM                           - check_rec_links')
+    print(' - clean_translations             - display_module')
+    print(' - configure_email_template')
+    print(' - test_synchro_vg7')
+    print(' - set_db_4_test')
+    print(' - fix_weburl')
+
+    pdb.set_trace()
+    print('\n\n')
+    pdb.set_trace()
+
+
+if __name__ == "__main__":
+    exit(main())

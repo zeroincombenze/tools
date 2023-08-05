@@ -70,7 +70,7 @@ def run_traced(cmd,
         if sys.version_info[0] == 2:
             if rtime:
                 try:
-                    sts = call(args, shell=True)
+                    sts = call(" ".join(args), shell=True)
                 except OSError as e:
                     if verbose:
                         print(e)
@@ -97,7 +97,7 @@ def run_traced(cmd,
         else:
             if rtime:
                 try:
-                    sts = call(args, shell=True)
+                    sts = call(" ".join(args), shell=True)
                 except FileNotFoundError as e:  # noqa: F821
                     if verbose:
                         print(e)

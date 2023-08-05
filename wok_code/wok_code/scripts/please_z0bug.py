@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import os.path as pth
 
 __version__ = "2.0.11"
 
@@ -115,8 +116,15 @@ class PleaseZ0bug(object):
             metavar="REGEX",
             help="Test stops before executing yaml statement",
         )
+        parser.add_argument(
+            "--no-translate", action="store_true", help="Disable translation after test"
+        )
         if not for_help:
             self.please.add_argument(parser, "-v")
+        parser.add_argument(
+            "--no-verify", action="store_true",
+            help="Disable pre-commit on lint and testenv upgrade"
+        )
         parser.add_argument(
             "-X",
             "--translation",
@@ -132,12 +140,6 @@ class PleaseZ0bug(object):
         parser.add_argument(
             "-Z", "--zero", action="store_true", help="Use local zeroincombenze tools"
         )
-        parser.add_argument(
-            "--no-translate", action="store_true", help="Disable translation after test"
-        )
-        parser.add_argument(
-            "--no-verify", action="store_true", help="Disable pre-commit on lint"
-        )
         parser.add_argument('--ignore-status', action='store_true')
         parser.add_argument("args", nargs="*")
         return parser
@@ -147,16 +149,31 @@ class PleaseZ0bug(object):
         if please.is_odoo_pkg():
             sts = 0
             if not please.opt_args.no_verify:
+                sts = please.run_traced("git add ./", rtime=True)
                 sts = please.run_traced("pre-commit run", rtime=True)
             if sts == 0:
+                if "lint" in please.cli_args:
+                    sub_list = [("--no-verify", ""), ("--no-translate", "")]
+                else:
+                    sub_list = [("z0bug", "lint"),
+                                ("--no-verify", ""),
+                                ("--no-translate", "")]
                 please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
+                    rm_obj=True, slist=sub_list)
                 cmd = please.build_sh_me_cmd()
                 return please.run_traced(cmd, rtime=True)
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            if not please.opt_args.no_verify:
+                sts = please.run_traced("pre-commit run", rtime=True)
+            if "lint" in please.cli_args:
+                sub_list = [("--no-verify", ""), ("--no-translate", "")]
+            else:
+                sub_list = [("z0bug", "lint"),
+                            ("--no-verify", ""),
+                            ("--no-translate", "")]
             please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
+                rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
@@ -164,7 +181,7 @@ class PleaseZ0bug(object):
     def do_show(self):
         please = self.please
         if please.is_odoo_pkg():
-            cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
+            cmd = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
             return please.run_traced(cmd)
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
@@ -183,7 +200,7 @@ class PleaseZ0bug(object):
     def do_summary(self):
         please = self.please
         if please.is_odoo_pkg():
-            cmd = os.path.join(os.getcwd(), "tests", "logs", "show-log.sh")
+            cmd = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
             sts = please.run_traced(cmd)
             return 0 if please.opt_args.ignore_status else sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
@@ -196,27 +213,31 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
-            if not please.opt_args.no_verify and os.path.isdir("tests"):
+            if (
+                    not please.opt_args.no_verify
+                    and pth.isdir("tests")
+                    and pth.isfile(pth.join("tests", "testenv.py"))
+            ):
                 sts, branch = please.get_odoo_branch_from_git()
                 if please.opt_args.debug:
                     if os.environ.get("HOME_DEVEL"):
-                        srcpath = os.path.join(os.environ["HOME_DEVEL"], "pypi")
-                    elif os.path.isdir("~/odoo/tools"):
-                        srcpath = os.path.expanduser("~/odoo/devel/pypi")
+                        srcpath = pth.join(os.environ["HOME_DEVEL"], "pypi")
+                    elif pth.isdir("~/odoo/tools"):
+                        srcpath = pth.expanduser("~/odoo/devel/pypi")
                     else:
-                        srcpath = os.path.expanduser("~/devel/pypi")
-                    srcpath = os.path.join(
+                        srcpath = pth.expanduser("~/devel/pypi")
+                    srcpath = pth.join(
                         srcpath, "z0bug_odoo", "z0bug_odoo", "testenv")
                 else:
                     if os.environ.get("HOME_DEVEL"):
-                        srcpath = os.path.join(
-                            os.path.dirname(os.environ["HOME_DEVEL"]), "tools"
+                        srcpath = pth.join(
+                            pth.dirname(os.environ["HOME_DEVEL"]), "tools"
                         )
-                    elif os.path.isdir("~/odoo/tools"):
-                        srcpath = os.path.expanduser("~/odoo/tools")
+                    elif pth.isdir("~/odoo/tools"):
+                        srcpath = pth.expanduser("~/odoo/tools")
                     else:
-                        srcpath = os.path.expanduser("~/odoo/tools")
-                    srcpath = os.path.join(srcpath, "z0bug_odoo", "testenv")
+                        srcpath = pth.expanduser("~/odoo/tools")
+                    srcpath = pth.join(srcpath, "z0bug_odoo", "testenv")
                 if branch and int(branch.split(".")[0]) <= 7:
                     please.run_traced(
                         "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
@@ -226,22 +247,50 @@ class PleaseZ0bug(object):
                         "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
                 please.run_traced(
                     "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
+            if "test" in please.cli_args:
+                sub_list = [("--no-verify", ""), ("--no-translate", "")]
+            else:
+                sub_list = [("z0bug", "test"),
+                            ("--no-verify", ""),
+                            ("--no-translate", "")]
             please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
+                rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd()
             sts = please.run_traced(cmd, rtime=True)
-            if sts == 0 and not please.opt_args.no_translate:
+            if sts == 0 and not please.opt_args.no_verify:
+                if "test" in please.cli_args:
+                    sub_list = [("test", "docs"),
+                                ("--no-verify", ""),
+                                ("--no-translate", "")]
+                else:
+                    sub_list = [("z0bug", "docs"),
+                                ("--no-verify", ""),
+                                ("--no-translate", "")]
                 please.sh_subcmd = please.pickle_params(
-                    rm_obj=True,
-                    slist=[("test", "translate"),
-                           ("--no-verify", ""),
-                           ("--no-translate", "")])
+                    rm_obj=True, slist=sub_list)
+                cmd = please.build_sh_me_cmd()
+                sts = please.run_traced(cmd, rtime=True)
+            if sts == 0 and not please.opt_args.no_verify:
+                sts = please.run_traced("git add ./", rtime=True)
+            if sts == 0 and not please.opt_args.no_translate:
+                if "test" in please.cli_args:
+                    sub_list = [("test", "translate"), ("--no-verify", "")]
+                else:
+                    sub_list = [("z0bug", "translate"), ("--no-verify", "")]
+                please.sh_subcmd = please.pickle_params(
+                    rm_obj=True, slist=sub_list)
                 cmd = please.build_sh_me_cmd()
                 sts = please.run_traced(cmd, rtime=True)
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            if "test" in please.cli_args:
+                sub_list = [("--no-verify", ""), ("--no-translate", "")]
+            else:
+                sub_list = [("z0bug", "test"),
+                            ("--no-verify", ""),
+                            ("--no-translate", "")]
             please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=[("--no-verify", ""), ("--no-translate", "")])
+                rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_test", act_all_pypi=True, act_tools=False)
@@ -249,32 +298,9 @@ class PleaseZ0bug(object):
     def do_zerobug(self):
         please = self.please
         if please.is_odoo_pkg():
-            sts = 0
-            if not please.opt_args.no_verify:
-                sts = please.run_traced("pre-commit run", rtime=True)
+            sts = self.do_lint()
             if sts == 0:
-                please.sh_subcmd = please.pickle_params(
-                    cmd_subst="lint",
-                    rm_obj=True,
-                    slist=[("--no-verify", ""), ("--no-translate", "")])
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
-            if sts == 0:
-                please.sh_subcmd = please.pickle_params(
-                    cmd_subst="test",
-                    rm_obj=True,
-                    slist=[("--no-verify", ""), ("--no-translate", "")])
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
-            if sts == 0 and not please.opt_args.no_translate:
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True,
-                    slist=[("z0bug", "translate"),
-                           ("zerobug", "translate"),
-                           ("--no-verify", ""),
-                           ("--no-translate", "")])
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
+                sts = self.do_test()
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(

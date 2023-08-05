@@ -37,7 +37,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -p  mkdir $HOME/devel if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
-    echo "  -t  this script is executing in travis-ci environment"
+    echo "  -t  this script is executing in test environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
@@ -72,14 +72,14 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__clodoo="bck_filestore.sh manage_odoo.man"
-RFLIST__zar="pg_db_active pg_db_reassign_owner"
+RFLIST__clodoo=""
+RFLIST__zar="pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""
-RFLIST__lisa="lisa lisa.conf.sample lisa.man kbase/*.lish"
-RFLIST__tools="odoo_default_tnl.xlsx templates license_text readlink"
+RFLIST__lisa=""
+RFLIST__tools="odoo_default_tnl.xlsx odoo_template_tnl.xlsx license_text templates tests"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py"
+RFLIST__wok_code=""
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
@@ -133,11 +133,16 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
+# Chose python version to use: if _t supplied, python version MUST be the same of the
+# current python
 VPYVER="0.0"
 [[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
-[[ $opts =~ ^-.*t && -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
+if [[ $opts =~ ^-.*t ]]; then
+    [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
+    [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+fi
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
@@ -197,54 +202,31 @@ if [[ ! $opts =~ ^-.*k ]]; then
             echo ""
             exit 1
         fi
-        # TODO> remove early: copy files
-#        if [[ $pkg == "tools" ]]; then
-#          [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
-#        else
-#          [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
-#        fi
-#        for fn in $flist; do
-#            if [[ $fn == "." ]]; then
-#                src="$srcdir"
-#                tgt="$BINPATH/${pfn}"
-#                ftype=d
-#            elif [[ $fn == "readlink" ]]; then
-#                READLINK=$(which greadlink 2>/dev/null)
-#                if [[ -z "$READLINK" ]]; then
-#                    [[ -L $BINPATH/readlink ]] && rm -f $BINPATH/readlink
-#                    continue
-#                fi
-#                src=$READLINK
-#                tgt="$BINPATH/${fn}"
-#                ftype=f
-#            else
-#                src="$srcdir/$fn"
-#                tgt="$BINPATH/$fn"
-#                [[ -d "$src" ]] && ftype=d || ftype=f
-#            fi
-#            if $(echo "$src"|grep -Eq "\*"); then
-#                src=$(dirname "$src")
-#                tgt=$(dirname "$tgt")
-#                ftype=d
-#            fi
-#            if [[ ! -e "$src" ]]; then
-#                echo "# File $src not found!"
-#            else
-#                [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
-#                [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
-#                [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
-#                [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
-#                if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
-#                    [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
-#                    run_traced "ln -s $src $tgt"
-#                else
-#                    [[ $ftype == f ]] && copts="" || copts="-r"
-#                    run_traced "cp $copts $src $tgt"
-#                    [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
-#                    set_hashbang $tgt
-#                fi
-#            fi
-#        done
+        if [[ $pkg == "tools" ]]; then
+            [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
+                for fn in $flist; do
+                    src="$srcdir/$fn"
+                    tgt="$BINPATH/$fn"
+                    [[ -d "$src" ]] && ftype=d || ftype=f
+                    if [[ ! -e "$src" ]]; then
+                        echo "# File $src not found!"
+                    else
+                        [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
+                        [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
+                        [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
+                        [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
+                        if [[ $fn =~ (kbase|templates|license_text) ]]; then
+                            [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
+                            run_traced "ln -s $src $tgt"
+                        else
+                            [[ $ftype == f ]] && copts="" || copts="-r"
+                            run_traced "cp $copts $src $tgt"
+                            [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+                            set_hashbang $tgt
+                        fi
+                    fi
+                done
+        fi
         [[ $pkg == "tools" ]] && continue
         # Tools PYPI installation
         if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
@@ -297,24 +279,28 @@ for fn in $FILES_2_DELETE; do
 done
 
 if [[ ! $opts =~ ^-.*n ]]; then
+    # LOCAL_VENV is DTSPATH/venv
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "# LOCAL_VENV=$LOCAL_VENV">>$DSTPATH/activate_tools
     echo "[ \"\${BASH_SOURCE-}\" == \"\$0\" ] && echo \"Please use: source \${BASH_SOURCE-}\" && exit 1">>$DSTPATH/activate_tools
-    echo "export HOME_DEVEL=\"\$(readlink -f \$(dirname \${BASH_SOURCE-}))\"">>$DSTPATH/activate_tools
+    echo "[[ \${BASH_SOURCE-} != \$DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
+    echo "export SAVED_HOME_DEVEL=\"\$HOME_DEVEL:\$SAVED_HOME_DEVEL\"">>$DSTPATH/activate_tools
+    echo "export HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
     echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools
 
-    echo "opts=\$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)">>$DSTPATH/activate_tools
-    echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     if [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]]; then
+        echo "opts=\$(echo \-t \$1 \$2 \$3 \$4 \$5 \$6 \$7 \$8 \$9 .)">>$DSTPATH/activate_tools
         echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
         echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     else
+        echo "opts=\$(echo \$1 \$2 \$3 \$4 \$5 \$6 \$7 \$8 \$9 .)">>$DSTPATH/activate_tools
         echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
         echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     fi
+    echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     for fn in coverage coverage3 coveralls flake8 pylint; do
         [[ $fn == "coveralls" && ! $opts =~ ^-.*t ]] && continue
         echo "p=\$(which $fn 2>/dev/null)">>$DSTPATH/activate_tools
@@ -326,6 +312,11 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\"\$BINDIR:\$PATH\"">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
+
+    echo "x=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $1}')">$DSTPATH/deactivate_tools
+    echo "y=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $2 ":" $3 ":" $4}')">>$DSTPATH/deactivate_tools
+    echo "[[ -n $x ]] && export PATH=\"$x\"">>$DSTPATH/deactivate_tools
+    echo "[[ -n $y && $y != "::" ]] && export \$SAVED_HOME_DEVEL=\"$y\" || unset \$SAVED_HOME_DEVEL">>$DSTPATH/deactivate_tools
 fi
 
 # OCA tools
@@ -364,7 +355,7 @@ done
 #  echo -n "."
 #  [[ ! -f $LOCAL_VENV/bin/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/bin/$pkg!!${CLR}" && exit
 #done
-for pkg in kbase templates; do
+for pkg in templates; do
   echo -n "."
   [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
 done

@@ -78,14 +78,18 @@ setup(
             "scripts/setup.info",
             "./manage_db",
             "./manage_odoo",
+            "./manage_odoo.man",
             "./odoo_install_repository",
             "./odoorc",
             "./transodoo.xlsx",
+            "./bck_filestore.sh",
         ]
     },
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",
+            # "clodoo.py = clodoo.clodoo_main:main",
+            "transodoo.py = clodoo.transodoo:main",
         ]
     },
     zip_safe=False,

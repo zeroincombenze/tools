@@ -17,7 +17,7 @@ __version__ = "2.0.11"
 MODULE_ID = "z0bug_odoo"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-ODOO_VERSIONS = ("7.0", "10.0", "12.0")
+ODOO_VERSIONS = ("12.0", "10.0", "7.0")
 
 DESCR_FN = """Lorem ipsum
 -----------
@@ -25,6 +25,7 @@ DESCR_FN = """Lorem ipsum
 Lorem ipsum **dolor** sit amet
 .. $if branch in '%s'
 consectetur *adipiscing* elit
+.. $fi
 .. $if branch in '12.0'
 odoo 12.0
 .. $elif branch in '10.0'
@@ -96,7 +97,7 @@ Unknown Odoo version
 
     >>> doc
 |
-.. image:: https://raw.githubusercontent.com/zeroincombenze//7.0//static/src/img/logo.png
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/7.0/test_module/static/src/img/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
@@ -124,7 +125,7 @@ odoo 10.0
 
     >>> doc
 |
-.. image:: https://raw.githubusercontent.com/zeroincombenze//10.0//static/description/logo.png
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/10.0/test_module/static/description/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
@@ -152,7 +153,7 @@ odoo 12.0
 
     >>> doc
 |
-.. image:: https://raw.githubusercontent.com/zeroincombenze//12.0//static/description/logo.png
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/12.0/test_module/static/description/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 

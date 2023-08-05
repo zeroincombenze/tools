@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 from past.builtins import basestring
+from io import open
 import sys
 import os
 from datetime import datetime
@@ -8,7 +10,7 @@ import argparse
 import re
 import lxml.etree as ET
 import yaml
-from python_plus import _b
+from python_plus import _b, _u
 from z0lib import z0lib
 
 __version__ = "2.0.11"
@@ -67,6 +69,7 @@ __version__ = "2.0.11"
 class MigrateFile(object):
     def __init__(self, ffn, opt_args):
         self.sts = 0
+        self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
         if opt_args.verbose > 0:
             print("Reading %s ..." % ffn)
         self.ffn = ffn
@@ -116,8 +119,12 @@ class MigrateFile(object):
                 self.def_python_future = True
         self.opt_args = opt_args
         self.lines = []
-        with open(ffn, 'r') as fd:
-            self.source = fd.read()
+        try:
+            with open(ffn, "r", encoding="utf-8") as fd:
+                self.source = fd.read()
+        except BaseException:
+            self.source = ""
+            self.ignore_file = False
         self.lines = self.source.split('\n')
         self.analyze_source()
 
@@ -148,7 +155,7 @@ class MigrateFile(object):
                 "# flake8: noqa" in ln or "# pylint: skip-file" in ln
             ):
                 self.ignore_file = True
-        if not self.opt_args.force and (
+        if not self.source or not self.opt_args.force and (
             os.path.basename(self.ffn) in ("testenv.py", "conf.py", "_check4deps_.py")
             or "/tests/data/" in os.path.abspath(self.ffn)
         ):
@@ -465,8 +472,10 @@ class MigrateFile(object):
         return TARGET
 
     def do_process_source(self):
+        if self.opt_args.git_merge_conflict:
+            self.solve_git_merge()
         if self.ignore_file:
-            return
+            return False
         if os.path.basename(self.ffn) in (
                 "history.rst", "HISTORY.rst", "CHANGELOG.rst"):
             return self.do_upgrade_history()
@@ -551,22 +560,48 @@ class MigrateFile(object):
                 nro -= nro - 1
                 self.lines.insert(nro, test_res_msg)
                 if not self.opt_args.dry_run:
-                    with open(self.ffn, 'w') as fd:
+                    with open(self.ffn, "w", encoding="utf-8") as fd:
                         fd.write("\n".join(self.lines))
             self.lines[title_nro] = (
                 self.lines[title_nro][:i_start]
                 + datetime.strftime(datetime.now(), "%Y-%m-%d")
                 + self.lines[title_nro][i_end:])
 
+    def solve_git_merge(self):
+        state = "both"
+        state_lev = 0
+        nro = 0
+        while nro < len(self.lines):
+            ln = self.lines[nro]
+            if ln.startswith("<<<<<<<"):
+                state = "left"
+                state_lev += 1
+                del self.lines[nro]
+            elif ln.startswith(">>>>>>>"):
+                state = "right"
+                state_lev += 1
+                del self.lines[nro]
+            elif ln.startswith("=======") and state != "both":
+                state_lev -= 1
+                if not state_lev:
+                    state = "both"
+                del self.lines[nro]
+            elif state not in ("both", self.opt_args.git_merge_conflict):
+                del self.lines[nro]
+            else:
+                nro += 1
+
     def write_xml(self, out_ffn):
-        with open(out_ffn, 'w') as fd:
-            xml = ET.fromstring(_b("\n".join(self.lines).replace('\t', '    ')))
-            fd.write("<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n")
-            fd.write(
-                ET.tostring(
-                    xml, encoding="unicode", with_comments=True, pretty_print=True
-                )
-            )
+        with open(out_ffn, "w", encoding="utf-8") as fd:
+            source_xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
+            source_xml += _u(ET.tostring(
+                ET.fromstring(_b("\n".join(self.lines).replace('\t', '    '))),
+                encoding="unicode", with_comments=True, pretty_print=True))
+            x = self.REX_CLOTAG.search(source_xml)
+            while x:
+                source_xml = self.REX_CLOTAG.sub(r"<\1/>", source_xml)
+                x = self.REX_CLOTAG.search(source_xml)
+            fd.write(source_xml)
 
     def format_file(self, out_ffn):
         prettier_config = False
@@ -589,15 +624,14 @@ class MigrateFile(object):
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
-            cmd += " --write "
+            cmd += " --bracket-same-line --write "
             cmd += out_ffn
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
         else:
             opts = "--skip-source-first-line"
             if (
-                    self.py23 == 2
-                    or self.python_future and
-                    not self.opt_args.string_normalization
+                    (self.py23 == 2 or self.python_future)
+                    and not self.opt_args.string_normalization
             ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_ffn)
@@ -613,8 +647,10 @@ class MigrateFile(object):
                 os.mkdir(os.path.isdir(os.path.dirname(out_ffn)))
         else:
             out_ffn = self.ffn
-        if not self.ignore_file and (out_ffn != self.ffn
-                                     or self.source != "\n".join(self.lines)):
+        if not self.ignore_file and (
+                self.opt_args.lint_anyway
+                or out_ffn != self.ffn
+                or self.source != "\n".join(self.lines)):
             if not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_ffn
                 if os.path.isfile(bakfile):
@@ -625,14 +661,22 @@ class MigrateFile(object):
                 if self.is_xml:
                     self.write_xml(out_ffn)
                 else:
-                    with open(out_ffn, 'w') as fd:
+                    with open(out_ffn, "w", encoding="utf-8") as fd:
                         fd.write("\n".join(self.lines))
-            if self.opt_args.verbose > 0:
-                print('👽 %s' % out_ffn)
             if not self.opt_args.no_parse_with_formatter:
                 self.format_file(out_ffn)
-        elif self.opt_args.lint_anyway:
-            self.format_file(out_ffn)
+            if self.opt_args.verbose > 0:
+                print('👽 %s' % out_ffn)
+
+
+def file_is_processable(opt_args, fn):
+    if (
+            opt_args.git_merge_conflict
+            or fn.endswith('.py')
+            or fn.endswith('.xml')
+    ):
+        return True
+    return False
 
 
 def main(cli_args=None):
@@ -649,6 +693,10 @@ def main(cli_args=None):
         action='store_true',
         help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'",
     )
+    parser.add_argument(
+        "--git-merge-conflict",
+        metavar="left|right",
+        help="Keep specific code after git merge conflict: value is left or right")
     parser.add_argument('--ignore-pragma', action='store_true')
     parser.add_argument('-i', '--in-place', action='store_true')
     parser.add_argument('-j', '--python')
@@ -660,7 +708,7 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
-    parser.add_argument("--string-normalization")
+    parser.add_argument("--string-normalization", action='store_true')
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
@@ -672,6 +720,13 @@ def main(cli_args=None):
     )
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
+    if (
+            opt_args.git_merge_conflict
+            and opt_args.git_merge_conflict not in ("left", "right")
+    ):
+        print("Invalid value for switch --git-merge-conflict")
+        print("Please use --git-merge-conflict=left or --git-merge-conflict=right")
+        return 3
     sts = 0
     if (
         opt_args.output
@@ -687,7 +742,7 @@ def main(cli_args=None):
                     if 'setup' in dirs:
                         del dirs[dirs.index('setup')]
                     for fn in files:
-                        if not fn.endswith('.py') and not fn.endswith('.xml'):
+                        if not file_is_processable(opt_args, fn):
                             continue
                         source = MigrateFile(
                             os.path.abspath(os.path.join(root, fn)), opt_args

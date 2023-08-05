@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 
 test_01() {
@@ -101,11 +101,11 @@ test_03() {
     RES=$(list_requirements.py -b10.0 -tpython -BSP)
     test_result "list_requirements -b10.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=38.0,<39.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.5.0,html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==4.0.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
+    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=38.0,<39.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=1.5.0,<=20.9.0',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==4.0.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
     RES=$(list_requirements.py -b12.0 -tpython -BSP)
     test_result "list_requirements -b12.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,chardet,configparser,'cryptography>=38.0,<39.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,gevent==1.5.0,html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,'passlib>=1.7.0','Pillow>=7.0.0',psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=23.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',qrcode==5.3,reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.16.1,zeep==2.4.0"
+    TRES="python=asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,chardet,configparser,'cryptography>=38.0,<39.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=22.10.0,<=22.10.99',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0',lxml==4.2.3,'Mako>=1.0.4',num2words,numpy,'passlib>=1.7.0','Pillow>=7.0.0',psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=23.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',qrcode==5.3,reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.16.1,zeep==2.4.0"
     RES=$(list_requirements.py -b16.0 -tpython -BSP)
     test_result "list_requirements -b16.0 -tpython -BSP" "$TRES" "$RES"
 }
@@ -142,3 +142,4 @@ Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit $sts
+

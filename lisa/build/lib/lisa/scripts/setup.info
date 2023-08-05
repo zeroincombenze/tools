@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
 setup(
@@ -35,6 +36,11 @@ over every Linux distribution.
         'scripts/lisa_bld_ods.sh',
         'scripts/odoo-server_Debian',
         'scripts/odoo-server_RHEL',
+        './kbase/*',
+        './lisa.conf.sample',
+        './lisa.man',
+        './odoo-server',
+        './odoo-server.service',
     ]},
     entry_points={
         'console_scripts': [

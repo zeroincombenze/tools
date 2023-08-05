@@ -24,9 +24,9 @@ copyright = '2020, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '1.0.1'
+version = '2.0.1'
 # The full version, including alpha/beta/rc tags
-release = '1.0.1'
+release = '2.0.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -169,3 +169,4 @@ autodoc_default_options = {
     'undoc-members': True,
     'exclude-members': 'Macro, SanityTest',
 }
+

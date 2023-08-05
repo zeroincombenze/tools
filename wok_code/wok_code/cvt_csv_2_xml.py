@@ -35,8 +35,7 @@ import os
 import sys
 import time
 import csv
-from os0 import os0
-from python_plus import _c
+from python_plus import _c, _u
 
 try:
     from z0lib import z0lib
@@ -60,10 +59,10 @@ def msg_burst(text):
 def items_2_unicode(src):
     if isinstance(src, dict):
         for x in src.keys():
-            src[x] = os0.u(src[x])
+            src[x] = _u(src[x])
     elif isinstance(src, list):
         for i, x in enumerate(src):
-            src[i] = os0.u(x)
+            src[i] = _u(x)
     return src
 
 
@@ -130,16 +129,16 @@ def convert_file(ctx):
                     nm = name if name[-3:] != '/id' else name[0:-3]
                     value = row[name].replace(b'"', b'\"')
                     if nm == 'state_id':
-                        line += os0.u(
+                        line += _u(
                             b'        <field name="%s" ref="%s"/>\n'
                             % (nm, cvt_res_country_state(value))
                         )
                     elif nm != name:
-                        line += os0.u(
+                        line += _u(
                             b'        <field name="%s" ref="%s"/>\n' % (nm, value)
                         )
                     else:
-                        line += os0.u(
+                        line += _u(
                             b'        <field name="%s">%s</field>\n' % (nm, value)
                         )
                 line += '    </record>\n'
@@ -159,7 +158,9 @@ def convert_file(ctx):
                 fd.write(_c(target))
 
 
-if __name__ == "__main__":
+def main(cli_args=[]):
+    if not cli_args:
+        cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Convert csv file into xml file",
         "© 2018-2023 by SHS-AV s.r.l.",
@@ -180,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument('-v')
     parser.add_argument('src_file')
     parser.add_argument('dst_file', nargs='?')
-    ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
+    ctx = items_2_unicode(parser.parseoptargs(cli_args))
     if not ctx['odoo_ver']:
         print(__doc__)
         print('Missing Odoo Version! Set switch -b')
@@ -192,3 +193,7 @@ if __name__ == "__main__":
     else:
         sts = convert_file(ctx)
     sys.exit(sts)
+
+
+if __name__ == "__main__":
+    exit(main())
