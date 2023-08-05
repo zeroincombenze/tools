@@ -22,7 +22,7 @@ class RepoCheckout(object):
             "13.0",
             "12.0",
             "11.0",
-            "10,0",
+            "10.0",
             "9.0",
             "8.0",
             "7.0",
@@ -87,6 +87,12 @@ class RepoCheckout(object):
                     dry_run=self.opt_args.dry_run,
                 )
             git_repo = self.git_url + "/" + repo
+            if os.path.isdir(target_path):
+                z0lib.run_traced(
+                    "rm -fR %s" % target_path,
+                    verbose=self.opt_args.verbose,
+                    dry_run=self.opt_args.dry_run,
+                )
             if repo == "OCB":
                 z0lib.run_traced(
                     (
@@ -311,6 +317,8 @@ class RepoCheckout(object):
             if not self.opt_args.update:
                 print("Path %s already exists!" % target_path)
                 return 1
+        if self.opt_args.repos and repo not in self.opt_args.repos.split(","):
+            return 0
         git_clone(repo, target_path)
         if not os.path.isdir(target_path):
             print("Directory %s not created" % target_path)
@@ -338,6 +346,11 @@ class RepoCheckout(object):
             for repo in sorted(os.listdir(self.opt_args.origin_path)):
                 path = os.path.join(self.opt_args.origin_path, repo)
                 if self.is_git_repo(path):
+                    if (
+                            self.opt_args.repos
+                            and repo not in self.opt_args.repos.split(",")
+                    ):
+                        continue
                     sts = self.build_new_repo(repo, path)
                     if sts:
                         break
@@ -365,6 +378,9 @@ def main(cli_args=None):
         "--remove-unrelated-branch",
         help="Remove not required unrelated branch from local directory",
         action="store_true",
+    )
+    parser.add_argument(
+        "-r", "--repos", help="Declare specific repositories to manage, comma separated"
     )
     parser.add_argument(
         "-S", "--save-git", help="Execute git pull after checkout", action="store_true"

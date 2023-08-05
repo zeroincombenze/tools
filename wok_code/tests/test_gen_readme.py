@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa - pylint: skip-file
 # Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
@@ -16,23 +17,24 @@ __version__ = "2.0.11"
 MODULE_ID = "z0bug_odoo"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-ODOO_VERSIONS = ("7.0", "10.0", "12.0")
+ODOO_VERSIONS = ("12.0", "10.0", "7.0")
 
-DESCR_FN = r"""Lorem ipsum
+DESCR_FN = """Lorem ipsum
 -----------
 
 Lorem ipsum **dolor** sit amet
-.. \$if branch in '%s'
+.. $if branch in '%s'
 consectetur *adipiscing* elit
-.. \$elif branch in '12.0'
+.. $fi
+.. $if branch in '12.0'
 odoo 12.0
-.. \$elif branch in '10.0'
+.. $elif branch in '10.0'
 odoo 10.0
-.. \$elif branch in '8.0'
+.. $elif branch in '8.0'
 odoo 8.0
-.. \$else
+.. $else
 Unknown Odoo version
-.. \$fi
+.. $fi
 
 * Feature A
 * Feature B
@@ -53,31 +55,116 @@ Unknown Odoo version
 | Feature C | ©SHS    |
 +-----------+---------+
 """
-AUTHORS_FN = r"""Lorem ipsum
-.. \$if branch in '%s'
+AUTHORS_FN = """Lorem ipsum
+.. $if branch in '%s'
 * SHS-AV s.r.l. <https://www.shs-av.com>
-.. \$elif branch in '12.0'
+.. $elif branch in '12.0'
 * wrong author <https://12.0>
-.. \$elif branch in '10.0'
+.. $elif branch in '10.0'
 * wrong author <https://10.0>
-.. \$elif branch in '8.0'
+.. $elif branch in '8.0'
 * wrong author <https://8.0>
-.. \$else
+.. $else
 Unknown Odoo version
-.. \$fi
+.. $fi
 """
-CONTRIBUTORS_FN = r"""Lorem ipsum
-.. \$if branch in '%s'
+CONTRIBUTORS_FN = """Lorem ipsum
+.. $if branch in '%s'
 * antonio <antoniov@libero.it>
-.. \$elif branch in '12.0'
+.. $elif branch in '12.0'
 * alberta <alberta@libero.it>
-.. \$elif branch in '10.0'
+.. $elif branch in '10.0'
 * daniela <daniela@libero.it>
-.. \$elif branch in '8.0'
+.. $elif branch in '8.0'
 * elia <elia@libero.it>
-.. \$else
+.. $else
 Unknown Odoo version
-.. \$fi
+.. $fi
+"""
+
+README_7 = """
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+Unknown Odoo version
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/7.0/test_module/static/src/img/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+| Feature C | ©SHS    |
++-----------+---------+
+
+"""
+README_10 = """
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+odoo 10.0
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/10.0/test_module/static/description/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+| Feature C | ©SHS    |
++-----------+---------+
+
+"""
+README_12 = """
+Lorem ipsum
+-----------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+odoo 12.0
+
+* Feature A
+* Feature B
+
+::
+
+    >>> doc
+|
+.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/12.0/test_module/static/description/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+| Feature C | ©SHS    |
++-----------+---------+
+
 """
 
 
@@ -199,10 +286,14 @@ Acknoledges to
         with open(descr_fn, "w") as fd:
             fd.write(_c(CONTRIBUTORS_FN % odoo_version))
 
+    def fn_source(self, fn):
+        with open(fn) as fd:
+            test_source = fd.read()
+        return test_source
+
     def test_01(self, z0ctx):
         sts = 0
-        # home = os.path.expanduser('~')
-        cmd = os.path.join(self.Z.rundir, "gen_readme.py")
+        cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
         gitorg = "zero"
         for odoo_version in ODOO_VERSIONS:
             if not z0ctx["dry_run"]:
@@ -219,9 +310,37 @@ Acknoledges to
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
                 # os.system('%s -B' % cmd)
-                sts, stdout, stderr = z0lib.run_traced("%s -Bw .G %s" % (cmd, gitorg))
+                sts, stdout, stderr = z0lib.run_traced("%s -Bw -G %s" % (cmd, gitorg))
                 if sts:
+                    sts += self.Z.test_result(
+                        z0ctx,
+                        "README.rst #" + odoo_version,
+                        0,
+                        sts,
+                    )
                     break
+                if odoo_version == "7.0":
+                    sts += self.Z.test_result(
+                        z0ctx,
+                        "README.rst #" + odoo_version,
+                        README_7,
+                        self.fn_source(os.path.join(moduledir, "README.rst")),
+                    )
+                elif odoo_version == "10.0":
+                    sts += self.Z.test_result(
+                        z0ctx,
+                        "README.rst #" + odoo_version,
+                        README_10,
+                        self.fn_source(os.path.join(moduledir, "README.rst")),
+                    )
+                elif odoo_version == "12.0":
+                    sts += self.Z.test_result(
+                        z0ctx,
+                        "README.rst #" + odoo_version,
+                        README_12,
+                        self.fn_source(os.path.join(moduledir, "README.rst")),
+                    )
+        return sts
 
 
 # Run main if executed as a script

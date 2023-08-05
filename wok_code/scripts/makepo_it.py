@@ -51,6 +51,7 @@ def main(cli_args=None):
     parser.add_argument("-C", "--clear-base-tnl", dest="clear_base_tnl")
     parser.add_argument("-f", "--force", action="store_true")
     parser.add_argument("-m", "--module")
+    parser.add_argument("-V", "--version", action="version", version=__version__)
     parser.add_argument("file_po", default="./i18n/it.po")
     opt_args = parser.parse_args(cli_args)
 

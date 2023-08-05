@@ -1436,7 +1436,7 @@ def read_manifest(ctx):
 
 def adj_version(ctx, version):
     if not version:
-        version = "0.1.0"
+        version = "2.0.11"
     if version[0].isdigit():
         if not version.startswith(ctx["branch"]):
             version = "%s.%s" % (ctx["branch"], version)
@@ -1760,7 +1760,7 @@ def set_default_values(ctx):
     ctx["today"] = datetime.strftime(datetime.today(), "%Y-%m-%d")
     ctx["now"] = datetime.strftime(datetime.today(), "%Y-%m-%d %H:%M:%S")
     if ctx["product_doc"] == "pypi" and (not ctx["branch"] or ctx["branch"] == "."):
-        ctx["branch"] = ".".join(ctx["manifest"].get("version", "").split(".")[0:2])
+        ctx["branch"] = ctx["manifest"].get("version", "")
     if ctx["manifest"].get("version", ""):
         if not ctx.get("odoo_fver"):
             ctx["odoo_fver"] = ctx["manifest"]["version"]
@@ -2156,7 +2156,8 @@ def generate_readme(ctx):
     set_default_values(ctx)
     ctx["license_mgnt"] = license_mgnt.License()
     ctx["license_mgnt"].add_copyright(ctx["git_orgid"], "", "", "", "")
-    for section in DEFINED_TAG + DEFINED_SECTIONS:
+
+    for section in DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(
             ctx, "%s.rst" % section, ignore_ntf=True, out_fmt=out_fmt, section=section
@@ -2171,6 +2172,14 @@ def generate_readme(ctx):
                     out_fmt=out_fmt,
                     section="%s_%s" % (section, sub),
                 )[1]
+
+    for tag in DEFINED_TAG:
+        out_fmt = None
+        if not ctx.get(tag):
+            ctx[tag] = parse_local_file(
+                ctx, "%s.rst" % tag, ignore_ntf=True, out_fmt=out_fmt, section=tag
+            )[1]
+
     if ctx["odoo_layer"]:
         if not ctx["configuration"]:
             ctx["configuration"] = parse_local_file(
@@ -2206,18 +2215,9 @@ def generate_readme(ctx):
         if ctx["product_doc"] != "odoo":
             return
         target = manifest_contents(ctx)
-    # tmpfile = "%s.tmp" % ctx["dst_file"]
-    # bakfile = "%s.bak" % ctx["dst_file"]
     dst_file = ctx["dst_file"]
     if ctx["opt_verbose"]:
         print("Writing %s" % dst_file)
-    # with open(tmpfile, "w") as fd:
-    #     fd.write(_c(target))
-    # if os.path.isfile(bakfile):
-    #     os.remove(bakfile)
-    # if os.path.isfile(dst_file):
-    #     os.rename(dst_file, bakfile)
-    # os.rename(tmpfile, dst_file)
     with open(dst_file, "w") as fd:
         fd.write(_c(target))
     if (
@@ -2408,3 +2408,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

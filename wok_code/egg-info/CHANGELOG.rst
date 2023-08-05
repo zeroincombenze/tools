@@ -8,8 +8,11 @@
 * [IMP] please test and zerobug now do "please translate" after (--no-translate)
 * [IMP] please update: new switches --vme --odoo-venv
 * [IMP] please clean db: new action replace old wep-db
+* [IMP] please version: new interface
+* [IMP] please show docs: new interface
 * [REF] run_odoo_debug: partial refactoring
 * [IMP] run_odoo_debug: new switch --daemon
+* [IMP] arcangelo: new swicth --string-normalization
 * [FIX] please test / run_odoo_debug: minor fixes
 
 2.0.9 (2023-06-26)

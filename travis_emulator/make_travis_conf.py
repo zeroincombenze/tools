@@ -108,9 +108,9 @@ def make_travis_conf(cli_args=None):
         if odoo_main_version <= 10:
             ctx["TRAVIS_PYTHON_VERSION"] = "2.7"
         elif odoo_main_version < 14:
-            ctx["TRAVIS_PYTHON_VERSION"] = "3.8"
-        else:
             ctx["TRAVIS_PYTHON_VERSION"] = "3.7"
+        else:
+            ctx["TRAVIS_PYTHON_VERSION"] = "3.8"
     else:
         ctx["ODOO_MAIN_VERSION"] = 0
 

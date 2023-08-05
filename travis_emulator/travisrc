@@ -312,28 +312,25 @@ create_virtual_env() {
   [[ $SYSTEM_SITE_PACKAGES != "true" && -n $opt_loc ]] && VENVOPTS="-DIl${opt_loc}"
   [[ $SYSTEM_SITE_PACKAGES != "true" && -z $opt_loc ]] && VENVOPTS="-DI"
   hash -r
-  xp1=0
-  TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$BRANCH
-  [[ $PRJNAME == "Odoo" && ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp1=1
-  [[ $PRJNAME == "Odoo" && $xp1 -eq 0 && opt_keep -eq 0 ]] && xp1=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 10454400))
-  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp1 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
-  xp2=0
-  TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
-  [[ ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp2=1
-  [[ $xp2 -eq 0 && opt_keep -eq 0 ]] && xp2=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 8035100))
-  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp2 -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 8035100"
-  if [[ $xp1 -ne 0 ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH not found or expired!${CLR}"
-    echo -e "Now virtual environment $SAVED_ODOO_ROOT/VME/VME$BRANCH will be (re)created."
-    [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-    [[ $BRANCH =~ ^(15|16) ]] && pv="3.8"
-    run_traced "vem create  $VENVOPTS $SAVED_ODOO_ROOT/VME/VME$BRANCH -p$pv -fq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH)"
+  [[ -n $BRANCH ]] && TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$BRANCH || TRAVIS_SRC_VME=$SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION
+  xp=0
+  [[ ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp=1
+  [[ $xp -eq 0 && -d $TRAVIS_SRC_VME ]] && vem $TRAVIS_SRC_VME exec "flake8 --version &>/dev/null" || xp=1
+  [[ $xp -eq 0 && -d $TRAVIS_SRC_VME ]] && vem $TRAVIS_SRC_VME exec "pylint --version &>/dev/null" || xp=1
+  [[ $xp -eq 0 && opt_keep -eq 0 ]] && xp=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 10454400))
+  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
+  if [[ $xp -ne 0 ]]; then
+    echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SRC_VME not found or expired!${CLR}"
+    echo -e "Now virtual environment $TRAVIS_SRC_VME will be (re)created."
+    if [[ -n $BRANCH ]]; then
+      [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
+      [[ $BRANCH =~ ^(15|16) ]] && pv="3.8"
+      run_traced "vem create $VENVOPTS $TRAVIS_SRC_VME -DI -p$pv -fq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH)"
+    else
+      run_traced "vem create $VENVOPTS $TRAVIS_SRC_VME -DI -p$TRAVIS_PYTHON_VERSION -fq"
+    fi
     echo -e "\n\n"
-    [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
-  elif [[ $xp2 -ne 0 ]]; then
-    echo -e "\n\n${RED}Cached virtual environment $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION not found or expired!${CLR}"
-    run_traced "vem create  $VENVOPTS $SAVED_ODOO_ROOT/VME/VME$TRAVIS_PYTHON_VERSION -p$TRAVIS_PYTHON_VERSION -fq"
-    echo -e "\n\n"
+    vem $TRAVIS_SRC_VME update flake8    # STRANGE ERROR! WORKAROUND!
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
   fi
   if [[ $TRAVIS == "true" || -d $TRAVIS_HOME ]]; then
@@ -503,9 +500,13 @@ git_clone() {
           [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst $HOME/tools/$p/"
         s=$?; [ ${s-1} -eq 0 ] || echo "Internal error $s! Statement rsync $p failed!!"
       done
-      for p in install_tools.sh odoo_default_tnl.xlsx; do
+      for p in install_tools.sh odoo_default_tnl.xlsx odoo_template_tnl.xlsx; do
         [[ -d $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/ ]] && \
           run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/$p $HOME/tools/$p"
+      done
+      for p in templates tests; do
+        [[ -d $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/ ]] && \
+          run_traced "cp -r $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/$p $HOME/tools/"
       done
       true # FIX: return no error
     fi

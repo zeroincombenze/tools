@@ -72,14 +72,14 @@ set_hashbang() {
 }
 
 RFLIST__travis_emulator=""
-RFLIST__clodoo="awsfw bck_filestore.sh clodoo.py manage_odoo.man transodoo.py"
+RFLIST__clodoo=""
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""
-RFLIST__lisa="lisa lisa.conf.sample lisa.man kbase/*.lish"
-RFLIST__tools="odoo_default_tnl.xlsx templates license_text readlink"
+RFLIST__lisa=""
+RFLIST__tools="odoo_default_tnl.xlsx odoo_template_tnl.xlsx license_text templates tests"
 RFLIST__python_plus=""
-RFLIST__wok_code="cvt_csv_2_xml.py generate_all_tnl gen_addons_table.py"
+RFLIST__wok_code=""
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
@@ -197,54 +197,31 @@ if [[ ! $opts =~ ^-.*k ]]; then
             echo ""
             exit 1
         fi
-        # TODO> remove early: copy files
         if [[ $pkg == "tools" ]]; then
-          [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
-        else
-          [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info ]] && srcdir="$SRCPATH/$pfn/$pfn" || srcdir="$SRCPATH/$pfn"
+            [[ -d $SRCPATH/$pfn ]] && srcdir="$SRCPATH/$pfn" || srcdir="$SRCPATH"
+                for fn in $flist; do
+                    src="$srcdir/$fn"
+                    tgt="$BINPATH/$fn"
+                    [[ -d "$src" ]] && ftype=d || ftype=f
+                    if [[ ! -e "$src" ]]; then
+                        echo "# File $src not found!"
+                    else
+                        [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
+                        [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
+                        [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
+                        [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
+                        if [[ $fn =~ (kbase|templates|license_text) ]]; then
+                            [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
+                            run_traced "ln -s $src $tgt"
+                        else
+                            [[ $ftype == f ]] && copts="" || copts="-r"
+                            run_traced "cp $copts $src $tgt"
+                            [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
+                            set_hashbang $tgt
+                        fi
+                    fi
+                done
         fi
-        for fn in $flist; do
-            if [[ $fn == "." ]]; then
-                src="$srcdir"
-                tgt="$BINPATH/${pfn}"
-                ftype=d
-            elif [[ $fn == "readlink" ]]; then
-                READLINK=$(which greadlink 2>/dev/null)
-                if [[ -z "$READLINK" ]]; then
-                    [[ -L $BINPATH/readlink ]] && rm -f $BINPATH/readlink
-                    continue
-                fi
-                src=$READLINK
-                tgt="$BINPATH/${fn}"
-                ftype=f
-            else
-                src="$srcdir/$fn"
-                tgt="$BINPATH/$fn"
-                [[ -d "$src" ]] && ftype=d || ftype=f
-            fi
-            if $(echo "$src"|grep -Eq "\*"); then
-                src=$(dirname "$src")
-                tgt=$(dirname "$tgt")
-                ftype=d
-            fi
-            if [[ ! -e "$src" ]]; then
-                echo "# File $src not found!"
-            else
-                [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
-                [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
-                [[ -L "$tgt" ]] && run_traced "rm -f $tgt"
-                [[ -d "$tgt" && ! -L "$tgt" ]] && run_traced "rm -fR $tgt"
-                if [[ $fn =~ (kbase|templates|license_text|readlink) ]]; then
-                    [[ ! -d $(dirname $tgt) ]] && run_traced "mkdir -p $(dirname $tgt)"
-                    run_traced "ln -s $src $tgt"
-                else
-                    [[ $ftype == f ]] && copts="" || copts="-r"
-                    run_traced "cp $copts $src $tgt"
-                    [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
-                    set_hashbang $tgt
-                fi
-            fi
-        done
         [[ $pkg == "tools" ]] && continue
         # Tools PYPI installation
         if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
@@ -364,7 +341,7 @@ done
 #  echo -n "."
 #  [[ ! -f $LOCAL_VENV/bin/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/bin/$pkg!!${CLR}" && exit
 #done
-for pkg in kbase templates; do
+for pkg in templates; do
   echo -n "."
   [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
 done

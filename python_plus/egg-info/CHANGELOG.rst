@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: werkzeug for Odoo 16.0
+* [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
 
 2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~

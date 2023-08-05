@@ -262,35 +262,43 @@ class RegressionTest:
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         if sys.version_info[0] == 2:
             odoo_ver = "10.0"
+            odoo_versions = ["10.0", "7.0", "8.0", "6.1"]
         elif sys.version_info[1] <= 7:
             odoo_ver = "12.0"
+            odoo_versions = ["12.0", "14.0"]
         else:
             odoo_ver = "16.0"
-        # Isolated environment + devel packages + Odoo
-        cmd = 'vem -qDIf -p%s create %s -O %s' % (pyver, self.venv_dir, odoo_ver)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
-        # Weird behavior for pyYAML with python 3.9
-        if odoo_ver == "16.0":
-            z0lib.run_traced('vem %s install pyyaml' % self.venv_dir,
-                             dry_run=z0ctx['dry_run'])
-        sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
-        sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
-        sts += self.check_4_paths(z0ctx)
-        sts += self.check_4_homedir(z0ctx, self.venv_dir)
-        for pypi in ("Babel",
-                     "gevent",
-                     "lessc",
-                     "Pillow",
-                     "pylint",
-                     "pyPdf",
-                     "Python-Chart",
-                     "zeep"):
-            if pypi == "zeep" and odoo_ver != "16.0":
-                continue
-            elif pypi == "lessc" and int(odoo_ver.split(".")[0]) < 10:
-                continue
-            sts += self.check_installed(z0ctx, pypi)
-        sts += self.check_4_exec(z0ctx)
+            odoo_versions = ["16.0", "14.0"]
+        for odoo_ver in odoo_versions:
+            majver = int(odoo_ver.split(".")[0])
+            # Isolated environment + devel packages + Odoo
+            cmd = 'vem -qDIf -p%s create %s -O %s' % (pyver, self.venv_dir, odoo_ver)
+            sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
+            # Weird behavior for pyYAML with python 3.9
+            # if odoo_ver == "16.0":
+            #     z0lib.run_traced('vem %s install pyyaml' % self.venv_dir,
+            #                      dry_run=z0ctx['dry_run'])
+            sts += self.Z.test_result(
+                z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
+            sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
+            sts += self.check_4_paths(z0ctx)
+            sts += self.check_4_homedir(z0ctx, self.venv_dir)
+            for pypi in ("Babel",
+                         "gevent",
+                         "lessc",
+                         "Pillow",
+                         "pylint",
+                         "pyPdf",
+                         "Python-Chart",
+                         "zeep"):
+                if pypi == "zeep" and majver < 16:
+                    continue
+                # if pypi == "gevent" and odoo_ver == "16.0":
+                #     continue
+                elif pypi == "lessc" and majver < 10:
+                    continue
+                sts += self.check_installed(z0ctx, pypi)
+            sts += self.check_4_exec(z0ctx)
 
         return sts
 

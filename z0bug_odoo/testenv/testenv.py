@@ -128,6 +128,8 @@ except ImportError:
         release = None
 if release:
     if int(release.major_version.split('.')[0]) < 10:
+        if int(release.major_version.split('.')[0]) > 7:
+            from openerp import api
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
         from openerp.modules.module import get_module_resource  # noqa: F401
@@ -138,10 +140,7 @@ if release:
         from odoo.tools.safe_eval import safe_eval
 
 import python_plus
-# from z0bug_odoo.test_common import TransactionCase
 from z0bug_odoo import z0bug_odoo_lib
-
-# from clodoo import transodoo
 
 _logger = logging.getLogger(__name__)
 

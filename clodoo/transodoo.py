@@ -821,7 +821,9 @@ def transodoo(ctx=None):
     return 0
 
 
-if __name__ == "__main__":
+def main(cli_args=None):
+    if not cli_args:
+        cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Transodoo", "© 2017-2019 by SHS-AV s.r.l.", version=__version__
     )
@@ -861,4 +863,8 @@ if __name__ == "__main__":
             )
             sys.exit(1)
     sts = transodoo(ctx=ctx)
-    exit(sts)
+    return sts
+
+
+if __name__ == "__main__":
+    exit(main())

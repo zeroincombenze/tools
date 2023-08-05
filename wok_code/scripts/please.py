@@ -26,6 +26,7 @@ SEE ALSO
     Full documentation at: <https://zeroincombenze-tools.readthedocs.io/>
 """
 import os
+import os.path as pth
 import sys
 import argparse
 import re
@@ -120,9 +121,9 @@ class Please(object):
                 [x for x in self.cli_args if x != self.magic]
             )
         self.home_devel = self.opt_args.home_devel or os.environ.get(
-            "HOME_DEVEL", os.path.expanduser("~/devel")
+            "HOME_DEVEL", pth.expanduser("~/devel")
         )
-        self.odoo_root = os.path.dirname(self.home_devel)
+        self.odoo_root = pth.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
         self.sh_subcmd = self.pickle_params()
 
@@ -161,7 +162,7 @@ class Please(object):
         self.known_objs = []
         self.default_obj = {}
         self.aliases = {}
-        for fn in sorted(os.listdir(os.path.dirname(__file__))):
+        for fn in sorted(os.listdir(pth.dirname(__file__))):
             if not fn.startswith("please_") or not fn.endswith(".py"):
                 continue
             # module_name = fn[: -3]
@@ -269,6 +270,7 @@ class Please(object):
             parser.add_argument(
                 "-b",
                 arg if arg != "-b" else "--odoo-branch",
+                dest="branch",
                 metavar="BRANCH",
                 help="default Odoo version",
             )
@@ -477,27 +479,27 @@ class Please(object):
             self.cli_args = args
 
     def get_home_pypi(self):
-        return os.path.join(self.home_devel, "pypi")
+        return pth.join(self.home_devel, "pypi")
 
     def get_home_pypi_pkg(self, pkgname):
         root = self.get_home_pypi()
         if pkgname == "tools":
-            return os.path.join(root, pkgname)
+            return pth.join(root, pkgname)
         else:
-            return os.path.join(root, pkgname, pkgname)
+            return pth.join(root, pkgname, pkgname)
 
     def get_home_tools(self):
-        return os.path.join(self.odoo_root, "tools")
+        return pth.join(self.odoo_root, "tools")
 
     def get_home_tools_pkg(self, pkgname):
         root = self.get_home_tools()
         if pkgname == "tools":
             return root
-        return os.path.join(root, pkgname)
+        return pth.join(root, pkgname)
 
     def is_pypi_pkg(self, path=None):
         path = path or os.getcwd()
-        pkgname = os.path.basename(path)
+        pkgname = pth.basename(path)
         while pkgname in (
             "tests",
             "travis",
@@ -508,26 +510,26 @@ class Please(object):
             "junk",
             "scripts",
         ):
-            path = os.path.dirname(path)
-            pkgname = os.path.basename(path)
+            path = pth.dirname(path)
+            pkgname = pth.basename(path)
         pkgpath = self.get_home_pypi_pkg(pkgname)
-        root = pkgpath if pkgname == "tools" else os.path.dirname(pkgpath)
+        root = pkgpath if pkgname == "tools" else pth.dirname(pkgpath)
         pkgpath2 = self.get_home_tools_pkg(pkgname)
         return (
-            os.path.isdir(pkgpath)
+            pth.isdir(pkgpath)
             and path.startswith(root)
-            and os.path.isfile(os.path.join(root, "setup.py"))
+            and pth.isfile(pth.join(root, "setup.py"))
             and (
-                os.path.isfile(os.path.join(pkgpath, "__init__.py"))
+                pth.isfile(pth.join(pkgpath, "__init__.py"))
                 or pkgname == "tools"
             )
         ) or (
-            os.path.isdir(pkgpath2)
+            pth.isdir(pkgpath2)
             and path.startswith(pkgpath2)
             and pkgname == "tools"
             or (
-                os.path.isfile(os.path.join(pkgpath2, "setup.py"))
-                and os.path.isfile(os.path.join(pkgpath2, "__init__.py"))
+                pth.isfile(pth.join(pkgpath2, "setup.py"))
+                and pth.isfile(pth.join(pkgpath2, "__init__.py"))
             )
         )
 
@@ -548,32 +550,32 @@ class Please(object):
     def is_repo_ocb(self, path=None):
         path = path or os.getcwd()
         if (
-            os.path.isdir(os.path.join(path, ".git"))
+            pth.isdir(pth.join(path, ".git"))
             and (
-                os.path.isfile(os.path.join(path, "odoo-bin"))
-                or os.path.isfile(os.path.join(path, "openerp-server"))
+                pth.isfile(pth.join(path, "odoo-bin"))
+                or pth.isfile(pth.join(path, "openerp-server"))
             )
-            and os.path.isdir(os.path.join(path, "addons"))
+            and pth.isdir(pth.join(path, "addons"))
             and (
-                os.path.isdir(os.path.join(path, "odoo"))
-                and os.path.isfile(os.path.join(path, "odoo", "__init__.py")))
-                or (os.path.isdir(os.path.join(path, "openerp"))
-                    and os.path.isfile(os.path.join(path, "odoo", "__init__.py")))
+                pth.isdir(pth.join(path, "odoo"))
+                and pth.isfile(pth.join(path, "odoo", "__init__.py")))
+                or (pth.isdir(pth.join(path, "openerp"))
+                    and pth.isfile(pth.join(path, "odoo", "__init__.py")))
         ):
             return True
-        if os.path.basename(path) in ("addons", "odoo", "openerp"):
-            return self.is_repo_ocb(path=os.path.dirname(path))
+        if pth.basename(path) in ("addons", "odoo", "openerp"):
+            return self.is_repo_ocb(path=pth.dirname(path))
         return False
 
     def is_repo_odoo(self, path=None):
         path = path or os.getcwd()
-        if not os.path.isdir(os.path.join(path, ".git")):
+        if not pth.isdir(pth.join(path, ".git")):
             return False
         for fn in os.listdir(path):
-            subpath = os.path.join(path, fn)
-            if os.path.isdir(subpath) and self.is_odoo_pkg(path=subpath):
+            subpath = pth.join(path, fn)
+            if pth.isdir(subpath) and self.is_odoo_pkg(path=subpath):
                 return True
-        return self.is_repo_ocb(os.path.dirname(path))
+        return self.is_repo_ocb(pth.dirname(path))
 
     def get_odoo_branch_from_git(self, raise_if_not_found=True):
         branch = ""
@@ -600,16 +602,16 @@ class Please(object):
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
             self.get_home_pypi()
-            if os.path.isdir(self.get_home_pypi())
+            if pth.isdir(self.get_home_pypi())
             else self.get_home_tools()
         )
         pypi_list = []
-        if os.path.isdir(path):
+        if pth.isdir(path):
             for fn in os.listdir(path):
-                fqn = os.path.join(path, fn)
+                fqn = pth.join(path, fn)
                 if fn == "tools" and not act_tools:
                     continue
-                if not os.path.isdir(fqn):
+                if not pth.isdir(fqn):
                     continue
                 if self.is_pypi_pkg(path=fqn):
                     pypi_list.append(fn)
@@ -621,11 +623,11 @@ class Please(object):
 
     def build_sh_me_cmd(self, cmd=None, params=None):
         if not cmd:
-            cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
-            if not os.path.isfile(cmd):
-                cmd = os.path.split(cmd)
-                cmd = os.path.join(os.path.dirname(cmd[0]), cmd[1])
-            if not os.path.isfile(cmd):
+            cmd = "%s.sh" % pth.splitext(pth.abspath(__file__))[0]
+            if not pth.isfile(cmd):
+                cmd = pth.split(cmd)
+                cmd = pth.join(pth.dirname(cmd[0]), cmd[1])
+            if not pth.isfile(cmd):
                 print("Internal package error: file %s not found!" % cmd)
                 return ""
         cmd += " " + (params or self.sh_subcmd)
@@ -640,15 +642,16 @@ class Please(object):
     def do_action_pypipkg(self, action, pkg, path=None):
         path = (
             path
-            or os.path.join(self.home_devel, "pypi", pkg, pkg)
-            if pkg != "tools" else os.path.join(self.home_devel, "pypi", pkg)
+            or pth.join(self.home_devel, "pypi", pkg, pkg)
+            if pkg != "tools" else pth.join(self.home_devel, "pypi", pkg)
         )
         if self.opt_args.verbose:
             print("$ cd " + path)
         os.chdir(path)
         return getattr(self.cls, action)()
 
-    def do_iter_action(self, action, path=None, act_all_pypi=None, act_tools=None):
+    def do_iter_action(self, action, path=None, act_all_pypi=None, act_tools=None,
+                       pypi_list=[]):
         """Iter multiple command on sub projects.
 
         Args:
@@ -659,7 +662,7 @@ class Please(object):
         path = path or os.getcwd()
         if act_all_pypi and self.is_all_pypi(path=path):
             sts = 0
-            for fn in self.pypi_list:
+            for fn in pypi_list or self.pypi_list:
                 if fn != "tools":
                     sts = self.do_action_pypipkg(action, fn)
                     if sts:

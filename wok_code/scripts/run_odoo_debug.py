@@ -189,11 +189,12 @@ class RunOdoo(object):
             if not hasattr(self, k):
                 setattr(self, k, v)
 
-        if os.path.isfile(self.opt_args.odoo_branch):
-            self.config = self.opt_args.odoo_branch
-            self.get_config()
-        elif self.opt_args.odoo_branch:
-            self.branch = self.opt_args.odoo_branch
+        if self.opt_args.odoo_branch:
+            if os.path.isfile(self.opt_args.odoo_branch):
+                self.config = self.opt_args.odoo_branch
+                self.get_config()
+            else:
+                self.branch = self.opt_args.odoo_branch
         items = [self.branch or self.git_org, "", ""]
         if self.branch:
             m = re.search(r"[0-9]+\.[0-9]+", self.branch)
@@ -210,7 +211,7 @@ class RunOdoo(object):
                 if item in GIT_ORGIDS:
                     self.git_org = item
                     break
-        elif self.git_org not in GIT_ORGIDS:
+        elif self.git_org and self.git_org not in GIT_ORGIDS:
             print("Invalid git organization %s" % self.git_org)
             self.git_org = None
         if items[1]:

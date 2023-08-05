@@ -128,20 +128,19 @@ except ImportError:
         release = None
 if release:
     if int(release.major_version.split('.')[0]) < 10:
+        if int(release.major_version.split('.')[0]) > 7:
+            from openerp import api                                        # noqa: F401
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
-        from openerp.modules.module import get_module_resource  # noqa: F401
+        from openerp.modules.module import get_module_resource             # noqa: F401
     else:
-        # from odoo import api
+        from odoo import api                                               # noqa: F401
         import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource  # noqa: F401
+        from odoo.modules.module import get_module_resource                # noqa: F401
         from odoo.tools.safe_eval import safe_eval
 
 import python_plus
-# from z0bug_odoo.test_common import TransactionCase
 from z0bug_odoo import z0bug_odoo_lib
-
-# from clodoo import transodoo
 
 _logger = logging.getLogger(__name__)
 
@@ -587,7 +586,7 @@ class MainTest(test_common.TransactionCase):
                     group=group,
                 )
                 if record:
-                    values[field].append((1, record.id, child_xref))
+                    values[field].append((1, record.name, child_xref))
                 else:
                     values[field].append((0, 0, child_xref))
         return values

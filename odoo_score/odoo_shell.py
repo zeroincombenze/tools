@@ -57,75 +57,7 @@ TECH_FIELDS = [
     'write_date',
     'write_uid',
 ]
-parser = z0lib.parseoptargs(
-    "Odoo test environment", "© 2017-2021 by SHS-AV s.r.l.", version=__version__
-)
-parser.add_argument('-h')
-parser.add_argument(
-    "-A",
-    "--action",
-    help="internal action to execute",
-    dest="function",
-    metavar="python_name",
-    default='',
-)
-parser.add_argument(
-    "-c",
-    "--config",
-    help="configuration command file",
-    dest="conf_fn",
-    metavar="file",
-    default='./inv2draft_n_restore.conf',
-)
-parser.add_argument(
-    "-d",
-    "--dbname",
-    help="DB name to connect",
-    dest="db_name",
-    metavar="file",
-    default='',
-)
-parser.add_argument('-n')
-parser.add_argument('-q')
-parser.add_argument('-V')
-parser.add_argument('-v')
-parser.add_argument(
-    "-w",
-    "--src-config",
-    help="Source DB configuration file",
-    dest="from_confn",
-    metavar="file",
-)
-parser.add_argument(
-    "-z",
-    "--src-db_name",
-    help="Source database name",
-    dest="from_dbname",
-    metavar="name",
-)
-parser.add_argument(
-    "-1", "--param-1", help="value to pass to called function", dest="param_1"
-)
-parser.add_argument(
-    "-2", "--param-2", help="value to pass to called function", dest="param_2"
-)
-parser.add_argument(
-    "-3", "--param-3", help="value to pass to called function", dest="param_3"
-)
-parser.add_argument(
-    "-4", "--param-4", help="value to pass to called function", dest="param_4"
-)
-parser.add_argument(
-    "-5", "--param-5", help="value to pass to called function", dest="param_5"
-)
-parser.add_argument(
-    "-6", "--param-6", help="value to pass to called function", dest="param_6"
-)
-
-ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx)
 msg_time = time.time()
-os0.set_tlog_file('./odoo_shell.log', echo=True)
 
 
 def msg_burst(text):
@@ -239,7 +171,7 @@ def _get_tax_record(ctx, code=None, company_id=None):
     return tax_id
 
 
-def param_date(param, date_field=None, ctx=ctx):
+def param_date(param, date_field=None):
     """Return record ids of model by user request;
     param values:
         'yyyy-mm-dd': specific date
@@ -280,14 +212,6 @@ def param_date(param, date_field=None, ctx=ctx):
     return domain
 
 
-def param_mode_commission(param):
-    mode = ctx['param_1'] or 'A'
-    while mode not in ('A', 'R', 'C'):
-        mode = input('Mode (Add_missed,Recalculate,Check)? ')
-        mode = mode[0].upper() if mode else ''
-    return mode
-
-
 def param_product_agent(param):
     product_id = agent_id = False
     if param:
@@ -310,7 +234,7 @@ def show_module_group(ctx):
             gid = eval(gid)
         if gid:
             group = clodoo.browseL8(ctx, model_grp, gid, context={'lang': 'en_US'})
-            cid = group.category_id.id
+            cid = group.category_id.name
             categ = clodoo.browseL8(ctx, model_ctg, cid, context={'lang': 'en_US'})
             print('%6d) Category %s' % (cid, categ.name))
             uniq_field = []
@@ -318,20 +242,20 @@ def show_module_group(ctx):
                                       [('category_id', '=', cid)])
             for group in clodoo.browseL8(ctx, model_grp, grp_ids):
                 if group.implied_ids:
-                    uniq_field.append(group.id)
-                    uniq_field += [x.id for x in group.implied_ids]
+                    uniq_field.append(group.name)
+                    uniq_field += [x.name for x in group.implied_ids]
             for group in clodoo.browseL8(ctx, model_grp, grp_ids,
                                          context={'lang': 'en_US'}):
                 ir_md = clodoo.browseL8(ctx, model_ir_md,
                                         clodoo.searchL8(ctx, model_ir_md,
                                                         [('model', '=', model_grp),
-                                                         ('res_id', '=', group.id)]))
-                if group.id in uniq_field:
+                                                         ('res_id', '=', group.name)]))
+                if group.name in uniq_field:
                     tag = '*'
                 else:
                     tag = ''
                 print('%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s" {%s}' % (
-                    group.id,
+                    group.name,
                     group.name,
                     group.full_name,
                     ir_md.module,
@@ -364,11 +288,11 @@ def all_addr_same_customer(ctx):
                 vals['partner_id'] = force_partner_id
         else:
             if select in ('B', 'D') and so.partner_shipping_id != so.partner_id:
-                vals['partner_shipping_id'] = so.partner_id.id
+                vals['partner_shipping_id'] = so.partner_id.name
             if select in ('B', 'I') and so.partner_invoice_id != so.partner_id:
-                vals['partner_invoice_id'] = so.partner_id.id
+                vals['partner_invoice_id'] = so.partner_id.name
         if vals:
-            clodoo.writeL8(ctx, resource_so, so.id, vals)
+            clodoo.writeL8(ctx, resource_so, so.name, vals)
             print('so.number=%s' % so.name)
             ctr += 1
     print('%d sale orders updated' % ctr)
@@ -391,7 +315,7 @@ def order_inv_group_by_partner(ctx):
         if sale_group != partner_group:
             print('Changing group of %s' % order.name)
             clodoo.writeL8(
-                ctx, resource_so, order.id, {'ddt_invoicing_group': partner_group})
+                ctx, resource_so, order.name, {'ddt_invoicing_group': partner_group})
             ctr += 1
     print('%d sale order updated' % ctr)
 
@@ -415,7 +339,7 @@ def make_refund_for_wrong_delivery(ctx):
     shipping_ids = []
     for delivery in clodoo.browseL8(ctx, resource_carrier,
                                     clodoo.searchL8(ctx, resource_carrier, [])):
-        shipping_ids.append(delivery.product_id.id)
+        shipping_ids.append(delivery.product_id.name)
     conai_product_ids = []
     for company in clodoo.browseL8(ctx, resource_company,
                                    clodoo.searchL8(ctx, resource_company, [])):
@@ -424,7 +348,7 @@ def make_refund_for_wrong_delivery(ctx):
             and not callable(company.conai_product_id)
             and company.conai_product_id
         ):
-            conai_product_ids.append(company.conai_product_id.id)
+            conai_product_ids.append(company.conai_product_id.name)
 
     ctr_read = ctr_upd = ctr_wrong = 0
     invoices = {}
@@ -438,8 +362,8 @@ def make_refund_for_wrong_delivery(ctx):
                       % (inv.number, ctr_upd, ctr_read, ln.name[:40]))
             if (
                 ln.product_id
-                and ln.product_id.id not in shipping_ids
-                and ln.product_id.id not in conai_product_ids
+                and ln.product_id.name not in shipping_ids
+                and ln.product_id.name not in conai_product_ids
                 and not ln.ddt_line_id
             ):
                 has_ddt = False
@@ -454,19 +378,19 @@ def make_refund_for_wrong_delivery(ctx):
                       % (inv.number, ctr_upd, ctr_read, ln.name[:40]))
             if (
                 ln.product_id and (
-                    ln.product_id.id in shipping_ids
-                    or ln.product_id.id in conai_product_ids)
+                    ln.product_id.name in shipping_ids
+                    or ln.product_id.name in conai_product_ids)
             ):
                 ctr_read += 1
                 if ddts[last_ddt_id]:
-                    if inv.partner_id.id not in invoices:
-                        invoices[inv.partner_id.id] = []
-                    invoices[inv.partner_id.id].append(ln)
+                    if inv.partner_id.name not in invoices:
+                        invoices[inv.partner_id.name] = []
+                    invoices[inv.partner_id.name].append(ln)
                     ctr_wrong += 1
                 ddts[last_ddt_id] = True
             else:
                 if ln.ddt_line_id.package_preparation_id:
-                    last_ddt_id = ln.ddt_line_id.package_preparation_id.id
+                    last_ddt_id = ln.ddt_line_id.package_preparation_id.name
                     if last_ddt_id not in ddts:
                         ddts[last_ddt_id] = False
 
@@ -477,24 +401,25 @@ def make_refund_for_wrong_delivery(ctx):
             if not inv:
                 inv = ln.invoice_id
                 vals['type'] = 'out_refund'
-                vals['account_id'] = inv.account_id.id
-                vals['company_id'] = inv.company_id.id
-                vals['fiscal_position_id'] = inv.fiscal_position_id.id or False
-                vals['journal_id'] = inv.journal_id.id
-                vals['partner_id'] = inv.partner_id.id
+                vals['account_id'] = inv.account_id.name
+                vals['company_id'] = inv.company_id.name
+                vals['fiscal_position_id'] = inv.fiscal_position_id.name or False
+                vals['journal_id'] = inv.journal_id.name
+                vals['partner_id'] = inv.partner_id.name
                 vals['invoice_line_ids'] = []
                 vals['origin'] = ''
             vals['origin'] += (' %s' % inv.number)
             line_vals = {
-                'account_id': ln.account_id.id,
-                'product_id': ln.product_id.id,
+                'account_id': ln.account_id.name,
+                'product_id': ln.product_id.name,
                 'discount': ln.discount,
-                'invoice_line_tax_ids': [6, 0, [x.id for x in ln.invoice_line_tax_ids]],
+                'invoice_line_tax_ids':
+                    [6, 0, [x.name for x in ln.invoice_line_tax_ids]],
                 'name': ln.name,
                 'origin': inv.number,
                 'price_unit': ln.price_unit,
                 'quantity': ln.quantity,
-                'uom_id': ln.uom_id.id,
+                'uom_id': ln.uom_id.name,
             }
             vals['invoice_line_ids'].append((0, 0, line_vals))
         clodoo.createL8(ctx, resource_inv, vals)
@@ -515,25 +440,25 @@ def recalc_delivery_price(ctx):
     shipping_ids = []
     for delivery in clodoo.browseL8(ctx, resource_carrier,
                                     clodoo.searchL8(ctx, resource_carrier, [])):
-        shipping_ids.append(delivery.product_id.id)
+        shipping_ids.append(delivery.product_id.name)
     domain = param_date(ctx['param_1'], date_field='date')
     domain.append(("carrier_id", "!=", False))
     ctr_read = ctr_upd = 0
     for ddt in clodoo.browseL8(
         ctx, resource_ddt, clodoo.searchL8(
             ctx, resource_ddt, domain)):
-        msg_burst('%s ...' % ddt.id)
-        clodoo.executeL8(ctx, resource_ddt, "delivery_set", ddt.id)
+        msg_burst('%s ...' % ddt.name)
+        clodoo.executeL8(ctx, resource_ddt, "delivery_set", ddt.name)
         ctr_read += 1
-        ddt = clodoo.browseL8(ctx, resource_ddt, ddt.id)
+        ddt = clodoo.browseL8(ctx, resource_ddt, ddt.name)
         sale_id = False
         delivery_price = 0.0
         if ddt.delivery_price == 0.0:
             for line in clodoo.browseL8(
                 ctx, resource_line, clodoo.searchL8(
-                    ctx, resource_line, [("package_preparation_id", "=", ddt.id)])):
+                    ctx, resource_line, [("package_preparation_id", "=", ddt.name)])):
                 if line.sale_id:
-                    sale_id = line.sale_id.id
+                    sale_id = line.sale_id.name
                     break
         if sale_id:
             for soline in clodoo.browseL8(
@@ -543,7 +468,7 @@ def recalc_delivery_price(ctx):
                 delivery_price += soline.price_subtotal
         if delivery_price:
             clodoo.writeL8(
-                ctx, resource_ddt, ddt.id, {"delivery_price": delivery_price})
+                ctx, resource_ddt, ddt.name, {"delivery_price": delivery_price})
             ctr_upd += 1
 
     print('%d delivery notes read, %d written' % (ctr_read, ctr_upd))
@@ -570,7 +495,7 @@ def close_sale_orders(ctx):
     shipping_ids = []
     for delivery in clodoo.browseL8(ctx, resource_carrier,
                                     clodoo.searchL8(ctx, resource_carrier, [])):
-        shipping_ids.append(delivery.product_id.id)
+        shipping_ids.append(delivery.product_id.name)
     conai_product_ids = []
     for company in clodoo.browseL8(ctx, resource_company,
                                    clodoo.searchL8(ctx, resource_company, [])):
@@ -579,7 +504,7 @@ def close_sale_orders(ctx):
             and not callable(company.conai_product_id)
             and company.conai_product_id
         ):
-            conai_product_ids.append(company.conai_product_id.id)
+            conai_product_ids.append(company.conai_product_id.name)
 
     ctr_read = ctr_upd = ctr_wrong = 0
     if sel_state != 'both':
@@ -592,7 +517,7 @@ def close_sale_orders(ctx):
             if so.invoice_status == "invoiced":
                 clodoo.writeL8(ctx,
                                resource_so,
-                               so.id,
+                               so.name,
                                {
                                    'invoiced': 'no'
                                })
@@ -606,8 +531,8 @@ def close_sale_orders(ctx):
                 msg_burst('%s (%d/%d) ...' % (so.name, ctr_upd, ctr_read))
                 if (
                     ln.product_id and (
-                        ln.product_id.id in shipping_ids
-                        or ln.product_id.id in conai_product_ids)
+                        ln.product_id.name in shipping_ids
+                        or ln.product_id.name in conai_product_ids)
                 ):
                     if not so.carrier_id or so.carrier_id.product_id != ln.product_id:
                         print("*** Order %s - '%s' - Inv. %s - multiple amount %s ***"
@@ -620,7 +545,7 @@ def close_sale_orders(ctx):
                     if ln.qty_invoiced != ln.product_qty:
                         clodoo.writeL8(ctx,
                                        resource_line,
-                                       ln.id,
+                                       ln.name,
                                        {
                                            'qty_invoiced': ln.product_qty,
                                            'qty_to_invoice': 0.0,
@@ -638,7 +563,7 @@ def close_sale_orders(ctx):
         if so.invoice_status != invoice_status:
             clodoo.writeL8(ctx,
                            resource_so,
-                           so.id,
+                           so.name,
                            {
                                'invoice_status': invoice_status,
                            })
@@ -670,7 +595,7 @@ def close_ddts(ctx):
             if ddt.to_be_invoiced != transportation_reason.to_be_invoiced:
                 clodoo.writeL8(ctx,
                                resource_ddt,
-                               ddt.id,
+                               ddt.name,
                                {
                                    'to_be_invoiced':
                                        transportation_reason.to_be_invoiced
@@ -684,7 +609,7 @@ def close_ddts(ctx):
                 (ddt.ddt_number or ddt.name), ctr_upd, ctr_read))
             if ln.invoice_line_id:
                 if not invoice_id:
-                    invoice_id = ln.invoice_line_id.invoice_id.id
+                    invoice_id = ln.invoice_line_id.invoice_id.name
                 continue
             if (
                 ln.sale_line_id
@@ -693,7 +618,7 @@ def close_ddts(ctx):
             ):
                 continue
             if ln.product_id:
-                product = clodoo.browseL8(ctx, resource_product, ln.product_id.id)
+                product = clodoo.browseL8(ctx, resource_product, ln.product_id.name)
                 if product.type == 'service':
                     continue
             to_be_invoiced = True
@@ -701,7 +626,7 @@ def close_ddts(ctx):
         if ddt.to_be_invoiced != to_be_invoiced:
             clodoo.writeL8(ctx,
                            resource_ddt,
-                           ddt.id,
+                           ddt.name,
                            {
                                'to_be_invoiced': to_be_invoiced,
                                'invoice_id': invoice_id,
@@ -750,11 +675,11 @@ def close_purchase_orders(ctx):
                 qty_received = 0.0
             print(po.product_qty, po.qty_received, qty_received, po.qty_invoiced)
             if qty_received > 0.0:
-                clodoo.writeL8(ctx, model_line, po.id, {'qty_received': qty_received})
+                clodoo.writeL8(ctx, model_line, po.name, {'qty_received': qty_received})
                 ctr += 1
     elif mode == 'H':
         for po in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, domain1)):
-            clodoo.writeL8(ctx, model, po.id, {'invoice_status': 'invoiced'})
+            clodoo.writeL8(ctx, model, po.name, {'invoice_status': 'invoiced'})
             ctr += 1
     print('%d purchase order [lines] updated' % ctr)
 
@@ -802,19 +727,20 @@ def set_fiscal_on_products(ctx):
     for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         msg_burst('%s ...' % pp.name)
         if taxv_ids[0] not in pp.taxes_id.ids:
-            clodoo.writeL8(ctx, model, pp.id, {'taxes_id': [(6, 0, taxv_ids)]})
+            clodoo.writeL8(ctx, model, pp.name, {'taxes_id': [(6, 0, taxv_ids)]})
             ctr += 1
         if taxa_ids[0] not in pp.supplier_taxes_id.ids:
-            clodoo.writeL8(ctx, model, pp.id, {'supplier_taxes_id': [(6, 0, taxa_ids)]})
-            ctr += 1
-        if accv_ids[0] != pp.property_account_income_id.id:
             clodoo.writeL8(
-                ctx, model, pp.id, {'property_account_income_id': accv_ids[0]}
+                ctx, model, pp.name, {'supplier_taxes_id': [(6, 0, taxa_ids)]})
+            ctr += 1
+        if accv_ids[0] != pp.property_account_income_id.name:
+            clodoo.writeL8(
+                ctx, model, pp.name, {'property_account_income_id': accv_ids[0]}
             )
             ctr += 1
-        if acca_ids[0] != pp.property_account_expense_id.id:
+        if acca_ids[0] != pp.property_account_expense_id.name:
             clodoo.writeL8(
-                ctx, model, pp.id, {'property_account_expense_id': acca_ids[0]}
+                ctx, model, pp.name, {'property_account_expense_id': acca_ids[0]}
             )
             ctr += 1
     print('%d product templates updated' % ctr)
@@ -835,10 +761,10 @@ def set_products_delivery_policy(ctx):
     for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         msg_burst('%s ...' % pp.name)
         if pp.purchase_method != purchase_method:
-            clodoo.writeL8(ctx, model, pp.id, {'purchase_method': purchase_method})
+            clodoo.writeL8(ctx, model, pp.name, {'purchase_method': purchase_method})
             ctr += 1
         if pp.invoice_policy != invoice_policy:
-            clodoo.writeL8(ctx, model, pp.id, {'invoice_policy': invoice_policy})
+            clodoo.writeL8(ctx, model, pp.name, {'invoice_policy': invoice_policy})
             ctr += 1
     print('%d product templates updated' % ctr)
 
@@ -847,10 +773,10 @@ def set_products_delivery_policy(ctx):
     for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         msg_burst('%s ...' % pp.name)
         if pp.purchase_method != purchase_method:
-            clodoo.writeL8(ctx, model, pp.id, {'purchase_method': purchase_method})
+            clodoo.writeL8(ctx, model, pp.name, {'purchase_method': purchase_method})
             ctr += 1
         if pp.invoice_policy != invoice_policy:
-            clodoo.writeL8(ctx, model, pp.id, {'invoice_policy': invoice_policy})
+            clodoo.writeL8(ctx, model, pp.name, {'invoice_policy': invoice_policy})
             ctr += 1
     print('%d products updated' % ctr)
 
@@ -862,7 +788,7 @@ def set_products_2_consumable(ctx):
     for pp in clodoo.browseL8(
         ctx, model, clodoo.searchL8(ctx, model, [('type', '=', 'product')])
     ):
-        clodoo.writeL8(ctx, model, pp.id, {'type': 'consu'})
+        clodoo.writeL8(ctx, model, pp.name, {'type': 'consu'})
         ctr += 1
     print('%d product templates updated' % ctr)
 
@@ -871,7 +797,7 @@ def set_products_2_consumable(ctx):
     for pp in clodoo.browseL8(
         ctx, model, clodoo.searchL8(ctx, model, [('type', '=', 'product')])
     ):
-        clodoo.writeL8(ctx, model, pp.id, {'type': 'consu'})
+        clodoo.writeL8(ctx, model, pp.name, {'type': 'consu'})
         ctr += 1
     print('%d products updated' % ctr)
 
@@ -895,7 +821,7 @@ def manage_due_line(ctx):
         if rec.distinta_line_ids:
             riba_list_ids = []
             for ln in rec.distinta_line_ids:
-                riba_list_ids.append(ln.riba_line_id.distinta_id.id)
+                riba_list_ids.append(ln.riba_line_id.distinta_id.name)
             print('RiBA list %s (line %s)' % (riba_list_ids, rec.distinta_line_ids))
             action = input('Action: Unlink_riba,Quit: ')
         else:
@@ -971,7 +897,7 @@ def set_report_config(ctx):
         ctx, model, clodoo.searchL8(ctx, model, [('origin', '!=', 'odoo')])
     ):
         print('Processing style %s' % style.name)
-        clodoo.writeL8(ctx, model, style.id, vals)
+        clodoo.writeL8(ctx, model, style.name, vals)
         ctr += 1
     model = 'ir.actions.report.xml'
     vals = {
@@ -999,7 +925,7 @@ def set_report_config(ctx):
     ]
     for rpt in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         print('Processing report %s' % rpt.name)
-        clodoo.writeL8(ctx, model, rpt.id, vals)
+        clodoo.writeL8(ctx, model, rpt.name, vals)
         ctr += 1
     domain = [
         (
@@ -1016,7 +942,7 @@ def set_report_config(ctx):
     del vals['template']
     for rpt in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         print('Processing report %s' % rpt.name)
-        clodoo.writeL8(ctx, model, rpt.id, vals)
+        clodoo.writeL8(ctx, model, rpt.name, vals)
         ctr += 1
 
     vals = {'address_mode': ''}
@@ -1050,7 +976,7 @@ def set_report_config(ctx):
     if vals:
         for rpt in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
             print('Processing template %s' % rpt.name)
-            clodoo.writeL8(ctx, model, rpt.id, vals)
+            clodoo.writeL8(ctx, model, rpt.name, vals)
             ctr += 1
 
     model = 'res.company'
@@ -1080,19 +1006,19 @@ def create_RA_config(ctx):
         domain.append(('company_id', '=', company_id))
     for acc in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, domain)):
         if re.match('[Er]rario.*[Rr]itenut.*autonom', acc.name):
-            debit_acc_id = acc.id
+            debit_acc_id = acc.name
         elif re.match('[Cr]redit.*[Rr]itenut.*acc', acc.name):
-            credit_acc_id = acc.id
+            credit_acc_id = acc.name
         elif re.match('[Dd]ebit.*[Rr]itenut.*acc', acc.name):
-            debit_acc_id = acc.id
+            debit_acc_id = acc.name
         elif re.match('[Cr]redit.*RA', acc.name):
-            credit_acc_id = acc.id
+            credit_acc_id = acc.name
         elif re.match('[Dd]ebit.*RA', acc.name):
-            debit_acc_id = acc.id
+            debit_acc_id = acc.name
         elif re.match('[Cr]redit.*[Rr]itenut', acc.name) and not credit_acc_id:
-            credit_acc_id = acc.id
+            credit_acc_id = acc.name
         elif re.match('[Dd]ebit.*[Rr]itenut', acc.name) and not debit_acc_id:
-            debit_acc_id = acc.id
+            debit_acc_id = acc.name
     model = 'account.payment.term'
     domain = [('name', 'ilike', '15')]
     payment_ids = clodoo.searchL8(ctx, model, domain)
@@ -1270,7 +1196,7 @@ def configure_RiBA(ctx):
     )[0]
     account_bank_id = clodoo.browseL8(
         ctx, 'account.journal', journal_id
-    ).default_credit_account_id.id
+    ).default_credit_account_id.name
     riba_id = False
     if banks:
         bank_name = banks[0].acc_number.strip()
@@ -1286,7 +1212,7 @@ def configure_RiBA(ctx):
     vals = {
         'name': '%s SBF' % bank_name,
         'type': 'sbf',
-        'bank_id': banks[0].id,
+        'bank_id': banks[0].name,
         'company_id': company_id,
         'acceptance_journal_id': journal_id,
         'acceptance_account_id': account_riba_id,
@@ -1318,7 +1244,7 @@ def manage_riba(ctx):
             'cancel': 'cancel',
         }[state]
         for riba in riba_list.line_ids:
-            clodoo.writeL8(ctx, 'riba.distinta.line', riba.id, {'state': line_state})
+            clodoo.writeL8(ctx, 'riba.distinta.line', riba.name, {'state': line_state})
         vals = {'state': state}
         if state in ('draft', 'cancel'):
             vals['date_accepted'] = False
@@ -1333,13 +1259,13 @@ def manage_riba(ctx):
             if line.user_type_id.type != 'receivable' or not line.reconciled:
                 continue
             try:
-                move_ids = [x.id for x in line.full_reconcile_id.reconciled_line_ids]
+                move_ids = [x.name for x in line.full_reconcile_id.reconciled_line_ids]
                 context = {'active_ids': move_ids}
                 clodoo.executeL8(
                     ctx, 'account.unreconcile', 'trans_unrec', None, context
                 )
             except BaseException:
-                print('!!Move %d unreconciliable!' % move.id)
+                print('!!Move %d unreconciliable!' % move.name)
 
     def cancel_riba_moves(ctx, riba_list, moves, by_line=None):
         if not moves:
@@ -1355,16 +1281,16 @@ def manage_riba(ctx):
             else:
                 move = item
             unreconcile_move(ctx, move)
-            clodoo.executeL8(ctx, 'account.move', 'button_cancel', move.id)
+            clodoo.executeL8(ctx, 'account.move', 'button_cancel', move.name)
         for item in move_list:
             if by_line:
                 move = item.move_id
             else:
                 move = item
             try:
-                clodoo.unlinkL8(ctx, 'account.move', move.id)
+                clodoo.unlinkL8(ctx, 'account.move', move.name)
             except BaseException:
-                print('!!Move %d not deleted!' % move.id)
+                print('!!Move %d not deleted!' % move.name)
 
     def riba_new(ctx, riba_list):
         set_riba_state(ctx, riba_list, 'draft')
@@ -1379,7 +1305,7 @@ def manage_riba(ctx):
         riba_list = clodoo.browseL8(ctx, 'riba.distinta', riba_id)
         print('Riba list # %s -  state: %s' % (riba_list.name, riba_list.state))
         for move in riba_list.unsolved_move_ids:
-            print('- Unsolved %d' % move.id)
+            print('- Unsolved %d' % move.name)
         if riba_list.state == 'paid':
             action = input('Action: Accredited,Quit: ')
             action = action[0].upper() if action else 'Q'
@@ -1403,16 +1329,17 @@ def manage_riba(ctx):
                 set_riba_state(ctx, riba_list, 'paid')
             elif action == 'U':
                 for move in riba_list.unsolved_move_ids:
-                    print('- Unsolved %d' % move.id)
+                    print('- Unsolved %d' % move.name)
                     sub = input('Move: Delete,Skip')
                     sub = sub[0].upper() if sub else 'S'
                     if sub == 'D':
                         unreconcile_move(ctx, move)
-                        clodoo.executeL8(ctx, 'account.move', 'button_cancel', move.id)
+                        clodoo.executeL8(
+                            ctx, 'account.move', 'button_cancel', move.name)
                         try:
-                            clodoo.unlinkL8(ctx, 'account.move', move.id)
+                            clodoo.unlinkL8(ctx, 'account.move', move.name)
                         except BaseException:
-                            print('!!Move %d not deleted!' % move.id)
+                            print('!!Move %d not deleted!' % move.name)
         elif riba_list.state == 'accepted':
             action = input('Action: do_Accredited,Cancel,State_accredited,Quit: ')
             action = action[0].upper() if action else 'Q'
@@ -1493,7 +1420,7 @@ def configure_email_template(ctx):
             'email_from': email_from,
             'report_name': RPT_NAME[template.model_id.model],
         }
-        clodoo.writeL8(ctx, model, template.id, vals)
+        clodoo.writeL8(ctx, model, template.name, vals)
 
 
 def simulate_user_profile(ctx):
@@ -1549,19 +1476,19 @@ def simulate_user_profile(ctx):
             if model == 'res.partner':
                 print(
                     '%s %4d %-32.32s %s %s'
-                    % (model, rec.id, rec.name, rec.type, get_agent_names(rec.agents))
+                    % (model, rec.name, rec.name, rec.type, get_agent_names(rec.agents))
                 )
             elif model == 'account.invoice':
                 print(
                     '%s %4d %-20.20s %s'
-                    % (model, rec.id, rec.number, get_agent_names(rec.agents))
+                    % (model, rec.name, rec.number, get_agent_names(rec.agents))
                 )
             else:
                 print(
                     '%s %4d %-16.16s %-32.32s %s'
                     % (
                         model,
-                        rec.id,
+                        rec.name,
                         rec.name,
                         rec.partner_id.name,
                         get_agent_names(rec.agents),
@@ -1569,11 +1496,11 @@ def simulate_user_profile(ctx):
                 )
             if model2:
                 if model == 'res.partner':
-                    domain = [('parent_id', '=', rec.id)]
+                    domain = [('parent_id', '=', rec.name)]
                 elif model2 == 'account.invoice.line':
-                    domain = [('invoice_id', '=', rec.id)]
+                    domain = [('invoice_id', '=', rec.name)]
                 else:
-                    domain = [('order_id', '=', rec.id)]
+                    domain = [('order_id', '=', rec.name)]
                 for rec2 in clodoo.browseL8(
                     ctx, model2, clodoo.searchL8(ctx, model2, domain)
                 ):
@@ -1582,7 +1509,7 @@ def simulate_user_profile(ctx):
                             '    %s %4d %-32.32s %s %s'
                             % (
                                 model2,
-                                rec2.id,
+                                rec2.name,
                                 rec2.name,
                                 rec2.type,
                                 get_agent_names(rec2.agents),
@@ -1593,7 +1520,7 @@ def simulate_user_profile(ctx):
                             '    %s %4d %-32.32s %s'
                             % (
                                 model2,
-                                rec2.id,
+                                rec2.name,
                                 rec2.name,
                                 get_agent_names_line(rec2.agents),
                             )
@@ -1603,7 +1530,7 @@ def simulate_user_profile(ctx):
                             '    %s %4d %-32.32s %s'
                             % (
                                 model2,
-                                rec2.id,
+                                rec2.name,
                                 rec2.name,
                                 get_agent_names_line(rec2.agents),
                             )
@@ -1625,7 +1552,7 @@ def reset_email_admins(ctx):
             print('No user %s found!' % username)
             return ctr
         for user in clodoo.browseL8(ctx, model, ids):
-            partner_id = user.partner_id.id
+            partner_id = user.partner_id.name
             partner = clodoo.browseL8(ctx, model2, partner_id)
             if partner.email != 'noreply@vg7.it':
                 clodoo.writeL8(ctx, model2, partner_id, {'email': email})
@@ -1654,7 +1581,7 @@ def create_commission_env(ctx):
     }
     for commission in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         if commission.name in COMMISSIONS:
-            COMMISSIONS[commission.name]['id'] = commission.id
+            COMMISSIONS[commission.name]['id'] = commission.name
     for commission in COMMISSIONS:
         vals = {'name': commission, 'fix_qty': COMMISSIONS[commission]['fix_qty']}
         if not COMMISSIONS[commission]['id']:
@@ -1672,7 +1599,7 @@ def create_commission_env(ctx):
     }
     for agent in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         if agent.name in AGENTS:
-            AGENTS[agent.name]['id'] = agent.id
+            AGENTS[agent.name]['id'] = agent.name
     for agent in AGENTS:
         vals = {
             'name': agent,
@@ -1737,7 +1664,7 @@ def create_delivery_env(ctx):
             'carriage_condition_id': env_ref(ctx, 'l10n_it_ddt.carriage_condition_PF'),
             'note': 'Trasporto con mezzi propri',
         }
-        clodoo.writeL8(ctx, model, carrier.id, vals)
+        clodoo.writeL8(ctx, model, carrier.name, vals)
         ctr += 1
         break
     model = 'stock.ddt.type'
@@ -1753,7 +1680,7 @@ def create_delivery_env(ctx):
             ),
             'company_id': company_id,
         }
-        clodoo.writeL8(ctx, model, ddt_type.id, vals)
+        clodoo.writeL8(ctx, model, ddt_type.name, vals)
         ctr += 1
         break
     model = 'res.partner'
@@ -1779,7 +1706,7 @@ def show_empty_ddt(ctx):
         if not ddt.line_ids:
             print(
                 'DdT n.%s del %s (Id=%d) without lines'
-                % (ddt.ddt_number, ddt.date, ddt.id)
+                % (ddt.ddt_number, ddt.date, ddt.name)
             )
 
 
@@ -1821,16 +1748,16 @@ def deduplicate_partner(ctx):
         if partner.name and partner.name == prior_name:
             print(
                 'Found duplicate name %s as %d and %d'
-                % (partner.name, partner.id, prior_partner.id)
+                % (partner.name, partner.name, prior_partner.id)
             )
             candidate = False
-            if prior_partner.id > partner.id:
+            if prior_partner.id > partner.name:
                 if (
                     prior_partner.activities_count == 0
                     and len(prior_partner.invoice_ids) == 0
                 ):
                     candidate = prior_partner
-            if not candidate and prior_partner.id < partner.id:
+            if not candidate and prior_partner.id < partner.name:
                 if partner.activities_count == 0 and len(partner.invoice_ids) == 0:
                     candidate = partner
             if not candidate:
@@ -1861,8 +1788,9 @@ def deduplicate_partner(ctx):
                             % (vg7_id, prior_partner.id)
                         )
                     elif candidate == prior_partner:
-                        clodoo.writeL8(ctx, model, partner.id, vals)
-                        print('Assigned vg7_id %d to record %d' % (vg7_id, partner.id))
+                        clodoo.writeL8(ctx, model, partner.name, vals)
+                        print('Assigned vg7_id %d to record %d'
+                              % (vg7_id, partner.name))
         prior_name = partner.name
         prior_partner = partner
 
@@ -2054,10 +1982,10 @@ def unlink_ddt_from_invoice(ctx):
     ddt_line_ids = []
     for invoice in clodoo.browseL8(ctx, invoice_model, ids):
         for ln in invoice.invoice_line_ids:
-            ddt_line_ids.append(ln.ddt_line_id.id)
-            clodoo.writeL8(ctx, invoice_line_model, ln.id, {'ddt_line_id': False})
+            ddt_line_ids.append(ln.ddt_line_id.name)
+            clodoo.writeL8(ctx, invoice_line_model, ln.name, {'ddt_line_id': False})
             ctr += 1
-            inv_line_ids.append(ln.id)
+            inv_line_ids.append(ln.name)
     ddt_ids = []
     for ln in clodoo.browseL8(
         ctx,
@@ -2068,16 +1996,16 @@ def unlink_ddt_from_invoice(ctx):
             ['|', ('id', 'in', ddt_line_ids), ('invoice_line_id', 'in', inv_line_ids)],
         ),
     ):
-        clodoo.writeL8(ctx, ddt_line_model, ln.id, {'invoice_line_id': False})
+        clodoo.writeL8(ctx, ddt_line_model, ln.name, {'invoice_line_id': False})
         ctr += 1
-        if ln.package_preparation_id.id not in ddt_ids:
+        if ln.package_preparation_id.name not in ddt_ids:
             clodoo.writeL8(
                 ctx,
                 ddt_model,
-                ln.package_preparation_id.id,
+                ln.package_preparation_id.name,
                 {'to_be_invoiced': True, 'invoice_id': False},
             )
-            ddt_ids.append(ln.package_preparation_id.id)
+            ddt_ids.append(ln.package_preparation_id.name)
             ctr += 1
     print('%d record unlinked!' % ctr)
 
@@ -2091,45 +2019,45 @@ def check_rec_links(ctx):
     def parse_sale_from_invline(invoice_line, ctr, err_ctr, orders):
         for sale_line in invoice_line.sale_line_ids:
             ctr += 1
-            if sale_line.order_id.id not in orders:
-                orders.append(sale_line.order_id.id)
-            if invoice.partner_id.id not in (
-                sale_line.order_id.partner_id.id,
-                sale_line.order_id.partner_invoice_id.id,
-                sale_line.order_id.partner_shipping_id.id,
+            if sale_line.order_id.name not in orders:
+                orders.append(sale_line.order_id.name)
+            if invoice.partner_id.name not in (
+                sale_line.order_id.partner_id.name,
+                sale_line.order_id.partner_invoice_id.name,
+                sale_line.order_id.partner_shipping_id.name,
             ):
                 os0.wlog(
                     '!!! Invoice %s (%d) partner differs from '
                     'sale order %s (%d) partner!!!'
                     % (
                         invoice.number,
-                        invoice.id,
+                        invoice.name,
                         sale_line.order_id.name,
-                        sale_line.order_id.id,
+                        sale_line.order_id.name,
                     )
                 )
                 err_ctr += 1
                 clodoo.writeL8(
                     ctx,
                     invline_model,
-                    invoice_line.id,
-                    {'sale_line_ids': [(3, sale_line.id)]},
+                    invoice_line.name,
+                    {'sale_line_ids': [(3, sale_line.name)]},
                 )
         order_line_ids = clodoo.searchL8(
-            ctx, soline_model, [('invoice_lines', '=', invoice_line.id)]
+            ctx, soline_model, [('invoice_lines', '=', invoice_line.name)]
         )
         if not order_line_ids and invoice_line.product_id:
             order_line_ids = clodoo.searchL8(
                 ctx,
                 soline_model,
                 [
-                    ('company_id', '=', invoice_line.company_id.id),
-                    ('order_partner_id', '=', invoice_line.partner_id.id),
-                    ('product_id', '=', invoice_line.product_id.id),
+                    ('company_id', '=', invoice_line.company_id.name),
+                    ('order_partner_id', '=', invoice_line.partner_id.name),
+                    ('product_id', '=', invoice_line.product_id.name),
                 ],
             )
             for soline in clodoo.browseL8(ctx, soline_model, order_line_ids):
-                if invoice_line.id in soline.invoice_lines:
+                if invoice_line.name in soline.invoice_lines:
                     continue
                 if soline.product_qty == soline.qty_invoiced:
                     continue
@@ -2142,26 +2070,26 @@ def check_rec_links(ctx):
                     print(
                         'Invalid uom so=%s inv=%s'
                         % (
-                            soline.product_uom and soline.product_uom.id,
-                            invoice_line.uom_id and invoice_line.uom_id.id,
+                            soline.product_uom and soline.product_uom.name,
+                            invoice_line.uom_id and invoice_line.uom_id.name,
                         )
                     )
                     clodoo.writeL8(
                         ctx,
                         invline_model,
-                        invoice_line.id,
-                        {'uom_id': soline.product_uom.id},
+                        invoice_line.name,
+                        {'uom_id': soline.product_uom.name},
                     )
                 clodoo.writeL8(
                     ctx,
                     soline_model,
-                    soline.id,
-                    {'invoice_lines': [(4, invoice_line.id)]},
+                    soline.name,
+                    {'invoice_lines': [(4, invoice_line.name)]},
                 )
                 err_ctr += 1
                 print(
                     'Linked invoice line %d to sale.order.line id %d'
-                    % (invoice_line.id, soline.id)
+                    % (invoice_line.name, soline.name)
                 )
         return ctr, err_ctr, orders
 
@@ -2169,37 +2097,37 @@ def check_rec_links(ctx):
         if invoice_line.product_id.type == 'service':
             return ctr, err_ctr, ddts
         if invoice_line.ddt_line_id:
-            ddts.append(invoice_line.ddt_line_id.package_preparation_id.id)
+            ddts.append(invoice_line.ddt_line_id.package_preparation_id.name)
             if (
                 invoice_line.ddt_line_id.sale_line_id
-                and invoice_line.ddt_line_id.sale_line_id.order_id.id not in orders
+                and invoice_line.ddt_line_id.sale_line_id.order_id.name not in orders
             ):
                 os0.wlog(
                     '!!! Invoice sale orders differs from '
                     'DdT sale order %s (%d)!!!'
                     % (
                         invoice_line.ddt_line_id.sale_line_id.order_id.name,
-                        invoice_line.ddt_line_id.sale_line_id.order_id.id,
+                        invoice_line.ddt_line_id.sale_line_id.order_id.name,
                     )
                 )
                 err_ctr += 1
                 clodoo.writeL8(
-                    ctx, invline_model, invoice_line.id, {'ddt_line_id': False}
+                    ctx, invline_model, invoice_line.name, {'ddt_line_id': False}
                 )
             elif (
                 invoice_line.ddt_line_id
                 and invoice_line.ddt_line_id.sale_line_id
                 and (
-                    invoice.partner_id.id
+                    invoice.partner_id.name
                     not in (
-                        invoice_line.ddt_line_id.sale_line_id.order_id.partner_id.id,
+                        invoice_line.ddt_line_id.sale_line_id.order_id.partner_id.name,
                         (
                             invoice_line.ddt_line_id.sale_line_id.order_id.
-                            partner_invoice_id.id
+                            partner_invoice_id.name
                         ),
                         (
                             invoice_line.ddt_line_id.sale_line_id.order_id.
-                            partner_shipping_id.id
+                            partner_shipping_id.name
                         ),
                     )
                 )
@@ -2209,35 +2137,35 @@ def check_rec_links(ctx):
                     'ddt sale order %s (%d) partner!!!'
                     % (
                         invoice.number,
-                        invoice.id,
+                        invoice.name,
                         invoice_line.ddt_line_id.sale_line_id.order_id.name,
-                        invoice_line.ddt_line_id.sale_line_id.order_id.id,
+                        invoice_line.ddt_line_id.sale_line_id.order_id.name,
                     )
                 )
                 err_ctr += 1
                 clodoo.writeL8(
-                    ctx, invline_model, invoice_line.id, {'ddt_line_id': False}
+                    ctx, invline_model, invoice_line.name, {'ddt_line_id': False}
                 )
         elif invoice_line.sale_line_ids:
             for sale_line in invoice_line.sale_line_ids:
                 for inv_line in sale_line.invoice_lines:
-                    if inv_line.id == invoice_line.id:
+                    if inv_line.name == invoice_line.name:
                         os0.wlog(
                             '!!! Missed DdT line for invoice %s (%d) '
                             'order %s!!!'
-                            % (invoice.number, invoice.id, sale_line.order_id.id)
+                            % (invoice.number, invoice.name, sale_line.order_id.name)
                         )
                         err_ctr += 1
                         ids = clodoo.searchL8(
                             ctx,
                             'stock.picking.package.preparation.line',
-                            [('sale_line_id', '=', sale_line.id)],
+                            [('sale_line_id', '=', sale_line.name)],
                         )
                         if ids:
                             clodoo.writeL8(
                                 ctx,
                                 invline_model,
-                                invoice_line.id,
+                                invoice_line.name,
                                 {'ddt_line_id': ids[0]},
                             )
                         break
@@ -2301,25 +2229,27 @@ def check_rec_links(ctx):
             (ctr, err_ctr, ddts) = parse_ddt_from_invline(
                 invoice_line, ctr, err_ctr, ddts
             )
-        diff = list({x.id for x in invoice.ddt_ids} - set(ddts))
+        diff = list({x.name for x in invoice.ddt_ids} - set(ddts))
         do_write = False
         if diff:
             os0.wlog(
                 '!!! Found some DdT %s in invoice %s (%d) header '
-                'not detected in invoice lines!!!' % (diff, invoice.number, invoice.id)
+                'not detected in invoice lines!!!'
+                % (diff, invoice.number, invoice.name)
             )
             err_ctr += 1
             do_write = True
-        diff = list(set(ddts) - {x.id for x in invoice.ddt_ids})
+        diff = list(set(ddts) - {x.name for x in invoice.ddt_ids})
         if diff:
             os0.wlog(
                 '!!! Some DdT (%s) in invoice lines are not detected '
-                'in invoice %s (%d)!!!' % (diff, invoice.number, invoice.id)
+                'in invoice %s (%d)!!!' % (diff, invoice.number, invoice.name)
             )
             err_ctr += 1
             do_write = True
         if do_write:
-            clodoo.writeL8(ctx, invoice_model, invoice.id, {'ddt_ids': [(6, 0, ddts)]})
+            clodoo.writeL8(
+                ctx, invoice_model, invoice.name, {'ddt_ids': [(6, 0, ddts)]})
 
     for ddt in clodoo.browseL8(
         ctx,
@@ -2328,7 +2258,7 @@ def check_rec_links(ctx):
     ):
         msg_burst('%s ...' % ddt.ddt_number)
         ctr += 1
-        invoices = [ddt.invoice_id.id] if ddt.invoice_id else []
+        invoices = [ddt.invoice_id.name] if ddt.invoice_id else []
         found_link = False
         for ddt_line in ddt.line_ids:
             if ddt_line.invoice_line_id:
@@ -2338,33 +2268,34 @@ def check_rec_links(ctx):
             ctr += 1
             if (
                 ddt_line.invoice_line_id
-                and ddt_line.invoice_line_id.invoice_id.id not in invoices
+                and ddt_line.invoice_line_id.invoice_id.name not in invoices
             ):
-                invoices.append(ddt_line.invoice_line_id.invoice_id.id)
+                invoices.append(ddt_line.invoice_line_id.invoice_id.name)
             elif not found_link and ddt.invoice_id:
                 ids = clodoo.searchL8(
                     ctx,
                     invline_model,
                     [
-                        ('invoice_id', '=', ddt_line.invoice_line_id.invoice_id.id),
-                        ('product_id', '=', ddt_line.product_id.id),
+                        ('invoice_id', '=', ddt_line.invoice_line_id.invoice_id.name),
+                        ('product_id', '=', ddt_line.product_id.name),
                         ('quantity', '=', ddt_line.product_uom_qty),
                         '|',
-                        ('ddt_line_id', '=', ddt_line.id),
+                        ('ddt_line_id', '=', ddt_line.name),
                         ('ddt_line_id', '=', False),
                     ],
                 )
                 if len(ids) == 1:
                     clodoo.writeL8(
-                        ctx, ddtline_model, ddt_line.id, {'invoice_line_id': ids[0]}
+                        ctx, ddtline_model, ddt_line.name, {'invoice_line_id': ids[0]}
                     )
                 err_ctr += 1
-                os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.id))
-        diff = list(set(invoices) - {x.id for x in ddt.invoice_ids})
+                os0.wlog(
+                    '!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.name))
+        diff = list(set(invoices) - {x.name for x in ddt.invoice_ids})
         if diff:
             ddt_state = ddt.state
             err_ctr += 1
-            os0.wlog('!!! Invoice refs updated in DdT %s!!!' % (ddt.id))
+            os0.wlog('!!! Invoice refs updated in DdT %s!!!' % (ddt.name))
             if ctx['_cr']:
                 query = "update %s set %s=%s,%s='%s' where id=%d" % (
                     ddt_model.replace('.', '_'),
@@ -2372,10 +2303,11 @@ def check_rec_links(ctx):
                     'null',
                     'state',
                     'draft',
-                    ddt.id,
+                    ddt.name,
                 )
                 clodoo.exec_sql(ctx, query)
-            clodoo.writeL8(ctx, ddt_model, ddt.id, {'invoice_ids': [(6, 0, invoices)]})
+            clodoo.writeL8(
+                ctx, ddt_model, ddt.name, {'invoice_ids': [(6, 0, invoices)]})
             if ctx['_cr']:
                 query = "update %s set %s=%s,%s='%s' where id=%d" % (
                     ddt_model.replace('.', '_'),
@@ -2383,7 +2315,7 @@ def check_rec_links(ctx):
                     max(invoices),
                     'state',
                     ddt_state,
-                    ddt.id,
+                    ddt.name,
                 )
                 clodoo.exec_sql(ctx, query)
 
@@ -2411,13 +2343,13 @@ def relink_records(ctx):
         if scope == 'fiscalpos':
             if partner.property_account_position_id:
                 try:
-                    cur_partner = clodoo.browseL8(ctx, model, partner.id)
+                    cur_partner = clodoo.browseL8(ctx, model, partner.name)
                     if not cur_partner.property_account_position_id:
-                        position_id = TNL[partner.property_account_position_id.id]
+                        position_id = TNL[partner.property_account_position_id.name]
                         clodoo.writeL8(
                             ctx,
                             model,
-                            cur_partner.id,
+                            cur_partner.name,
                             {'property_account_position_id': position_id},
                         )
                         ctr += 1
@@ -2425,23 +2357,23 @@ def relink_records(ctx):
                     pass
         elif scope == 'child':
             try:
-                cur_partner = clodoo.browseL8(ctx, model, partner.id)
+                cur_partner = clodoo.browseL8(ctx, model, partner.name)
                 ctr += 1
                 if partner.name != cur_partner.name:
                     print(
                         '... name of %d changed "%s"->"%s"'
-                        % (partner.id, partner.name, cur_partner.name)
+                        % (partner.name, partner.name, cur_partner.name)
                     )
                 to_check = False
-                if (partner.parent_id.id or False) != (
-                    cur_partner.parent_id.id or False
+                if (partner.parent_id.name or False) != (
+                        cur_partner.parent_id.name or False
                 ):
                     print(
                         'Partner %d: parent is changed %s ->%s'
                         % (
-                            partner.id,
-                            partner.parent_id and partner.parent_id.id or '',
-                            cur_partner.parent_id and cur_partner.parent_id.id or '',
+                            partner.name,
+                            partner.parent_id and partner.parent_id.name or '',
+                            cur_partner.parent_id and cur_partner.parent_id.name or '',
                         )
                     )
                     if partner.parent_id:
@@ -2449,7 +2381,7 @@ def relink_records(ctx):
                 if partner.type != cur_partner.type:
                     print(
                         'Partner %d: type is changed %s ->%s'
-                        % (partner.id, partner.type, cur_partner.type)
+                        % (partner.name, partner.type, cur_partner.type)
                     )
                     to_check = True
                 if to_check:
@@ -2469,11 +2401,11 @@ def relink_records(ctx):
                             action = ''
                     vals = {}
                     if action in ('1', '2'):
-                        vals['parent_id'] = partner.parent_id.id
+                        vals['parent_id'] = partner.parent_id.name
                     if action in ('1', '3'):
                         vals['type'] = partner.type
                     if vals:
-                        clodoo.writeL8(ctx, model, cur_partner.id, vals)
+                        clodoo.writeL8(ctx, model, cur_partner.name, vals)
             except BaseException:
                 pass
     print('%d record read, %d record with wrong links!' % (ctr, err_ctr))
@@ -2483,14 +2415,15 @@ def link_sale_2_invoice(ctx):
     def link_sale_line(ctx, invl_model, inv, invline, soline):
         if ctx.get('_cr'):
             prior_state = inv.state
-            query = "UPDATE account_invoice set state='draft' " "where id=%d" % inv.id
+            query = "UPDATE account_invoice set state='draft' where id=%d" % inv.name
             clodoo.exec_sql(ctx, query)
-        clodoo.writeL8(ctx, invl_model, invline.id, {'sale_line_ids': [(3, soline.id)]})
-        print('Order line %d.%d linked ...' % (soline.id, soline.order_id.id))
+        clodoo.writeL8(
+            ctx, invl_model, invline.name, {'sale_line_ids': [(3, soline.name)]})
+        print('Order line %d.%d linked ...' % (soline.name, soline.order_id.name))
         if ctx.get('_cr'):
             query = "UPDATE account_invoice set state='%s' " "where id=%d" % (
                 prior_state,
-                inv.id,
+                inv.name,
             )
             clodoo.exec_sql(ctx, query)
 
@@ -2514,13 +2447,13 @@ def link_sale_2_invoice(ctx):
     so = clodoo.browseL8(ctx, so_model, so_id)
     invs = []
     for id in so.invoice_ids:
-        invs.append(id.id)
+        invs.append(id.name)
     print('Read Sale Order [%s] -> %s ...' % (so.name, invs))
     for soline in so.order_line:
         invls = []
         for id in soline.invoice_lines:
-            invls.append(id.id)
-        print('Reading line [%d] %s -> %s...' % (soline.id, soline.name, invls))
+            invls.append(id.name)
+        print('Reading line [%d] %s -> %s...' % (soline.name, soline.name, invls))
     inv = clodoo.browseL8(ctx, inv_model, inv_id)
     if inv_id in invs:
         action = 'upd'
@@ -2529,20 +2462,20 @@ def link_sale_2_invoice(ctx):
     sos = []
     if odoo_ver < 10:
         for id in inv.origin_orders:
-            sos.append(id.id)
+            sos.append(id.name)
     print('Invoice [%d].%s %s -> %s' % (inv_id, action, inv.number, sos))
     childs = 'invoice_line' if odoo_ver < 10 else 'invoice_line_ids'
     for invline in inv[childs]:
         sols = []
         if odoo_ver >= 10:
             for id in invline.sale_line_ids:
-                sols.append(id.id)
-        print('Reading line [%d] %s -> %s...' % (invline.id, invline.name, sols))
+                sols.append(id.name)
+        print('Reading line [%d] %s -> %s...' % (invline.name, invline.name, sols))
         linked = False
         for soline in so.order_line:
-            if soline.id in sols:
+            if soline.name in sols:
                 linked = True
-            if soline.id not in sols and soline.product_id == invline.product_id:
+            if soline.name not in sols and soline.product_id == invline.product_id:
                 link_sale_line(ctx, invl_model, inv, invline, soline)
         if not linked:
             link_sale_line(ctx, invl_model, inv, invline, soline)
@@ -2563,7 +2496,7 @@ def link_sale_2_invoice(ctx):
 
 def check_integrity_by_vg7(ctx):
     def check_partner_child(ctx, model, partner):
-        parent = clodoo.browseL8(ctx, model, partner.parent_id.id)
+        parent = clodoo.browseL8(ctx, model, partner.parent_id.name)
         # if partner.name and partner.name != parent.name:
         #     print(
         #         'Current partner %d name %s differs from its parent %s'
@@ -2581,11 +2514,11 @@ def check_integrity_by_vg7(ctx):
             if partner.name == parent.name or partner.name.lower() == "false":
                 if partner.type in ('delivery', 'invoice'):
                     clodoo.writeL8(
-                        ctx, model, partner.id, {'is_company': False, 'name': False})
+                        ctx, model, partner.name, {'is_company': False, 'name': False})
                     ctx['ctr'] += 1
                 else:
                     try:
-                        clodoo.unlinkL8(ctx, model, partner.id)
+                        clodoo.unlinkL8(ctx, model, partner.name)
                         ctx['ctr'] += 1
                         return
                     except BaseException:
@@ -2593,21 +2526,21 @@ def check_integrity_by_vg7(ctx):
             if partner.name.startswith("False "):
                 print('%s ...' % partner.name)
                 clodoo.writeL8(
-                    ctx, model, partner.id,
+                    ctx, model, partner.name,
                     {'name': partner.name.replace('False ', '')})
                 ctx['ctr'] += 1
         if partner.customer:
-            clodoo.writeL8(ctx, model, partner.id, {'customer': False})
+            clodoo.writeL8(ctx, model, partner.name, {'customer': False})
             ctx['ctr'] += 1
         if partner.supplier:
-            clodoo.writeL8(ctx, model, partner.id, {'supplier': False})
+            clodoo.writeL8(ctx, model, partner.name, {'supplier': False})
             ctx['ctr'] += 1
 
     def check_partner_root(ctx, model, partner):
         if partner.type != 'contact':
             print(
                 'Current partner %d name %s has wrong type %s'
-                % (partner.id, partner.name, partner.type)
+                % (partner.name, partner.name, partner.type)
             )
             msg = 'Action: '
             if partner.vg7_id:
@@ -2624,22 +2557,22 @@ def check_integrity_by_vg7(ctx):
             msg = '%s,Link2,Nop? ' % msg
             dummy = input(msg)
             if dummy.upper() == 'C':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'contact'})
+                clodoo.writeL8(ctx, model, partner.name, {'type': 'contact'})
                 ctx['ctr'] += 1
             elif dummy.upper() == 'D':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'delivery'})
+                clodoo.writeL8(ctx, model, partner.name, {'type': 'delivery'})
                 ctx['ctr'] += 1
             elif dummy.upper() == 'I':
-                clodoo.writeL8(ctx, model, partner.id, {'type': 'invoice'})
+                clodoo.writeL8(ctx, model, partner.name, {'type': 'invoice'})
                 ctx['ctr'] += 1
             elif dummy.upper() == 'L':
                 dummy = input('Id of parent? ')
                 if dummy.isdigit():
-                    clodoo.writeL8(ctx, model, partner.id, {'parent_id': eval(dummy)})
+                    clodoo.writeL8(ctx, model, partner.name, {'parent_id': eval(dummy)})
                     ctx['ctr'] += 1
             elif dummy.upper() == 'R':
                 try:
-                    clodoo.unlinkL8(ctx, model, partner.id)
+                    clodoo.unlinkL8(ctx, model, partner.name)
                     ctx['ctr'] += 1
                 except BaseException:
                     print('Partner non deletable!')
@@ -2681,7 +2614,7 @@ def set_comment_on_invoice(ctx):
     ctr = 0
     for rec in clodoo.browseL8(ctx, model, date_ids):
         msg_burst('%s ...' % rec[name_field])
-        clodoo.writeL8(ctx, model, rec.id, {'comment': comment})
+        clodoo.writeL8(ctx, model, rec.name, {'comment': comment})
         ctr += 1
     print('%d record updated' % ctr)
 
@@ -2708,7 +2641,7 @@ def set_ppf_on_partner(ctx):
     ctr = 0
     for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, domain)):
         msg_burst('%s ...' % pp.name)
-        clodoo.writeL8(ctx, model, pp.id, {'ddt_show_price': value})
+        clodoo.writeL8(ctx, model, pp.name, {'ddt_show_price': value})
         ctr += 1
     print('%d record updated' % ctr)
 
@@ -2728,16 +2661,16 @@ def set_move_partner_from_invoice(ctx):
         for line in rec.move_id.line_ids:
             if not line.partner_id:
                 if not rec.partner_id.commercial_partner_id:
-                    print('Partner %d w/o commercial id' % rec.partner_id.id)
+                    print('Partner %d w/o commercial id' % rec.partner_id.name)
                     clodoo.writeL8(
-                        ctx, model_line, line.id, {'partner_id': rec.partner_id.id}
+                        ctx, model_line, line.name, {'partner_id': rec.partner_id.name}
                     )
                     continue
                 clodoo.writeL8(
                     ctx,
                     model_line,
-                    line.id,
-                    {'partner_id': rec.partner_id.commercial_partner_id.id},
+                    line.name,
+                    {'partner_id': rec.partner_id.commercial_partner_id.name},
                 )
     print('%d record updated' % ctr)
 
@@ -2761,7 +2694,7 @@ def solve_unamed(ctx):
         if ctx.get('_cr'):
             query = (
                 "select id,partner_id from sale_order "
-                "where partner_shipping_id=%d" % rec.id
+                "where partner_shipping_id=%d" % rec.name
             )
             response = clodoo.exec_sql(ctx, query, response=True)
             for resp in response:
@@ -2771,7 +2704,7 @@ def solve_unamed(ctx):
                 )
                 clodoo.exec_sql(ctx, query)
         try:
-            clodoo.unlinkL8(ctx, model, rec.id)
+            clodoo.unlinkL8(ctx, model, rec.name)
             ctr += 1
         except BaseException:
             pass
@@ -2785,7 +2718,7 @@ def solve_unamed(ctx):
         ),
     ):
         if rec.is_company:
-            clodoo.writeL8(ctx, model, rec.id, {'is_company': False})
+            clodoo.writeL8(ctx, model, rec.name, {'is_company': False})
             ctr += 1
     if ctx.get('_cr'):
         query = "select partner_id from sale_order group by(partner_id)"
@@ -2808,12 +2741,12 @@ def solve_unamed(ctx):
         vals = {}
         if not rec.commercial_partner_id:
             if rec.is_company or not rec.parent_id:
-                vals = {'commercial_partner_id': rec.id}
+                vals = {'commercial_partner_id': rec.name}
             else:
                 vals = {'commercial_partner_id': rec.parent_id}
         vals['name'] = rec.name + ' '
-        clodoo.writeL8(ctx, model, rec.id, vals)
-        clodoo.writeL8(ctx, model, rec.id, {'name': rec.name.strip()})
+        clodoo.writeL8(ctx, model, rec.name, vals)
+        clodoo.writeL8(ctx, model, rec.name, {'name': rec.name.strip()})
         ctr += 1
     print('%d record updated' % ctr)
 
@@ -2829,7 +2762,7 @@ def solve_flag_einvoice(ctx):
         msg_burst('%s ...' % rec.name)
         if rec.electronic_invoice_subjected and not rec.codice_destinatario:
             vals = {'electronic_invoice_subjected': False}
-            clodoo.writeL8(ctx, model, rec.id, vals)
+            clodoo.writeL8(ctx, model, rec.name, vals)
             ctr += 1
     print('%d record updated' % ctr)
 
@@ -2850,7 +2783,7 @@ def check_4_duplicate_vat(ctx):
     ):
         msg_burst('%s ...' % rec.name)
         if rec.vat != prior_vat:
-            prior_id = rec.id
+            prior_id = rec.name
             prior_vat = rec.vat
             prior_name = rec.name
             if rec.type != 'contact' or rec.parent_id:
@@ -2861,7 +2794,7 @@ def check_4_duplicate_vat(ctx):
                 rec.parent_id and rec.type != 'invoice'
             ):
                 vals = {'electronic_invoice_subjected': False}
-                clodoo.writeL8(ctx, model, rec.id, vals)
+                clodoo.writeL8(ctx, model, rec.name, vals)
                 ctr += 1
             continue
         if rec.type != 'contact' or rec.parent_id:
@@ -2870,8 +2803,8 @@ def check_4_duplicate_vat(ctx):
                 rec.parent_id and rec.type != 'invoice'
             ):
                 vals['electronic_invoice_subjected'] = False
-            print('** Removing VAT from %s (%d)' % (rec.name, rec.id))
-            clodoo.writeL8(ctx, model, rec.id, vals)
+            print('** Removing VAT from %s (%d)' % (rec.name, rec.name))
+            clodoo.writeL8(ctx, model, rec.name, vals)
             ctr += 1
         if prior_candidate:
             vals = {'vat': False}
@@ -2945,26 +2878,27 @@ def reorder_invoice_lines(ctx):
                 )
             )
             # line.write({'sequence': sequence})
-            clodoo.writeL8(ctx, 'account.invoice.line', line.id, {'sequence': sequence})
+            clodoo.writeL8(
+                ctx, 'account.invoice.line', line.name, {'sequence': sequence})
 
     def add_inv_line(ilines, inv_line):
-        if inv_line.id not in ilines:
-            ilines[inv_line.id] = {}
-        ilines[inv_line.id]['line'] = inv_line
-        ilines[inv_line.id]['sequence'] = inv_line.sequence
-        ilines[inv_line.id]['so'] = False
-        ilines[inv_line.id]['so_line'] = False
+        if inv_line.name not in ilines:
+            ilines[inv_line.name] = {}
+        ilines[inv_line.name]['line'] = inv_line
+        ilines[inv_line.name]['sequence'] = inv_line.sequence
+        ilines[inv_line.name]['so'] = False
+        ilines[inv_line.name]['so_line'] = False
         # TODO: tis works just with 1 sale order line
         for sale_line_id in inv_line.sale_line_ids:
-            ilines[inv_line.id]['so'] = sale_line_id.order_id.name
-            ilines[inv_line.id]['so_line'] = sale_line_id.id
-        ilines[inv_line.id]['ddt'] = False
-        ilines[inv_line.id]['ddt_line'] = False
+            ilines[inv_line.name]['so'] = sale_line_id.order_id.name
+            ilines[inv_line.name]['so_line'] = sale_line_id.name
+        ilines[inv_line.name]['ddt'] = False
+        ilines[inv_line.name]['ddt_line'] = False
         if inv_line.ddt_line_id:
-            ilines[inv_line.id][
+            ilines[inv_line.name][
                 'ddt'
             ] = inv_line.ddt_line_id.package_preparation_id.ddt_number
-            ilines[inv_line.id]['ddt_line'] = inv_line.ddt_line_id.id
+            ilines[inv_line.name]['ddt_line'] = inv_line.ddt_line_id.name
         return ilines
 
     print('Reorder invoice lines by sale order and DdT')
@@ -3031,13 +2965,13 @@ def setup_balance_report(ctx):
             continue
         parents = clodoo.searchL8(ctx, model2, [('code_prefix', '=', parent_code)])
         if parents:
-            clodoo.writeL8(ctx, model, rec.id, {'parent_id': parents[0]})
+            clodoo.writeL8(ctx, model, rec.name, {'parent_id': parents[0]})
     for rec in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, [])):
         print(rec.code)
         prefix = rec.code[0:3]
         groups = clodoo.searchL8(ctx, model2, [('code_prefix', '=', prefix)])
         if groups:
-            clodoo.writeL8(ctx, model, rec.id, {'group_id': groups[0]})
+            clodoo.writeL8(ctx, model, rec.name, {'group_id': groups[0]})
     #
     model = 'account.financial.report'
     vals = {
@@ -3199,13 +3133,13 @@ def export_csv(ctx):
         writer = csv.DictWriter(fd, fieldnames=field_list)
         writer.writeheader()
         for rec in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, domain)):
-            msg_burst('Id %d...' % rec.id)
+            msg_burst('Id %d...' % rec.name)
             vals = {}
             for field in field_list:
                 if rec[field] is False:
                     vals[field] = ''
                 elif fields_get[field]['type'] == 'many2one':
-                    vals[field] = rec[field].id
+                    vals[field] = rec[field].name
                 else:
                     vals[field] = _b(rec[field])
             writer.writerow(vals)
@@ -3317,8 +3251,8 @@ def reconcile_invoice(ctx):
             ctx,
             model,
             [
-                ('account_id', '=', line.account_id.id),
-                ('partner_id', '=', line.partner_id.id),
+                ('account_id', '=', line.account_id.name),
+                ('partner_id', '=', line.partner_id.name),
                 ('reconciled', '=', False),
                 ('debit', '=', line.credit),
                 ('credit', '=', line.debit),
@@ -3328,7 +3262,7 @@ def reconcile_invoice(ctx):
             print('reconcile %s with %s' % (line, match_line))
             try:
                 clodoo.executeL8(
-                    ctx, 'account.move.line', 'reconcile', [line.id, match_line.id]
+                    ctx, 'account.move.line', 'reconcile', [line.name, match_line.name]
                 )
                 ctr_upd += 1
             except BaseException:
@@ -3336,19 +3270,6 @@ def reconcile_invoice(ctx):
     print(
         '%d records read, %d records updated, %d wrong records'
         % (ctr_read, ctr_upd, ctr_err)
-    )
-
-
-def reset_einvoices_stats(ctx):
-    channel = clodoo.browseL8(ctx, 'res.users', uid).company_id.einvoice_sender_id
-    clodoo.writeL8(
-        ctx,
-        'italy.ade.sender',
-        channel.id,
-        {
-            'used_invoices_ctr': 0,
-            'bonus_invoices_ctr': 0,
-        },
     )
 
 
@@ -3389,7 +3310,7 @@ def store_einvoices_stats(ctx):
         clodoo.writeL8(
             ctx,
             'italy.ade.sender',
-            channel.id,
+            channel.name,
             {
                 'max_invoices_ctr': inv_tot,
                 'used_invoices_ctr': inv_used,
@@ -3420,13 +3341,13 @@ def reset_statement(ctx):
                      ("journal_entry_ids", "!=", []),
                      ('move_name', '!=', False))])):
             clodoo.writeL8(
-                ctx, model_bank, stmt_line.id, {"move_name": False,
-                                                "journal_entry_ids": [(5, 0)]})
+                ctx, model_bank, stmt_line.name,
+                {"move_name": False, "journal_entry_ids": [(5, 0)]})
             ctr_upd += 1
         for move_line in clodoo.browseL8(
                 ctx, model_line, clodoo.searchL8(
                     ctx, model_line, [("statement_id", "=", statement_id)])):
-            clodoo.writeL8(ctx, model_line, move_line.id, {"statement_id": False})
+            clodoo.writeL8(ctx, model_line, move_line.name, {"statement_id": False})
             ctr_upd += 1
     print('Search for move line wrong linked to this bank statement')
     stmt = clodoo.browseL8(ctx, model_stmt, statement_id)
@@ -3449,40 +3370,40 @@ def reset_statement(ctx):
                     stmt_line_preferred = stmt_line
                 elif stmt_line.amount < 0 and -stmt_line.amount == move_line.credit:
                     stmt_line_preferred = stmt_line
-            if move_line.move_id.id in stmt_line.journal_entry_ids:
+            if move_line.move_id.name in stmt_line.journal_entry_ids:
                 stmt_line_preferred = stmt_line
                 if move_line_linked and not stmt_line.move_name:
                     clodoo.writeL8(
-                        ctx, model_bank, stmt_line.id, {'move_name': move_name})
+                        ctx, model_bank, stmt_line.name, {'move_name': move_name})
                     ctr_upd += 1
                 break
             # if stmt_line.move_name == move_name:
             #     stmt_line_preferred = stmt_line
             #     break
         if stmt_line_preferred and move_line_linked:
-            move = clodoo.browseL8(ctx, model_move, move_line.move_id.id)
+            move = clodoo.browseL8(ctx, model_move, move_line.move_id.name)
             move_ids = clodoo.searchL8(
                 ctx, model_move, [('statement_line_id', '=', stmt_line_preferred.id)])
-            if move_ids and move.id not in move_ids:
+            if move_ids and move.name not in move_ids:
                 saved_move_id = [x for x in move_ids]
                 vals = {}
                 vals['statement_line_id'] = stmt_line_preferred.id
-                clodoo.writeL8(ctx, 'account.move', move.id, vals)
+                clodoo.writeL8(ctx, 'account.move', move.name, vals)
                 ctr_upd += 1
                 move_ids = clodoo.searchL8(
                     ctx, model_move,
                     [('statement_line_id', '=', stmt_line_preferred.id)])
-                saved_move_id.append(move.id)
+                saved_move_id.append(move.name)
                 if set(move_ids) != set(saved_move_id):
                     print('Error: moves %s and %s point to the same stmt %s' % (
-                        move_ids, move_line.move_id.id, stmt_line_preferred.id
+                        move_ids, move_line.move_id.name, stmt_line_preferred.id
                     ))
                     input('Press RET to continue ...')
             else:
                 vals = {}
                 if move.statement_line_id != stmt_line_preferred:
                     vals['statement_line_id'] = stmt_line_preferred.id
-                    clodoo.writeL8(ctx, 'account.move', move.id, vals)
+                    clodoo.writeL8(ctx, 'account.move', move.name, vals)
                     ctr_upd += 1
                 vals = {}
                 if not stmt_line_preferred.move_name:
@@ -3490,11 +3411,11 @@ def reset_statement(ctx):
                     clodoo.writeL8(ctx, model_bank, stmt_line_preferred.id, vals)
                     ctr_upd += 1
         elif stmt_line_preferred and not move_line_linked:
-            to_unlink.append(move_line.id)
+            to_unlink.append(move_line.name)
             ctr_ulk += 1
         elif not stmt_line_preferred and move_line_linked:
-            stmt.move_line_ids = [(3, move_line.id)]
-            to_unlink.append(move_line.id)
+            stmt.move_line_ids = [(3, move_line.name)]
+            to_unlink.append(move_line.name)
             ctr_ulk += 1
     if to_unlink:
         clodoo.writeL8(ctx, model_line, to_unlink, {'statement_id': False})
@@ -3516,13 +3437,13 @@ def reconfigure_warehouse(ctx):
             ctx, model, [], order="id")):
         vals = {}
         if company.name.lower().startswith("zeroincombenze"):
-            company_id_zero = company.id
+            company_id_zero = company.name
             vals['name'] = 'Zeroincombenze®'
             vals['rml_header'] = "Più impresa. Meno preoccupazioni."
             clodoo.writeL8(ctx, model, company_id_zero, vals)
             print('Z0 company is %s' % company.name)
         elif not main_company_id:
-            main_company_id = company.id
+            main_company_id = company.name
             # main_company = company
             print('Main company is %s' % company.name)
 
@@ -3532,19 +3453,19 @@ def reconfigure_warehouse(ctx):
         ctx, model, clodoo.searchL8(
             ctx, model, [], order="id")):
         vals = {}
-        if wh.company_id.id == main_company_id and not main_wh_id:
+        if wh.company_id.name == main_company_id and not main_wh_id:
             vals['active'] = False
-            vals['code'] = 'WH%02d' % wh.company_id.id
+            vals['code'] = 'WH%02d' % wh.company_id.name
             vals['name'] = 'Magazzino %s' % company.name
-            clodoo.writeL8(ctx, model, wh.id, vals)
+            clodoo.writeL8(ctx, model, wh.name, vals)
             print('Stock warehouse %s disabled' % wh.name)
         else:
             vals['code'] = 'WH'
             vals['name'] = company.name
             if vals['code'] != wh.code or vals['name'] != wh.name:
-                clodoo.writeL8(ctx, model, wh.id, vals)
+                clodoo.writeL8(ctx, model, wh.name, vals)
             print('Main stock warehouse %s' % wh.name)
-            main_wh_id = wh.id
+            main_wh_id = wh.name
 
     model = 'stock.location'
     main_locations = {}
@@ -3552,8 +3473,8 @@ def reconfigure_warehouse(ctx):
     for wl in clodoo.browseL8(
         ctx, model, clodoo.searchL8(
             ctx, model, [], order="id")):
-        if wl.company_id.id != main_company_id:
-            clodoo.writeL8(ctx, model, wl.id,
+        if wl.company_id.name != main_company_id:
+            clodoo.writeL8(ctx, model, wl.name,
                            {'active': False, 'name': '%s~' % wl.name})
             print('Stock location %s disabled' % wl.name)
             continue
@@ -3563,18 +3484,18 @@ def reconfigure_warehouse(ctx):
         elif wl.name.lower().endswith('stock'):
             usage = 'stock'
         if not wl.location_id and usage != 'view':
-            clodoo.writeL8(ctx, model, wl.id,
+            clodoo.writeL8(ctx, model, wl.name,
                            {'active': False, 'name': '%s~' % wl.name})
             print('Stock location %s disabled' % wl.name)
             continue
         if not wl.location_id and usage == 'view' and not main_location_id:
-            main_location_id = wl.id
-            clodoo.writeL8(ctx, model, wl.id, {'name': 'WH'})
-            print('Root location is %s' % wl.id)
+            main_location_id = wl.name
+            clodoo.writeL8(ctx, model, wl.name, {'name': 'WH'})
+            print('Root location is %s' % wl.name)
             continue
         if usage not in main_locations:
             main_locations[usage] = {}
-            main_locations[usage]['id'] = wl.id
+            main_locations[usage]['id'] = wl.name
             main_locations[usage]['location_id'] = wl.location_id
     if not main_location_id:
         location_ids = clodoo.searchL8(
@@ -3605,7 +3526,7 @@ def reconfigure_warehouse(ctx):
                     'name': location.name.replace('~', '')})
             main_locations[usage] = {}
             main_locations[usage]['id'] = location_id
-            main_locations[usage]['location_id'] = location.location_id.id
+            main_locations[usage]['location_id'] = location.location_id.name
             print('Location %s reenabled' % location.name)
     if main_location_id:
         # wl_main_location = clodoo.browseL8(ctx, model, main_location_id)
@@ -3613,7 +3534,7 @@ def reconfigure_warehouse(ctx):
             ctx, model, clodoo.searchL8(
                 ctx, model, [('location_id', '=', main_location_id)], order="id")):
             name = 'WH / %s' % wl.name.split('/')[-1].strip()
-            clodoo.writeL8(ctx, model, wl.id, {'name': name})
+            clodoo.writeL8(ctx, model, wl.name, {'name': name})
             continue
         for item in main_locations.keys():
             # usage = 'internal' if item in ('output', 'stock') else item
@@ -3621,7 +3542,7 @@ def reconfigure_warehouse(ctx):
             wl_parent = clodoo.browseL8(
                 ctx, model, main_locations[item]['location_id'])
             name = '%s / %s' % (wl_parent.name, wl.name.split('/')[-1].strip())
-            clodoo.writeL8(ctx, model, wl.id, {'name': name})
+            clodoo.writeL8(ctx, model, wl.name, {'name': name})
 
 
 def rename_user(ctx):
@@ -3653,62 +3574,64 @@ def recalc_group_left_right(ctx):
         ctr += 1
         print("%s.group.parent_left %s -> %s, level %s -> %s " % (
             group.code_prefix, group.parent_left, ctr, group.level, 1))
-        clodoo.writeL8(ctx, resorce_group, group.id, {"parent_left": ctr})
+        clodoo.writeL8(ctx, resorce_group, group.name, {"parent_left": ctr})
         for group1 in clodoo.browseL8(
             ctx, resorce_group, clodoo.searchL8(
-                ctx, resorce_group, [("parent_id", "=", group.id)],
+                ctx, resorce_group, [("parent_id", "=", group.name)],
                 order="code_prefix")):
             ctr += 1
             print("%s.group.parent_left %s -> %s, level %s -> %s " % (
                 group1.code_prefix, group1.parent_left, ctr, group1.level, 2))
-            clodoo.writeL8(ctx, resorce_group, group1.id, {"parent_left": ctr})
+            clodoo.writeL8(ctx, resorce_group, group1.name, {"parent_left": ctr})
             for group2 in clodoo.browseL8(
                 ctx, resorce_group, clodoo.searchL8(
-                    ctx, resorce_group, [("parent_id", "=", group1.id)],
+                    ctx, resorce_group, [("parent_id", "=", group1.name)],
                     order="code_prefix")):
                 ctr += 1
                 print("%s.group.parent_left %s -> %s, level %s -> %s " % (
                     group2.code_prefix, group2.parent_left, ctr, group2.level, 3))
-                clodoo.writeL8(ctx, resorce_group, group2.id, {"parent_left": ctr})
+                clodoo.writeL8(ctx, resorce_group, group2.name, {"parent_left": ctr})
                 for group3 in clodoo.browseL8(
                     ctx, resorce_group, clodoo.searchL8(
-                        ctx, resorce_group, [("parent_id", "=", group2.id)],
+                        ctx, resorce_group, [("parent_id", "=", group2.name)],
                         order="code_prefix")):
                     ctr += 1
                     print("%s.group.parent_left %s -> %s, level %s -> %s " % (
                         group3.code_prefix, group3.parent_left, ctr, group3.level, 4))
-                    clodoo.writeL8(ctx, resorce_group, group3.id, {"parent_left": ctr})
+                    clodoo.writeL8(
+                        ctx, resorce_group, group3.name, {"parent_left": ctr})
                     for group4 in clodoo.browseL8(
                         ctx, resorce_group, clodoo.searchL8(
-                            ctx, resorce_group, [("parent_id", "=", group3.id)],
+                            ctx, resorce_group, [("parent_id", "=", group3.name)],
                             order="code_prefix")):
                         ctr += 1
                         print("%s.group.parent_left %s -> %s, level %s -> %s " % (
                             group4.code_prefix, group4.parent_left, ctr, group4.level,
                             5))
-                        clodoo.writeL8(ctx, resorce_group, group4.id,
+                        clodoo.writeL8(ctx, resorce_group, group4.name,
                                        {"parent_left": ctr})
                         ctr += 1
                         print("%s.group.parent_right %s -> %s" % (
                             group4.code_prefix, group4.parent_right, ctr))
-                        clodoo.writeL8(ctx, resorce_group, group4.id,
+                        clodoo.writeL8(ctx, resorce_group, group4.name,
                                        {"parent_right": ctr})
                     ctr += 1
                     print("%s.group.parent_right %s -> %s" % (
                         group3.code_prefix, group3.parent_right, ctr))
-                    clodoo.writeL8(ctx, resorce_group, group3.id, {"parent_right": ctr})
+                    clodoo.writeL8(
+                        ctx, resorce_group, group3.name, {"parent_right": ctr})
                 ctr += 1
                 print("%s.group.parent_right %s -> %s" % (
                     group2.code_prefix, group2.parent_right, ctr))
-                clodoo.writeL8(ctx, resorce_group, group2.id, {"parent_right": ctr})
+                clodoo.writeL8(ctx, resorce_group, group2.name, {"parent_right": ctr})
             ctr += 1
             print("%s.group.parent_right %s -> %s" % (
                 group1.code_prefix, group1.parent_right, ctr))
-            clodoo.writeL8(ctx, resorce_group, group1.id, {"parent_right": ctr})
+            clodoo.writeL8(ctx, resorce_group, group1.name, {"parent_right": ctr})
         ctr += 1
         print("%s.group.parent_right %s -> %s" % (
             group.code_prefix, group.parent_right, ctr))
-        clodoo.writeL8(ctx, resorce_group, group.id, {"parent_right": ctr})
+        clodoo.writeL8(ctx, resorce_group, group.name, {"parent_right": ctr})
 
 
 def rebuild_database(ctx):
@@ -3730,14 +3653,14 @@ def rebuild_database(ctx):
                 ["|", ("prefix", "like", "%201_/"), ("prefix", "like", "%202_/")])):
             if not clodoo.searchL8(ctx,
                                    resource_journal,
-                                   [("sequence_id", "=", ir_seq.id)]):
-                clodoo.unlinkL8(ctx, resource_sequence, ir_seq.id)
+                                   [("sequence_id", "=", ir_seq.name)]):
+                clodoo.unlinkL8(ctx, resource_sequence, ir_seq.name)
         journal_no_vat_ids = get_jids_no_vat(ctx)
         for journal in clodoo.browseL8(
             ctx, resource_journal, clodoo.searchL8(
                 ctx, resource_journal, [("id", "in", journal_no_vat_ids)])):
             msg_burst("Resetting <%s> ..." % journal.name)
-            ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.id)
+            ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.name)
             if ir_seq.prefix and ir_seq.prefix.startswith("%"):
                 prefix = ir_seq.prefix.replace("%(year)s", "%(range_year)s")
             else:
@@ -3746,14 +3669,14 @@ def rebuild_database(ctx):
             vals["use_date_range"] = True
             vals["number_next"] = 1
             vals["number_next_actual"] = 1
-            clodoo.writeL8(ctx, resource_sequence, journal.sequence_id.id, vals)
+            clodoo.writeL8(ctx, resource_sequence, journal.sequence_id.name, vals)
             ctr += 1
             # clodoo.unlinkL8(
             #     ctx, resource_sequence_range, [x.id for x in ir_seq.date_range_ids])
             for move in ir_seq.date_range_ids:
                 clodoo.writeL8(
-                    ctx, resource_sequence_range, move.id, {"number_next": 1,
-                                                            "number_next_actual": 1})
+                    ctx, resource_sequence_range, move.name,
+                    {"number_next": 1, "number_next_actual": 1})
                 ctr += 1
         return ctr
 
@@ -3791,27 +3714,27 @@ def rebuild_database(ctx):
         resource_move = "account.move"
         if not journal:
             journal = move.journal_id
-        invs = clodoo.searchL8(ctx, resource_invoice, [("move_id", "=", move.id)])
+        invs = clodoo.searchL8(ctx, resource_invoice, [("move_id", "=", move.name)])
         if invs:
             move_type = move_type_match[clodoo.browseL8(
                 ctx, resource_invoice, invs[0]).type]
         elif journal.type in move_type_match:
             move_type = move_type_match[journal.type]
         elif journal.type in ("sale", "purchase"):
-            print("Invalid move %d (%s)" % (move.id, move.name))
+            print("Invalid move %d (%s)" % (move.name, move.name))
             move_type = move.move_type
             if move.line_ids:
-                print("*** Please recover move %d" % move.id)
+                print("*** Please recover move %d" % move.name)
             else:
                 if move.state == "post":
-                    clodoo.executeL8(ctx, resource_move, "button_cancel", move.id)
-                clodoo.unlinkL8(ctx, resource_move, move.id)
+                    clodoo.executeL8(ctx, resource_move, "button_cancel", move.name)
+                clodoo.unlinkL8(ctx, resource_move, move.name)
                 return False
         else:
             move_type = "other"
         if move_type != move.move_type:
-            print("Invalid move type of id %d" % move.id)
-            clodoo.writeL8(ctx, resource_move, move.id, {"move_type": move_type})
+            print("Invalid move type of id %d" % move.name)
+            clodoo.writeL8(ctx, resource_move, move.name, {"move_type": move_type})
         return True
 
     def cancel_inv_n_save_attachments(ctx):
@@ -3830,7 +3753,7 @@ def rebuild_database(ctx):
         for inv in clodoo.browseL8(
             ctx, resource_invoice, clodoo.searchL8(
                 ctx, resource_invoice, [], order="date,id")):
-            msg_burst('Saving attachment inv %s (%d) ...' % (inv.number, inv.id))
+            msg_burst('Saving attachment inv %s (%d) ...' % (inv.number, inv.name))
             vals = {}
             for item, field in (
                 ("out", "fatturapa_attachment_out_id"),
@@ -3840,9 +3763,9 @@ def rebuild_database(ctx):
                 ("rc_sp", "rc_self_purchase_invoice_id"),
             ):
                 if inv[field]:
-                    vals[item] = inv[field].id
+                    vals[item] = inv[field].name
             if vals:
-                attachments[inv.id] = vals
+                attachments[inv.name] = vals
 
             query = (
                 "update account_invoice"
@@ -3852,17 +3775,17 @@ def rebuild_database(ctx):
                 ",rc_self_invoice_id=null"
                 ",rc_self_purchase_invoice_id=null"
                 " where id=%d"
-            ) % inv.id
+            ) % inv.name
             clodoo.exec_sql(ctx, query)
 
             if inv.state in ("draft", "open"):
-                msg_burst('Cancelling inv %s (%d) ...' % (inv.number, inv.id))
+                msg_burst('Cancelling inv %s (%d) ...' % (inv.number, inv.name))
                 try:
                     clodoo.executeL8(
-                        ctx, resource_invoice, "action_invoice_cancel", inv.id)
+                        ctx, resource_invoice, "action_invoice_cancel", inv.name)
                     ctr += 1
                 except BaseException:
-                    print("Cannot cancel invoice %s (%d)" % (inv.number, inv.id))
+                    print("Cannot cancel invoice %s (%d)" % (inv.number, inv.name))
 
         store_inv_att_file(ctx, attachments, fn_attach_list)
 
@@ -3935,14 +3858,14 @@ def rebuild_database(ctx):
                 and line.invoice_line_tax_ids[0] in rc_taxes
                 and not line.rc
             ):
-                clodoo.writeL8(ctx, resource_line, line.id, {"rc": True})
+                clodoo.writeL8(ctx, resource_line, line.name, {"rc": True})
                 ctr += 1
             elif (
                 line.invoice_line_tax_ids
                 and line.invoice_line_tax_ids[0] not in rc_taxes
                 and line.rc
             ):
-                clodoo.writeL8(ctx, resource_line, line.id, {"rc": False})
+                clodoo.writeL8(ctx, resource_line, line.name, {"rc": False})
                 ctr += 1
         return ctr
 
@@ -3953,7 +3876,7 @@ def rebuild_database(ctx):
             ctx, resource_invoice, clodoo.searchL8(
                 ctx, resource_invoice,
                 [("journal_id.code", "in", ("SAJ2", "XIT", "EXJ"))])):
-            clodoo.writeL8(ctx, resource_invoice, inv.id, {"move_name": False})
+            clodoo.writeL8(ctx, resource_invoice, inv.name, {"move_name": False})
             ctr += 1
 
         for inv in clodoo.browseL8(
@@ -3968,11 +3891,11 @@ def rebuild_database(ctx):
             if inv.state == "cancel":
                 try:
                     clodoo.executeL8(
-                        ctx, resource_invoice, "action_invoice_draft", inv.id)
+                        ctx, resource_invoice, "action_invoice_draft", inv.name)
                     ctr += 1
                     inv.state = "draft"
                 except BaseException:
-                    print("Cannot set invoice id %d to draft" % inv.id)
+                    print("Cannot set invoice id %d to draft" % inv.name)
 
             if inv.state != "draft":
                 continue
@@ -3981,60 +3904,60 @@ def rebuild_database(ctx):
                 clodoo.writeL8(
                     ctx,
                     resource_invoice,
-                    inv.id,
+                    inv.name,
                     {
                         "fiscal_position_id":
-                            inv.partner_id.property_account_position_id.id
+                            inv.partner_id.property_account_position_id.name
                     })
                 ctr += 1
-            clodoo.executeL8(ctx, resource_invoice, "compute_taxes", inv.id)
+            clodoo.executeL8(ctx, resource_invoice, "compute_taxes", inv.name)
             try:
-                clodoo.executeL8(ctx, resource_invoice, "action_invoice_open", inv.id)
+                clodoo.executeL8(ctx, resource_invoice, "action_invoice_open", inv.name)
                 ctr += 1
                 inv.state = "open"
             except BaseException:
-                print("Cannot validate invoice id %d" % inv.id)
+                print("Cannot validate invoice id %d" % inv.name)
 
             if inv.state != "open":
                 continue
 
-            inv = clodoo.browseL8(ctx, resource_invoice, inv.id)
+            inv = clodoo.browseL8(ctx, resource_invoice, inv.name)
             recalc_sequence(ctx, inv.journal_id, inv.number)
 
             if inv.rc_self_invoice_id:
                 sinv_id = False
                 att_out = False
-                if inv.id in attachments:
-                    if "rc_self" in attachments[inv.id]:
-                        sinv_id = attachments[inv.id]["rc_self"]
+                if inv.name in attachments:
+                    if "rc_self" in attachments[inv.name]:
+                        sinv_id = attachments[inv.name]["rc_self"]
                     else:
                         print("Invoice %s (%d) configuration changed"
-                              % (inv.number, inv.id))
+                              % (inv.number, inv.name))
                     if sinv_id and "out" in attachments[sinv_id]:
                         att_out = attachments[sinv_id]["out"]
                     else:
                         print("Invalid self invoice %s (%d) configuration"
-                              % (inv.number, inv.id))
+                              % (inv.number, inv.name))
                 else:
                     print("Invoice %s (%d) configuration not found"
-                          % (inv.number, inv.id))
+                          % (inv.number, inv.name))
                 if att_out:
                     # Move attachment from prior self-invoice to current
                     self_inv = clodoo.browseL8(
-                        ctx, resource_invoice, inv.rc_self_invoice_id.id)
+                        ctx, resource_invoice, inv.rc_self_invoice_id.name)
                     if self_inv.fatturapa_attachment_out_id:
                         try:
                             clodoo.unlinkL8(
                                 ctx,
                                 resource_att_out,
-                                self_inv.fatturapa_attachment_out_id.id)
+                                self_inv.fatturapa_attachment_out_id.name)
                         except BaseException:
                             print("Cannot delete attachment id %d" %
-                                  self_inv.fatturapa_attachment_out_id.id)
+                                  self_inv.fatturapa_attachment_out_id.name)
                     clodoo.writeL8(
                         ctx,
                         resource_invoice,
-                        self_inv.id, {"fatturapa_attachment_out_id": att_out})
+                        self_inv.name, {"fatturapa_attachment_out_id": att_out})
 
                 self_inv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
                 if self_inv.state == "cancel":
@@ -4053,44 +3976,46 @@ def rebuild_database(ctx):
                         del attachments[sinv_id]
 
                 if sinv_id in attachments and "rc_self" in attachments[sinv_id]:
-                    del attachments[inv.id]["rc_self"]
-                if inv.id in attachments and not attachments[inv.id]:
-                    del attachments[inv.id]
-            elif inv.id in attachments and "rc_self" in attachments[inv.id]:
+                    del attachments[inv.name]["rc_self"]
+                if inv.name in attachments and not attachments[inv.name]:
+                    del attachments[inv.name]
+            elif inv.name in attachments and "rc_self" in attachments[inv.name]:
                 print("Invoice %s (%d): self-invoice configuration lost"
-                      % (inv.number, inv.id))
+                      % (inv.number, inv.name))
 
-            if inv.id in attachments and "out" in attachments[inv.id]:
-                att_out = attachments[inv.id]["out"]
+            if inv.name in attachments and "out" in attachments[inv.name]:
+                att_out = attachments[inv.name]["out"]
                 try:
                     clodoo.writeL8(
                         ctx,
                         resource_invoice,
-                        inv.id,
+                        inv.name,
                         {"fatturapa_attachment_out_id": att_out})
                 except BaseException:
-                    print("Cannot link attachment %d to invoice %d" % (att_out, inv.id))
+                    print(
+                        "Cannot link attachment %d to invoice %d" % (att_out, inv.name))
                     continue
-                del attachments[inv.id]["out"]
-                if not attachments[inv.id]:
-                    del attachments[inv.id]
+                del attachments[inv.name]["out"]
+                if not attachments[inv.name]:
+                    del attachments[inv.name]
 
-            if inv.id in attachments and "in" in attachments[inv.id]:
-                att_in = attachments[inv.id]["in"]
+            if inv.name in attachments and "in" in attachments[inv.name]:
+                att_in = attachments[inv.name]["in"]
                 try:
                     clodoo.writeL8(
                         ctx,
                         resource_invoice,
-                        inv.id,
+                        inv.name,
                         {"fatturapa_attachment_in_id": att_in})
                 except BaseException:
-                    print("Cannot link attachment %d to invoice %d" % (att_in, inv.id))
+                    print(
+                        "Cannot link attachment %d to invoice %d" % (att_in, inv.name))
                     continue
                 clodoo.writeL8(
                     ctx, "fatturapa.attachment.in", att_in, {"registered": True})
-                del attachments[inv.id]["in"]
-                if not attachments[inv.id]:
-                    del attachments[inv.id]
+                del attachments[inv.name]["in"]
+                if not attachments[inv.name]:
+                    del attachments[inv.name]
         return ctr
 
     def validate_moves(ctx):
@@ -4101,26 +4026,26 @@ def rebuild_database(ctx):
         for move in clodoo.browseL8(
             ctx, resource_move, clodoo.searchL8(
                 ctx, resource_move, domain, order="date,id")):
-            msg_burst('Validating move id %d ...' % move.id)
+            msg_burst('Validating move id %d ...' % move.name)
             check_move_type(ctx, move)
             try:
-                clodoo.writeL8(ctx, resource_move, move.id, {"name": "/"})
+                clodoo.writeL8(ctx, resource_move, move.name, {"name": "/"})
             except BaseException:
-                print("Cannot removing entry name %d" % move.id)
+                print("Cannot removing entry name %d" % move.name)
             try:
-                clodoo.executeL8(ctx, resource_move, "post", move.id)
+                clodoo.executeL8(ctx, resource_move, "post", move.name)
                 ctr += 1
                 recalc_sequence(ctx, move.journal_id, move.name)
             except BaseException:
-                print("Cannot post move id %d" % move.id)
+                print("Cannot post move id %d" % move.name)
         return ctr
 
     def recalc_sequence(ctx, journal, name):
         resource_sequence = "ir.sequence"
-        ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.id)
+        ir_seq = clodoo.browseL8(ctx, resource_sequence, journal.sequence_id.name)
         prefix = ir_seq.prefix.replace("%(year)s", "%(range_year)s")
         if prefix != ir_seq.prefix:
-            clodoo.writeL8(ctx, resource_sequence, ir_seq.id, {"prefix": prefix})
+            clodoo.writeL8(ctx, resource_sequence, ir_seq.name, {"prefix": prefix})
         parts = name.split("/")
         if len(parts) == 3 and len(parts[1]) == 4 and parts[1].startswith("2"):
             # i.e. "SAJ/2023/1234
@@ -4137,7 +4062,7 @@ def rebuild_database(ctx):
             return
         range_ids = clodoo.searchL8(
             ctx, resource_sequence_range, [
-                ("sequence_id", "=", journal.sequence_id.id),
+                ("sequence_id", "=", journal.sequence_id.name),
                 ("date_from", ">=", "%d-01-01" % year),
                 ("date_to", "<=", "%d-12-31" % year),
             ])
@@ -4145,7 +4070,7 @@ def rebuild_database(ctx):
             print("Invalid sequence range %s for id %s" % (year, journal.code))
         elif not range_ids:
             clodoo.createL8(ctx, resource_sequence_range, {
-                "sequence_id": journal.sequence_id.id,
+                "sequence_id": journal.sequence_id.name,
                 "date_from": "%d-01-01" % year,
                 "date_to": "%d-12-31" % year,
                 "number_next": next_number,
@@ -4356,7 +4281,7 @@ def anonimize_database(ctx):
 
     def build_random_data(ctx, id):
         partner = read_partner(id)
-        if partner.country_id and partner.country_id.id != country_it_id:
+        if partner.country_id and partner.country_id.name != country_it_id:
             name = rnd_item(ctx, RND_NAME_XX) + " " + rnd_item(ctx, RND_LASTNAME_XX)
             city = rnd_item(ctx, RND_CITY_XX)
             zip = ""
@@ -4401,7 +4326,7 @@ def anonimize_database(ctx):
         try:
             user = clodoo.browseL8(ctx, _user, id)
             msg_burst('%d) %s ...' % (id, user.login))
-            protected_partner_ids.append(user.partner_id.id)
+            protected_partner_ids.append(user.partner_id.name)
         except BaseException:
             pass
     for id in clodoo.searchL8(ctx, _company, []):
@@ -4533,7 +4458,7 @@ def display_stock(ctx):
         })
         for operation in picking.pack_operation_product_ids:
             params = {
-                "product_id": operation.id,
+                "product_id": operation.name,
                 "product_name": operation.product_id.name,
                 "product_qty": operation.product_qty,
                 "ordered_qty": operation.ordered_qty,
@@ -4543,7 +4468,7 @@ def display_stock(ctx):
             print(fmt % params)
             for ln in operation.linked_move_operation_ids:
                 params_m = {
-                    "move_id": ln.move_id.id,
+                    "move_id": ln.move_id.name,
                     "name": ln.move_id.name,
                     "product_qty": ln.move_id.product_qty,
                     "ordered_qty": ln.move_id.ordered_qty,
@@ -4551,42 +4476,118 @@ def display_stock(ctx):
                 print(fmt_m % params_m)
 
 
-if ctx['function']:
-    function = ctx['function']
-    globals()[function](ctx)
-    exit()
+def main(cli_args=[]):
+    if not cli_args:
+        cli_args = sys.argv[1:]
+    parser = z0lib.parseoptargs(
+        "Odoo test environment", "© 2017-2021 by SHS-AV s.r.l.", version=__version__
+    )
+    parser.add_argument('-h')
+    parser.add_argument(
+        "-A",
+        "--action",
+        help="internal action to execute",
+        dest="function",
+        metavar="python_name",
+        default='',
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="configuration command file",
+        dest="conf_fn",
+        metavar="file",
+        default='./inv2draft_n_restore.conf',
+    )
+    parser.add_argument(
+        "-d",
+        "--dbname",
+        help="DB name to connect",
+        dest="db_name",
+        metavar="file",
+        default='',
+    )
+    parser.add_argument('-n')
+    parser.add_argument('-q')
+    parser.add_argument('-V')
+    parser.add_argument('-v')
+    parser.add_argument(
+        "-w",
+        "--src-config",
+        help="Source DB configuration file",
+        dest="from_confn",
+        metavar="file",
+    )
+    parser.add_argument(
+        "-z",
+        "--src-db_name",
+        help="Source database name",
+        dest="from_dbname",
+        metavar="name",
+    )
+    parser.add_argument(
+        "-1", "--param-1", help="value to pass to called function", dest="param_1"
+    )
+    parser.add_argument(
+        "-2", "--param-2", help="value to pass to called function", dest="param_2"
+    )
+    parser.add_argument(
+        "-3", "--param-3", help="value to pass to called function", dest="param_3"
+    )
+    parser.add_argument(
+        "-4", "--param-4", help="value to pass to called function", dest="param_4"
+    )
+    parser.add_argument(
+        "-5", "--param-5", help="value to pass to called function", dest="param_5"
+    )
+    parser.add_argument(
+        "-6", "--param-6", help="value to pass to called function", dest="param_6"
+    )
 
-print('Avaiable functions:')
-print(' SALE ORDER                      ACCOUNT INVOICE')
-print(' - order_commission_by_partner   - inv_commission_from_order')
-print(' - all_addr_same_customer        - inv_commission_by_partner')
-print(' - close_sale_orders             - revaluate_due_date_in_invoces')
-print(' - order_inv_group_by_partner    - update_einvoice_out_attachment')
-print(' PURCHASE ORDER                  - unlink_einvoice_out_attachment')
-print(' - close_purchase_orders         - set_tax_code_on_invoice')
-print(' PRODUCT                         - set_comment_on_invoice')
-print(' - set_products_2_consumable     - set_move_partner_from_invoice')
-print(' - set_products_delivery_policy  - unlink_ddt_from_invoice')
-print(' - set_fiscal_on_products        COMMISSION')
-print(' ACCOUNT                         - create_commission_env')
-print(' - create_RA_config              DELIVERY/SHIPPING')
-print(' - manage_due_line               - change_ddt_number')
-print(' PARTNER/USER                    - create_delivery_env')
-print(' - check_integrity_by_vg7        - show_empty_ddt')
-print('                                 RIBA')
-print(' - set_ppf_on_partner            - configure_RiBA')
-print(' - deduplicate_partner           - manage_riba')
-print(' - reset_email_admins             OTHER TABLES')
-print(' - solve_unamed                   - set_report_config')
-print(' - solve_flag_einvoice            - setup_balance_report')
-print(' - simulate_user_profile          - show_module_group')
-print(' SYSTEM                           - check_rec_links')
-print(' - clean_translations             - display_module')
-print(' - configure_email_template')
-print(' - test_synchro_vg7')
-print(' - set_db_4_test')
-print(' - fix_weburl')
+    ctx = parser.parseoptargs(cli_args, apply_conf=False)
+    uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx)
+    # os0.set_tlog_file('./odoo_shell.log', echo=True)
 
-pdb.set_trace()
-print('\n\n')
-pdb.set_trace()
+    if ctx['function']:
+        function = ctx['function']
+        globals()[function](ctx)
+        exit()
+
+    print('Avaiable functions:')
+    print(' SALE ORDER                      ACCOUNT INVOICE')
+    print(' - order_commission_by_partner   - inv_commission_from_order')
+    print(' - all_addr_same_customer        - inv_commission_by_partner')
+    print(' - close_sale_orders             - revaluate_due_date_in_invoces')
+    print(' - order_inv_group_by_partner    - update_einvoice_out_attachment')
+    print(' PURCHASE ORDER                  - unlink_einvoice_out_attachment')
+    print(' - close_purchase_orders         - set_tax_code_on_invoice')
+    print(' PRODUCT                         - set_comment_on_invoice')
+    print(' - set_products_2_consumable     - set_move_partner_from_invoice')
+    print(' - set_products_delivery_policy  - unlink_ddt_from_invoice')
+    print(' - set_fiscal_on_products        COMMISSION')
+    print(' ACCOUNT                         - create_commission_env')
+    print(' - create_RA_config              DELIVERY/SHIPPING')
+    print(' - manage_due_line               - change_ddt_number')
+    print(' PARTNER/USER                    - create_delivery_env')
+    print(' - check_integrity_by_vg7        - show_empty_ddt')
+    print('                                 RIBA')
+    print(' - set_ppf_on_partner            - configure_RiBA')
+    print(' - deduplicate_partner           - manage_riba')
+    print(' - reset_email_admins             OTHER TABLES')
+    print(' - solve_unamed                   - set_report_config')
+    print(' - solve_flag_einvoice            - setup_balance_report')
+    print(' - simulate_user_profile          - show_module_group')
+    print(' SYSTEM                           - check_rec_links')
+    print(' - clean_translations             - display_module')
+    print(' - configure_email_template')
+    print(' - test_synchro_vg7')
+    print(' - set_db_4_test')
+    print(' - fix_weburl')
+
+    pdb.set_trace()
+    print('\n\n')
+    pdb.set_trace()
+
+
+if __name__ == "__main__":
+    exit(main())

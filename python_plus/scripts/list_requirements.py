@@ -7,7 +7,6 @@
 # list['python2'] -> is the list with versioned packages
 #
 from __future__ import print_function, unicode_literals
-from past.builtins import basestring
 # from future.utils import PY2, PY3
 
 import ast
@@ -53,7 +52,8 @@ REQVERSION = {
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=38.0,<39.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
-    "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},       # By test pkgs
+    # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
+    "docutils": {"0": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -63,14 +63,18 @@ REQVERSION = {
     },
     "gdata": {"6.1": "==2.0.18"},
     "gevent": {
-        "6.1": "==1.0.1",
-        "7.0": "==1.0.2",
-        "10.0": ">=1.1.2,<=1.4.0",       # trying to test
-        "3.7": "==1.5.0",
+        "6.1": "==1.0.1",                # by odoo documentation
+        "7.0": "==1.0.2",                # by odoo documentation
+        "10.0": ">=1.1.2,<=1.4.0",       # by odoo + gevent documentation + test
+        "11.0": "==1.5.0",               # by odoo documentation
+        "12.0": ">=1.5.0,<=20.9.0",      # by odoo + gevent documentation
+        "14.0": ">=20.9.0,<=22.10.99",   # by odoo + gevent documentation
+        "15.0": "PYVER",
+        "3.7": ">=22.10.0,<=22.10.99",
     },
     "greenlet": {
         "6.1": "==0.4.2",
-        "7.0": "==0.4.10",
+        "7.0": ">=0.4.7,<=0.4.10",       # by odoo documentation + test
         "3.7": ">=0.4.13",
     },
     "importlib-metadata": {"3.7": "==4.8.3"},
@@ -269,7 +273,7 @@ ALIAS_RHEL = {
     "zlib1g-dev": "zlib-devel",
 }
 FORCE_ALIAS2 = {
-    # "docutils==0.12": "docutils==0.14",
+    "docutils==0.12": "docutils==0.16",
     "pytz==2014.4": "pytz>=2014.4",
     "pytz==2014.10": "pytz>=2014.10",
     "pytz==2016.7": "pytz>=2016.7",
@@ -655,35 +659,61 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if item in REQVERSION:
             min_v = False
             if odoo_ver:
-                for v in (
-                    "6.1",
-                    "7.0",
-                    "8.0",
-                    "9.0",
-                    "10.0",
-                    "11.0",
-                    "12.0",
-                    "13.0",
-                    "14.0",
-                    "15.0",
-                    "16.0",
-                ):
-                    if v in REQVERSION[item] and comp_ver(v) <= comp_ver(odoo_ver):
+                # for v in (
+                #     "6.1",
+                #     "7.0",
+                #     "8.0",
+                #     "9.0",
+                #     "10.0",
+                #     "11.0",
+                #     "12.0",
+                #     "13.0",
+                #     "14.0",
+                #     "15.0",
+                #     "16.0",
+                # ):
+                for vv in sorted([(comp_ver(x), x) for x in REQVERSION[item].keys()]):
+                    v = vv[1]
+                    # if v in REQVERSION[item] and comp_ver(v) <= comp_ver(odoo_ver):
+                    if comp_ver(v) < comp_ver("6.1"):
+                        continue
+                    if comp_ver(v) <= comp_ver(odoo_ver):
+                        if REQVERSION[item][v] == "PYVER":
+                            min_v = False
+                            break
                         min_v = v
                     if comp_ver(v) >= comp_ver(odoo_ver):
                         break
-            if pyver and (not min_v or comp_ver(min_v) <= comp_ver("10.0")
-                          and pyver.startswith("3")):
-                for v in ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9"):
-                    if v == "2.7" and odoo_ver and min_v:
+            # if pyver and (not min_v or comp_ver(min_v) <= comp_ver("10.0")
+            #               and pyver.startswith("3")):
+            if not min_v or (comp_ver(min_v) <= comp_ver("10.0")
+                             and pyver.startswith("3")):
+                # for v in ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9"):
+                #     if v == "2.7" and odoo_ver and min_v:
+                #         continue
+                for vv in sorted([(comp_ver(x), x) for x in REQVERSION[item].keys()]):
+                    v = vv[1]
+                    if comp_ver(v) < comp_ver("2.0") or comp_ver(v) >= comp_ver("4.0"):
                         continue
-                    if v in REQVERSION[item] and comp_ver(v) <= comp_ver(pyver):
+                    if (
+                            odoo_ver
+                            and ((comp_ver(odoo_ver) <= comp_ver("10.0")
+                                  and comp_ver(v) >= comp_ver("3.0"))
+                                 or (comp_ver(odoo_ver) > comp_ver("10.0")
+                                     and comp_ver(v) < comp_ver("3.0")))
+                    ):
+                        continue
+                    # if v in REQVERSION[item] and comp_ver(v) <= comp_ver(pyver):
+                    if comp_ver(v) <= comp_ver(pyver):
+                        if REQVERSION[item][v] == "PYVER":
+                            min_v = False
+                            break
                         min_v = v
                     if comp_ver(v) >= comp_ver(pyver):
                         break
             if not min_v and "0" in REQVERSION[item]:
                 min_v = "0"
-            if min_v:
+            if min_v and REQVERSION[item][min_v] != "PYVER":
                 full_item = merge_item_version(
                     full_item,
                     "%s%s" % (item, REQVERSION[item][min_v]),
@@ -911,8 +941,6 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=Non
 def package_from_list(
     deps_list, kw, pkg_list, with_version=None, odoo_ver=None, pyver=None
 ):
-    if isinstance(pkg_list, basestring):
-        pkg_list = [pkg_list]
     for item in pkg_list:
         if isinstance(item, (list, tuple)):
             for sub in item:

@@ -140,19 +140,31 @@ class RegressionTest:
             return sts
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "pre-commit run" in stdout.split("\n")[0],
+            "git add ./" in stdout.split("\n")[0],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh lint -vn" in stdout.split("\n")[1],
+            "pre-commit run" in stdout.split("\n")[1],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh test -vn" in stdout.split("\n")[2],
+            "please.sh lint -vn" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[3],
+            "please.sh test -vn" in stdout.split("\n")[3],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh docs -vn" in stdout.split("\n")[4],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[5],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh translate -vn" in stdout.split("\n")[6],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -305,7 +317,17 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[2],
+            "/please.sh test -vn" in stdout.split("\n")[0],
+        )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "/please.sh docs -vn" in stdout.split("\n")[1],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx,
@@ -324,38 +346,12 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[2],
+            "/please.sh test -vn" in stdout.split("\n")[0],
         )
         return sts
 
     def test_06(self, z0ctx):
         os.chdir(self.tool_pkgdir)
-        cmd = "please lint -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            self.Z.test_result(z0ctx, cmd, 0, sts)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            "> travis lint -vn",
-            stdout.split("\n")[0],
-        )
-
-        os.chdir(self.pypi_dir)
-        cmd = "please lint -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
-        if sts:
-            self.Z.test_result(z0ctx, cmd, 0, sts)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            "> travis lint -vn",
-            stdout.split("\n")[0],
-        )
-
-        os.chdir(self.odoo_moduledir)
         cmd = "please lint -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
@@ -370,8 +366,50 @@ class RegressionTest:
         self.Z.test_result(
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
+            "> travis lint -vn",
+            stdout.split("\n")[1],
+        )
+
+        os.chdir(self.pypi_dir)
+        cmd = "please lint -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh lint -vn" in stdout.split("\n")[1],
+            "> pre-commit run" in stdout.split("\n")[0],
+        )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            "> travis lint -vn",
+            stdout.split("\n")[1],
+        )
+
+        os.chdir(self.odoo_moduledir)
+        cmd = "please lint -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[0],
+        )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "> pre-commit run" in stdout.split("\n")[1],
+        )
+        self.Z.test_result(
+            z0ctx,
+            "%s> %s" % (os.getcwd(), cmd),
+            True,
+            "/please.sh lint -vn" in stdout.split("\n")[2],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -449,6 +487,10 @@ class RegressionTest:
     def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py")
+        )
+        # TODO> weird situation
+        z0lib.run_traced(
+            "find ~/tools/ -type f -name \"*~\" -delete"
         )
         if not z0ctx['dry_run']:
             self.tool_pkgdir = os.path.expanduser("~/tools/wok_code")

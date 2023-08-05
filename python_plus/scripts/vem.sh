@@ -353,6 +353,7 @@ pip_install_tools() {
     run_traced "mkdir -p $tmpdir/$pfn"
     run_traced "cp -r $srcdir/ $tmpdir/$pfn/"
     run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
+    [[ -d $tmpdir/$pfn/scripts ]] && run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/scripts/setup.info"
     [[ -f $tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
     # x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
     # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
@@ -435,8 +436,8 @@ pip_install() {
       fi
       # TODO> ?
       # set_hashbang "$pypath/${pfn}"
-      [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -ne 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info -v --copy-pkg-data"
-      [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -eq 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
+      # [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -ne 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info -v --copy-pkg-data"
+      # [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -eq 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
     elif [[ $pfn =~ $EI_PKGS ]]; then
       run_traced "easy_install install \"$pkg\""
       run_traced "$PIP install $popts --upgrade \"$pkg\""
@@ -1186,7 +1187,7 @@ do_venv_create() {
   # do_venv_create VENV
   [[ $opt_verbose -gt 2 ]] && echo ">>> do_venv_create($*)"
   local f p pkg v VENV xpkgs SAVED_PATH x sts=126
-  local venvexe pyexe pypath
+  local venvexe pypath
   VENV="$1"
   [[ $VENV =~ /$ ]] && VENV="${VENV:0: -1}"
   if [[ -d $VENV ]]; then
@@ -1229,6 +1230,13 @@ do_venv_create() {
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   venvexe=$(which virtualenv 2>/dev/null)
+  [[ -n "$venvexe" && $venvexe =~ /\.local/bin/ ]] && run_traced "rm -fR $venvexe"
+  venvexe=$(which virtualenv 2>/dev/null)
+  if [[ -n "$venvexe" ]]; then
+    x=$($PYTHON --version 2>&1|grep --color=never -Eo "[Pp]ython *[23]"|grep --color=never -Eo "[23]")
+    [[ $x -eq 2 ]] && $PIP install virtualenv
+    venvexe=$(which virtualenv 2>/dev/null)
+  fi
   if [[ -n "$venvexe" ]]; then
     v=$(virtualenv --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
     if [ $v -gt 17 ]; then
@@ -1241,12 +1249,12 @@ do_venv_create() {
     p="$p -q"
     p="$p -p $PYTHON"
   else
-    $pyexe -m venv --help &>/dev/null
+    $PYTHON -m venv --help &>/dev/null
     if [[ $? -ne 0 ]]; then
       echo "No virtualenv / venv package found!"
       exit 1
     fi
-    venvexe="$pyexe -m venv"
+    venvexe="$PYTHON -m venv"
     [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     [[ -d $VENV ]] && p="$p --clear"
     [[ $opt_alone -ne 0 ]] && p="$p --copies"

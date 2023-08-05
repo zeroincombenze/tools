@@ -152,18 +152,48 @@ exclude_lines =
 """
 
 
+def main():
+    return unittest.main()
+
+
+class RunPypiTest(unittest.TextTestRunner):
+
+    def startTest(self, test):
+        super(RunPypiTest, self).startTest(test)
+        print("self.startTest(test)")
+        if not hasattr(test, "assert_counter"):
+            test.assert_counter = 0
+
+    def stopTest(self, test):
+        super(RunPypiTest, self).stopTest(test)
+        # self.testsRun
+        print("self.stopTest(test)")
+        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        print("%d tests SUCCESSFULLY completed" % test.assert_counter)
+
+    def startTestRun(self):
+        super(RunPypiTest, self).startTestRun()
+        print("self.startTestRun()")
+        if not hasattr(self, "assert_counter"):
+            self.assert_counter = 0
+
+    def stopTestRun(self):
+        super(RunPypiTest, self).stopTestRun()
+        #  self.testsRun
+        print("self.stopTestRun()")
+        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        print("%d tests SUCCESSFULLY completed" % self.assert_counter)
+
+
 class PypiTest(unittest.TestCase):
 
     assert_counter = 0
 
-    # @classmethod
-    # def setUpClass(cls):
-    #     cls.assert_counter = 0
+    def _makeResult(self):
+        super(PypiTest, self)._makeResult()
 
-    @classmethod
-    def tearDownClass(cls):
-        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
-        print("%d tests SUCCESSFULLY completed" % cls.assert_counter)
+    def doCleanups(self):
+        pass
 
     def version(self):
         return __version__
@@ -511,6 +541,8 @@ class Z0test(object):
                 argv = []
         else:
             self.autorun = True
+        if "--ut" in argv:
+            sys.exit(main())
         this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
         this = os.path.splitext(os.path.basename(this_fqn))[0]
         this_dir = os.path.abspath(os.getcwd())
@@ -565,36 +597,10 @@ class Z0test(object):
         self.z0ctx = {}
 
     def _create_parser(self, version, ctx):
-        """Standard test option parser; same funcionality of bash version
-        -b --debug      run test in debug mode
-        -C --no-coverage run test w/o coverage
-        -e --echo        set echo
-        -h --help        show help
-        -f --failfast    RESERVED TO --failfast (stop on first failure)
-        -k --keep        keep current logfile
-        -J               load travisrc library (only in bash scripts)
-        -l --logname     set log filename
-        -N --new         create new logfile
-        -n --dry-run     count and display # unit tests
-        -O               load odoorc library (only in bash scripts)
-        -q --quiet       run tests without output (quiet mode)
-        -R --run-inner   run test inner mode (no final result)
-        -r --restart     restart count next to number
-        -s --start       count 1st test next to number (deprecated, use -r)
-        -V --version     show version
-        -v --verbose     verbose mode
-        -x --qsanity     execute silently test library sanity check and exit
-        -X --esanity     execute test library sanity check and exit
-        -z --end         display total # tests when execute them
-        -0 --no-count    no count # unit tests
-        -1 --coverage    run test for coverage (obsoslete)
-        -2               python2
-        -3               python3
-        """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
             epilog="© 2015-2023 by SHS-AV s.r.l."
-            " - http://wiki.zeroincombenze.org/en/Zerobug",
+            " - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug",
         )
         parser.add_argument(
             "-B",
@@ -615,14 +621,14 @@ class Z0test(object):
         parser.add_argument(
             "-e",
             "--echo",
-            help="enable echoing even if not interactive tty",
+            help="enable echoing even if not interactive tty (deprecated)",
             action="store_true",
             dest="opt_echo_e",
             default=False,
         )
         parser.add_argument(
             "-J",
-            help="load travisrc",
+            help="load travisrc (deprecated)",
             action="store_true",
             dest="opt_tjlib",
             default=False,
@@ -630,18 +636,21 @@ class Z0test(object):
         parser.add_argument(
             "-k",
             "--keep",
-            help="keep current logfile",
+            help="keep current logfile (deprecated)",
             action="store_false",
             dest="opt_new_k",
             default=True,
         )
         parser.add_argument(
-            "-l", "--logname", help="set logfile name", dest="logfn", metavar="file"
+            "-l", "--logname",
+            help="set logfile name (deprecated)",
+            dest="logfn",
+            metavar="file"
         )
         parser.add_argument(
             "-N",
             "--new",
-            help="create new logfile",
+            help="create new logfile (deprecated)",
             action="store_true",
             dest="opt_new_N",
             default=False,
@@ -649,14 +658,14 @@ class Z0test(object):
         parser.add_argument(
             "-n",
             "--dry-run",
-            help="count and display # unit tests",
+            help="count and display # unit tests (deprecated)",
             action="store_true",
             dest="dry_run",
             default=False,
         )
         parser.add_argument(
             "-O",
-            help="load odoorc",
+            help="load odoorc (deprecated)",
             action="store_true",
             dest="opt_oelib",
             default=False,
@@ -672,7 +681,7 @@ class Z0test(object):
         parser.add_argument(
             "-Q",
             "--count",
-            help="count # unit tests",
+            help="count # unit tests (deprecated)",
             action="store_false",
             dest="opt_noctr",
             default=True,
@@ -714,7 +723,7 @@ class Z0test(object):
         parser.add_argument(
             "-x",
             "--qsanity",
-            help="like -X but run silently",
+            help="like -X but run silently (deprecated)",
             action="store_true",
             dest="qsanity",
             default=False,
@@ -722,7 +731,7 @@ class Z0test(object):
         parser.add_argument(
             "-X",
             "--esanity",
-            help="execute test library sanity check and exit",
+            help="execute test library sanity check and exit (deprecated)",
             action="store_true",
             dest="esanity",
             default=False,
@@ -1109,7 +1118,6 @@ class Z0test(object):
                         test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
-                # self.dbgmsg(ctx, ">>>  test_w_args=%s" % test_w_args)
                 p = Popen(test_w_args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
                 res, err = p.communicate()
                 try:
@@ -1163,7 +1171,10 @@ class Z0test(object):
                 if mime == 'text/x-python':
                     with open(os.path.realpath(testname), "r", encoding="utf-8") as fd:
                         content = fd.read()
-                    if "\nimport unittest\n" in content:
+                    if (
+                            "\nclass PypiTest(z0testlib.PypiTest):" in content
+                            or "\nimport unittest\n" in content
+                    ):
                         opt4childs = []
                         del content
                     if os.environ.get('TRAVIS_PDB') == 'true':

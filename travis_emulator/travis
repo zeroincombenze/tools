@@ -200,7 +200,7 @@ process_yaml_do() {
     lne=$(process_yaml_unquote "$line")
   fi
   if [[ $YML_sect == "python" ]]; then
-    python_ver_yaml="$python_ver_yaml $lne"
+    python_ver_yaml="$lne $python_ver_yaml"
     lne="#"
   elif [[ $YML_sect == "addons.apt.packages" ]]; then
     YML_packages="$YML_packages $lne"
