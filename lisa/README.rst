@@ -1,7 +1,7 @@
 
-======
- 2.0.2
-======
+==========
+lisa 2.0.2
+==========
 
 
 
@@ -50,7 +50,7 @@ Stable version via Python Package
 
 ::
 
-    pip install 
+    pip install lisa
 
 |
 
@@ -74,7 +74,7 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install lisa -U
 
 |
 
@@ -86,36 +86,6 @@ Current version via Git
     cd $HOME
     ./install_tools.sh -U
     source $HOME/devel/activate_tools
-
-
-History
--------
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] liba_bld_ods: fixes & improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: stable version
-
-2.0.0.2 (2022-09-29)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: improvements
-
-2.0.0.1 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] wsl2-systemd: experimental systemd for wsl2
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
 
 
 |
@@ -138,9 +108,9 @@ Contributors
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status

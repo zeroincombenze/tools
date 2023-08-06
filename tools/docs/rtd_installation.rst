@@ -10,6 +10,15 @@ Zeroincombenze tools require:
 * python 2.7+, some tools require python 3.6+
 * bash 5.0+
 
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install repos_name
+
+|
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -25,7 +34,7 @@ Current version via Git
 |
 
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

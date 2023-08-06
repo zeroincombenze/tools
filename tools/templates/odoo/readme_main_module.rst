@@ -51,8 +51,8 @@ OCA comparation / Confronto con OCA
 |
 |
 
-Getting started / Come iniziare
-===============================
+Getting started / Primi passi
+=============================
 
 |Try Me|
 

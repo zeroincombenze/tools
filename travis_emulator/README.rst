@@ -1,7 +1,7 @@
 
-======
- 2.0.6
-======
+=====================
+travis_emulator 2.0.6
+=====================
 
 
 
@@ -205,6 +205,15 @@ Zeroincombenze tools require:
 * python 2.7+, some tools require python 3.6+
 * bash 5.0+
 
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install travis_emulator
+
+|
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -219,6 +228,15 @@ Current version via Git
 
 Upgrade
 -------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install travis_emulator -U
+
+|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -352,9 +370,9 @@ Contributors
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-05
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -196,6 +196,13 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
+            if pkgname != "tools":
+                fn = pth.join(pth.dirname(srcdir), "setup.py")
+                if pth.isfile(fn):
+                    sts = please.run_traced(
+                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+                        rtime=True
+                    )
             if not please.opt_args.no_verify:
                 sts = please.run_traced("git add ../", rtime=True)
                 if sts == 0:
@@ -392,7 +399,9 @@ class PleaseCwd(object):
         ):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True,
-                slist=[("-F", ""),
+                slist=[("replace", "docs"),
+                       ("commit", "docs"),
+                       ("-F", ""),
                        ("--from-version", ""),
                        ("--no-verify", ""),
                        ("--vme", ""),

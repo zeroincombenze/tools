@@ -284,7 +284,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "# LOCAL_VENV=$LOCAL_VENV">>$DSTPATH/activate_tools
     echo "[ \"\${BASH_SOURCE-}\" == \"\$0\" ] && echo \"Please use: source \${BASH_SOURCE-}\" && exit 1">>$DSTPATH/activate_tools
-    echo "[[ \${BASH_SOURCE-} != \$DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
+    echo "[[ \${BASH_SOURCE-} != $DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
     echo "export SAVED_HOME_DEVEL=\"\$HOME_DEVEL:\$SAVED_HOME_DEVEL\"">>$DSTPATH/activate_tools
     echo "export HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools

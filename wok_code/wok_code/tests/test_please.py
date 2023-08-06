@@ -471,6 +471,16 @@ class RegressionTest:
         )
 
         os.chdir(self.pypi_dir)
+        cmd = "please commit -m \"Test message\" -vn"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        if sts:
+            self.Z.test_result(z0ctx, cmd, 0, sts)
+            return sts
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True, "> rsync -a " in stdout
+        )
+
+        os.chdir(self.pypi_dir)
         cmd = "please update -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
