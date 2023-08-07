@@ -490,7 +490,7 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "> vem " in stdout.split("\n")[0],
+            "> vem " in stdout.split("\n")[1],
         )
         return sts
 

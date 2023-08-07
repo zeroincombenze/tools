@@ -131,6 +131,7 @@ GIT_USER = {
     "didotech": "didotech",
 }
 DEFINED_SECTIONS = [
+    "changelog",
     "description",
     "descrizione",
     "features",
@@ -146,7 +147,6 @@ DEFINED_SECTIONS = [
     "troubleshooting",
     "known_issues",
     "proposals_for_enhancement",
-    "changelog",
     "faq",
     "sponsor",
     "copyright_notes",
@@ -168,6 +168,7 @@ DEFINED_TAG = [
     "acknowledges",
     "maintainer",
 ]
+# Search for old deprecated name for section
 ALTERNATE_NAMES = {
     "changelog": "history",
     "__manifest__": "__init__",
