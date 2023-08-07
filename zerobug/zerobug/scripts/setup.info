@@ -80,8 +80,6 @@ setup(
             "./z0testrc",
             "_travis/*",
             "_travis/cfg/*",
-            # "_travis/travis_install_env.sh",
-            # "_travis/travis_run_pypi_tests.sh"
         ]
     },
     entry_points={
