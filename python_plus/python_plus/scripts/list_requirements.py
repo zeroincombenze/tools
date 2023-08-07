@@ -1108,20 +1108,21 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
     return manifests, reqfiles, setups
 
 
+def get_pyver_4_odoo(odoo_ver):
+    odoo_major = int(odoo_ver.split(".")[0])
+    if odoo_major <= 10:
+        pyver = "2.7"
+    else:
+        pyver = "3.%d" % (int((odoo_major - 10) / 2) + 6)
+    return pyver
+
+
 def get_pyver(ctx):
     if not ctx.get("odoo_ver"):
         global python_version
         ctx["pyver"] = python_version
     else:
-        odoo_major = int(ctx["odoo_ver"].split(".")[0])
-        if odoo_major <= 10:
-            ctx["pyver"] = "2.7"
-        elif odoo_major == 11:
-            ctx["pyver"] = "3.6"
-        elif odoo_major >= 12:
-            ctx["pyver"] = "3.7"
-        elif odoo_major >= 14:
-            ctx["pyver"] = "3.8"
+        ctx["pyver"] = get_pyver_4_odoo(ctx["odoo_ver"])
     return ctx
 
 
