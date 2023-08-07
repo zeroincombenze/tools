@@ -1,7 +1,7 @@
 
-======
- 2.0.7
-======
+============
+clodoo 2.0.7
+============
 
 
 
@@ -239,19 +239,6 @@ where:
     PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)
 
 
-Translate Odoo entinty name across versions.
-
-
-
-|
-
-Usage
-=====
-
-
-
-
-
 |
 |
 
@@ -273,7 +260,7 @@ Stable version via Python Package
 
 ::
 
-    pip install 
+    pip install clodoo
 
 |
 
@@ -297,7 +284,7 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install clodoo -U
 
 |
 
@@ -309,72 +296,6 @@ Current version via Git
     cd $HOME
     ./install_tools.sh -U
     source $HOME/devel/activate_tools
-
-
-History
--------
-
-2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Incorporated new pypi oerlib3
-* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
-* [IMP] New param IS_MULTI
-
-2.0.5 (2023-05-08)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py: minor fixes
-* [IMP] odoorc: odoo version 16.0
-
-2.0.4 (2023-03-29)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: minor improvements
-* [IMP] odoorc: test for Odoo 16.0
-* [IMP] transodoo.py: minor improvements
-
-2.0.3 (2022-12-09)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: GIT_BRANCH sometimes fails
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: GITORGID and other value, sometimes are wrong
-
-2.0.1.1 (2022-10-15)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.3 (2022-10-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: best virtual environment recognize
-* [FIX] odoorc: SVCNAME
-
-2.0.0.2 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: get data from setup.py od Odoo
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: new option -S for secure packages
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
 
 
 |
@@ -393,13 +314,14 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* Antonio M. Vigliotti <info@shs-av.com>
 
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

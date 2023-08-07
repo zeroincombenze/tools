@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     'clodoo', 'z0lib', 'os0',
-    'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml', 'vatnumber'
+    'future', 'Babel', 'lxml', 'openpyxl', 'pyyaml'
 ]
 if sys.version_info >= (3, 0):
     install_requires.append('translators')

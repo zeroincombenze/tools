@@ -196,10 +196,15 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
+            if pkgname != "tools":
+                fn = pth.join(pth.dirname(srcdir), "setup.py")
+                if pth.isfile(fn):
+                    sts = please.run_traced(
+                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+                        rtime=True
+                    )
             if not please.opt_args.no_verify:
                 sts = please.run_traced("git add ../", rtime=True)
-                if sts == 0:
-                    sts = please.run_traced("pre-commit run", rtime=True)
                 if sts == 0:
                     sts = please.run_traced(
                         "git commit -m \"" + please.opt_args.message + "\"")
@@ -392,7 +397,9 @@ class PleaseCwd(object):
         ):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True,
-                slist=[("-F", ""),
+                slist=[("replace", "docs"),
+                       ("commit", "docs"),
+                       ("-F", ""),
                        ("--from-version", ""),
                        ("--no-verify", ""),
                        ("--vme", ""),
@@ -539,9 +546,16 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             if pkgname != "tools":
-                sts = please.run_traced(
-                    "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True
-                )
+                fn = pth.join(pth.dirname(srcdir), "setup.py")
+                if pth.isfile(fn):
+                    sts = please.run_traced(
+                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+                        rtime=True
+                    )
+                if sts == 0:
+                    sts = please.run_traced(
+                        "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True
+                    )
             if sts == 0 and please.opt_args.vme:
                 sts = self.do_update_vme()
             if sts == 0 and please.opt_args.odoo_venv:

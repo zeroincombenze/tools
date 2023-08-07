@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -1229,17 +1229,24 @@ do_venv_create() {
 
   validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
-  venvexe=$(which virtualenv 2>/dev/null)
-  [[ -n "$venvexe" && $venvexe =~ /\.local/bin/ ]] && run_traced "rm -fR $venvexe"
-  venvexe=$(which virtualenv 2>/dev/null)
-  if [[ -n "$venvexe" ]]; then
-    x=$($PYTHON --version 2>&1|grep --color=never -Eo "[Pp]ython *[23]"|grep --color=never -Eo "[23]")
-    [[ $x -eq 2 ]] && $PIP install virtualenv
+
+  $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
+  if [[ -n $venvexe ]]; then
+    [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
+    [[ -d $VENV ]] && p="$p --clear"
+    [[ $opt_alone -ne 0 ]] && p="$p --copies"
+  else
     venvexe=$(which virtualenv 2>/dev/null)
-  fi
-  if [[ -n "$venvexe" ]]; then
+    if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != $(echo $PYTHON | grep --color=never -Eo "python[23]") ]]; then
+      $PYTHON -m pip install virtualenv -I --user
+      venvexe=$(which virtualenv 2>/dev/null)
+    fi
+    if [[ -z "$venvexe" ]]; then
+      echo "No virtualenv / venv package found!"
+      exit 1
+    fi
     v=$(virtualenv --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
-    if [ $v -gt 17 ]; then
+    if [[ $v -gt 17 ]]; then
       [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     else
       [[ $opt_spkg -ne 0 ]] && p="--system-site-packages" || p="--no-site-packages"
@@ -1248,30 +1255,19 @@ do_venv_create() {
     [[ $opt_alone -ne 0 ]] && p="$p --always-copy"
     p="$p -q"
     p="$p -p $PYTHON"
-  else
-    $PYTHON -m venv --help &>/dev/null
-    if [[ $? -ne 0 ]]; then
-      echo "No virtualenv / venv package found!"
-      exit 1
-    fi
-    venvexe="$PYTHON -m venv"
-    [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
-    [[ -d $VENV ]] && p="$p --clear"
-    [[ $opt_alone -ne 0 ]] && p="$p --copies"
   fi
   run_traced "$venvexe $p $VENV"
   sts=$?
+  [[ -x $HOME/.local/bin/virtualenv ]] && run_traced "rm -f $HOME/.local/bin/virtualenv"
   [[ $sts -ne 0 ]] && return $sts
   if [[ -d ${VENV}~ ]]; then
-      empty=1
       if [[ -z $(find ${VENV}~ -maxdepth 0 -empty) ]]; then
           for f in ${VENV}~/*; do
               b=$(basename $f)
               [[ ! -e $VENV/$b ]] && run_traced "mv $f $VENV/"
-              empty=0
           done
       fi
-      [[ $empty -ne 0 ]] && run_traced "rm -fR ${VENV}~"
+      run_traced "rm -fR ${VENV}~"
   fi
 
   do_activate "$VENV"
@@ -1613,3 +1609,4 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
+

@@ -37,7 +37,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -p  mkdir $HOME/devel if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
-    echo "  -t  this script is executing in travis-ci environment"
+    echo "  -t  this script is executing in test environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
@@ -73,7 +73,7 @@ set_hashbang() {
 
 RFLIST__travis_emulator=""
 RFLIST__clodoo=""
-RFLIST__zar="pg_db_active pg_db_reassign_owner"
+RFLIST__zar="pg_db_reassign_owner"
 RFLIST__z0lib=""
 RFLIST__zerobug=""
 RFLIST__lisa=""
@@ -133,11 +133,16 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
+# Chose python version to use: if _t supplied, python version MUST be the same of the
+# current python
 VPYVER="0.0"
 [[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
-[[ $opts =~ ^-.*t && -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
+if [[ $opts =~ ^-.*t ]]; then
+    [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
+    [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+fi
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
@@ -274,24 +279,28 @@ for fn in $FILES_2_DELETE; do
 done
 
 if [[ ! $opts =~ ^-.*n ]]; then
+    # LOCAL_VENV is DTSPATH/venv
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "# LOCAL_VENV=$LOCAL_VENV">>$DSTPATH/activate_tools
     echo "[ \"\${BASH_SOURCE-}\" == \"\$0\" ] && echo \"Please use: source \${BASH_SOURCE-}\" && exit 1">>$DSTPATH/activate_tools
-    echo "export HOME_DEVEL=\"\$(readlink -f \$(dirname \${BASH_SOURCE-}))\"">>$DSTPATH/activate_tools
+    echo "[[ \${BASH_SOURCE-} != $DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
+    echo "export SAVED_HOME_DEVEL=\"\$HOME_DEVEL:\$SAVED_HOME_DEVEL\"">>$DSTPATH/activate_tools
+    echo "export HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
     echo "ACTIVATE=\"\$BINDIR/activate\"">>$DSTPATH/activate_tools
     echo "PYLIB=\"$PYLIB\"">>$DSTPATH/activate_tools
 
-    echo "opts=\$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)">>$DSTPATH/activate_tools
-    echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     if [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]]; then
+        echo "opts=\$(echo \-t \$1 \$2 \$3 \$4 \$5 \$6 \$7 \$8 \$9 .)">>$DSTPATH/activate_tools
         echo "[[ -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
         echo "[[ -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     else
+        echo "opts=\$(echo \$1 \$2 \$3 \$4 \$5 \$6 \$7 \$8 \$9 .)">>$DSTPATH/activate_tools
         echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/zerobug/_travis ]] && echo \":\$PATH:\"|grep -qv \":\$PYLIB/zerobug/_travis:\" && export PATH=\"\$PYLIB/zerobug/_travis:\$PATH\"">>$DSTPATH/activate_tools
         echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     fi
+    echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
     for fn in coverage coverage3 coveralls flake8 pylint; do
         [[ $fn == "coveralls" && ! $opts =~ ^-.*t ]] && continue
         echo "p=\$(which $fn 2>/dev/null)">>$DSTPATH/activate_tools
@@ -303,6 +312,11 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\"\$BINDIR:\$PATH\"">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
+
+    echo "x=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $1}')">$DSTPATH/deactivate_tools
+    echo "y=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $2 ":" $3 ":" $4}')">>$DSTPATH/deactivate_tools
+    echo "[[ -n $x ]] && export PATH=\"$x\"">>$DSTPATH/deactivate_tools
+    echo "[[ -n $y && $y != "::" ]] && export \$SAVED_HOME_DEVEL=\"$y\" || unset \$SAVED_HOME_DEVEL">>$DSTPATH/deactivate_tools
 fi
 
 # OCA tools

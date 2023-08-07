@@ -1,7 +1,7 @@
 
-======
- 2.0.6
-======
+=====================
+travis_emulator 2.0.6
+=====================
 
 
 
@@ -205,6 +205,15 @@ Zeroincombenze tools require:
 * python 2.7+, some tools require python 3.6+
 * bash 5.0+
 
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install travis_emulator
+
+|
+
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -219,6 +228,15 @@ Current version via Git
 
 Upgrade
 -------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install travis_emulator -U
+
+|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,8 +273,8 @@ Troubleshooting
     `lisa install <pkg>`
 
 
-History
--------
+ChangeLog History
+-----------------
 
 2.0.6 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~
@@ -324,11 +342,6 @@ History
 * [IMP] travis: new improvements (-f -k switches)
 
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
 
 
 |
@@ -352,9 +365,9 @@ Contributors
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

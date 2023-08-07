@@ -28,6 +28,14 @@
         </div>
     </div>
 .. $fi
+.. $if defined oca_diff
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan" style="color:#162832;">OCA comparation / Confronto con OCA</h3>
+        <div class="oe_span12">
+{{oca_diff}}
+        </div>
+    </div>
+.. $fi
 .. $if defined usage
     <div class="oe_row oe_spaced">
         <h3 class="oe_slogan" style="color:#162832;">Usage / Utilizzo</h3>
@@ -36,11 +44,11 @@
         </div>
     </div>
 .. $fi
-.. $if defined history
+.. $if defined changelog
     <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">History / Cronologia</h3>
+        <h3 class="oe_slogan" style="color:#162832;">ChangeLog History / Cronologia modifiche</h3>
         <div class="oe_span12">
-{{history}}
+{{changelog}}
         </div>
     </div>
 .. $fi
@@ -60,16 +68,16 @@
         </div>
     </div>
     <div class="oe_row oe_spaced">
-.. $if git_orgid == 'powerp'
+.. $if git_orgid == 'librerp'
         <div class="oe_span6" align="left">
             <p class="oe_mt16">Maintainer:</p>
-            <p class="oe_mt16">This module is maintained by the <b>Powerp</b>.</p>
-            <p class="oe_mt16" align="justify"><a href="http://www.powerp.it/">Powerp</a> is the Italian Enterprises Network born in 2020, whose mission is promote use of Odoo to cover Italian enhanced accounting.</p>
+            <p class="oe_mt16">This module is maintained by the <b>Librerp</b>.</p>
+            <p class="oe_mt16" align="justify"><a href="http://www.librerp.it/">Librerp</a> is the Italian Enterprises Network born in 2020, whose mission is promote use of Odoo to cover Italian enhanced accounting.</p>
         </div>
         <div class="oe_span6" align="left">
             <p class="oe_mt16">Manutenzione:</p>
-            <p class="oe_mt16">Questo modulo è aggiornato da <b>Powerp</b>.</p>
-            <p class="oe_mt16" align="justify"><a href="http://www.powerp.it/">Powerp</a> è una rete di imprese, nata nel 2020 che rilascia moduli per la contabilità italiana evoluta.</p>
+            <p class="oe_mt16">Questo modulo è aggiornato da <b>Librerp</b>.</p>
+            <p class="oe_mt16" align="justify"><a href="http://www.librerp.it/">Librerp</a> è una rete di imprese, nata nel 2020 che rilascia moduli per la contabilità italiana evoluta.</p>
         </div>
         <div class="oe_span12">
             <p class="oe_mt16">Founders are / I soci fondatori sono:</p>

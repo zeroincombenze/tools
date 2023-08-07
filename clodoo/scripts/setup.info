@@ -88,6 +88,7 @@ setup(
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",
+            # "clodoo.py = clodoo.clodoo_main:main",
             "transodoo.py = clodoo.transodoo:main",
         ]
     },

@@ -100,8 +100,8 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
-History
--------
+ChangeLog History
+-----------------
 
 2.0.10 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~~
@@ -230,7 +230,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-05
+Last Update / Ultimo aggiornamento: 2023-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

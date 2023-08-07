@@ -25,7 +25,7 @@
 |
 
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

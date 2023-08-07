@@ -1,7 +1,7 @@
 
-======
- 2.0.6
-======
+================
+odoo_score 2.0.6
+================
 
 
 
@@ -21,62 +21,6 @@ a simple odoo shell even for older Odoo version.
 In order to complete all full tests, it required to test the
 Odoo module test_odoo_score-* in repository
 `zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`
-
-
-odoo_shell
-----------
-
-Odoo shell is a simple line command shell to manager Odoo database using the internal Odoo functions.
-
-
-
-|
-
-Usage
-=====
-
-
-
-odoo_shell usage
-----------------
-
-::
-
-    usage: odoo_shell.py [-h] [-A python_name] [-c file] [-d file] [-n] [-q] [-V]
-                         [-v] [-w file] [-z name] [-1 PARAM_1] [-2 PARAM_2]
-                         [-3 PARAM_3] [-4 PARAM_4] [-5 PARAM_5] [-6 PARAM_6]
-
-    Odoo test environment
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -A python_name, --action python_name
-                            internal action to execute
-      -c file, --config file
-                            configuration command file
-      -d file, --dbname file
-                            DB name to connect
-      -n, --dry-run         do nothing (dry-run)
-      -q, --quiet           silent mode
-      -V, --version         show program's version number and exit
-      -v, --verbose         verbose mode
-      -w file, --src-config file
-                            Source DB configuration file
-      -z name, --src-db_name name
-                            Source database name
-      -1 PARAM_1, --param-1 PARAM_1
-                            value to pass to called function
-      -2 PARAM_2, --param-2 PARAM_2
-                            value to pass to called function
-      -3 PARAM_3, --param-3 PARAM_3
-                            value to pass to called function
-      -4 PARAM_4, --param-4 PARAM_4
-                            value to pass to called function
-      -5 PARAM_5, --param-5 PARAM_5
-                            value to pass to called function
-      -6 PARAM_6, --param-6 PARAM_6
-                            value to pass to called function
-
 
 
 |
@@ -100,7 +44,7 @@ Stable version via Python Package
 
 ::
 
-    pip install 
+    pip install odoo_score
 
 |
 
@@ -124,7 +68,7 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install odoo_score -U
 
 |
 
@@ -136,71 +80,6 @@ Current version via Git
     cd $HOME
     ./install_tools.sh -U
     source $HOME/devel/activate_tools
-
-
-History
--------
-
-2.0.6 (2023-04-16)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Import class models.Model
-
-2.0.5 (2023-03-23)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug.sh: moved to package wok_code
-
-2.0.4 (2023-01-13)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug.sh: test creates log
-
-2.0.3 (2022-11-11)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: test function improvements
-* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
-
-2.0.1.1 (2022-10-13)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: python stub
-* [FIX] run_odoo_debug: crash in sime rare cases
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.3 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test via pycharm
-* [FIX] run_odoo_debug: concurrent tests
-
-2.0.0.2 (2022-09-22)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odo_debug: test with random rpcport for multiple tests
-* [IMP] odoo_shell.py: new actions
-
-2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odo_debug with debug
-* [IMP] run_odoo_debug: experimental debug via pycharm
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
 
 
 |
@@ -223,9 +102,9 @@ Contributors
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

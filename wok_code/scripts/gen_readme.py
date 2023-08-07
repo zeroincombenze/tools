@@ -131,6 +131,7 @@ GIT_USER = {
     "didotech": "didotech",
 }
 DEFINED_SECTIONS = [
+    "changelog",
     "description",
     "descrizione",
     "features",
@@ -146,7 +147,6 @@ DEFINED_SECTIONS = [
     "troubleshooting",
     "known_issues",
     "proposals_for_enhancement",
-    "history",
     "faq",
     "sponsor",
     "copyright_notes",
@@ -154,7 +154,6 @@ DEFINED_SECTIONS = [
     "contact_us",
 ]
 DEFINED_TAG = [
-    "__init__",
     "__manifest__",
     "name",
     "summary",
@@ -169,6 +168,11 @@ DEFINED_TAG = [
     "acknowledges",
     "maintainer",
 ]
+# Search for old deprecated name for section
+ALTERNATE_NAMES = {
+    "changelog": "history",
+    "__manifest__": "__init__",
+}
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
 ZERO_PYPI_PKGS = "wok_code"
 ZERO_PYPI_SECTS = "description usage"
@@ -278,18 +282,31 @@ def print_green_message(text):
 
 
 def get_full_fn(ctx, src_path, filename):
+    section, ext = os.path.splitext(filename)
     if src_path.startswith("./"):
-        full_fn = os.path.join(
-            ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"]), filename
-        )
+        dirname = os.path.join(
+            ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"]))
     else:
-        full_fn = os.path.join(src_path.replace("${p}", ctx["product_doc"]), filename)
-    if os.path.basename(os.path.dirname(full_fn)) == "docs" and not os.path.isdir(
-        os.path.dirname(full_fn)
+        dirname = os.path.join(src_path.replace("${p}", ctx["product_doc"]))
+    full_fn = os.path.join(dirname, filename)
+
+    if (
+            os.path.basename(os.path.dirname(full_fn)) == "docs" and
+            not os.path.isdir(os.path.dirname(full_fn))
     ):
         full_fn = os.path.join(
             os.path.dirname(os.path.dirname(full_fn)), "egg-info", filename
         )
+
+    if not os.path.isfile(full_fn):
+        full_fn = os.path.join(dirname, section.upper() + ext)
+    if not os.path.isfile(full_fn) and section in LIST_TAG:
+        full_fn = os.path.join(dirname, section + ".txt")
+    if not os.path.isfile(full_fn) and section in LIST_TAG:
+        full_fn = os.path.join(dirname, section.upper() + ".txt")
+    if not os.path.isfile(full_fn) and section in ALTERNATE_NAMES:
+        full_fn = os.path.join(dirname, ALTERNATE_NAMES[section] + ext)
+
     return full_fn
 
 
@@ -322,29 +339,6 @@ def iter_template_path(ctx, debug_mode=None, body=None):
 
 
 def get_template_fn(ctx, template, ignore_ntf=None):
-    def alternate_name(full_fn):
-        if not full_fn.endswith(".rst"):
-            if full_fn.endswith(".txt"):
-                full_fn = "%s.rst" % full_fn[0:-4]
-            else:
-                full_fn = "%s.rst" % full_fn
-            if os.path.isfile(full_fn):
-                return True, full_fn
-        if full_fn.endswith(".rst"):
-            full_fn = os.path.join(
-                os.path.dirname(full_fn),
-                "%s.rst" % os.path.basename(full_fn)[0:-4].upper(),
-            )
-            if os.path.isfile(full_fn):
-                return True, full_fn
-        if template.startswith("history."):
-            full_fn = os.path.join(
-                os.path.dirname(full_fn),
-                "CHANGELOG.rst",
-            )
-            if os.path.isfile(full_fn):
-                return True, full_fn
-        return False, full_fn
 
     def search_tmpl(ctx, template, body):
         found = False
@@ -361,23 +355,17 @@ def get_template_fn(ctx, template, ignore_ntf=None):
                 if os.path.isfile(full_fn):
                     found = True
                     break
-                found, full_fn = alternate_name(full_fn)
-                if found:
-                    break
+
                 full_fn = get_full_fn(ctx, src_path, layered_template)
                 if os.path.isfile(full_fn):
                     found = True
                     break
-                found, full_fn = alternate_name(full_fn)
-                if found:
-                    break
+
             full_fn = get_full_fn(ctx, src_path, template)
             if os.path.isfile(full_fn):
                 found = True
                 break
-            found, full_fn = alternate_name(full_fn)
-            if found:
-                break
+
             if template == "acknowledges.txt":
                 full_fn = get_full_fn(ctx, src_path, "CONTRIBUTORS.txt")
                 if os.path.isfile(full_fn):
@@ -1118,21 +1106,24 @@ def append_line(state, line, nl_bef=None):
 
 def tail(source, max_ctr=None, max_days=None, module=None):
     target = ""
+    min_ctr = 1
     max_ctr = max_ctr or 12
     max_days = max_days or 360
     left = ""
+    ctr = 0
     for _lno, line in enumerate(source.split("\n")):
         if left:
             line = "%s%s" % (left, line)
             left = ""
         x = re.match(r"^[0-9]+\.[0-9]+\.[0-9]+", line)
         if x:
-            max_ctr -= 1
-            if max_ctr < 0:
+            ctr += 1
+            if ctr > max_ctr:
                 break
             x = re.search(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", line)
             if (
-                x
+                ctr > min_ctr
+                and x
                 and (
                     datetime.now()
                     - datetime.strptime(line[x.start() : x.end()], "%Y-%m-%d")
@@ -1275,12 +1266,12 @@ def parse_local_file(
         state["in_fmt"] = "raw"
     full_fn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
     if not full_fn:
-        token = filename[0:-4]
-        action = "get_default_%s" % token
+        base, ext = os.path.splitext(filename)
+        action = "get_default_%s" % base
         if action in list(globals()):
             return parse_source(ctx, globals()[action](ctx), state=state)
-        elif filename[-4:] == ".txt":
-            return parse_source(ctx, default_token(ctx, filename[0:-4]), state=state)
+        elif ext == ".txt":
+            return parse_source(ctx, default_token(ctx, base), state=state)
         return state, ""
     if ctx["opt_verbose"]:
         print("Reading %s" % full_fn)
@@ -1307,7 +1298,7 @@ def parse_local_file(
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
-    if len(source) and filename == "history.rst":
+    if len(source) and filename == "changelog.rst":
         source = tail(source)
         if ctx["odoo_layer"] == "module":
             ctx["history-summary"] = tail(source, max_ctr=1, max_days=15)
@@ -1400,13 +1391,16 @@ def read_setup(ctx):
             for dir in dirs:
                 if dir == "tools":
                     continue
-                full_fn = os.path.join(root, dir, "egg-info", "history.rst")
+                full_fn = get_full_fn(
+                    ctx, os.path.join(root, dir, "egg-info"), "CHANGELOG.rst")
                 if os.path.isfile(full_fn):
                     read_history(ctx, full_fn, module=os.path.basename(dir))
+
         ctx["histories"] = sort_history(ctx["histories"])
         ctx["history-summary"] = sort_history(ctx["history-summary"])
     else:
-        full_fn = os.path.join(".", "egg-info", "history.rst")
+        full_fn = get_full_fn(
+            ctx, os.path.join(".", "egg-info"), "CHANGELOG.rst")
         if os.path.isfile(full_fn):
             with open(full_fn, RMODE) as fd:
                 read_history(ctx, full_fn)
@@ -1497,7 +1491,7 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         break
                 except KeyError:
                     pass
-                full_fn = os.path.join(root, "egg-info", "history.rst")
+                full_fn = os.path.join(root, "egg-info", "CHANGELOG.rst")
                 if os.path.isfile(full_fn):
                     with open(full_fn, RMODE) as fd:
                         ctx["histories"] += tail(
@@ -2027,7 +2021,10 @@ def write_egg_info(ctx):
             ctx[section] = ctx["histories"]
             force_write = True
         if force_write or not os.path.isfile(os.path.join(path, "%s.rst" % section)):
-            with open(os.path.join(path, "%s.rst" % section), "w") as fd:
+            fn = section if section != "history" else "CHANGELOG"
+            if path == "./readme":
+                fn = fn.upper()
+            with open(os.path.join(path, "%s.rst" % fn), "w") as fd:
                 if section == "history" and not ctx[section]:
                     header = "%s (%s)" % (
                         ctx["manifest"].get("version", ""),
@@ -2162,6 +2159,8 @@ def generate_readme(ctx):
         ctx[section] = parse_local_file(
             ctx, "%s.rst" % section, ignore_ntf=True, out_fmt=out_fmt, section=section
         )[1]
+        if re.match(r"\s*$", ctx[section]):
+            ctx[section] = ""
         if section in ZERO_PYPI_SECTS and ctx.get("submodules"):
             for sub in ctx.get("submodules").split(" "):
                 ctx[section] += "\n\n"
@@ -2175,10 +2174,12 @@ def generate_readme(ctx):
 
     for tag in DEFINED_TAG:
         out_fmt = None
-        if not ctx.get(tag):
+        if re.match(r"\s*$", ctx.get(tag, "")):
             ctx[tag] = parse_local_file(
                 ctx, "%s.rst" % tag, ignore_ntf=True, out_fmt=out_fmt, section=tag
             )[1]
+            if re.match(r"\s*$", ctx[tag]):
+                ctx[tag] = ""
 
     if ctx["odoo_layer"]:
         if not ctx["configuration"]:
@@ -2244,8 +2245,8 @@ def generate_readme(ctx):
 
 
 def main(cli_args=None):
-    # if not cli_args:
-    #     cli_args = sys.argv[1:]
+    if not cli_args:
+        cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Generate README", "© 2018-2023 by SHS-AV s.r.l.", version=__version__
     )
@@ -2320,7 +2321,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-Y", "--write-man-page", action="store_true", dest="write_man_page"
     )
-    ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
+    ctx = unicodes(parser.parseoptargs(cli_args))
 
     ctx["path_name"] = os.path.abspath(ctx["path_name"])
     if not ctx["product_doc"]:
@@ -2337,6 +2338,7 @@ def main(cli_args=None):
             "FULLVER", odoo_vid=ctx["odoo_vid"], multi=True
         )
         if ctx["branch"] not in (
+            "17.0",
             "16.0",
             "15.0",
             "14.0",
@@ -2360,11 +2362,11 @@ def main(cli_args=None):
             ctx["git_orgid"] = build_odoo_param(
                 "GIT_ORGID", odoo_vid=ctx["odoo_vid"], multi=True
             )
-    if ctx["git_orgid"] not in ("zero", "oca", "powerp", "didotech"):
+    if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp" , "didotech"):
         ctx["git_orgid"] = "zero"
         if not ctx["suppress_warning"] and ctx["product_doc"] != "pypi":
             print_red_message(
-                "*** Invalid git-org: use -G %s or of zero|oca|didotech"
+                "*** Invalid git-org: use -G %s or of zero|oca|librerp|didotech"
                 % ctx["git_orgid"]
             )
     if ctx["odoo_layer"] not in ("ocb", "module", "repository"):

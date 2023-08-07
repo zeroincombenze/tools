@@ -10,7 +10,7 @@
 
 .. |icon| image:: {{icon}}
 
-.. $if git_orgid == 'powerp'
+.. $if git_orgid == 'librerp'
 |Maturity| |Build Status| |license opl|
 .. $else
 |Maturity| |Build Status| |Codecov Status| |license gpl| |Try Me|
@@ -22,7 +22,7 @@
 |Zeroincombenze| {{repos_name}} {{branch}}
 ==========================================
 .. $fi
-.. $if git_orgid == 'powerp'
+.. $if git_orgid == 'librerp'
 |Build Status| |license opl|
 .. $else
 |Build Status| |Codecov Status| |license gpl| |Try Me|
@@ -33,7 +33,7 @@
 Odoo {{branch}} (formerly OpenERP)
 ==================================
 
-.. $if git_orgid == 'powerp'
+.. $if git_orgid == 'librerp'
 |Build Status| |license opl|
 .. $else
 |Build Status| |Codecov Status| |license gpl| |Try Me|

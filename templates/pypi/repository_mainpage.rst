@@ -72,12 +72,12 @@ Proposals for enhancement
 
 {{proposals_for_enhancement}}
 .. $fi
-.. $if defined history
+.. $if defined changelog
 
-History
--------
+Changelog history
+-----------------
 
-{{history}}
+{{changelog}}
 .. $fi
 .. $if defined faq
 

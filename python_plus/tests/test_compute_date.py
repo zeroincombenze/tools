@@ -16,7 +16,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 def version():
@@ -79,3 +79,4 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+

@@ -66,6 +66,15 @@ __version__ = "2.0.11"
 #
 
 
+def get_pyver_4_odoo(odoo_ver):
+    odoo_major = int(odoo_ver.split(".")[0])
+    if odoo_major <= 10:
+        pyver = "2.7"
+    else:
+        pyver = "3.%d" % (int((odoo_major - 10) / 2) + 6)
+    return pyver
+
+
 class MigrateFile(object):
     def __init__(self, ffn, opt_args):
         self.sts = 0
@@ -103,12 +112,8 @@ class MigrateFile(object):
         self.to_major_version = int(opt_args.to_version.split('.')[0])
         if not opt_args.pypi_package:
             if self.to_major_version <= 10:
-                opt_args.python = "2.7"
                 self.def_python_future = True
-            elif self.to_major_version <= 14:
-                opt_args.python = "3.7"
-            else:
-                opt_args.python = "3.8"
+            opt_args.python = get_pyver_4_odoo(opt_args.to_version)
         if opt_args.python:
             self.python_version = opt_args.python
             self.py23 = int(opt_args.python.split(".")[0])
