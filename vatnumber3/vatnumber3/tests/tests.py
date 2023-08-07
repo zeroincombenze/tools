@@ -5,7 +5,7 @@ Unit test for vatnumber
 '''
 
 import unittest
-import vatnumber
+import vatnumber3 as vatnumber
 
 VAT_NUMBERS = [
     ('AT', 'U12345675', True),
@@ -199,7 +199,7 @@ class VatNumberTest(unittest.TestCase):
         Test vies
         '''
         for vat in VIES_NUMBERS:
-            self.assert_(vatnumber.check_vies(vat))
+            self.assertTrue(vatnumber.check_vies(vat))
 
     def test_countries(self):
         '''

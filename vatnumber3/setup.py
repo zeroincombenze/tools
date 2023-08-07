@@ -38,6 +38,7 @@ setup(name='vatnumber3',
     license='GPL-3',
     install_requires=[
         'python-stdnum',
+        'zeep',
         ],
     extras_require={
         'suds': ['suds'],
