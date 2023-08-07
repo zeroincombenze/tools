@@ -273,8 +273,8 @@ Troubleshooting
     `lisa install <pkg>`
 
 
-History
--------
+ChangeLog History
+-----------------
 
 2.0.6 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~
@@ -342,11 +342,6 @@ History
 * [IMP] travis: new improvements (-f -k switches)
 
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
 
 
 |
@@ -372,7 +367,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-05
+Last Update / Ultimo aggiornamento: 2023-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

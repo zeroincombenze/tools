@@ -134,12 +134,12 @@ Proposals for enhancement
 
 {{proposals_for_enhancement}}
 .. $fi
-.. $if defined history
+.. $if defined changelog
 
 ChangeLog History / Cronologia modifiche
 ----------------------------------------
 
-{{history}}
+{{changelog}}
 .. $fi
 .. $if defined faq
 

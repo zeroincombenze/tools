@@ -1,7 +1,7 @@
 
-======
- 0.8.4
-======
+==============
+oerplib3 0.8.4
+==============
 
 
 
@@ -54,7 +54,7 @@ Stable version via Python Package
 
 ::
 
-    pip install 
+    pip install oerplib3
 
 |
 
@@ -78,7 +78,7 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install oerplib3 -U
 
 |
 
@@ -90,16 +90,6 @@ Current version via Git
     cd $HOME
     ./install_tools.sh -U
     source $HOME/devel/activate_tools
-
-
-History
--------
-
-0.8.4 (2023-05-06)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] First porting
-
 
 
 |
@@ -122,9 +112,9 @@ Contributors
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-06
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
