@@ -1,7 +1,7 @@
 
-======
- 2.0.7
-======
+===========
+z0lib 2.0.7
+===========
 
 
 
@@ -49,7 +49,7 @@ Stable version via Python Package
 
 ::
 
-    pip install 
+    pip install z0lib
 
 |
 
@@ -73,7 +73,7 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install z0lib -U
 
 |
 
@@ -87,14 +87,15 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
-History
--------
+ChangeLog History
+-----------------
 
 2.0.7 (2023-07-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced return system exit code
-* [IMP] run_traced: new rtime paramater, show rtime output
+* [IMP] run_traced: new rtime parameter to show rtime output
+* [IMP] New main
 
 2.0.5 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
@@ -153,11 +154,6 @@ History
 * [IMP] set_pybin accept filename
 * [IMP] check_pythonpath removed
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
 
 
 |
@@ -176,13 +172,14 @@ Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* Antonio Maria Vigliotti <info@shs-av.com>
 
 
 |
 
-This module is part of  project.
+This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 
+Last Update / Ultimo aggiornamento: 2023-08-08
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

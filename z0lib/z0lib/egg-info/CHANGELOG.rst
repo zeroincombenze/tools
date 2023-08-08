@@ -2,7 +2,8 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced return system exit code
-* [IMP] run_traced: new rtime paramater, show rtime output
+* [IMP] run_traced: new rtime parameter to show rtime output
+* [IMP] New main
 
 2.0.5 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
