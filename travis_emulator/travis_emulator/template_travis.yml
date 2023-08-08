@@ -53,7 +53,7 @@ before_install:
   - git clone https://github.com/zeroincombenze/tools.git $HOME/tools --single-branch --depth=1
   - $HOME/tools/install_tools.sh -qpt
   - source $HOME/devel/activate_tools -t
-  - vem $HOME/devel/venv install ${PKGNAME}
+  - vem $HOME/devel/venv install $HOME/tools/${PKGNAME}
   # Sometimes complicated website repos need Compass & SaSS:
   #  - rvm install ruby --latest
   #  - gem install bootstrap-sass
