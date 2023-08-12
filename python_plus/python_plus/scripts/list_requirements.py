@@ -29,10 +29,8 @@ __version__ = "2.0.10"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
-# known incompatibilities:
-# - requests: oca-maintainers-tools -> '==2.3.0',
-#             codecov -> '>=2.7.9'
-# Here we assume: Odoo 11.0 use python 3.6, Odoo 12.0 -> 3.7, Odoo 16.0 -> 3.8
+# Here we assume:
+#   Odoo 11.0 use python 3.6, Odoo 12.0 -> 3.7, Odoo 14.0 -> 3.8 Odoo 16.0 -> 3.9
 # If version is 2.7 or 3.5 or 3.6 or 3.7 or 3.8 or 3.9 then it refers to python version
 REQVERSION = {
     "acme_tiny": {"6.1": ">=4.0.3"},
@@ -50,7 +48,7 @@ REQVERSION = {
     },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
-    "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=38.0,<39.0"},
+    "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=23.0,<38.0"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
     "docutils": {"0": "==0.16"},       # By test pkgs
@@ -59,7 +57,8 @@ REQVERSION = {
     "ERPpeek": {"0": "==1.6.1"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
     "flake8": {
-        "6.1": "==3.4.1"     # Tested 3.5.0; 3.6.0 does not work
+        "2.7": "<4.0.0",     # <<Tested 3.5.0; 3.6.0 does not work>>
+        "3.6": ">=4.0.0",
     },
     "gdata": {"6.1": "==2.0.18"},
     "gevent": {
@@ -67,7 +66,7 @@ REQVERSION = {
         "7.0": "==1.0.2",                # by odoo documentation
         "10.0": ">=1.1.2,<=1.4.0",       # by odoo + gevent documentation + test
         "11.0": "==1.5.0",               # by odoo documentation
-        "12.0": ">=1.5.0,<=20.9.0",      # by odoo + gevent documentation
+        "12.0": ">=1.5.0,<=21.12.0",     # https://github.com/gevent/gevent/issues/1899
         "14.0": ">=20.9.0,<=22.10.99",   # by odoo + gevent documentation
         "15.0": "PYVER",
         "3.7": ">=22.10.0,<=22.10.99",
@@ -84,7 +83,18 @@ REQVERSION = {
     "Jinja2": {"6.1": "==2.7.3", "9.0": "==2.8.1", "10.0": "==2.10.1"},
     "jupyter-server": {"0": "<1.20.0"},
     "lessc": {"0": ">=3.0.0"},
-    "lxml": {"6.1": ">=3.4.1", "3.6": "==3.7.1", "3.7": "==4.2.3", "3.8": "==4.6.1"},
+    "lxml": {
+        "6.1": "<=3.3.5",
+        "7.0": ">=3.3.5,<=3.4.1",
+        "9.0": ">=3.4.1,<=3.4.4",
+        "10.0": ">=3.5.0,<=3.6.4",
+        "14.0": ">=4.5.0",
+        "15.0": ">=4.6.5",
+        "3.6": "==3.7.1",
+        "3.7": ">=4.2.3,<=4.6.5",
+        "3.8": ">=4.6.1,<=4.6.5",
+        "3.10": "==4.9.2",
+    },
     "mccabe": {"0": "<0.7.0,>=0.6.0"},
     "Mako": {
         "6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4", "10.0": ">=1.0.4",
@@ -122,9 +132,9 @@ REQVERSION = {
         "12.0": ">=2.8.3",
         "0": ">=2.7.4",
     },
-    "pycodestyle": {"0": "==2.3.1"},
+    # "pycodestyle": {"0": "==2.3.1"},
     "pydot": {"6.1": "==1.0.2", "8.0": "==1.2.3"},
-    "pyflakes": {"0": "pyflakes<1.6.0,>=1.5.0"},
+    # "pyflakes": {"0": "pyflakes<1.6.0,>=1.5.0"},
     "Pygments": {
         "10.0": "==2.2.0",
         "3.5": ">=2.7.0"
@@ -137,7 +147,11 @@ REQVERSION = {
         "3.7": "<2.15.0",
     },
     "pylint-odoo": {
-        "2.7": "==3.5.0",
+        "6.1": "<3.0.0",        # to match lxml
+        "11.0": "PYVER",
+        "16.0": ">=7.0.0",      # from pypi documentation
+        "15.0": ">=5.0.1",      # from pypi documentation
+        "13.0": ">=3.3.1",      # from pypi documentation
         "3.5": "<=8.0.0",
         "3.8": ">=3.5.0,<=8.0.0",
     },
@@ -146,7 +160,7 @@ REQVERSION = {
         "3.5": "==0.5",
         "3.6": ">=0.7",
     },
-    "pyOpenSSL": {"0": ">=16.2.0", "16.0": ">=23.0"},  # by MQT
+    "pyOpenSSL": {"0": ">=16.2.0,<19.0"},
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
@@ -176,14 +190,21 @@ REQVERSION = {
     "readme-renderer" : {"2.7": "<25.0", "3.5": "<29.0", "3.6": ">=30.0"},
     "restructuredtext_lint": {"6.1": "==0.12.2", "0": "==1.1.3"},
     "reportlab": {"6.1": "==3.1.44", "10.0": "==3.3.0"},
-    "requests": {"6.1": "==2.6.0", "10.0": ">=2.11.1"},
+    "requests": {
+        "6.1": "==2.6.0",
+        "10.0": ">=2.11.1,<=2.20.0",
+        "13.0": ">=2.11.1,<=2.21.0",
+        "14.0": "<=2.25.1",
+        "3.8": ">=2.22.0",
+        "3.9": ">=2.25.1",
+    },
     "sentry-sdk": {"0": "<1.12.0"},
     "simplejson": {"6.1": "==3.5.3", "10.0": ">=3.5.3"},
     "six": {"6.1": "==1.7.3", "7.0": "==1.9.0", "10.0": ">=1.10.0"},
     "Sphinx": {"2.7": "==1.2.3", "3.7": ">=2.4.0"},
     "suds": {"6.1": "==0.4"},
     "suds-jurko": {"6.1": "==0.6"},
-    "translators": {"0": "<5.1.0"},
+    "translators": {"0": "<5.0.0"},
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
@@ -438,6 +459,7 @@ PIP_BASE_PACKAGES = [
     "six",
     "python-stdnum",
     # "vatnumber",
+    # "wheel",
 ]
 PIP3_BASE_PACKAGES = []
 PIP_ODOO_BASE_PACKAGES = [
@@ -654,27 +676,16 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-    # if odoo_ver and with_version and not item_ver:
     if (odoo_ver or pyver) and with_version:
+        def_v = "0" if "0" in REQVERSION.get(item, {}) else False
         if item in REQVERSION:
             min_v = False
+            has_py3 = False
             if odoo_ver:
-                # for v in (
-                #     "6.1",
-                #     "7.0",
-                #     "8.0",
-                #     "9.0",
-                #     "10.0",
-                #     "11.0",
-                #     "12.0",
-                #     "13.0",
-                #     "14.0",
-                #     "15.0",
-                #     "16.0",
-                # ):
                 for vv in sorted([(comp_ver(x), x) for x in REQVERSION[item].keys()]):
                     v = vv[1]
-                    # if v in REQVERSION[item] and comp_ver(v) <= comp_ver(odoo_ver):
+                    if v.split(".")[0] == "3":
+                        has_py3 = True
                     if comp_ver(v) < comp_ver("6.1"):
                         continue
                     if comp_ver(v) <= comp_ver(odoo_ver):
@@ -684,13 +695,16 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                         min_v = v
                     if comp_ver(v) >= comp_ver(odoo_ver):
                         break
-            # if pyver and (not min_v or comp_ver(min_v) <= comp_ver("10.0")
-            #               and pyver.startswith("3")):
+            if (min_v and REQVERSION[item][min_v] != "PYVER"
+                    and (comp_ver(min_v) > comp_ver("10.0") or not has_py3)):
+                full_item = merge_item_version(
+                    full_item,
+                    "%s%s" % (item, REQVERSION[item][min_v]),
+                    ignore_error=True)
+                def_v = False
             if not min_v or (comp_ver(min_v) <= comp_ver("10.0")
                              and pyver.startswith("3")):
-                # for v in ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9"):
-                #     if v == "2.7" and odoo_ver and min_v:
-                #         continue
+                min_v = False
                 for vv in sorted([(comp_ver(x), x) for x in REQVERSION[item].keys()]):
                     v = vv[1]
                     if comp_ver(v) < comp_ver("2.0") or comp_ver(v) >= comp_ver("4.0"):
@@ -703,7 +717,6 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                                      and comp_ver(v) < comp_ver("3.0")))
                     ):
                         continue
-                    # if v in REQVERSION[item] and comp_ver(v) <= comp_ver(pyver):
                     if comp_ver(v) <= comp_ver(pyver):
                         if REQVERSION[item][v] == "PYVER":
                             min_v = False
@@ -711,13 +724,18 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                         min_v = v
                     if comp_ver(v) >= comp_ver(pyver):
                         break
-            if not min_v and "0" in REQVERSION[item]:
-                min_v = "0"
             if min_v and REQVERSION[item][min_v] != "PYVER":
                 full_item = merge_item_version(
                     full_item,
                     "%s%s" % (item, REQVERSION[item][min_v]),
                     ignore_error=True)
+                def_v = False
+            if def_v:
+                full_item = merge_item_version(
+                    full_item,
+                    "%s%s" % (item, REQVERSION[item][def_v]),
+                    ignore_error=True)
+
     item = python_plus.qsplit(item)[0].strip()
     full_item = python_plus.qsplit(full_item)[0].strip()
     full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())

@@ -63,7 +63,7 @@ def run_traced(cmd,
                disable_alias=None,
                is_alias=None,
                rtime=False):
-    """Run system command with log (for trace) and retrun system status"""
+    """Run system command with log (for trace) and return system status"""
 
     def call_os(args, verbose=False, with_shell=None, rtime=False):
         prcout = prcerr = ""
