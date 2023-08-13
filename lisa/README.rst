@@ -1,6 +1,6 @@
 
 ==========
-lisa 2.0.2
+lisa 2.0.3
 ==========
 
 
@@ -88,6 +88,31 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
+ChangeLog History
+-----------------
+
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] liba_bld_ods: fixes & improvements
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld_ods: stable version
+
+2.0.0.2 (2022-09-29)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld_ods: improvements
+
+2.0.0.1 (2022-09-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] wsl2-systemd: experimental systemd for wsl2
+
+
+
 |
 |
 
@@ -110,7 +135,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-06
+Last Update / Ultimo aggiornamento: 2023-08-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
@@ -122,10 +147,10 @@ Last Update / Ultimo aggiornamento: 2023-08-06
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
