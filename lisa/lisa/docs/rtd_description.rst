@@ -21,7 +21,7 @@ You can easily write portable script to install packages on every Linux distribu
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-06
+Last Update / Ultimo aggiornamento: 2023-08-13
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
@@ -33,10 +33,10 @@ Last Update / Ultimo aggiornamento: 2023-08-06
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
