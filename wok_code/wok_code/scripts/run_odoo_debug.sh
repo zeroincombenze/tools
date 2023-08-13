@@ -162,7 +162,7 @@ replace_web_module() {
 }
 
 set_confn() {
-    run_traced_debug "sed -e \"s|^admin_passwd *=.*|admin_passwd = admin|\" -i $TEST_CONFN"
+    [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^admin_passwd *=.*|admin_passwd = admin|\" -i $TEST_CONFN"
     run_traced_debug "sed -e \"s|^server_wide_modules *=|# server_wide_modules =|\" -i $TEST_CONFN"
     if [[ $opt_dae -ne 0 ]]; then
       run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $LOGFILE|\" -i $TEST_CONFN"
