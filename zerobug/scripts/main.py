@@ -13,9 +13,9 @@ from Python 2 to Python 3 and still have it run on Python 2.
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This package is released with an nice command:
+This package is released with a nice command:
 **vem** that is an interactive tool with some nice features to manage standard
-virtual environment and it is osx/darwin compatible.
+virtual environment.
 """
 import os
 import sys
