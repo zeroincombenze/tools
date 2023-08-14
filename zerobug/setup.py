@@ -34,7 +34,7 @@ else:
             "future",
             "coverage",
             # "pylint-odoo<=5.0.0",
-            "pylint-odoo==3.5.0",
+            "pylint-odoo<=3.5.0",
             "python-magic",
             "python-plus",
             "os0",
