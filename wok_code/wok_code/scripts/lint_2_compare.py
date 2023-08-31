@@ -193,12 +193,22 @@ def remove_comment(opt_args, root, files, compare_path=None):
 
 
 def lintdir(opt_args, left_path, right_path):
+    opts = " -ia --string-normalization"
+    if opt_args.odoo_version:
+        opts += (" -b" + opt_args.odoo_version)
+    if opt_args.from_left_version:
+        opts += (" -F" + opt_args.from_left_version)
     z0lib.run_traced(
-        "arcangelo %s -ia --string-normalization" % left_path,
+        "arcangelo %s %s" % (left_path, opts),
         verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
+    opts = " -ia --string-normalization"
+    if opt_args.odoo_version:
+        opts += (" -b" + opt_args.odoo_version)
+    if opt_args.from_right_version:
+        opts += (" -F" + opt_args.from_right_version)
     z0lib.run_traced(
-        "arcangelo %s -ia --string-normalization" % right_path,
+        "arcangelo %s %s" % (right_path, opts),
         verbose=opt_args.dry_run, dry_run=opt_args.dry_run
     )
     if opt_args.ignore_doc:
@@ -244,7 +254,9 @@ def main(cli_args=None):
         "-i", "--ignore-po",
         action="store_true",
         help="ignore PO files")
+    parser.add_argument("-l", "--from-left-version", metavar="ODOO-VERSION")
     parser.add_argument("-m", "--meld", action="store_true", help="Use meld")
+    parser.add_argument("-o", "--from-right-version", metavar="ODOO-VERSION")
     parser.add_argument(
         "-P", "--purge",
         action="store_true",

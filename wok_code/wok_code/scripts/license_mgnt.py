@@ -192,33 +192,34 @@ class License:
             return from_comment_line(line[1:].strip())
         return False, False, False, False, False
 
-    def summary_authors(self):
+    def summary_authors(self, summarize=False):
         author = ""
         if self.org_ids:
-            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
                 if org_id in self.org_ids:
                     author = self.org_ids[org_id][0]
                     break
-            if author and len(self.org_ids) < 3:
+            if author and (not summarize or len(self.org_ids) < 3):
                 for org_id in self.org_ids.keys():
                     if self.org_ids[org_id][0] not in author:
-                        author = "%s, %s" % (author, self.org_ids[org_id][0])
+                        author = "%s,%s" % (author, self.org_ids[org_id][0])
             elif author and len(self.org_ids) >= 3:
                 author += " and other partners"
             else:
                 for org_id in self.org_ids.keys():
-                    author = "%s, %s" % (author, self.org_ids[org_id][0])
+                    author = "%s,%s" % (author, self.org_ids[org_id][0])
                 author = author[2:]
         elif self.authors:
             for item in self.authors.keys():
-                author = "%s, %s" % (author, self.authors[item][0])
+                author = "%s,%s" % (author, self.authors[item][0])
             author = author[2:]
         return author
 
-    def get_website(self):
+    def get_website(self, repo=None, module=None):
         website = ""
+        org_id = False
         if self.org_ids:
-            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]
                     break
@@ -232,12 +233,19 @@ class License:
                 website = self.authors[item][1]
                 if website:
                     break
+        if repo and org_id == "oca":
+            website += ("/" + repo)
+        elif repo and org_id == "zero":
+            if repo.startswith("l10n-italy"):
+                website += "/fatturazione-elettronica"
+            else:
+                website += "/crm"
         return website
 
     def get_maintainer(self):
         maintainer = ""
         if self.org_ids:
-            for org_id in ("oca", "powerp", "zero", "shs", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
                 if org_id in self.org_ids:
                     maintainer = COPY[org_id].get("devman", "")
                     if maintainer:
