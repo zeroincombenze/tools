@@ -701,7 +701,7 @@ def main(cli_args=None):
     parser.add_argument(
         "--git-merge-conflict",
         metavar="left|right",
-        help="Keep specific code after git merge conflict: value is left or right")
+        help="Keep left or right side code after git merge conflict")
     parser.add_argument('--ignore-pragma', action='store_true')
     parser.add_argument('-i', '--in-place', action='store_true')
     parser.add_argument('-j', '--python')

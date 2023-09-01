@@ -309,12 +309,11 @@ Acknoledges to
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
-                # os.system('%s -B' % cmd)
                 sts, stdout, stderr = z0lib.run_traced("%s -Bw -G %s" % (cmd, gitorg))
                 if sts:
                     sts += self.Z.test_result(
                         z0ctx,
-                        "README.rst #" + odoo_version,
+                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
                         0,
                         sts,
                     )
@@ -322,21 +321,21 @@ Acknoledges to
                 if odoo_version == "7.0":
                     sts += self.Z.test_result(
                         z0ctx,
-                        "README.rst #" + odoo_version,
+                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
                         README_7,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
                     )
                 elif odoo_version == "10.0":
                     sts += self.Z.test_result(
                         z0ctx,
-                        "README.rst #" + odoo_version,
+                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
                         README_10,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
                     )
                 elif odoo_version == "12.0":
                     sts += self.Z.test_result(
                         z0ctx,
-                        "README.rst #" + odoo_version,
+                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
                         README_12,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
                     )

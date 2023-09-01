@@ -54,19 +54,26 @@ class License:
         self.contributors = {}
         self.cur_year = datetime.today().year
         path = path or "."
-        author_file = os.path.join(path, "egg-info", "authors.txt")
-        if not os.path.isfile(author_file):
-            author_file = os.path.join(path, "readme", "AUTHORS.rst")
-        if os.path.isfile(author_file):
-            self.parse_file(author_file)
-        author_file = os.path.join(path, "egg-info", "contributors.txt")
-        if not os.path.isfile(author_file):
-            author_file = os.path.join(path, "readme", "CONTRIBUTORS.rst")
-        if os.path.isfile(author_file):
-            self.parse_file(author_file)
-        author_file = os.path.join(path, "egg-info", "acknowledges.txt")
-        if os.path.isfile(author_file):
-            self.parse_file(author_file)
+        for item in ("authors", "contributors", "acknowledges.txt"):
+            for docdir in ("readme", "egg-info"):
+                fn = os.path.join(path, docdir, item.upper() + ".rst")
+                if os.path.isfile(fn):
+                    self.parse_file(fn)
+                    break
+                fn = os.path.join(path, docdir, item + ".rst")
+                if os.path.isfile(fn):
+                    self.parse_file(fn)
+                    break
+                fn = os.path.join(path, docdir, item + ".txt")
+                if os.path.isfile(fn):
+                    self.parse_file(fn)
+                    break
+        self.gpl2license = {
+            "agpl": "AGPL-3", "lgpl": "LGPL-3", "opl": "OPL-1", "oee": "OEE-1"
+        }
+        self.license2gpl = {
+            "AGPL-3": "agpl", "LGPL-3": "lgpl", "OPL-1": "opl", "OEE-1": "oee"
+        }
 
     def add_copyright(self, org_id, name, website, email, years):
         if org_id and org_id not in self.org_ids:
@@ -104,7 +111,7 @@ class License:
                     del self.contributors[name]
                     break
 
-    def extract_info_from_line(self, line):
+    def extract_info_from_line(self, line, force=False):
         """ "Return org_id, name, website, email, years from line"""
 
         def from_rst_line(line):
@@ -131,7 +138,7 @@ class License:
                 else:
                     website = ".".join(os.path.basename(url).split(".")[-2:])
                     for kk, item in COPY.items():
-                        if item["website"].endswith(website):
+                        if item["website"].endswith(website) or website.lower() == kk:
                             org_id = kk
                             website = item["website"]
                             name = item["author"]
@@ -190,6 +197,8 @@ class License:
             return from_rst_line(line[1:].strip())
         elif line.startswith("#"):
             return from_comment_line(line[1:].strip())
+        elif force:
+            return from_rst_line(line.strip())
         return False, False, False, False, False
 
     def summary_authors(self, summarize=False):
@@ -264,3 +273,18 @@ class License:
             else:
                 license = "lgpl"
         return license
+
+    def license_text(self, gpl):
+        return self.gpl2license.get(gpl, "AGPL-3")
+
+    def license_code(self, license):
+        return self.license2gpl.get(license, "agpl")
+
+    def get_info_from_id(self, git_orgid):
+        if git_orgid in COPY:
+            return (
+                git_orgid,
+                COPY[git_orgid]["author"],
+                COPY[git_orgid]["website"],
+                "", ""
+            )

@@ -174,7 +174,7 @@ ALTERNATE_NAMES = {
     "changelog": "history",
     "__manifest__": "__init__",
 }
-DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
+# DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
 ZERO_PYPI_PKGS = "wok_code"
 ZERO_PYPI_SECTS = "description usage"
 LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
@@ -283,33 +283,50 @@ def print_green_message(text):
     print("%s%s%s" % (GREEN, text, CLEAR))
 
 
+def get_actual_fqn(path, filename):
+    if "." in filename:
+        fqn = pth.join(path, filename)
+        if pth.isfile(fqn):
+            return fqn
+    if pth.basename(pth.abspath(path)) in ("readme", "egg-info", "docs"):
+        docdirs = [pth.basename(pth.abspath(path))]
+        path = pth.dirname(pth.abspath(path))
+    else:
+        docdirs = ("readme", "egg-info")
+    for docdir in docdirs:
+        if "." in filename:
+            fqn = pth.join(path, docdir, filename)
+            if pth.isfile(fqn):
+                return fqn
+        section, ext = pth.splitext(filename)
+        fqn = pth.join(path, docdir, section.upper() + ".rst")
+        if pth.isfile(fqn):
+            return fqn
+        fqn = pth.join(path, docdir, section + ".rst")
+        if pth.isfile(fqn):
+            return fqn
+        fqn = pth.join(path, docdir, section + ".txt")
+        if pth.isfile(fqn):
+            return fqn
+    if section in ALTERNATE_NAMES:
+        return get_actual_fqn(path, ALTERNATE_NAMES[section])
+    docdir = "readme" if pth.isdir(pth.join(path, "readme")) else "egg-info"
+    return pth.join(path, docdir, section.upper() + ".rst")
+
+
 def get_full_fn(ctx, src_path, filename):
-    section, ext = pth.splitext(filename)
     if src_path.startswith("./"):
         dirname = pth.join(
             ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"]))
     else:
         dirname = pth.join(src_path.replace("${p}", ctx["product_doc"]))
-    full_fn = pth.join(dirname, filename)
-
+    fqn = get_actual_fqn(dirname, filename)
     if (
-            pth.basename(pth.dirname(full_fn)) == "docs" and
-            not pth.isdir(pth.dirname(full_fn))
+            pth.basename(pth.dirname(fqn)) == "docs" and
+            not pth.isdir(pth.dirname(fqn))
     ):
-        full_fn = pth.join(
-            pth.dirname(pth.dirname(full_fn)), "egg-info", filename
-        )
-
-    if not pth.isfile(full_fn):
-        full_fn = pth.join(dirname, section.upper() + ext)
-    if not pth.isfile(full_fn) and section in LIST_TAG:
-        full_fn = pth.join(dirname, section + ".txt")
-    if not pth.isfile(full_fn) and section in LIST_TAG:
-        full_fn = pth.join(dirname, section.upper() + ".txt")
-    if not pth.isfile(full_fn) and section in ALTERNATE_NAMES:
-        full_fn = pth.join(dirname, ALTERNATE_NAMES[section] + ext)
-
-    return full_fn
+        fqn = get_actual_fqn(pth.dirname(pth.dirname(fqn)), filename)
+    return fqn
 
 
 def iter_template_path(ctx, debug_mode=None, body=None):
@@ -353,43 +370,43 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             ctx, debug_mode=ctx["debug_template"], body=body
         ):
             if body:
-                full_fn = get_full_fn(ctx, src_path, product_template)
-                if pth.isfile(full_fn):
+                fqn = get_full_fn(ctx, src_path, product_template)
+                if pth.isfile(fqn):
                     found = True
                     break
 
-                full_fn = get_full_fn(ctx, src_path, layered_template)
-                if pth.isfile(full_fn):
+                fqn = get_full_fn(ctx, src_path, layered_template)
+                if pth.isfile(fqn):
                     found = True
                     break
 
-            full_fn = get_full_fn(ctx, src_path, template)
-            if pth.isfile(full_fn):
+            fqn = get_full_fn(ctx, src_path, template)
+            if pth.isfile(fqn):
                 found = True
                 break
 
             if template == "acknowledges.txt":
-                full_fn = get_full_fn(ctx, src_path, "CONTRIBUTORS.txt")
-                if pth.isfile(full_fn):
+                fqn = get_full_fn(ctx, src_path, "CONTRIBUTORS.txt")
+                if pth.isfile(fqn):
                     found = True
                     break
         if not body and not found:
-            full_fn = ""
-        return found, full_fn
+            fqn = ""
+        return found, fqn
 
     body = True if template[0:7] not in ("header_", "footer_") else False
-    found, full_fn = search_tmpl(ctx, template, body)
+    found, fqn = search_tmpl(ctx, template, body)
     if not found:
         if not body:
-            return full_fn
+            return fqn
         def_template = "default_" + template
-        found, full_fn = search_tmpl(ctx, def_template, False)
+        found, fqn = search_tmpl(ctx, def_template, False)
     if not found:
         if ignore_ntf:
-            full_fn = ""
+            fqn = ""
         else:
             raise IOError("Template %s not found" % template)
-    return full_fn
+    return fqn
 
 
 def clean_summary(summary):
@@ -1571,24 +1588,10 @@ def read_all_manifests(ctx, path=None, module2search=None):
 
 def manifest_item(ctx, item):
     q = ctx["quote_with"]
-    if item == "website":
-        if ctx["set_authinfo"]:
-            text = ctx["license_mgnt"].get_website(repo=ctx["repos_name"])
-        else:
-            text = ctx["manifest"].get(
-                item, ctx["license_mgnt"].get_website(repo=ctx["repos_name"]))
-        target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, text, q)
-    elif item == "maintainer":
-        if ctx["set_authinfo"]:
-            text = ctx["license_mgnt"].get_maintainer()
-        else:
-            text = ctx["manifest"].get(item, ctx["license_mgnt"].get_maintainer())
-        target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, text, q)
+    if item in ("website", "maintainer"):
+        target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, ctx[item], q)
     elif item == "author":
-        # if ctx["set_authinfo"]:
-        #     text = ctx["license_mgnt"].summary_authors()
-        #  else:
-        text = ctx["manifest"].get(item, ctx["license_mgnt"].summary_authors())
+        text = ctx["manifest"][item]
         if len(text) < 70:
             target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, text, q)
         else:
@@ -1656,7 +1659,7 @@ def manifest_item(ctx, item):
 
 def read_dependecies_license(ctx):
     def_license = "LGPL-3" if ctx["odoo_majver"] > 8 else "AGPL-3"
-    license = ctx["manifest"].get("license", def_license)
+    license = ctx["manifest"]["license"]
     if license == "AGPL-3":
         return
     saved_manifest = ctx["manifest"].copy()
@@ -1691,60 +1694,9 @@ def manifest_contents(ctx):
             break
         target += line + "\n"
     target += "{\n"
-    if ctx["opt_gpl"] not in ("agpl", "lgpl", "opl", "oee"):
-        ctx["opt_gpl"] = ctx["license_mgnt"].get_license(odoo_majver=ctx["odoo_majver"])
-    AUTHINFO = {
-        "license": {"agpl": "AGPL-3", "lgpl": "LGPL-3", "opl": "OPL-1", "oee": "OEE-1"}[
-            ctx["opt_gpl"]
-        ],
-        "author": ctx["license_mgnt"].summary_authors(),
-        "website": ctx["license_mgnt"].get_website(repo=ctx["repos_name"]),
-        "maintainer": ctx["license_mgnt"].get_maintainer(),
-    }
     for item in MANIFEST_ITEMS:
         if item not in ctx["manifest"] and item in MANIFEST_ITEMS_REQUIRED:
-            if item == "license":
-                ctx["manifest"][item] = AUTHINFO[item]
-            elif item == "authors":
-                ctx["manifest"][item] = ctx["license_mgnt"].summary_authors()
-            elif item in ctx:
-                ctx["manifest"][item] = ctx[item]
-        elif (
-            item == "license"
-            and ctx["manifest"][item] != AUTHINFO[item]
-            and not ctx["suppress_warning"]
-        ):
-            print_red_message(
-                "*** Warning: manifest license %s does not match required %s!"
-                % (ctx["manifest"][item], AUTHINFO[item])
-            )
-            print("Update manifest file %s!" % ctx["manifest_filename"])
-        elif (
-                item == "author"
-                and ctx["manifest"].get(item)
-                and ctx["manifest"][item] != AUTHINFO[item]
-        ):
-            print_red_message(
-                "*** Warning: manifest %s %s does not match required %s!"
-                % (item, ctx["manifest"][item], AUTHINFO[item])
-            )
-            print("Values out of manifest are merged")
-            authors = (ctx["manifest"][item].split(","))
-            for x in AUTHINFO[item].split(","):
-                if x not in authors:
-                    authors.append(x)
-            ctx["manifest"][item] = AUTHINFO[item] = ",".join(authors)
-        elif (
-            item in ("website", "maintainer")
-            and ctx["manifest"].get(item)
-            and ctx["manifest"][item] != AUTHINFO[item]
-            and not ctx["suppress_warning"]
-        ):
-            print_red_message(
-                "*** Warning: manifest %s %s does not match required %s!"
-                % (item, ctx["manifest"][item], AUTHINFO[item])
-            )
-            print("Use -W switch to force required value!")
+            ctx["manifest"][item] = ctx[item]
         elif item == "depends":
             modules = []
             for module in ctx["manifest"].get(item, []):
@@ -1767,9 +1719,9 @@ def manifest_contents(ctx):
                 else:
                     modules.append(module)
             ctx["manifest"][item] = modules
-        if item in ctx["manifest"] or (
-            ctx["set_authinfo"] and item in MANIFEST_ITEMS_REQUIRED
-        ):
+        elif ctx.get(item):
+            ctx["manifest"][item] = ctx[item]
+        if item in ctx["manifest"]:
             target += manifest_item(ctx, item)
     for item in list(ctx["manifest"].keys()):
         if item != "description" and item not in MANIFEST_ITEMS:
@@ -2040,48 +1992,67 @@ def read_purge_readme(ctx, source):
     )
 
 
-def merge_lists(left, right):
-    left = left.split("\n")
-    right = right.split("\n")
-    for item in right:
-        if item not in left:
-            left.append(item)
-    return "\n".join(left)
+def merge_lists(ctx, left, right):
+    """left (str), right(list)"""
+    lefts = []
+    for ln in left.split(",") if "," in left and "\n" not in left else left.split("\n"):
+        if ln:
+            res = ctx["license_mgnt"].extract_info_from_line(ln, force=True)
+            if res[1]:
+                lefts.append(res)
+    if isinstance(right, (list, tuple)):
+        rights = right
+    else:
+        rights = []
+        for ln in (
+                right.split(",")
+                if "," in right and "\n" not in right else right.split("\n")):
+            if ln:
+                res = ctx["license_mgnt"].extract_info_from_line(ln, force=True)
+                if res[1]:
+                    rights.append(res)
+    for right_item in rights:
+        found = False
+        for left_item in lefts:
+            if (
+                    (right_item[0] and right_item[0] == left_item[0])
+                    or (right_item[1] and right_item[1] == left_item[1])
+                    or (right_item[2] and right_item[2] == left_item[2])
+                    or (right_item[3] and right_item[3] == left_item[3])
+            ):
+                found = True
+                for ix in range(3):
+                    if not left_item[ix] and right_item[ix]:
+                        left_item[ix] = right_item[ix]
+                break
+        if not found:
+            lefts.append(right_item)
+    return lefts
 
 
-def purge_list(source):
-    source = (
-        source.replace("\n\n", "\n")
-        .replace("`__", "")
-        .replace("`", "")
-        .replace("--\n", "--\n\n")
-    )
-    lines = source.split("\n")
-    target = []
-    for line in lines:
-        if not line or line not in target:
-            target.append(line)
-    source = "\n".join(target)
-    while (
-        source != "\n" and source.startswith("\n") and source[1] in ("*", "-", "#", ".")
-    ):
-        source = source[1:]
-    if source and not source.endswith("\n"):
-        source = source + "\n"
-    return source
+def item_2_set(item, field=None):
+    if isinstance(item, dict):
+        return set([x[0] for x in item.values()])
+    return set([x[field] for x in item])
+
+
+def item_2_test(ctx, section):
+    if section == "authors":
+        ctx["manifest"]["author"] = ",".join([x[1] for x in ctx[section]])
+        ctx[section] = "\n".join(
+            ["* %s <%s>" % ((x[1], x[2])) for x in ctx[section]])
+    elif section == "maintainer":
+        ctx[section] = "%s <%s>" % (ctx[section][0][1],
+                                    ctx[section][0][3] or ctx[section][0][2])
+        ctx["manifest"]["author"] = ctx[section]
+    else:
+        ctx[section] = "\n".join(
+            ["* %s <%s>" % ((x[1], x[3] or x[2])) for x in ctx[section]])
 
 
 def write_egg_info(ctx):
     def write_file(path, section):
-        if pth.isfile(pth.join(path, "%s.rst" % section)):
-            fn = pth.join(path, "%s.rst" % section)
-        elif pth.isfile(pth.join(path, "%s.rst" % section.upper())):
-            fn = pth.join(path, "%s.rst" % section.upper())
-        elif section == "changelog" and pth.isfile(
-                pth.join(path, "CHANGELOG.rst")):
-            fn = pth.join(path, "CHANGELOG.rst")
-        else:
-            fn = pth.join(path, "%s.rst" % section.upper())
+        fqn = get_actual_fqn(path, section)
         force_write = False
         if (
             section == "changelog"
@@ -2090,8 +2061,8 @@ def write_egg_info(ctx):
         ):
             ctx[section] = ctx["histories"]
             force_write = True
-        if force_write or pth.isfile(fn):
-            with open(fn, "w") as fd:
+        if force_write or pth.isfile(fqn):
+            with open(fqn, "w") as fd:
                 if section == "changelog" and not ctx[section]:
                     header = "%s (%s)" % (
                         ctx["manifest"].get("version", ""),
@@ -2100,46 +2071,19 @@ def write_egg_info(ctx):
                     dash = "~" * len(header)
                     line = "* [IMP] Created documentation directory"
                     ctx[section] = "%s\n%s\n\n%s\n" % (header, dash, line)
-                # if path == "./readme" and section == "contributors":
-                #     fd.write(_c(ctx["authors"]))
                 fd.write(_c(ctx[section.lower()]))
 
-    if pth.isdir("./egg-info"):
-        path = "./egg-info"
-    elif pth.isdir("./readme"):
-        path = "./readme"
-    else:
-        path = None
-    if path:
-        for section in (
-            "authors",
-            "contributors",
-            "description",
-            "descrizione",
-            "changelog",
-        ):
-            write_file(path, section)
+    for section in (
+        "authors",
+        "contributors",
+        "description",
+        "descrizione",
+        "changelog",
+    ):
+        write_file(".", section)
 
 
 def generate_readme(ctx):
-    def validate_authors_contributors(ctx):
-        contributors = ""
-        for line in ctx["contributors"].split("\n"):
-            if not line:
-                continue
-            (org_id, name, website, email, years) = ctx[
-                "license_mgnt"
-            ].extract_info_from_line(line)
-            if website and not email:
-                ctx["authors"] = "%s\n%s\n" % (ctx["authors"], line)
-                continue
-            contributors += line + "\n"
-        for section in LIST_TAG:
-            if section == "contributors":
-                ctx[section] = purge_list(contributors)
-            else:
-                ctx[section] = purge_list(ctx[section])
-        return ctx
 
     def set_sommario(ctx):
         if not ctx["sommario"]:
@@ -2193,6 +2137,7 @@ def generate_readme(ctx):
             read_manifest(ctx)
         return ctx
 
+    # === Starting generate ===
     transodoo.read_stored_dict(ctx)
     ctx["HOME_DEVEL"] = os.environ.get("HOME_DEVEL") or pth.join(
         os.environ["HOME"], "devel"
@@ -2251,6 +2196,19 @@ def generate_readme(ctx):
             if re.match(r"\s*$", ctx[tag]):
                 ctx[tag] = ""
 
+    for section in LIST_TAG:
+        tag_items = (
+            ctx[section].split(",")
+            if "," in ctx[section] and "\n" not in ctx[section]
+            else ctx[section].split("\n")
+        )
+        ctx[section] = []
+        for ln in tag_items:
+            if ln:
+                res = ctx["license_mgnt"].extract_info_from_line(ln)
+                if res[1]:
+                    ctx[section].append(res)
+
     if ctx["odoo_layer"]:
         if not ctx["configuration"]:
             ctx["configuration"] = parse_local_file(
@@ -2262,14 +2220,93 @@ def generate_readme(ctx):
             )[1]
         if not ctx["description"] or ctx["description"] == "N/A":
             ctx["description"] = ctx["rdme_description"]
-        ctx["authors"] = merge_lists(ctx["rdme_authors"], ctx["authors"])
-        ctx["contributors"] = merge_lists(ctx["rdme_contributors"], ctx["contributors"])
 
-    ctx = validate_authors_contributors(ctx)
+        section = "authors"
+        if ctx["manifest"].get("author"):
+            ctx[section] = merge_lists(
+                ctx, ctx["manifest"]["author"], ctx[section])
+        else:
+            ctx[section] = merge_lists(
+                ctx, ctx["rdme_authors"], ctx[section])
+        found = False
+        for git_org in ctx[section]:
+            if ctx["git_orgid"] == git_org[0]:
+                found = True
+                break
+        if not found:
+            print("Warning! Organization %s not found in documents" % ctx["git_orgid"])
+            ctx[section].append(ctx["license_mgnt"].get_info_from_id(ctx["git_orgid"]))
+        left = item_2_set(ctx["license_mgnt"].org_ids, field="author")
+        right = item_2_set(ctx[section], field=1)
+        if (
+                not ctx["suppress_warning"]
+                and left != right
+        ):
+            print_red_message(
+                "*** Warning: authors %s in documentation do not match expected %s!" % (
+                    ",".join(left), ",".join(right))
+            )
+
+        section = "contributors"
+        ctx[section] = merge_lists(ctx, ctx["rdme_contributors"], ctx[section])
+        section = "website"
+        if ctx["set_authinfo"]:
+            ctx[section] = ctx["license_mgnt"].get_website(
+                repo=ctx["repos_name"]) or ctx["manifest"].get(section, "")
+        else:
+            ctx[section] = ctx["manifest"].get(
+                section, ctx["license_mgnt"].get_website(repo=ctx["repos_name"]))
+        if not ctx["suppress_warning"] and ctx["manifest"][section] != ctx[section]:
+            print_red_message(
+                "*** Warning: website %s in the manifest replaced by %s!" % (
+                    ctx["manifest"][section], ctx[section])
+            )
+        ctx["manifest"][section] = ctx[section]
+        section = "maintainer"
+        if ctx["set_authinfo"]:
+            ctx[section] = ctx["manifest"].get(
+                section, ctx["license_mgnt"].get_maintainer())
+        elif not ctx[section]:
+            ctx[section] = merge_lists(
+                ctx, ctx["manifest"].get(section, ""),
+                ctx["license_mgnt"].get_maintainer())
+        else:
+            res = ctx["license_mgnt"].extract_info_from_line(ctx[section])
+            if res[1]:
+                ctx[section] = [res]
+            else:
+                ctx[section] = []
+        section = "license"
+        if ctx["opt_gpl"]:
+            left = ctx["license_mgnt"].license_code(ctx["manifest"].get(section))
+            right = ctx["opt_gpl"]
+            if (
+                    not ctx["suppress_warning"]
+                    and left != right
+            ):
+                print_red_message(
+                    "*** Warning: manifest license %s does not match expected %s!" % (
+                        ctx["license_mgnt"].license_text(left),
+                        ctx["license_mgnt"].license_text(right)
+                        )
+                )
+        if ctx["opt_gpl"] or not ctx["manifest"].get(section):
+            if ctx["opt_gpl"] not in ("agpl", "lgpl", "opl", "oee"):
+                ctx["opt_gpl"] = ctx["license_mgnt"].get_license(
+                    odoo_majver=ctx["odoo_majver"])
+            ctx[section] = ctx["license_mgnt"].license_text(ctx["opt_gpl"])
+            ctx["manifest"][section] = ctx[section]
+        else:
+            ctx[section] = ctx["manifest"][section]
+            ctx["opt_gpl"] = ctx["license_mgnt"].license_code(ctx[section])
+
     ctx = set_sommario(ctx)
     ctx = set_values_of_manifest(ctx)
     if ctx["module_name"]:
         read_dependecies_license(ctx)
+    for section in LIST_TAG:
+        if isinstance(ctx[section], (list, tuple)):
+            item_2_test(ctx, section)
     if ctx["set_authinfo"]:
         write_egg_info(ctx)
     if ctx["write_html"]:
