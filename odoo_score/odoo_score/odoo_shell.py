@@ -3628,8 +3628,8 @@ def rebuild_database(ctx):
             ctx,
             resource_journal,
             ["|",
-             ("type", "not in", ["sale", "purchase"])
-                , ("code", "in", ("SAJ2", "XIT", "EXJ"))])
+             ("type", "not in", ["sale", "purchase"]),
+             ("code", "in", ("SAJ2", "XIT", "EXJ"))])
 
     def reset_sequence(ctx):
         resource_journal = "account.journal"
@@ -3724,6 +3724,31 @@ def rebuild_database(ctx):
         return True
 
     def cancel_inv_n_save_attachments(ctx):
+        def save_attachment(ctx, inv, attachments):
+            msg_burst('Saving attachment inv %s (%d) ...' % (inv.number, inv.id))
+            vals = {}
+            for item, field in (
+                ("out", "fatturapa_attachment_out_id"),
+                ("in", "fatturapa_attachment_in_id"),
+                ("rc_p", "rc_purchase_invoice_id"),
+                ("rc_self", "rc_self_invoice_id"),
+                ("rc_sp", "rc_self_purchase_invoice_id"),
+            ):
+                if inv[field]:
+                    vals[item] = inv[field].id
+            if vals:
+                attachments[inv.id] = vals
+            query = (
+                "update account_invoice"
+                " set fatturapa_attachment_out_id=null"
+                ",fatturapa_attachment_in_id=null"
+                # ",rc_purchase_invoice_id=null"
+                # ",rc_self_invoice_id=null"
+                # ",rc_self_purchase_invoice_id=null"
+                " where id=%d"
+            ) % inv.id
+            clodoo.exec_sql(ctx, query)
+
         ctr = 0
         if ctx['_cr']:
             query = (
@@ -3738,48 +3763,44 @@ def rebuild_database(ctx):
         resource_invoice = "account.invoice"
         for inv in clodoo.browseL8(
             ctx, resource_invoice, clodoo.searchL8(
-                ctx, resource_invoice, [], order="date,id")):
-            msg_burst('Saving attachment inv %s (%d) ...' % (inv.number, inv.id))
-            vals = {}
-            for item, field in (
-                ("out", "fatturapa_attachment_out_id"),
-                ("in", "fatturapa_attachment_in_id"),
-                ("rc_p", "rc_purchase_invoice_id"),
-                ("rc_self", "rc_self_invoice_id"),
-                ("rc_sp", "rc_self_purchase_invoice_id"),
-            ):
-                if inv[field]:
-                    vals[item] = inv[field].id
-            if vals:
-                attachments[inv.id] = vals
-
-            query = (
-                "update account_invoice"
-                " set fatturapa_attachment_out_id=null"
-                ",fatturapa_attachment_in_id=null"
-                ",rc_purchase_invoice_id=null"
-                ",rc_self_invoice_id=null"
-                ",rc_self_purchase_invoice_id=null"
-                " where id=%d"
-            ) % inv.id
-            clodoo.exec_sql(ctx, query)
+                ctx, resource_invoice, [("type", "in", ["in_invoice", "in_refund"])],
+                    order="date,id")):
+            save_attachment(ctx, inv, attachments)
+            if inv.rc_self_invoice_id:
+                sinv_id = inv.rc_self_invoice_id.id
+                sinv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
+                save_attachment(ctx, sinv, attachments)
 
             if inv.state in ("draft", "open"):
                 msg_burst('Cancelling inv %s (%d) ...' % (inv.number, inv.id))
                 try:
                     clodoo.executeL8(
                         ctx, resource_invoice, "action_invoice_cancel", inv.id)
+                    time.sleep(0.3)
                     ctr += 1
                 except BaseException:
                     print("Cannot cancel invoice %s (%d)" % (inv.number, inv.id))
+                    input("Press RET to continue")
+                    continue
+            clodoo.writeL8(ctx, resource_invoice, inv.id, {"move_name": False})
+            if inv.rc_self_invoice_id:
+                sinv_id = inv.rc_self_invoice_id.id
+                sinv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
+                if sinv.state != "cancel":
+                    print("Self-invoice %s (%d) not cancelled!"
+                          % (sinv.move_name, sinv.id))
+                    try:
+                        clodoo.executeL8(
+                            ctx, resource_invoice, "action_invoice_cancel", sinv.id)
+                        time.sleep(0.3)
+                        ctr += 1
+                    except BaseException:
+                        print("Cannot cancel invoice %s (%d)" % (sinv.number, sinv.id))
+                        input("Press RET to continue")
+                        continue
+                clodoo.writeL8(ctx, resource_invoice, sinv_id, {"move_name": False})
 
         store_inv_att_file(ctx, attachments, fn_attach_list)
-
-        query = (
-            "update fatturapa_attachment_in"
-            " set registered=false"
-        )
-        clodoo.exec_sql(ctx, query)
         return ctr, attachments
 
     def delete_reconciliations(ctx):
@@ -3832,130 +3853,86 @@ def rebuild_database(ctx):
                 ctr += 1
             except BaseException:
                 print("Cannot cancel move id %d" % rec_id)
-        return ctr
-
-    def reset_taxes(ctx, min_date, company_id, rc_journal=None):
-        limit_date_rc = datetime.strptime("2016-01-01", "%Y-%m-%d").date()
-        resource_tax = "account.tax"
-        resource_line = "account.invoice.line"
-        resource_nature = "italy.ade.tax.nature"
-        to_rc_ids = clodoo.searchL8(ctx, resource_nature, [("code", "=like", "N6%")])
-        to_rc_ids.append(False)
-        rc_tax_ids = clodoo.searchL8(ctx, resource_tax, [("rc", "=", True)])
-        tax_2_rc_ids = clodoo.searchL8(
-            ctx, resource_tax,
-            [("type_tax_use", "=", "purchase"),
-             ("company_id", "=", company_id),
-             ("kind_id", "in", to_rc_ids)])
-        tax_2_rc_ids.append(123)
-        tax_a7t_id = 111
-        tax_rc = clodoo.browseL8(ctx, resource_tax, tax_a7t_id)
-        ctr = 0
-        for line in clodoo.browseL8(
-            ctx, resource_line, clodoo.searchL8
-                (ctx, resource_line,
-                 [("invoice_id.date", ">", str(min_date)),
-                  ("company_id", "=", company_id)], order="id")):
-            if (
-                    line.invoice_id.date >= limit_date_rc
-                    and (not tax_rc.amount or not tax_rc.rc)
-            ):
-                clodoo.writeL8(
-                    ctx, resource_tax, tax_a7t_id, {"amount": 22.0, "rc": True})
-                tax_rc = clodoo.browseL8(ctx, resource_tax, tax_a7t_id)
-            elif (
-                    line.invoice_id.date < limit_date_rc
-                    and (tax_rc.amount or tax_rc.rc)
-            ):
-                clodoo.writeL8(
-                    ctx, resource_tax, tax_a7t_id, {"amount": 0.0, "rc": False})
-                tax_rc = clodoo.browseL8(ctx, resource_tax, tax_a7t_id)
-            if (
-                    rc_journal
-                    and line.invoice_id.journal_id.id == rc_journal
-                    and line.invoice_line_tax_ids[0].id in tax_2_rc_ids
-            ):
-                clodoo.writeL8(
-                    ctx, resource_line, line.id, {
-                        "invoice_line_tax_ids": [(6, 0, [tax_a7t_id])],
-                        "rc": True
-                    })
-                ctr += 1
-            elif (
-                line.invoice_line_tax_ids
-                and line.invoice_line_tax_ids[0].id in rc_tax_ids
-                and not line.rc
-            ):
-                clodoo.writeL8(ctx, resource_line, line.id, {"rc": True})
-                ctr += 1
-            elif (
-                line.invoice_line_tax_ids
-                and line.invoice_line_tax_ids[0].id not in rc_tax_ids
-                and line.rc
-            ):
-                clodoo.writeL8(ctx, resource_line, line.id, {"rc": False})
-                ctr += 1
+                input("Press RET to continue")
+                continue
+            query = (
+                "update account_move"
+                " set name='/'"
+                " where id=%d"
+            ) % rec_id
+            clodoo.exec_sql(ctx, query)
+        query = (
+            "delete from account_move where journal_id=22"
+        )
+        clodoo.exec_sql(ctx, query)
         return ctr
 
     def validate_invoices(ctx):
         print("Validation invoices ...")
+        resource_partner = "res.partner"
         ctr = 0
         for inv in clodoo.browseL8(
             ctx, resource_invoice, clodoo.searchL8(
-                ctx, resource_invoice,
-                [("journal_id.code", "in", ("SAJ2", "XIT", "EXJ"))])):
-            clodoo.writeL8(ctx, resource_invoice, inv.id, {"move_name": False})
-            ctr += 1
-            if inv.reference and inv.reference.startswith("SAJ2/"):
-                clodoo.writeL8(ctx, resource_invoice, inv.id, {"reference": False})
-                ctr += 1
-            if inv.type == "in_refund" and inv.date < "2018-01-01":
-                clodoo.writeL8(ctx, resource_invoice, inv.id, {"journal_id": 40})
-                ctr += 1
-
-        for inv in clodoo.browseL8(
-            ctx, resource_invoice, clodoo.searchL8(
-                ctx, resource_invoice,
-                [("type", "!=", "out_invoice")],
-                order="date,type,id")):
+                    ctx, resource_invoice,
+                    [("type", "in", ["in_invoice", "in_refund"])],
+                    order="date,id")):
             msg_burst('Validating inv %s ...' % inv.move_name)
 
             if inv.state == "cancel":
                 try:
                     clodoo.executeL8(
                         ctx, resource_invoice, "action_invoice_draft", inv.id)
+                    time.sleep(0.3)
                     ctr += 1
                     inv.state = "draft"
                 except BaseException:
-                    print("Cannot set invoice id %d to draft" % inv.id)
-
+                    pass
             if inv.state != "draft":
+                print("Cannot set invoice id %d to draft" % inv.id)
+                input("Press RET to continue")
                 continue
 
-            if inv.partner_id.property_account_position_id != inv.fiscal_position_id:
-                clodoo.writeL8(
-                    ctx,
-                    resource_invoice,
-                    inv.id,
-                    {
-                        "fiscal_position_id":
-                            inv.partner_id.property_account_position_id.id
-                    })
-                ctr += 1
+            if inv.rc_self_invoice_id:
+                sinv_id = inv.rc_self_invoice_id.id
+                sinv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
+                if sinv.state != "draft":
+                    print("Cannot set invoice id %d to draft" % sinv.id)
+                    input("Press RET to continue")
+                    continue
+
             clodoo.executeL8(ctx, resource_invoice, "compute_taxes", inv.id)
+            inv = clodoo.browseL8(ctx, resource_invoice, inv.id)
+            vals = {
+                "check_total": inv.amount_total
+            }
+            if not inv.fiscal_position_id:
+                partner = clodoo.browseL8(ctx, resource_partner, inv.partner_id.id)
+                vals["fiscal_position_id"] = partner.property_account_position_id.id
+            clodoo.writeL8(
+                ctx, resource_invoice, inv.id, vals)
             try:
                 clodoo.executeL8(ctx, resource_invoice, "action_invoice_open", inv.id)
+                time.sleep(0.3)
                 ctr += 1
-                inv.state = "open"
             except BaseException:
-                print("Cannot validate invoice id %d" % inv.id)
-
-            if inv.state != "open":
-                continue
+                pass
 
             inv = clodoo.browseL8(ctx, resource_invoice, inv.id)
-            recalc_sequence(ctx, inv.journal_id, inv.number)
+            if inv.state not in ["open", "paid"]:
+                print("Cannot validate invoice id %d" % inv.id)
+                input("Press RET to continue")
+                continue
 
+            if inv.rc_self_invoice_id:
+                sinv_id = inv.rc_self_invoice_id.id
+                sinv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
+                if sinv.state not in ["open", "paid"]:
+                    print("Cannot set invoice id %d to draft" % sinv.id)
+                    input("Press RET to continue")
+                    continue
+
+            inv = clodoo.browseL8(ctx, resource_invoice, inv.id)
+            # recalc_sequence(ctx, inv.journal_id, inv.number)
             if inv.rc_self_invoice_id:
                 sinv_id = False
                 att_out = False
@@ -3963,16 +3940,18 @@ def rebuild_database(ctx):
                     if "rc_self" in attachments[inv.id]:
                         sinv_id = attachments[inv.id]["rc_self"]
                     else:
-                        print("Invoice %s (%d) configuration changed"
+                        print("Warning! Invoice %s (%d) configuration changed"
                               % (inv.number, inv.id))
                     if sinv_id and "out" in attachments[sinv_id]:
                         att_out = attachments[sinv_id]["out"]
                     else:
                         print("Invalid self invoice %s (%d) configuration"
                               % (inv.number, inv.id))
+                        # input("Press RET to continue")
                 else:
                     print("Invoice %s (%d) configuration not found"
                           % (inv.number, inv.id))
+                    # input("Press RET to continue")
                 if att_out:
                     # Move attachment from prior self-invoice to current
                     self_inv = clodoo.browseL8(
@@ -3991,22 +3970,6 @@ def rebuild_database(ctx):
                         resource_invoice,
                         self_inv.id, {"fatturapa_attachment_out_id": att_out})
 
-                self_inv = clodoo.browseL8(ctx, resource_invoice, sinv_id)
-                if self_inv.state == "cancel":
-                    clodoo.writeL8(
-                        ctx, resource_invoice, sinv_id, {"move_name": False})
-                    try:
-                        clodoo.unlinkL8(
-                            ctx,
-                            resource_invoice,
-                            sinv_id)
-                    except BaseException:
-                        print("Cannot remove self invoice id %d" % sinv_id)
-                    if sinv_id in attachments and "out" in attachments[sinv_id]:
-                        del attachments[sinv_id]["out"]
-                    if sinv_id in attachments and not attachments[sinv_id]:
-                        del attachments[sinv_id]
-
                 if sinv_id in attachments and "rc_self" in attachments[sinv_id]:
                     del attachments[inv.id]["rc_self"]
                 if inv.id in attachments and not attachments[inv.id]:
@@ -4014,15 +3977,20 @@ def rebuild_database(ctx):
             elif inv.id in attachments and "rc_self" in attachments[inv.id]:
                 print("Invoice %s (%d): self-invoice configuration lost"
                       % (inv.number, inv.id))
+                input("Press RET to continue")
 
             if inv.id in attachments and "out" in attachments[inv.id]:
                 att_out = attachments[inv.id]["out"]
+                state = clodoo.browseL8(ctx, "fatturapa.attachment.out", att_out)
                 try:
                     clodoo.writeL8(
                         ctx,
                         resource_invoice,
                         inv.id,
-                        {"fatturapa_attachment_out_id": att_out})
+                        {
+                            "fatturapa_attachment_out_id": att_out,
+                            "fatturapa_state": state,
+                        })
                 except BaseException:
                     print("Cannot link attachment %d to invoice %d" % (att_out, inv.id))
                     continue
@@ -4055,7 +4023,7 @@ def rebuild_database(ctx):
         domain = [("state", "=", "draft"), ("journal_id", "in", journal_no_vat_ids)]
         for move in clodoo.browseL8(
             ctx, resource_move, clodoo.searchL8(
-                ctx, resource_move, domain, order="date,id")):
+                ctx, resource_move, domain, order="date,oe7_id,id")):
             msg_burst('Validating move id %d ...' % move.id)
             check_move_type(ctx, move)
             try:
@@ -4065,10 +4033,95 @@ def rebuild_database(ctx):
             try:
                 clodoo.executeL8(ctx, resource_move, "post", move.id)
                 ctr += 1
-                recalc_sequence(ctx, move.journal_id, move.name)
+                # recalc_sequence(ctx, move.journal_id, move.name)
             except BaseException:
                 print("Cannot post move id %d" % move.id)
         return ctr
+
+    def reconcile_invoices(ctx, sel_account_id, journals):
+        _mv = "account.move"
+        _ml = "account.move.line"
+        _afr = "account.full.reconcile"
+        query = (
+            "select partner_id from account_invoice"
+            " group by partner_id order by partner_id")
+        response = clodoo.exec_sql(ctx, query, response=True)
+        for res in response:
+            sel_partner_id = res[0]
+            for ln in clodoo.browseL8(
+                    ctx, _ml, clodoo.searchL8(
+                        ctx, _ml, [
+                            ("account_id", "=", sel_account_id),
+                            ("partner_id", "=", sel_partner_id),
+                            ("journal_id.type", "in", journals)],
+                        order="date,id")):
+                ln2_ids = clodoo.searchL8(ctx, _ml, [
+                    ("account_id", "=", sel_account_id),
+                    ("partner_id", "=", sel_partner_id),
+                    ("debit" if ln.credit > 0.0 else "credit",
+                     "=", ln.credit if ln.credit > 0.0 else ln.debit),
+                    ("date", ">=", datetime.strftime(ln.date, "%Y-%m-%d"))],
+                                          order="date,id")
+                if not ln2_ids:
+                    continue
+                if ln.full_reconcile_id:
+                    reconcile = clodoo.browseL8(ctx, _afr, ln.full_reconcile_id.id)
+                    reconcile_ids = [x.id for x in reconcile.reconciled_line_ids]
+                else:
+                    reconcile_ids = []
+                mv = clodoo.browseL8(ctx, _mv, ln.move_id.id)
+                print("Inv to reconcile %d - %s in %s (%s) - (%d - %s)"
+                      % (mv.id, mv.name,
+                         datetime.strftime(mv.date, "%d-%m-%Y"),
+                         mv.ref, ln.id, ln.name,))
+                for ln2_id in ln2_ids:
+                    ln2 = clodoo.browseL8(ctx, _ml, ln2_id)
+                    mv2 = clodoo.browseL8(ctx, _mv, ln2.move_id.id)
+                    flag = "*" if ln2_id in reconcile_ids else "-"
+                    print(" %s Pay %d - %s in %s (%s) - (%d - %s)"
+                          % (flag, mv2.id, mv2.name,
+                             datetime.strftime(mv.date, "%d-%m-%Y"),
+                             mv2.ref, ln2.id, ln2.name))
+                if len(ln2_ids) == 1 and flag == "*":
+                    continue
+                dummy = input("Action (Continue,ID)? ")
+                if dummy and dummy.isdigit():
+                    new_rec_id = int(dummy)
+                    if new_rec_id not in ln2_ids:
+                        print("Invalid choice!")
+                        continue
+                    print("Reconcile %d with %d" % (ln.id, new_rec_id))
+                    ln2 = clodoo.browseL8(ctx, _ml, ln2_id)
+                    reconciles = [ln.id, new_rec_id]
+                    try:
+                        context = {
+                            'active_ids':
+                                [x.id for x in ln.full_reconcile_id.reconciled_line_ids]
+                        }
+                        clodoo.executeL8(
+                            ctx, 'account.unreconcile', 'trans_unrec', None, context
+                        )
+                    except BaseException:
+                        print('!!Move %d unreconciliable!' % mv.id)
+                        # continue
+                    try:
+                        context = {
+                            'active_ids':
+                                [x.id
+                                 for x in ln2.full_reconcile_id.reconciled_line_ids]
+                        }
+                        clodoo.executeL8(
+                            ctx, 'account.unreconcile', 'trans_unrec', None, context
+                        )
+                    except BaseException:
+                        print('!!Move %d unreconciliable!' % ln2.id)
+                        # continue
+                    try:
+                        clodoo.executeL8(
+                            ctx, 'account.move.line', 'reconcile', reconciles
+                        )
+                    except BaseException:
+                        print('!!Moves %s not reconciliable!' % reconciles)
 
     def recalc_sequence(ctx, journal, name):
         resource_sequence = "ir.sequence"
@@ -4134,7 +4187,7 @@ def rebuild_database(ctx):
         "cash": "liquidity",
     }
     resource_company = "res.company"
-    resource_partner = "res.partner"
+    # resource_partner = "res.partner"
     resource_invoice = "account.invoice"
     resource_move = "account.move"
     resource_journal = "account.journal"
@@ -4149,6 +4202,9 @@ def rebuild_database(ctx):
     min_date = company.fiscalyear_lock_date or "2013-01-01"
     if company.period_lock_date and company.period_lock_date < min_date:
         min_date = company.period_lock_date
+
+    # reconcile_invoices(ctx, 854, ["sale", "sale_refund"])
+    # reconcile_invoices(ctx, 1010, ["purchase", "purchase_refund"])
 
     print("Resetting sequences ...")
     for rec_id in clodoo.searchL8(ctx,
@@ -4168,84 +4224,12 @@ def rebuild_database(ctx):
 
     ctr += cancel_moves(ctx, min_date, company_id)
 
-    if ctx['_cr']:
-        query = (
-            "update account_move_line"
-            " set account_id=2147"
-            " where account_id=5053"
-        )
-        clodoo.exec_sql(ctx, query)
-
-        query = (
-            "update account_account"
-            " set deprecated=true"
-            " where id=5053"
-        )
-        clodoo.exec_sql(ctx, query)
-
-        query = (
-            "update account_move"
-            " set journal_id=29"
-            " where journal_id=23"
-        )
-        clodoo.exec_sql(ctx, query)
-        query = (
-            "update account_move_line"
-            " set journal_id=29"
-            " where journal_id=23"
-        )
-        clodoo.exec_sql(ctx, query)
-
-        query = (
-            "update account_move"
-            " set journal_id=39"
-            " where journal_id=12"
-        )
-        clodoo.exec_sql(ctx, query)
-        query = (
-            "update account_move_line"
-            " set journal_id=39"
-            " where journal_id=12"
-        )
-        clodoo.exec_sql(ctx, query)
-
-        query = (
-            "update account_move"
-            " set journal_id=40"
-            " where journal_id=13"
-        )
-        clodoo.exec_sql(ctx, query)
-        query = (
-            "update account_move_line"
-            " set journal_id=40"
-            " where journal_id=13"
-        )
-        clodoo.exec_sql(ctx, query)
-
-        # delete g/c RC
-        query = (
-            "delete from account_move"
-            " where journal_id=22"
-        )
-        clodoo.exec_sql(ctx, query)
-
-    foreign_partner_ids = clodoo.searchL8(
-        ctx, resource_partner, [("country_id.code", "!=", "IT")])
-    # xtra_fiscalpos_ids = [5, 6]
-    xtra_jrnl_id = 10
-    if ctx['_cr']:
-        query = (
-            "update account_invoice"
-            " set journal_id=%d"
-            " where journal_id=16"
-            " and date>'%s'"
-            " and partner_id in %s"
-        ) % (xtra_jrnl_id,
-             min_date,
-             str(foreign_partner_ids).replace("[", "(").replace("]", ")"))
-        clodoo.exec_sql(ctx, query)
-
-    ctr += reset_taxes(ctx, min_date, company_id, rc_journal=xtra_jrnl_id)
+    # query = (
+    #     "delete from account_invoice"
+    #     " where type in ('out_invoice','out_refund') and journal_id=19"
+    #     " and rc_purchase_invoice_id is null"
+    # )
+    # clodoo.exec_sql(ctx, query)
 
     if not ctx['param_1'] or "no-inv" not in ctx['param_1']:
         ctr += validate_invoices(ctx)

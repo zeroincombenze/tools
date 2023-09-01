@@ -138,8 +138,8 @@ while [ -z "$pwd1" -o "$pwd1" != "$pwd2" ]; do
   done
 done
 if [ $opt_crypt -ne 0 ]; then
-  echo -e "from passlib.context import CryptContext\nprint CryptContext(['pbkdf2_sha512']).encrypt('$pwd1')\n" | python
-  crypt=$(echo -e "from passlib.context import CryptContext\nprint CryptContext(['pbkdf2_sha512']).encrypt('$pwd1')\n" | python)
+  echo -e "from passlib.context import CryptContext\nprint(CryptContext(['pbkdf2_sha512']).encrypt('$pwd1'))\n" | python
+  crypt=$(echo -e "from passlib.context import CryptContext\nprint(CryptContext(['pbkdf2_sha512']).encrypt('$pwd1'))\n" | python)
   crypt="${crypt//\$/\\\$}"
   if [[ $odoo_ver -lt 12 ]]; then
     run_traced "psql -p $opt_port -U$db_user -c \"update res_users set password='',password_crypt='$crypt' where id=$userid;\" \"$opt_db\""

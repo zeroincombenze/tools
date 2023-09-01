@@ -385,7 +385,7 @@ def do_login(ctx):
             except BaseException:
                 return False
             user = get_login_user(ctx)
-            ctx['user_id'] = user.name
+            ctx['user_id'] = user.id
             ctx["_pwd"] = pwd
             return user
         elif ctx["pypi"].startswith("oerplib"):
@@ -393,7 +393,7 @@ def do_login(ctx):
                 user = ctx['odoo_cnx'].login(
                     database=db_name, user=username, passwd=pwd
                 )
-                ctx['user_id'] = user.name
+                ctx['user_id'] = user.id
                 ctx["_pwd"] = pwd
                 return user
             except BaseException:
