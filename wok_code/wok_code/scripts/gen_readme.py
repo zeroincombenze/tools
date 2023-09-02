@@ -228,10 +228,12 @@ MANIFEST_ITEMS = (
     "depends",
     "external_dependencies",
     "data",
+    "qweb",
     "demo",
     "test",
     "maintainer",
     "installable",
+    "active",
 )
 MANIFEST_ITEMS_REQUIRED = (
     "name",
@@ -240,6 +242,13 @@ MANIFEST_ITEMS_REQUIRED = (
     "website",
     "development_status",
     "license",
+)
+MANIFEST_ITEMS_OPTIONAL = (
+    "qweb",
+    "demo",
+    "test",
+    "external_dependencies",
+    "active",
 )
 RST2HTML = {
     # &': '&amp;',
@@ -1588,7 +1597,17 @@ def read_all_manifests(ctx, path=None, module2search=None):
 
 def manifest_item(ctx, item):
     q = ctx["quote_with"]
-    if item in ("website", "maintainer"):
+    if (
+            isinstance(ctx["manifest"][item], basestring)
+            and ctx["manifest"][item] in ("True", "False")
+    ):
+        ctx["manifest"][item] = eval(ctx["manifest"][item])
+    if (
+            item in MANIFEST_ITEMS_OPTIONAL
+            and item in ctx and (ctx[item] is False or ctx[item] == [])
+    ):
+        target = ""
+    elif item in ("website", "maintainer"):
         target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, ctx[item], q)
     elif item == "author":
         text = ctx["manifest"][item]
@@ -2023,6 +2042,8 @@ def merge_lists(ctx, left, right):
                 found = True
                 for ix in range(3):
                     if not left_item[ix] and right_item[ix]:
+                        if isinstance(left_item, tuple):
+                            left_item = list(left_item)
                         left_item[ix] = right_item[ix]
                 break
         if not found:
@@ -2252,10 +2273,12 @@ def generate_readme(ctx):
         section = "website"
         if ctx["set_authinfo"]:
             ctx[section] = ctx["license_mgnt"].get_website(
+                org_id=ctx["git_orgid"],
                 repo=ctx["repos_name"]) or ctx["manifest"].get(section, "")
         else:
             ctx[section] = ctx["manifest"].get(
-                section, ctx["license_mgnt"].get_website(repo=ctx["repos_name"]))
+                section, ctx["license_mgnt"].get_website(
+                    org_id=ctx["git_orgid"], repo=ctx["repos_name"]))
         if not ctx["suppress_warning"] and ctx["manifest"][section] != ctx[section]:
             print_red_message(
                 "*** Warning: website %s in the manifest replaced by %s!" % (

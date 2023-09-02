@@ -7,6 +7,10 @@ import argparse
 from lxml import etree
 import re
 
+try:
+    from clodoo.clodoo import build_odoo_param
+except ImportError:
+    from clodoo import build_odoo_param
 from python_plus import _b, _u
 from z0lib import z0lib
 
@@ -36,6 +40,8 @@ def get_names(left_path, right_path):
 
 
 def format_xml(opt_args, source, target):
+    if opt_args.dry_run:
+        return
     with open(source, "r") as fd:
         try:
             root = etree.XML(_b(fd.read()))
@@ -194,26 +200,17 @@ def remove_comment(opt_args, root, files, compare_path=None):
 
 
 def lint_file(opt_args, from_version, path):
-    if pth.basename(path) in ("__manifest__.py", "__openerp__.py"):
-        opts = " -Rw -lmodule"
-        if opt_args.odoo_version:
-            opts += (" -b" + opt_args.odoo_version)
-        if from_version:
-            opts += (" -F" + from_version)
-        z0lib.run_traced(
-            "gen_readme.py %s" % opts,
-            verbose=opt_args.dry_run, dry_run=opt_args.dry_run
-        )
-    else:
-        opts = " -ia --string-normalization"
-        if opt_args.odoo_version:
-            opts += (" -b" + opt_args.odoo_version)
-        if from_version:
-            opts += (" -F" + from_version)
-        z0lib.run_traced(
-            "arcangelo %s %s" % (path, opts),
-            verbose=opt_args.dry_run, dry_run=opt_args.dry_run
-        )
+    opts = " -ia --string-normalization"
+    if opt_args.odoo_version:
+        opts += (" -b" + opt_args.odoo_version)
+    if from_version:
+        opts += (" -F" + from_version)
+    if opt_args.git_orgid:
+        opts += (" -G" + opt_args.git_orgid)
+    z0lib.run_traced(
+        "arcangelo %s %s" % (path, opts),
+        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
+    )
 
 
 def lintdir(opt_args, left_path, right_path):
@@ -258,6 +255,7 @@ def main(cli_args=None):
         action="store_true",
         help="Ignore README, docs and comment in files",
     )
+    parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument(
         "-i", "--ignore-po",
         action="store_true",
@@ -302,6 +300,32 @@ def main(cli_args=None):
         os.mkdir(pth.dirname(diff_path))
     if not pth.isdir(diff_path):
         os.mkdir(diff_path)
+    if not opt_args.from_left_version:
+        opt_args.from_left_version = build_odoo_param(
+            "FULLVER", odoo_vid="opt_args.left_path", multi=True)
+    if not opt_args.from_right_version:
+        opt_args.from_right_version = build_odoo_param(
+            "FULLVER", odoo_vid="opt_args.right_path", multi=True)
+    if (
+            opt_args.from_left_version
+            and opt_args.from_right_version
+            and not opt_args.odoo_version
+    ):
+        if int(opt_args.from_left_version.split(".")[0]) >= int(
+                opt_args.from_right_version.split(".")[0]):
+            opt_args.odoo_version = opt_args.from_left_version
+        elif int(opt_args.from_left_version.split(".")[0]) < int(
+                opt_args.from_right_version.split(".")[0]):
+            opt_args.odoo_version = opt_args.from_right_version
+    if not opt_args.git_orgid:
+        opt_args.git_orgid = build_odoo_param(
+            "GIT_ORGID", odoo_vid=opt_args.left_path, multi=True
+        )
+    if not opt_args.git_orgid:
+        opt_args.git_orgid = build_odoo_param(
+            "GIT_ORGID", odoo_vid=opt_args.right_path, multi=True
+        )
+
     left_base, right_base = get_names(opt_args.left_path, opt_args.right_path)
     left_diff_path = pth.join(diff_path, left_base)
     right_diff_path = pth.join(diff_path, right_base)

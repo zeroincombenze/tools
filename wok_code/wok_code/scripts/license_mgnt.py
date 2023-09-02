@@ -2,6 +2,10 @@
 import os
 from datetime import datetime
 import re
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 try:
     from python_plus.python_plus import _u
@@ -118,40 +122,66 @@ class License:
             org_id = False
             website = False
             email = False
-            ii = line.find("<")
-            jj = line.find(">")
-            if ii == -1 and jj == -1:
-                ii = line.find("(")
-                jj = line.find(")")
-            if 0 <= ii < jj and jj >= 0:
-                name = line[0:ii].strip()
-                url = line[ii + 1 : jj]
-                url = url.replace("http:", "https:")
-                if url.endswith("/"):
-                    url = url[0:-1]
-                if "@" in url or url.startswith("https://github.com/"):
-                    email = url
-                    if not name:
-                        name = " ".join(
-                            [x.capitalize() for x in email.split("@")[0].split(".")]
-                        )
-                else:
-                    website = ".".join(os.path.basename(url).split(".")[-2:])
-                    for kk, item in COPY.items():
-                        if item["website"].endswith(website) or website.lower() == kk:
-                            org_id = kk
-                            website = item["website"]
-                            name = item["author"]
-                            break
-                    if not org_id:
-                        org_id = website
-                        org_id = ALIAS.get(org_id, org_id)
-                        COPY[org_id] = {
-                            "website": "http://%s" % website,
-                            "author": name,
-                        }
+            x = re.match("[^<]*", line)
+            y = re.search("[<][^>]*", line)
+            if x and y:
+                name = line[x.start():x.end()].strip()
+                url = line[y.start() + 1:y.end()].strip()
             else:
-                name = line
+                x = re.match("[^(]*", line)
+                y = re.search("[(][^)]*", line)
+                if x and y:
+                    name = line[x.start():x.end()].strip()
+                    url = line[y.start() + 1:y.end()].strip()
+                    if "http" not in url and "@" not in url:
+                        name = line.strip()
+                        url = ""
+                else:
+                    name = line.strip()
+                    url = ""
+            if url == "False":
+                url = ""
+            url = url.replace("http:", "https:")
+            if url.endswith("/"):
+                url = url[0:-1]
+            if "@" in url or url.startswith("https://github.com/"):
+                email = url
+                if not name:
+                    name = " ".join(
+                        [x.capitalize() for x in email.split("@")[0].split(".")]
+                    )
+            else:
+                found = False
+                if url:
+                    parts = urlparse(url)
+                    if parts.netloc == "github.com":
+                        org_id = parts.path.split("/", 2)[1].lower()
+                        website = "%s//%s/%s" % (parts.scheme, parts.netloc, org_id)
+                    else:
+                        org_id = parts.netloc.lower()
+                        website = parts.scheme + "//" + parts.netloc
+                else:
+                    org_id = re.sub("[^a-z0-9A-Z]*", "", name).lower()
+                for kk, item in COPY.items():
+                    if (
+                            org_id == kk
+                            or org_id == urlparse(item["website"]).netloc
+                            or name == item["author"]
+                    ):
+                        org_id = kk
+                        if item["website"]:
+                            website = item["website"]
+                        elif website:
+                            item["website"] = website
+                        name = item["author"]
+                        found = True
+                        break
+                if not found:
+                    org_id = ALIAS.get(org_id, org_id)
+                    COPY[org_id] = {
+                        "website": website,
+                        "author": name,
+                    }
             return org_id, name, website, email, ""
 
         def from_comment_line(line):
@@ -224,10 +254,11 @@ class License:
             author = author[2:]
         return author
 
-    def get_website(self, repo=None, module=None):
+    def get_website(self, org_id=None, repo=None, module=None):
         website = ""
-        org_id = False
-        if self.org_ids:
+        if org_id in self.org_ids:
+            website = self.org_ids[org_id][1]
+        elif self.org_ids:
             for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]

@@ -5,6 +5,7 @@ from past.builtins import basestring
 from io import open
 import sys
 import os
+import os.path as pth
 from datetime import datetime
 import argparse
 import re
@@ -76,13 +77,15 @@ def get_pyver_4_odoo(odoo_ver):
 
 
 class MigrateFile(object):
-    def __init__(self, ffn, opt_args):
+    def __init__(self, fqn, opt_args):
         self.sts = 0
         self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
         if opt_args.verbose > 0:
-            print("Reading %s ..." % ffn)
-        self.ffn = ffn
-        self.is_xml = ffn.endswith(".xml")
+            print("Reading %s ..." % fqn)
+        self.fqn = fqn
+        base = pth.basename(fqn)
+        self.is_xml = fqn.endswith(".xml")
+        self.is_manifest = base in ("__manifest__.py", "__openerp__.py")
         if opt_args.from_version:
             self.from_major_version = int(opt_args.from_version.split('.')[0])
         else:
@@ -125,7 +128,7 @@ class MigrateFile(object):
         self.opt_args = opt_args
         self.lines = []
         try:
-            with open(ffn, "r", encoding="utf-8") as fd:
+            with open(fqn, "r", encoding="utf-8") as fd:
                 self.source = fd.read()
         except BaseException:
             self.source = ""
@@ -161,8 +164,8 @@ class MigrateFile(object):
             ):
                 self.ignore_file = True
         if not self.source or not self.opt_args.force and (
-            os.path.basename(self.ffn) in ("testenv.py", "conf.py", "_check4deps_.py")
-            or "/tests/data/" in os.path.abspath(self.ffn)
+                pth.basename(self.fqn) in ("testenv.py", "conf.py", "_check4deps_.py")
+                or "/tests/data/" in pth.abspath(self.fqn)
         ):
             self.ignore_file = True
 
@@ -406,12 +409,12 @@ class MigrateFile(object):
         return regex
 
     def load_config2(self, confname):
-        configpath = os.path.join(
-            os.path.dirname(os.path.abspath(os.path.expanduser(__file__))),
+        configpath = pth.join(
+            pth.dirname(pth.abspath(pth.expanduser(__file__))),
             "config",
             confname + ".yml",
         )
-        if os.path.isfile(configpath):
+        if pth.isfile(configpath):
             with open(configpath, "r") as fd:
                 return yaml.safe_load(fd)
         internal_name = "RULES_%s" % confname.upper()
@@ -481,10 +484,10 @@ class MigrateFile(object):
             self.solve_git_merge()
         if self.ignore_file:
             return False
-        if os.path.basename(self.ffn) in (
+        if pth.basename(self.fqn) in (
                 "history.rst", "HISTORY.rst", "CHANGELOG.rst"):
             return self.do_upgrade_history()
-        if self.ffn.endswith('.py') or self.ffn.endswith('.xml'):
+        if self.fqn.endswith('.py') or self.fqn.endswith('.xml'):
             return self.do_migrate_source()
         return False
 
@@ -565,7 +568,7 @@ class MigrateFile(object):
                 nro -= nro - 1
                 self.lines.insert(nro, test_res_msg)
                 if not self.opt_args.dry_run:
-                    with open(self.ffn, "w", encoding="utf-8") as fd:
+                    with open(self.fqn, "w", encoding="utf-8") as fd:
                         fd.write("\n".join(self.lines))
             self.lines[title_nro] = (
                 self.lines[title_nro][:i_start]
@@ -596,8 +599,8 @@ class MigrateFile(object):
             else:
                 nro += 1
 
-    def write_xml(self, out_ffn):
-        with open(out_ffn, "w", encoding="utf-8") as fd:
+    def write_xml(self, out_fqn):
+        with open(out_fqn, "w", encoding="utf-8") as fd:
             source_xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
             source_xml += _u(ET.tostring(
                 ET.fromstring(_b("\n".join(self.lines).replace('\t', '    '))),
@@ -608,18 +611,18 @@ class MigrateFile(object):
                 x = self.REX_CLOTAG.search(source_xml)
             fd.write(source_xml)
 
-    def format_file(self, out_ffn):
+    def format_file(self, out_fqn):
         prettier_config = False
         black_config = False
-        path = os.path.dirname(os.path.abspath(os.path.expanduser(out_ffn)))
+        path = pth.dirname(pth.abspath(pth.expanduser(out_fqn)))
         while not prettier_config and not black_config:
-            if os.path.isfile(os.path.join(path, ".pre-commit-config.yaml")):
-                black_config = os.path.join(path, ".pre-commit-config.yaml")
-            if os.path.isfile(os.path.join(path, ".prettierrc.yml")):
-                prettier_config = os.path.join(path, ".prettierrc.yml")
-            if path == os.path.abspath(os.path.expanduser("~")) or path == "/":
+            if pth.isfile(pth.join(path, ".pre-commit-config.yaml")):
+                black_config = pth.join(path, ".pre-commit-config.yaml")
+            if pth.isfile(pth.join(path, ".prettierrc.yml")):
+                prettier_config = pth.join(path, ".prettierrc.yml")
+            if path == pth.abspath(pth.expanduser("~")) or path == "/":
                 break
-            path = os.path.dirname(path)
+            path = pth.dirname(path)
         if self.is_xml:
             if prettier_config:
                 cmd = (
@@ -630,48 +633,54 @@ class MigrateFile(object):
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
             cmd += " --bracket-same-line --write "
-            cmd += out_ffn
+            cmd += out_fqn
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
         else:
+            if self.is_manifest and self.opt_args.to_version:
+                opts = "-Rw -b %s -lmodule -Podoo" % (self.opt_args.to_version)
+                if self.opt_args.git_orgid:
+                    opts += " -G%s" % self.opt_args.git_orgid
+                cmd = "gen_readme.py %s" % opts
+                z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
             opts = "--skip-source-first-line"
             if (
                     (self.py23 == 2 or self.python_future)
                     and not self.opt_args.string_normalization
             ):
                 opts += " --skip-string-normalization"
-            cmd = "black %s -q %s" % (opts, out_ffn)
+            cmd = "black %s -q %s" % (opts, out_fqn)
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
 
     def close(self):
         if self.opt_args.output:
-            if os.path.isdir(self.opt_args.output):
-                out_ffn = os.path.join(self.opt_args.output, os.path.basename(self.ffn))
+            if pth.isdir(self.opt_args.output):
+                out_fqn = pth.join(self.opt_args.output, pth.basename(self.fqn))
             else:
-                out_ffn = self.opt_args.output
-            if not os.path.isdir(os.path.dirname(out_ffn)):
-                os.mkdir(os.path.isdir(os.path.dirname(out_ffn)))
+                out_fqn = self.opt_args.output
+            if not pth.isdir(pth.dirname(out_fqn)):
+                os.mkdir(pth.isdir(pth.dirname(out_fqn)))
         else:
-            out_ffn = self.ffn
+            out_fqn = self.fqn
         if not self.ignore_file and (
                 self.opt_args.lint_anyway
-                or out_ffn != self.ffn
+                or out_fqn != self.fqn
                 or self.source != "\n".join(self.lines)):
             if not self.opt_args.in_place:
-                bakfile = '%s.bak' % out_ffn
-                if os.path.isfile(bakfile):
+                bakfile = '%s.bak' % out_fqn
+                if pth.isfile(bakfile):
                     os.remove(bakfile)
-                if os.path.isfile(out_ffn):
-                    os.rename(out_ffn, bakfile)
+                if pth.isfile(out_fqn):
+                    os.rename(out_fqn, bakfile)
             if not self.opt_args.dry_run:
                 if self.is_xml:
-                    self.write_xml(out_ffn)
+                    self.write_xml(out_fqn)
                 else:
-                    with open(out_ffn, "w", encoding="utf-8") as fd:
+                    with open(out_fqn, "w", encoding="utf-8") as fd:
                         fd.write("\n".join(self.lines))
             if not self.opt_args.no_parse_with_formatter:
-                self.format_file(out_ffn)
+                self.format_file(out_fqn)
             if self.opt_args.verbose > 0:
-                print('👽 %s' % out_ffn)
+                print('👽 %s' % out_fqn)
 
 
 def file_is_processable(opt_args, fn):
@@ -698,6 +707,7 @@ def main(cli_args=None):
         action='store_true',
         help="Parse file containing '# flake8: noqa' or '# pylint: skip-file'",
     )
+    parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument(
         "--git-merge-conflict",
         metavar="left|right",
@@ -735,30 +745,30 @@ def main(cli_args=None):
     sts = 0
     if (
         opt_args.output
-        and not os.path.isdir(opt_args.output)
-        and not os.path.isdir(os.path.dirname(opt_args.output))
+        and not pth.isdir(opt_args.output)
+        and not pth.isdir(pth.dirname(opt_args.output))
     ):
-        sys.stderr.write('Path %s does not exist!' % os.path.dirname(opt_args.output))
+        sys.stderr.write('Path %s does not exist!' % pth.dirname(opt_args.output))
         sts = 2
     else:
         for path in opt_args.path or ("./",):
-            if os.path.isdir(os.path.expanduser(path)):
-                for root, dirs, files in os.walk(os.path.expanduser(path)):
+            if pth.isdir(pth.expanduser(path)):
+                for root, dirs, files in os.walk(pth.expanduser(path)):
                     if 'setup' in dirs:
                         del dirs[dirs.index('setup')]
                     for fn in files:
                         if not file_is_processable(opt_args, fn):
                             continue
                         source = MigrateFile(
-                            os.path.abspath(os.path.join(root, fn)), opt_args
+                            pth.abspath(pth.join(root, fn)), opt_args
                         )
                         source.do_process_source()
                         source.close()
                         sts = source.sts
                         if sts:
                             break
-            elif os.path.isfile(path):
-                source = MigrateFile(os.path.abspath(path), opt_args)
+            elif pth.isfile(path):
+                source = MigrateFile(pth.abspath(path), opt_args)
                 source.do_process_source()
                 source.close()
                 sts = source.sts

@@ -49,7 +49,6 @@ OCA comparation / Confronto con OCA
 .. $fi
 
 |
-|
 
 Getting started / Primi passi
 =============================
@@ -160,7 +159,6 @@ Copyright
 
 Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
 
-
 .. $if defined authors
 
 |
@@ -172,7 +170,7 @@ Authors / Autori
 .. $fi
 .. $if defined contributors
 
-Contributors / Collaboratori
+Contributors / Contributi da
 ----------------------------
 
 {{contributors}}
