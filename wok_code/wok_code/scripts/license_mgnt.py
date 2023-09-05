@@ -30,6 +30,11 @@ COPY = {
         "website": "https://odoo-community.org",
         "github-user": "OCA",
     },
+    "odoo-italia": {
+        "author": "Associazione Odoo Italia",
+        "website": "https://www.odoo-italia.org",
+        "github-user": "OCA",
+    },
     "powerp": {
         "author": "powERP enterprise network",
         "website": "https://www.powerp.it",
@@ -48,7 +53,12 @@ COPY = {
         "github-user": "iw3hxn",
     },
 }
-ALIAS = {"shs-av": "shs", "zeroincombenze": "zero"}
+ALIAS = {
+    "shs-av": "shs",
+    "zeroincombenze": "zero",
+    "odooitaliancommunity": "odoo-italia",
+    "odooitaliaassociazione": "odoo-italia",
+}
 
 
 class License:
@@ -162,11 +172,14 @@ class License:
                         website = parts.scheme + "//" + parts.netloc
                 else:
                     org_id = re.sub("[^a-z0-9A-Z]*", "", name).lower()
+                org_id = ALIAS.get(org_id, org_id)
                 for kk, item in COPY.items():
                     if (
                             org_id == kk
                             or org_id == urlparse(item["website"]).netloc
-                            or name == item["author"]
+                            or (re.sub("[^a-z0-9A-Z&+-]*", "", name)
+                                ==
+                                re.sub("[^a-z0-9A-Z&+-]*", "", item["author"]))
                     ):
                         org_id = kk
                         if item["website"]:

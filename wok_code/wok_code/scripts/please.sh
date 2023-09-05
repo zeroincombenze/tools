@@ -1128,7 +1128,7 @@ do_lint() {
       [[ -n $x ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $x/zerobug/_travis/cfg/travis_run_flake8.cfg)"
     fi
     [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
-    opts="--extend-ignore=B006 --max-line-length=88"
+    [[ $TRAVIS_PYTHON_VERSION =~ ^2 ]] && opts="--extend-ignore=B006,F812 --max-line-length=88" || opts="--extend-ignore=B006 --max-line-length=88"
     if [[ $PRJNAME == "Odoo" ]]; then
       x=$(build_odoo_param MAJVER ./)
       [[ $x -le 7 ]] && opts="$opts --per-file-ignores='__openerp__.py:E501,E128'"
@@ -1168,7 +1168,8 @@ do_test() {
       echo ""
       echo "$x $y"
       echo ""
-      arcangelo egg-info/history.rst --test-res-msg="$x $y"
+      [[ -f egg-info/history.rst ]] && arcangelo egg-info/history.rst --test-res-msg="$x $y"
+      [[ -f readme/CHANGELOG.rst ]] && arcangelo readme/CHANGELOG.rst --test-res-msg="$x $y"
     fi
     return $sts
 }
@@ -1457,53 +1458,53 @@ do_show_license() {
 #  [[ -f $HOME/tools/egg-info/history.rst ]] && head $HOME/tools/egg-info/history.rst
 #}
 
-do_version() {
-  # do_version([cur_ver [new_ver]])
-  local re1 re2 new_ver
-  re1="^#? *__version__ *="
-  [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
-  [[ -n $2 ]] && new_ver="$2" || new_ver=""
-  if [ "$PRJNAME" != "Odoo" ]; then
-    if [ -z "$1" ]; then
-      if [ $opt_dry_run -eq 0 ]; then
-        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
-      else
-        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
-      fi
-    else
-      if [ $opt_dry_run -eq 0 ]; then
-        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
-      else
-        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
-      fi
-      if [ -n "$new_ver" ]; then
-        for fn in $(find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -El "$re2" '{}' \;); do
-          if [ $opt_dry_run -ne 0 ]; then
-            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
-          else
-            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
-          fi
-        done
-        if [ -f $PKGPATH/setup.py ]; then
-          re1="^#? *version *="
-          [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
-          if [ $opt_dry_run -ne 0 ]; then
-            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
-          else
-            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
-          fi
-        fi
-      fi
-    fi
-    if [ -f $PKGPATH/setup.py ]; then
-      echo -n "Project $PRJNAME $prjversion [$PKGNAME]: "
-      python $PKGPATH/setup.py --version
-    fi
-  else
-    echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]"
-  fi
-  return 0
-}
+#do_version() {
+#  # do_version([cur_ver [new_ver]])
+#  local re1 re2 new_ver
+#  re1="^#? *__version__ *="
+#  [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
+#  [[ -n $2 ]] && new_ver="$2" || new_ver=""
+#  if [ "$PRJNAME" != "Odoo" ]; then
+#    if [ -z "$1" ]; then
+#      if [ $opt_dry_run -eq 0 ]; then
+#        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
+#      else
+#        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re1" '{}' \;
+#      fi
+#    else
+#      if [ $opt_dry_run -eq 0 ]; then
+#        find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
+#      else
+#        echo find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$re2" '{}' \;
+#      fi
+#      if [ -n "$new_ver" ]; then
+#        for fn in $(find . -type f -not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*' -not -name "*.pyc" -not -name "*.log" -exec grep -El "$re2" '{}' \;); do
+#          if [ $opt_dry_run -ne 0 ]; then
+#            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
+#          else
+#            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $fn
+#          fi
+#        done
+#        if [ -f $PKGPATH/setup.py ]; then
+#          re1="^#? *version *="
+#          [[ -n $1 ]] && re2="${re1} *([\"'])?$1\1?$" || re2=$re1
+#          if [ $opt_dry_run -ne 0 ]; then
+#            echo sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
+#          else
+#            sed -E "s|^(${re1:1} *[\"']?)$1([\"']?)|\1$new_ver\2|" -i $PKGPATH/setup.py
+#          fi
+#        fi
+#      fi
+#    fi
+#    if [ -f $PKGPATH/setup.py ]; then
+#      echo -n "Project $PRJNAME $prjversion [$PKGNAME]: "
+#      python $PKGPATH/setup.py --version
+#    fi
+#  else
+#    echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]"
+#  fi
+#  return 0
+#}
 
 do_config() {
   sts=$STS_SUCCESS
