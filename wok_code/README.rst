@@ -103,6 +103,12 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.10.1 (2023-08-29)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py: minor fixes
+* [IMP] gen_readme.py: manifest author priority
+
 2.0.10 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -201,11 +207,6 @@ ChangeLog History
 
 * [IMP] minor improvements
 
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
 
 
 |
@@ -230,7 +231,7 @@ Contributors
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-13
+Last Update / Ultimo aggiornamento: 2023-08-31
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

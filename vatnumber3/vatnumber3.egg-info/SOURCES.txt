@@ -1,0 +1,8 @@
+README
+setup.py
+vatnumber3/__init__.py
+vatnumber3.egg-info/PKG-INFO
+vatnumber3.egg-info/SOURCES.txt
+vatnumber3.egg-info/dependency_links.txt
+vatnumber3.egg-info/requires.txt
+vatnumber3.egg-info/top_level.txt

@@ -1,7 +1,13 @@
+2.0.3 (2023-09-07
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: fixes & improvements
+
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
-* [FIX] liba_bld_ods: fixes & improvements
+* [FIX] lisa_bld_ods: fixes & improvements
 
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~~~

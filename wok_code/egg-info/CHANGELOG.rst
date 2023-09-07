@@ -1,3 +1,10 @@
+2.0.10.1 (2023-08-29)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py: minor fixes
+* [IMP] gen_readme.py: manifest author priority
+* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
+
 2.0.10 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~~
 

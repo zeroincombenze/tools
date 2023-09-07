@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import os.path as pth
 import sys
 import argparse
 from lxml import etree
 import re
 
+try:
+    from clodoo.clodoo import build_odoo_param
+except ImportError:
+    from clodoo import build_odoo_param
 from python_plus import _b, _u
 from z0lib import z0lib
 
@@ -22,11 +27,11 @@ def get_names(left_path, right_path):
     left_base = right_base = ""
     while left_path and right_path and left_path != right_path:
         if left_path:
-            left_base = os.path.basename(left_path)
-            left_path = os.path.dirname(left_path)
+            left_base = pth.basename(left_path)
+            left_path = pth.dirname(left_path)
         if right_path:
-            right_base = os.path.basename(right_path)
-            right_path = os.path.dirname(right_path)
+            right_base = pth.basename(right_path)
+            right_path = pth.dirname(right_path)
     if not left_base:
         left_base = "left"
     if not right_base:
@@ -35,6 +40,8 @@ def get_names(left_path, right_path):
 
 
 def format_xml(opt_args, source, target):
+    if opt_args.dry_run:
+        return
     with open(source, "r") as fd:
         try:
             root = etree.XML(_b(fd.read()))
@@ -71,84 +78,84 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
         or (base.startswith("LICENSE") and opt_args.ignore_doc)
     ):
         return
-    elif os.path.isfile(left_path):
+    elif pth.isfile(left_path):
         if base.endswith(".xml"):
-            format_xml(opt_args, left_path, os.path.join(left_diff_path, base))
+            format_xml(opt_args, left_path, pth.join(left_diff_path, base))
         else:
             z0lib.run_traced(
-                "cp %s %s" % (left_path, os.path.join(left_diff_path, base)),
+                "cp %s %s" % (left_path, pth.join(left_diff_path, base)),
                 verbose=opt_args.dry_run,
                 dry_run=opt_args.dry_run,
             )
-    if os.path.isfile(right_path):
+    if pth.isfile(right_path):
         if base.endswith(".xml"):
-            format_xml(opt_args, right_path, os.path.join(right_diff_path, base))
+            format_xml(opt_args, right_path, pth.join(right_diff_path, base))
         else:
             z0lib.run_traced(
-                "cp %s %s" % (right_path, os.path.join(right_diff_path, base)),
+                "cp %s %s" % (right_path, pth.join(right_diff_path, base)),
                 verbose=opt_args.dry_run,
                 dry_run=opt_args.dry_run,
             )
 
 
 def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):
-    if os.path.isfile(left_path):
-        base = os.path.basename(left_path)
+    if pth.isfile(left_path):
+        base = pth.basename(left_path)
         cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
-    elif os.path.isfile(right_path):
-        base = os.path.basename(right_path)
+    elif pth.isfile(right_path):
+        base = pth.basename(right_path)
         cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
 
 
 def matchdir_based(
     opt_args, left_diff_path, right_diff_path, left_path, right_path, base
 ):
-    left_diff_path = os.path.join(left_diff_path, base)
-    if not os.path.isdir(left_diff_path):
+    left_diff_path = pth.join(left_diff_path, base)
+    if not pth.isdir(left_diff_path):
         z0lib.run_traced(
             "mkdir %s" % left_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
-    right_diff_path = os.path.join(right_diff_path, base)
-    if not os.path.isdir(right_diff_path):
+    right_diff_path = pth.join(right_diff_path, base)
+    if not pth.isdir(right_diff_path):
         z0lib.run_traced(
             "mkdir %s" % right_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
-    if os.path.isdir(left_path):
+    if pth.isdir(left_path):
         for fn in os.listdir(left_path):
-            base = os.path.basename(fn)
+            base = pth.basename(fn)
             matchdir(
                 opt_args,
                 left_diff_path,
                 right_diff_path,
-                os.path.join(left_path, fn),
-                os.path.join(right_path, base),
+                pth.join(left_path, fn),
+                pth.join(right_path, base),
             )
-    if os.path.isdir(right_path):
+    if pth.isdir(right_path):
         for fn in os.listdir(right_path):
-            base = os.path.basename(fn)
-            if not os.path.exists(os.path.join(left_path, base)):
+            base = pth.basename(fn)
+            if not pth.exists(pth.join(left_path, base)):
                 matchdir(
                     opt_args,
                     left_diff_path,
                     right_diff_path,
-                    os.path.join(left_path, base),
-                    os.path.join(right_path, fn),
+                    pth.join(left_path, base),
+                    pth.join(right_path, fn),
                 )
 
 
 def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
-    if os.path.isdir(left_path):
-        base = os.path.basename(left_path)
+    if pth.isdir(left_path):
+        base = pth.basename(left_path)
         if base not in IGNORE_DIRS:
             matchdir_based(
                 opt_args, left_diff_path, right_diff_path, left_path, right_path, base
             )
-    elif os.path.isdir(right_path):
-        base = os.path.basename(right_path)
+    elif pth.isdir(right_path):
+        base = pth.basename(right_path)
         if base not in IGNORE_DIRS:
             matchdir_based(
                 opt_args, left_diff_path, right_diff_path, left_path, right_path, base
@@ -159,8 +166,8 @@ def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
 
 def remove_comment(opt_args, root, files, compare_path=None):
     def remove_identical_files(left_dir, right_dir, fn):
-        left_path = os.path.join(left_dir, fn)
-        right_path = os.path.join(right_dir, fn)
+        left_path = pth.join(left_dir, fn)
+        right_path = pth.join(right_dir, fn)
         sts, stdout, stderr = z0lib.run_traced(
             "diff -r %s %s" % (left_path, right_path),
             verbose=False,
@@ -171,7 +178,7 @@ def remove_comment(opt_args, root, files, compare_path=None):
             os.unlink(right_path)
 
     for fn in files:
-        ffn = os.path.join(root, fn)
+        ffn = pth.join(root, fn)
         if not ffn.endswith(".py"):
             if opt_args.purge and compare_path:
                 remove_identical_files(root, compare_path, fn)
@@ -192,15 +199,23 @@ def remove_comment(opt_args, root, files, compare_path=None):
             remove_identical_files(root, compare_path, fn)
 
 
+def lint_file(opt_args, from_version, path):
+    opts = " -ia --string-normalization"
+    if opt_args.odoo_version:
+        opts += (" -b" + opt_args.odoo_version)
+    if from_version:
+        opts += (" -F" + from_version)
+    if opt_args.git_orgid:
+        opts += (" -G" + opt_args.git_orgid)
+    z0lib.run_traced(
+        "arcangelo %s %s" % (path, opts),
+        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
+    )
+
+
 def lintdir(opt_args, left_path, right_path):
-    z0lib.run_traced(
-        "arcangelo %s -ia --string-normalization" % left_path,
-        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
-    )
-    z0lib.run_traced(
-        "arcangelo %s -ia --string-normalization" % right_path,
-        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
-    )
+    lint_file(opt_args, opt_args.from_left_version, left_path)
+    lint_file(opt_args, opt_args.from_right_version, right_path)
     if opt_args.ignore_doc:
         for root, _dirs, files in os.walk(left_path):
             remove_comment(opt_args, root, files)
@@ -240,11 +255,14 @@ def main(cli_args=None):
         action="store_true",
         help="Ignore README, docs and comment in files",
     )
+    parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument(
         "-i", "--ignore-po",
         action="store_true",
         help="ignore PO files")
+    parser.add_argument("-l", "--from-left-version", metavar="ODOO-VERSION")
     parser.add_argument("-m", "--meld", action="store_true", help="Use meld")
+    parser.add_argument("-o", "--from-right-version", metavar="ODOO-VERSION")
     parser.add_argument(
         "-P", "--purge",
         action="store_true",
@@ -263,36 +281,62 @@ def main(cli_args=None):
     if not opt_args.right_path:
         # When just 1 path is issued, current directory become the left path
         # that is the reference path
-        opt_args.right_path = os.path.abspath(opt_args.left_path)
-        opt_args.left_path = os.path.abspath(os.getcwd())
+        opt_args.right_path = pth.abspath(opt_args.left_path)
+        opt_args.left_path = pth.abspath(os.getcwd())
     else:
-        opt_args.right_path = os.path.abspath(opt_args.right_path)
-    opt_args.left_path = os.path.abspath(opt_args.left_path)
+        opt_args.right_path = pth.abspath(opt_args.right_path)
+    opt_args.left_path = pth.abspath(opt_args.left_path)
     if (
-        os.path.isfile(opt_args.left_path)
-        and os.path.isdir(opt_args.right_path)
-        or os.path.isdir(opt_args.left_path)
-        and os.path.isfile(opt_args.right_path)
+        pth.isfile(opt_args.left_path)
+        and pth.isdir(opt_args.right_path)
+        or pth.isdir(opt_args.left_path)
+        and pth.isfile(opt_args.right_path)
     ):
         print("Cannot compare file against dir!")
-    diff_path = os.path.expanduser("~/tmp/diff")
-    if opt_args.remove_prior and os.path.isdir(diff_path):
+    diff_path = pth.expanduser("~/tmp/diff")
+    if opt_args.remove_prior and pth.isdir(diff_path):
         rm_dir(opt_args, diff_path)
-    if not os.path.isdir(os.path.dirname(diff_path)):
-        os.mkdir(os.path.dirname(diff_path))
-    if not os.path.isdir(diff_path):
+    if not pth.isdir(pth.dirname(diff_path)):
+        os.mkdir(pth.dirname(diff_path))
+    if not pth.isdir(diff_path):
         os.mkdir(diff_path)
+    if not opt_args.from_left_version:
+        opt_args.from_left_version = build_odoo_param(
+            "FULLVER", odoo_vid="opt_args.left_path", multi=True)
+    if not opt_args.from_right_version:
+        opt_args.from_right_version = build_odoo_param(
+            "FULLVER", odoo_vid="opt_args.right_path", multi=True)
+    if (
+            opt_args.from_left_version
+            and opt_args.from_right_version
+            and not opt_args.odoo_version
+    ):
+        if int(opt_args.from_left_version.split(".")[0]) >= int(
+                opt_args.from_right_version.split(".")[0]):
+            opt_args.odoo_version = opt_args.from_left_version
+        elif int(opt_args.from_left_version.split(".")[0]) < int(
+                opt_args.from_right_version.split(".")[0]):
+            opt_args.odoo_version = opt_args.from_right_version
+    if not opt_args.git_orgid:
+        opt_args.git_orgid = build_odoo_param(
+            "GIT_ORGID", odoo_vid=opt_args.left_path, multi=True
+        )
+    if not opt_args.git_orgid:
+        opt_args.git_orgid = build_odoo_param(
+            "GIT_ORGID", odoo_vid=opt_args.right_path, multi=True
+        )
+
     left_base, right_base = get_names(opt_args.left_path, opt_args.right_path)
-    left_diff_path = os.path.join(diff_path, left_base)
-    right_diff_path = os.path.join(diff_path, right_base)
+    left_diff_path = pth.join(diff_path, left_base)
+    right_diff_path = pth.join(diff_path, right_base)
     if (
         not opt_args.cache
-        or not os.path.isdir(left_diff_path)
-        or not os.path.isdir(right_diff_path)
+        or not pth.isdir(left_diff_path)
+        or not pth.isdir(right_diff_path)
     ):
-        if os.path.isdir(left_diff_path):
+        if pth.isdir(left_diff_path):
             rm_dir(opt_args, left_diff_path)
-        if os.path.isdir(right_diff_path):
+        if pth.isdir(right_diff_path):
             rm_dir(opt_args, right_diff_path)
         z0lib.run_traced(
             "mkdir %s" % left_diff_path,
