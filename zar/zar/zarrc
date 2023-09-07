@@ -419,8 +419,8 @@ create_db_list_from_pg() {
 
 create_db_list_from_file() {
 # create_db_list_from_file(dbsel pgsql_dir bck_dir bck_db)
-    local dbsel=$1
-    local dblist=
+    local dbsel="$1"
+    local dblist=""
     local files fn db dbf sfx f x
     local XDB bckdir redb valid passed
     if [ -z $3 ]; then
@@ -435,7 +435,8 @@ create_db_list_from_file() {
       done
     fi
     for fn in ${files/\~/$HOME}; do
-      dbf=${fn%%-*}
+      x="-$(echo $fn|awk -F- '{print $NF}')"
+      dbf=${fn/$x/}
       x=$(basename $dbf)
       db=${x%.*}
       valid=0
