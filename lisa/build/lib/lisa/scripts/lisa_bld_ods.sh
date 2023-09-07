@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.2
+__version__=2.0.3
 
 
 get_arch () {
@@ -159,7 +159,7 @@ OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1       
 OPTDEFL=(1        ""        ""        0        ""      ""      ""       0        0            ""      ""      ""       ""       "odoo"   ""          0           0)
 OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   ""       "do nothing" "file"  "file"  "test"   "file"   "user"   "version"   "verbose"   "")
 OPTHELP=("this help"\
- "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12 or 13"
+ "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 or 16"
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"
  "update default values in /etc configuration file before creating script"
  "select linux distribution: RHEL or Debian (default is current platform)"
@@ -183,7 +183,7 @@ if [[ "$opt_version" ]]; then
   exit 0
 fi
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Build Odoo daemon script (default name is odoo-server)"\
+  print_help "Build Odoo daemon script"\
   "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -194,7 +194,7 @@ script_name=$(basename $opt_confn)
 [[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
 if [[ -z $odoo_vid ]]; then
   odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")
-  [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && odoo_ver=12
+  [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && echo "No odoo version detected! Please use -b" && exit 1
   odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
 else
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
@@ -202,37 +202,62 @@ else
 fi
 if [[ -z $opt_org ]]; then
   xtl_org=$(echo $script_name|grep -Eo "[a-zA-Z0-9_]+-[a-zA-Z0-9_]*"|cut -d- -f2)
+  [[ ! $xtl_org =~ (oca|odoo|librerp|zero) ]] && sfx="$xtl_org" && xtl_org=""
 else
   xtl_org=$opt_org
+  sfx=""
 fi
 if [[ -z $odoo_vid ]]; then
-  [[ -z $xtl_org || $xtl_org == "odoo" ]] && odoo_vid="${odoo_fver}"
-  [[ -n $xtl_org && $xtl_org =~ (oca|librerp|zero) ]] && odoo_vid="${xtl_org}${odoo_ver}"
-  [[ -n $xtl_org && ! $xtl_org =~ (odoo|oca|librerp|zero) ]] && odoo_vid="odoo${odoo_ver}-${xtl_org}"
+  [[ -z $xtl_org ]] && odoo_vid="odoo${odoo_ver}" || odoo_vid="${xtl_org}${odoo_ver}"
+  [[ -n $sfx ]] && odoo_vid="${odoo_vid}-${sfx}"
 fi
 GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
-[[ -z $opt_svc ]] && SVCNAME=$(build_odoo_param SVCNAME $odoo_vid) || SVCNAME=$opt_svc
+if [[ -z $opt_svc ]]; then
+  SVCNAME=$(build_odoo_param SVCNAME $odoo_vid)
+  [[ -n $sfx && ! $SVCNAME =~ $sfx$ ]] && SVCNAME="${SVCNAME}-$sfx"
+else
+  SVCNAME=$opt_svc
+fi
 CONFN=$(build_odoo_param CONFN $odoo_vid)
+[[ -n $sfx && ! $CONF =~ $sfx$ ]] && CONFN="${CONFN/.conf/-$sfx.conf}"
 if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
-  echo "Data mismatch!"
+  echo "Configuration data mismatch!"
   echo "Odoo version=$odoo_fver"
   echo "Odoo branch=$odoo_vid"
-  echo "Config=$opt_confn"
-  echo "Config=$CONFN (by Odoo branch)"
-  echo "Service name=$SVCNAME (by Odoo branch)"
-  echo "Service name=$script_name (from config file)"
+  echo "Config=$CONFN (by Odoo branch) / Config=$opt_confn (supplied value)"
+  echo "Service name=$SVCNAME (by Odoo branch) / Service name=$script_name (from config file)"
   read -p "Confirm build (y/n)? " dummy
   [[ ! $dummy =~ y ]] && exit 1
   CONFN=$opt_confn
   SVCNAME=$script_name
 fi
+
+def_pidfile=$(build_odoo_param FPID $odoo_vid)
+[[ -n $sfx && ! $def_pidfile =~ $sfx$ ]] && def_pidfile="${def_pidfile/.pid/-$sfx.pid}"
+def_flogfile=$(build_odoo_param FLOG $odoo_vid)
+[[ -n $sfx && ! $def_flogfile =~ $sfx$ ]] && def_flogfile="${def_flogfile/.log/-$sfx.log}"
+
+if [[ -n "$CONFN" ]]; then
+  PIDFILE=$(grep "^pidfile *=" $CONFN|awk -F= '{print $2}')
+  PIDFILE=$(echo $PIDFILE)
+  [[ -n "$opt_pid" && $opt_pid != $PIDFILE ]] && echo -e "\e[31mMismatch pid file <$opt_pid>: config name is <$PIDFILE>\e[0m" && exit 1
+  LOGFILE=$(grep "^logfile *=" $CONFN|awk -F= '{print $2}')
+  LOGFILE=$(echo $LOGFILE)
+  [[ -n "$opt_flog" && $opt_flog != $LOGFILE ]] && echo -e "\e[31mMismatch log file <$opt_flog>: config name is <$LOGFILE>\e[0m" && exit 1
+else
+  PIDFILE="$def_pidfile"
+  [[ -n "$opt_pid" && $opt_pid != $PIDFILE ]] && echo -e "\e[33mWarning! Supplied pid file <$opt_pid> but expected <$PIDFILE>" && PIDFILE="$opt_pid\e[0m"
+  LOGFILE="$def_flogfile"
+  [[ -n "$opt_flog" && $opt_flog != $LOGFILE ]] && echo -e "\e[33mWarning! Supplied log file <$opt_flog> but expected <$LOGFILE>" && LOGFILE="$opt_flog\e[0m"
+fi
+[[ $def_pidfile != $PIDFILE ]] && echo -e "\e[33mWarning! PID file is <$PIDFILE> but expected <$def_pidfile>\e[0m"
+[[ $def_flogfile != $LOGFILE ]] && echo -e "\e[33mWarning! LOG file is <$LOGFILE> but expected <$def_flogfile>\e[0m"
+
 if [[ $SVCNAME =~ ^openerp ]]; then
   opt_id="openerp"
 else
   opt_id="odoo"
 fi
-[[ -n "$opt_pid" ]] || opt_pid=$(build_odoo_param FPID $odoo_vid)
-[[ -n "$opt_flog" ]] || opt_flog=$(build_odoo_param FLOG $odoo_vid)
 opt_confn2="$(dirname $opt_confn)"
 opt_confn2="$(readlink -m $opt_confn2/..)/$(basename $opt_confn)"
 if [[ -n $opt_osf ]]; then
@@ -244,27 +269,12 @@ if [[ -n $opt_osf ]]; then
 else
   FH=$(xuname "-f")
 fi
-if [[ -n "$CONFN" ]]; then
-  PIDFILE=$(grep "^pidfile *=" $CONFN|awk -F= '{print $2}')
-  PIDFILE=$(echo $PIDFILE)
-  [[ -z $PIDFILE ]] && PIDFILE="$opt_pid"
-  LOGFILE=$(grep "^logfile *=" $CONFN|awk -F= '{print $2}')
-  LOGFILE=$(echo $LOGFILE)
-  [[ -z $LOGFILE ]] && LOGFILE="$opt_flog"
-  if [[ $PIDFILE != $opt_pid ]]; then
-    echo "??? Mismatch pidfile configuration!?!?!?"
-    echo "Found $PIDFILE in configuration file rather than $opt_pid"
-  fi
-  if [[ $LOGFILE != $opt_flog ]]; then
-    echo "??? Mismatch logfile configuration!?!?!?"
-    echo "Found $LOGFILE in configuration file rather than $opt_flog"
-  fi
-fi
+
 echo "Building $script_name for $SVCNAME service under $FH Linux distribution"
-echo "- logfile is $LOGFILE"
-echo "- pidfile is $PIDFILE"
-echo "- def.conf.file is $CONFN"
-echo "- alt.conf.file is $opt_confn2"
+echo -e "- logfile is \e[32m$LOGFILE\e[0m"
+echo -e "- pidfile is \e[32m$PIDFILE\e[0m"
+echo -e "- def.conf.file is \e[32m$CONFN\e[0m"
+echo -e "- alt.conf.file is \e[32m$opt_confn2\e[0m"
 src_template=""
 [[ -n "$opt_tmpl" && -f $opt_tmpl ]] && src_template="$opt_tmpl"
 if [[ -z $src_template ]]; then
@@ -371,3 +381,4 @@ if [ $opt_dry_run -eq 0 ]; then
 else
   echo "See $script_name.tmp to discover how to script works"
 fi
+
