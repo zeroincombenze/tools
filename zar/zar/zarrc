@@ -168,6 +168,9 @@ init_vars() {
     DEV_OE_OWN=$(get_cfg_value 0 DEV_db_user)
     ORIGINAL_OWN=$(get_cfg_value 0 "set_original_user")
     PG_OWN=$(get_cfg_value 0 pg_user)
+    ODOO_FILESTORE_ROOT="$(get_cfg_value 0 odoo_filestore_root)"
+    [[ -z $ODOO_FILESTORE_ROOT && -d /home/odoo/.local/share ]] && ODOO_FILESTORE_ROOT="/home/odoo/.local/share"
+    [[ -z $ODOO_FILESTORE_ROOT && -d /opt/odoo/.local/share ]] && ODOO_FILESTORE_ROOT="/opt/odoo/.local/share"
     ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
     ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
     ODOO_RPC_XMLPORT="$(get_cfg_value 0 odoo_rpc_xmlport)"
@@ -332,18 +335,17 @@ compress_tar() {
       x=$(echo $TAR_EXT|awk '{print $1}')
       src=$db$x
       if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
-        run_traced "tar $TAR_OPT -c${BCKFORMAT}f $src $db-*.sql"
+        run_traced "tar $TAR_OPT -c${BCKFORMAT}f $src $db-*.sql $db-filestore.gz"
       else
         run_traced "tar $TAR_OPT -cf $src $db-*.sql"
       fi
       sts=$?
-      if [ $sts -eq $STS_SUCCESS -a -n "$2" ]; then
+      if [[ $sts -eq $STS_SUCCESS ]]; then
         wlog "removing archived files"
         for fn in $db-*.sql; do
-          if [ "$fn" != "$2" ]; then
-            rm -f $fn
-          fi
+          [[ $fn != "$2" ]] && rm -f $fn
         done
+        [[ -f $db-filestore.gz ]] && rm -f $db-filestore.gz
       fi
     fi
 }
