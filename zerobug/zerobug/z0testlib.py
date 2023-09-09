@@ -12,6 +12,7 @@ import os
 import shutil
 import stat
 import subprocess
+import re
 
 # import os.path
 import sys
@@ -1365,14 +1366,27 @@ class Z0test(object):
                     txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
                 os0.wlog(txt)
 
-    def test_result(self, ctx, msg, test_value, result_val):
+    def test_result(self, ctx, msg, test_value, result_val, op=None):
         ctx = self._ready_opts(ctx)
         ctx['ctr'] += 1
         if ctx.get('teststs', TEST_SUCCESS):  # pragma: no cover
             return TEST_FAILED
         self.msg_test(ctx, msg)
+        op = op or "=="
+        if op not in ("==", "=~"):
+            raise KeyError("Invalid operator " + op)
         if not ctx.get('dry_run', False):
-            if test_value != result_val:  # pragma: no cover
+            if op == "=~" and not re.match(result_val, test_value):
+                print(
+                    "Test '%s' failed: value '%s' does not match '%s'"
+                    % (msg, test_value, result_val)
+                )
+                ctx['teststs'] = TEST_FAILED
+                if ctx.get('on_error', '') != 'continue':
+                    raise AssertionError
+                else:
+                    return TEST_FAILED
+            elif op == "==" and test_value != result_val:  # pragma: no cover
                 print(
                     "Test '%s' failed: expected '%s', found '%s'"
                     % (msg, test_value, result_val)

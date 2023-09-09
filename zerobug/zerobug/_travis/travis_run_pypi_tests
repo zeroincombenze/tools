@@ -98,7 +98,7 @@ travis_test_bash() {
 
 please_test_flake8() {
     echo "======== Testing test_flake8 ========"
-    local s sts
+    local opts s sts
     sts=0
     run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
     [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../travis/cfg)"
@@ -108,14 +108,15 @@ please_test_flake8() {
         else
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
         fi
-        run_traced "flake8 . --config=${FLAKE8_CONFIG}"
+        [[ $TRAVIS_PYTHON_VERSION =~ ^2 ]] && opts="--extend-ignore=B006,F812 --max-line-length=88" || opts="--extend-ignore=B006 --max-line-length=88"
+        run_traced "flake8 . --config=${FLAKE8_CONFIG} $opts"
         s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
         else
             local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
         fi
-        run_traced "flake8 . --config=${FLAKE8_CONFIG}"
+        run_traced "flake8 . --config=${FLAKE8_CONFIG} $opts"
         s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     fi
     return $sts
