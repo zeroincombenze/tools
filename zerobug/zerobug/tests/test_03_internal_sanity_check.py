@@ -9,7 +9,12 @@ from __future__ import print_function, unicode_literals
 
 import os
 import sys
-from zerobug import z0test
+
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0test                                                # noqa: E402
 
 
 __version__ = "2.0.9"
@@ -26,6 +31,7 @@ def version():
 class RegressionTest:
     def __init__(self, zarlib):
         self.Z = zarlib
+        self.Z.inherit_cls(self)
 
     def test_01(self, z0ctx):
         if z0ctx['dry_run']:
@@ -33,13 +39,19 @@ class RegressionTest:
             z0ctx['ctr'] = 46
         else:
             sts = self.Z.sanity_check('-e', full=z0ctx)
-        sts += self.Z.test_result(
-            z0ctx,
-            'python version',
-            os.getenv("TRAVIS_PYTHON_VERSION"),
+        self.assertEqual(sts, 0, msg_info="sanity_check()")
+        # sts += self.Z.test_result(
+        #     z0ctx,
+        #     'python version',
+        #     os.getenv("TRAVIS_PYTHON_VERSION"),
+        #     "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+        # )
+        self.assertEqual(
             "%d.%d" % (sys.version_info[0], sys.version_info[1]),
+            os.getenv("TRAVIS_PYTHON_VERSION"),
+            msg_info='python version'
         )
-        return sts
+        return self.ret_sts()
 
 
 #

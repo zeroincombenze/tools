@@ -24,6 +24,7 @@ import unittest
 import magic
 
 from os0 import os0
+from z0lib import z0lib
 from python_plus import _c
 
 __version__ = "2.0.9"
@@ -326,52 +327,53 @@ class SanityTest:
     This class is structured exactly as a target test
     """
 
-    def __init__(self, zarlib):
-        self.Z = zarlib
+    def __init__(self, z0bug):
+        self.Z = z0bug
+        self.Z.inherit_cls(self)
 
     def test_01(self, z0ctx):
         """Sanity autotest #1"""
         opts = ['-n']
         ctx = self.Z.parseoptest(opts)
-        sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
-        if sts == TEST_SUCCESS:
-            if os.isatty(0):
-                sts = self.Z.test_result(z0ctx, "Opt -n (tty)", True, ctx['run_tty'])
-            else:  # pragma: no cover
-                sts = self.Z.test_result(z0ctx, "Opt -n (tty)", False, ctx['run_tty'])
-        if sts == TEST_SUCCESS:
-            if os.isatty(0):
-                sts = self.Z.test_result(
-                    z0ctx, "Opt -n (daemon)", False, ctx['run_daemon']
-                )
-            else:  # pragma: no cover
-                sts = self.Z.test_result(
-                    z0ctx, "Opt -n (daemon)", True, ctx['run_daemon']
-                )
-        if sts == TEST_SUCCESS:
-            if os.isatty(0):
-                sts = self.Z.test_result(z0ctx, "Opt -n (-e)", True, ctx['opt_echo'])
-            else:  # pragma: no cover
-                sts = self.Z.test_result(z0ctx, "Opt -n (-e)", False, ctx['opt_echo'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-l)", '~/z0bug.log', ctx['logfn'])
+        # sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
+        self.assertTrue(ctx['dry_run'], msg_info="Opt -n")
+        if os.isatty(0):
+            # sts = self.Z.test_result(z0ctx, "Opt -n (tty)", True, ctx['run_tty'])
+            self.assertTrue(ctx['run_tty'], msg_info="Opt -n (tty)")
+        else:  # pragma: no cover
+            # sts = self.Z.test_result(z0ctx, "Opt -n (tty)", False, ctx['run_tty'])
+            self.assertFalse(ctx['run_tty'], msg_info="Opt -n (tty)")
+        if os.isatty(0):
+            # sts = self.Z.test_result(z0ctx,"Opt -n (daemon)",False,ctx['run_daemon'])
+            self.assertFalse(ctx['run_daemon'], msg_info="Opt -n (daemon)")
+        else:  # pragma: no cover
+            # sts = self.Z.test_result(z0ctx,"Opt -n (daemon)",True,ctx['run_daemon'])
+            self.assertTrue(ctx['run_daemon'], msg_info="Opt -n (daemon)")
+        if os.isatty(0):
+            # sts = self.Z.test_result(z0ctx, "Opt -n (-e)", True, ctx['opt_echo'])
+            self.assertTrue(ctx['opt_echo'], msg_info="Opt -n (-e)")
+        else:  # pragma: no cover
+            # sts = self.Z.test_result(z0ctx, "Opt -n (-e)", False, ctx['opt_echo'])
+            self.assertFalse(ctx['opt_echo'], msg_info="Opt -n (-e)")
+        # sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
+        self.assertFalse(ctx['opt_new'], msg_info="Opt -n (-k)")
+        # sts = self.Z.test_result(z0ctx, "Opt -n (-l)", '~/z0bug.log', ctx['logfn'])
+        self.assertEqual(ctx['logfn'], '~/z0bug.log', msg_info="Opt -n (-l)")
         ctx = self.Z._ready_opts(ctx)
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Counter", 0, ctx['ctr'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-r)", 0, ctx['min_test'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-z)", 0, ctx['max_test'])
-        if sts == TEST_SUCCESS:
-            tres = True
-            sts = self.Z.test_result(z0ctx, "Opt -n (-Q)", tres, ctx['opt_noctr'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -B", 0, ctx['opt_debug'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Run on Top", True, ctx['run_on_top'])
-        return sts
+        # sts = self.Z.test_result(z0ctx, "Counter", 0, ctx['ctr'])
+        self.assertEqual(ctx['ctr'], 0, msg_info="Counter")
+        # sts = self.Z.test_result(z0ctx, "Opt -n (-r)", 0, ctx['min_test'])
+        self.assertEqual(ctx['min_test'], 0, msg_info="Opt -n (-r)")
+        # sts = self.Z.test_result(z0ctx, "Opt -n (-z)", 0, ctx['max_test'])
+        self.assertEqual(ctx['max_test'], 0, msg_info="Opt -n (-z)")
+        # tres = True
+        # sts = self.Z.test_result(z0ctx, "Opt -n (-Q)", tres, ctx['opt_noctr'])
+        self.assertTrue(ctx['opt_noctr'], msg_info="Opt -n (-Q)")
+        # sts = self.Z.test_result(z0ctx, "Opt -B", 0, ctx['opt_debug'])
+        self.assertEqual(ctx['opt_debug'], 0, msg_info="Opt -B")
+        # sts = self.Z.test_result(z0ctx, "Run on Top", True, ctx['run_on_top'])
+        self.assertTrue(ctx['run_on_top'], msg_info="Run on Top")
+        return self.ret_sts()
 
     def test_02(self, z0ctx):
         """Sanity autotest #2"""
@@ -463,7 +465,7 @@ class SanityTest:
         ctx = self.Z.parseoptest(opts)
         ctx['WLOGCMD'] = "wecho-0"
         # sts = self.simulate_main(ctx, '1')
-        sts = self.Z.main(ctx, UT=['__test_01'])
+        sts = self.Z.main(ctx, unittest_list=['__test_01'])
         # if os.environ.get("COVERAGE_PROCESS_START", ""):
         #     tres = 0
         # else:                                             # pragma: no cover
@@ -472,13 +474,13 @@ class SanityTest:
         if sts == TEST_SUCCESS:
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_02'])
             tres = 2
             sts += self.Z.test_result(z0ctx, "UT", tres, ctx['max_test'])
         if sts == TEST_SUCCESS:
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             tres = 3
             sts += self.Z.test_result(z0ctx, "UT", tres, ctx['max_test'])
         if sts == TEST_SUCCESS:
@@ -490,7 +492,7 @@ class SanityTest:
             opts = ['-n', '-Q']
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             tres = 3
             sts += self.Z.test_result(z0ctx, "UT -n", tres, ctx['max_test'])
             tres = 3
@@ -499,13 +501,13 @@ class SanityTest:
             opts = ['-n', '-0']
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             sts += self.Z.test_result(z0ctx, "UT -n -0", 0, ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-z13', '-n', '-Q']
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             tres = 13
             sts += self.Z.test_result(z0ctx, "UT -z13", tres, ctx['max_test'])
             tres = 3
@@ -514,13 +516,13 @@ class SanityTest:
             opts = ['-z13', '-0']
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             sts += self.Z.test_result(z0ctx, "UT -z13 -0", 13, ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-z13', '-0', '-n']
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
-            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, unittest_list=['__test_01', '__test_02'])
             sts += self.Z.test_result(z0ctx, "UT -z13 -0 -n", 13, ctx['max_test'])
         return sts
 
@@ -596,6 +598,12 @@ class Z0test(object):
         self.home_devel = os.environ.get("HOME_DEVEL") or os.path.expanduser("~/devel")
         self.odoo_root = os.path.dirname(self.home_devel)
         self.z0ctx = {}
+
+    def inherit_cls(self, test_cls):
+        for name in (
+                "assertEqual", "assertTrue", "assertFalse", "ret_sts",
+        ):
+            setattr(test_cls, name, getattr(self, name))
 
     def _create_parser(self, version, ctx):
         parser = argparse.ArgumentParser(
@@ -780,11 +788,11 @@ class Z0test(object):
 
     def set_tlog_file(self, ctx):
         # Old (deprecated) log management
-        os0.set_tlog_file(
-            ctx.get('logfn', None),
-            new=ctx.get('opt_new', False),
-            echo=ctx.get('opt_echo', False),
-        )
+        # os0.set_tlog_file(
+        #     ctx.get('logfn', None),
+        #     new=ctx.get('opt_new', False),
+        #     echo=ctx.get('opt_echo', False),
+        # )
         # Now set:
         # - UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
         # - UMLI (Unique Module Log Identifier):
@@ -902,7 +910,12 @@ class Z0test(object):
         return os.path.abspath(sys.argv[0])
 
     def parseoptest(self, arguments, version=None, tlog=None):
-        ctx = {}
+        ctx = self._ready_opts({
+            'ctr': 0,
+            'max_test': 0,
+            'min_test': 0,
+            '_prior_msg': '',
+        })
         ctx['os_name'] = os.name
         ctx['rundir'] = self.rundir
         ctx['testdir'] = self.testdir
@@ -961,13 +974,17 @@ class Z0test(object):
         return args
 
     def _ready_opts(self, ctx):
-        if 'max_test' not in ctx or ctx['max_test'] is None:
-            ctx['max_test'] = ctx.get('max_test', 0)
-        if 'min_test' not in ctx or ctx['min_test'] is None:
-            ctx['min_test'] = ctx.get('min_test', 0)
-        if 'ctr' not in ctx or ctx['ctr'] is None:
-            ctx['ctr'] = ctx.get('ctr', 0)
+        ctx['max_test'] = ctx.get('max_test', 0)
+        ctx['min_test'] = ctx.get('min_test', 0)
         ctx['_prior_msg'] = ctx.get('_prior_msg', '')
+        for (kk, name, default) in (
+                ("dry_run", "dry_run", False),
+                ("ctr", "assert_counter", 0),
+                ("failfast", "failfast", False),
+                ("successful", "successful", True),
+        ):
+            ctx[kk] = ctx.get(kk, getattr(self, name, default))
+            setattr(self, name, ctx[kk])
         return ctx
 
     def _save_opt(self, ctx, p):
@@ -1019,6 +1036,13 @@ class Z0test(object):
                 with open(testfile, 'wb') as fd:
                     fd.write(new_source.encode('utf-8'))
 
+    def ret_sts(self):
+        return 0 if self.successful else 1
+
+    def res_test_env(self, ctx):
+        ctx["ctr"] = max(self.assert_counter, ctx["ctr"])
+        ctx["successful"] &= self.successful
+
     def test_version(self, ctx, testname):
         """testname format is '__version_T_VVVVFILE' where:
         T: type - May be:
@@ -1059,11 +1083,13 @@ class Z0test(object):
         elif tver == "0":
             res = __version__
         if cmd:
-            os0.muteshell(cmd, keepout=True)
-            stdout_fd = open(os0.setlfilename(os0.bgout_fn, 'r'))
-            res = stdout_fd.read().strip()
-            stdout_fd.close()
-            os.remove(os0.bgout_fn)
+            # os0.muteshell(cmd, keepout=True)
+            # stdout_fd = open(os0.setlfilename(os0.bgout_fn, 'r'))
+            # res = stdout_fd.read().strip()
+            # stdout_fd.close()
+            # os.remove(os0.bgout_fn)
+            sts, stdout, stderr = z0lib.run_traced(cmd, verbose=0)
+            res = stdout.strip()
         return self.test_result(ctx, msg, version, res)
 
     def doctest(self, ctx, testname):
@@ -1126,6 +1152,7 @@ class Z0test(object):
                 except BaseException:  # pragma: no cover
                     ctx['ctr'] = 0
                 self.ctr_list.append(ctx['ctr'])
+            self.res_test_env(ctx)
             testctr += ctx['ctr']
         if TestCls and hasattr(TestCls, 'teardown'):
             ctx['dry_run'] = True
@@ -1229,26 +1256,27 @@ class Z0test(object):
                 if not ctx.get('opt_noctr', False):
                     ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
-            if sts or ctx.get('teststs', TEST_SUCCESS):  # pragma: no cover
+            if sts or not ctx.get('successful'):  # pragma: no cover
                 sts = TEST_FAILED
                 break
+            self.res_test_env(ctx)
         ctx['min_test'] = ctx['ctr']
         if TestCls and hasattr(TestCls, 'teardown'):
             T.teardown(ctx)
         return sts
 
-    def main_local(self, ctx, Test, UT1=None, UT=None):
+    def main_local(self, ctx, cls2test, unittest_list=None):
         """Default main program for local tests"""
-        # self.dbgmsg(ctx, '>>> main_local(%s)' % Test)
+        ctx = self._ready_opts(ctx)
         test_list = sorted(
             [
                 meth
-                for meth in dir(Test)
-                if meth.startswith("test_") and callable(getattr(Test, meth))
+                for meth in dir(cls2test)
+                if meth.startswith("test_") and callable(getattr(cls2test, meth))
             ]
         )
         if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, Test)
+            self._exec_tests_4_count(test_list, ctx, cls2test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['max_test'])
@@ -1256,10 +1284,10 @@ class Z0test(object):
         else:
             if not ctx.get('_run_autotest', False):
                 self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, Test)
+            sts = self._exec_all_tests(test_list, ctx, cls2test)
         return sts
 
-    def main(self, ctx={}, Test=None, UT1=None, UT=None):
+    def main(self, ctx={}, cls2test=None, unittest_list=None):
         """Default main program for test execution
         ctx: context
         Test: test class for internal tests;
@@ -1285,9 +1313,9 @@ class Z0test(object):
                     print('Coverage not found!')
                     ctx['run4cover'] = False
         test_list = []
-        if isinstance(UT, (list, tuple)):
+        if isinstance(unittest_list, (list, tuple)):
             # self.dbgmsg(ctx, '>>> test_list=%s' % UT)
-            test_list = UT
+            test_list = unittest_list
         elif not ctx.get('_run_autotest', False):
             # Discover test files
             test_list = []
@@ -1306,16 +1334,16 @@ class Z0test(object):
                     mime = magic.Magic(mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
-        if len(test_list) == 0 and Test is not None:
+        if len(test_list) == 0 and cls2test is not None:
             test_list = sorted(
                 [
                     meth
-                    for meth in dir(Test)
-                    if meth.startswith("test_") and callable(getattr(Test, meth))
+                    for meth in dir(cls2test)
+                    if meth.startswith("test_") and callable(getattr(cls2test, meth))
                 ]
             )
         if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, Test)
+            self._exec_tests_4_count(test_list, ctx, cls2test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['ctr'])
@@ -1323,7 +1351,7 @@ class Z0test(object):
         else:
             if not ctx.get('_run_autotest', False):
                 self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, Test)
+            sts = self._exec_all_tests(test_list, ctx, cls2test)
             if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:
                     print(success_msg)
@@ -1357,20 +1385,21 @@ class Z0test(object):
                         )
                     else:
                         print("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
-            else:
-                if not ctx.get('opt_noctr', None):
-                    txt = "{}Test {}/{}: {}".format(
-                        prfx, ctx['ctr'], ctx['max_test'], msg
-                    )
-                else:
-                    txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
-                os0.wlog(txt)
+            # else:
+            #     if not ctx.get('opt_noctr', None):
+            #         txt = "{}Test {}/{}: {}".format(
+            #             prfx, ctx['ctr'], ctx['max_test'], msg
+            #         )
+            #     else:
+            #         txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
+            #     os0.wlog(txt)
 
     def test_result(self, ctx, msg, test_value, result_val, op=None):
+        # This funcion is deprecated
         ctx = self._ready_opts(ctx)
-        ctx['ctr'] += 1
-        if ctx.get('teststs', TEST_SUCCESS):  # pragma: no cover
+        if not ctx.get('successful'):  # pragma: no cover
             return TEST_FAILED
+        ctx['ctr'] += 1
         self.msg_test(ctx, msg)
         op = op or "=="
         if op not in ("==", "=~"):
@@ -1381,8 +1410,8 @@ class Z0test(object):
                     "Test '%s' failed: value '%s' does not match '%s'"
                     % (msg, test_value, result_val)
                 )
-                ctx['teststs'] = TEST_FAILED
-                if ctx.get('on_error', '') != 'continue':
+                ctx['successful'] = False
+                if ctx.get('failfast'):
                     raise AssertionError
                 else:
                     return TEST_FAILED
@@ -1391,12 +1420,43 @@ class Z0test(object):
                     "Test '%s' failed: expected '%s', found '%s'"
                     % (msg, test_value, result_val)
                 )
-                ctx['teststs'] = TEST_FAILED
-                if ctx.get('on_error', '') != 'continue':
+                ctx['successful'] = False
+                if ctx.get('failfast'):
                     raise AssertionError
                 else:
                     return TEST_FAILED
         return TEST_SUCCESS
+
+    def assertTrue(self, expr, msg=None, msg_info=None):
+        if msg_info:
+            print(msg_info)
+        if not bool(expr):
+            print(msg or "Invalid value <<%s>>!" % expr)
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertFalse(self, expr, msg=None, msg_info=None):
+        if msg_info:
+            print(msg_info)
+        if bool(expr):
+            print(msg or "Invalid value <<%s>>!" % expr)
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(msg_info)
+        if first != second:
+            print(msg or "Value <<%s>> is different form <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
 
     def _init_test_ctx(self, opt_echo, full={}):
         """Set context value for autotest"""

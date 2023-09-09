@@ -8,7 +8,11 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from zerobug import z0test
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0test                                                # noqa: E402
 
 __version__ = "2.0.9"
 
