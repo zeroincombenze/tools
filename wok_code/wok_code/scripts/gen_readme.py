@@ -1344,7 +1344,7 @@ def parse_local_file(
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
-    if len(source) and filename == "changelog.rst":
+    if len(source) and filename in ("CHANGELOG.rst", "HISTORY.rst", "history.rst"):
         source = tail(source)
         if ctx["odoo_layer"] == "module":
             ctx["history-summary"] = tail(source, max_ctr=1, max_days=15)

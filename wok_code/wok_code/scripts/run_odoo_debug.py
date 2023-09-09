@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import argparse
+from subprocess import call
 
 try:
     import ConfigParser
@@ -246,7 +247,7 @@ class RunOdoo(object):
         cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
         opts = ""
         if self.opt_args.debug:
-            opts += "B"
+            opts += ("B" * self.opt_args.debug)
         if self.opt_args.no_coverage:
             opts += "C"
         if self.opt_args.daemon:
@@ -417,48 +418,27 @@ class RunOdoo(object):
         return 0
 
     def export_i18n(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
     def install_modules(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
     def import_i18n(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
     def update_modules(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
     def run_tests(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
     def run(self):
-        return os.system(self.prepare_os_cmd())
+        return call(self.prepare_os_cmd(), shell=True)
 
 
 def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
-    # cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
-    # if not os.path.isfile(cmd):
-    #     cmd = os.path.split(cmd)
-    #     cmd = os.path.join(os.path.dirname(cmd[0]), cmd[1])
-    # if not os.path.isfile(cmd):
-    #     print("Internal package error: file %s not found!" % cmd)
-    # for arg in cli_args:
-    #     if "<" in arg or ">" in arg:
-    #         arg = "'%s'" % arg.replace("'", r"\'")
-    #     elif " " in arg:
-    #         if '"' in arg:
-    #             arg = '"%s"' % arg.replace('"', r"\"")
-    #         else:
-    #             arg = '"%s"' % arg
-    #     elif '"' in arg:
-    #         arg = '"%s"' % arg.replace('"', r"\"")
-    #     elif "'" in arg:
-    #         arg = '"%s"' % arg
-    #     else:
-    #         arg = "%s" % arg
-    #     cmd = "%s %s" % (cmd, arg)
 
     run_odoo_debug = RunOdoo(cli_args)
     if (

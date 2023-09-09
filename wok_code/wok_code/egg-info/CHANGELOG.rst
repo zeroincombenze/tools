@@ -4,6 +4,9 @@
 * [FIX] gen_readme.py: minor fixes
 * [IMP] gen_readme.py: manifest author priority
 * [FIX] gen_readme.py: coverage in CHANGELOG.rst"
+* [FIX] license_mgnt: best organization recognition
+* [IMP] license_mgnt: powerp renamed to librerp
+* [FIX] run_odoo_debug: no doc neither translate after test error
 
 2.0.10 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~~

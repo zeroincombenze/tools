@@ -598,6 +598,7 @@ if [[ $opt_stat -ne 0 ]]; then
     exit 0
 fi
 
+sts=0
 if [[ $opt_touch -eq 0 ]]; then
     [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
     OPT_LLEV=
@@ -706,11 +707,11 @@ if [[ $opt_touch -eq 0 ]]; then
         if [[ $opt_dry_run -eq 0 ]]; then
             echo -e "\n+===================================================================" | tee -a $LOGFILE
             x="\e[32mSUCCESS!\e[0m"
-            grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m"
-            grep -Eq "[0-9]+ (ERROR|CRITICAL|WARNING) .*invalid module names.*$opt_modules" $LOGFILE && x="\e[31mFAILED!\e[0m"
+            grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
+            grep -Eq "[0-9]+ (ERROR|CRITICAL|WARNING) .*invalid module names.*$opt_modules" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
             echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
             echo -e "+===================================================================\n"  | tee -a $LOGFILE
-            coverage_report | tee -a $LOGFILE
+            [[ $sts -eq 0 ]] && coverage_report | tee -a $LOGFILE
             echo "less -R \$(readlink -f \$(dirname \$0))/$(basename $LOGFILE)" > $LOGDIR/show-log.sh
             chmod +x $LOGDIR/show-log.sh
         else
@@ -735,3 +736,4 @@ if [[ $opt_touch -eq 0 ]]; then
         fi
     fi
 fi
+exit $sts

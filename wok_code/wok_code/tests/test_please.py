@@ -8,6 +8,7 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
+import re
 
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
@@ -152,7 +153,8 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh test -vn" in stdout.split("\n")[3],
+            bool(re.match(".*/python .*/run_odoo_debug.py -T -m test_module -v -n",
+                          stdout.split("\n")[3]))
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
@@ -179,7 +181,7 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh test -vn" in stdout.split("\n")[1],
+            "run_odoo_debug.py" in stdout.split("\n")[1],
         )
         return sts
 
@@ -317,7 +319,7 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
+            "run_odoo_debug.py" in stdout.split("\n")[0],
         )
         self.Z.test_result(
             z0ctx,
@@ -346,7 +348,7 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
+            "run_odoo_debug.py" in stdout.split("\n")[0],
         )
         return sts
 
