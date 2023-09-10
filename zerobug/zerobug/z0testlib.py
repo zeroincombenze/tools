@@ -570,6 +570,7 @@ class Z0test(object):
             ix = sys.path.index(this_pkg_dir)
             del sys.path[ix]
         sys.path.insert(0, this_pkg_dir)
+        sys.path.insert(0, self.rundir)
 
         if not id:
             if this.startswith('test_'):
