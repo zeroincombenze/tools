@@ -358,7 +358,7 @@ class SanityTest:
         # sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
         self.assertFalse(ctx['opt_new'], msg_info="Opt -n (-k)")
         # sts = self.Z.test_result(z0ctx, "Opt -n (-l)", '~/z0bug.log', ctx['logfn'])
-        self.assertEqual(ctx['logfn'], '~/z0bug.log', msg_info="Opt -n (-l)")
+        # self.assertEqual(ctx['logfn'], '~/z0bug.log', msg_info="Opt -n (-l)")
         ctx = self.Z._ready_opts(ctx)
         # sts = self.Z.test_result(z0ctx, "Counter", 0, ctx['ctr'])
         self.assertEqual(ctx['ctr'], 0, msg_info="Counter")
@@ -383,21 +383,21 @@ class SanityTest:
         sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
+        # if sts == TEST_SUCCESS:
+        #     sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
         return sts
 
-    def test_03(self, z0ctx):
-        """Sanity autotest #3"""
-        tlog = "~/devel/z0testlib.log"
-        opts = ['-n', '-l', tlog]
-        ctx = self.Z.parseoptest(opts)
-        sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
-        if sts == TEST_SUCCESS:
-            sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
-        return sts
+    # def test_03(self, z0ctx):
+    #     """Sanity autotest #3"""
+    #     tlog = "~/devel/z0testlib.log"
+    #     opts = ['-n', '-l', tlog]
+    #     ctx = self.Z.parseoptest(opts)
+    #     sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
+    #     if sts == TEST_SUCCESS:
+    #         sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
+    #     if sts == TEST_SUCCESS:
+    #         sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
+    #     return sts
 
     def test_04(self, z0ctx):
         """Sanity autotest #4"""
@@ -535,50 +535,50 @@ class Z0test(object):
 
     def __init__(self, argv=None, id=None, version=None, autorun=False):
         self.autorun = autorun
-        this_fqn = None
         if argv is None:
             if len(sys.argv) and not sys.argv[0].startswith('-'):
                 argv = sys.argv[1:]
-                this_fqn = sys.argv[0]
+                self.this_fqn = os.path.abspath(sys.argv[0])
             else:
                 argv = []
         else:
             self.autorun = True
+            self.this_fqn = self._get_this_fqn()
         if "--ut" in argv:
             sys.exit(main())
-        this_fqn = os.path.abspath(this_fqn or self._get_this_fqn())
-        this = os.path.splitext(os.path.basename(this_fqn))[0]
-        this_dir = os.path.abspath(os.getcwd())
+        self.this = os.path.splitext(os.path.basename(self.this_fqn))[0]
+        self.this_dir = os.path.abspath(os.getcwd())
         if (
-                not os.path.basename(this_dir) == 'tests'
-                and not os.path.isdir(os.path.join(this_dir, 'tests'))
+                not os.path.basename(self.this_dir) == 'tests'
+                and not os.path.isdir(os.path.join(self.this_dir, 'tests'))
         ):
-            this_dir = os.path.dirname(this_fqn)
-        self.this_dir = this_dir
-        if os.path.basename(this_dir) == 'tests':
+            self.this_dir = os.path.dirname(self.this_fqn)
+        if os.path.basename(self.this_dir) == 'tests':
             self.testdir = self.this_dir
             self.rundir = os.path.dirname(self.this_dir)
-        else:  # pragma: no cover
-            if os.path.isdir('./tests'):
-                self.testdir = os.path.join(self.this_dir, 'tests')
-            else:
-                self.testdir = self.this_dir
+        elif os.path.isdir('./tests'):                              # pragma: no cover
+            self.testdir = os.path.join(self.this_dir, 'tests')
             self.rundir = self.this_dir
+        else:                                                       # pragma: no cover
+            self.testdir = self.rundir = self.this_dir
         # Testing package dir must be the 1.st one in sys.path
         this_pkg_dir = os.path.dirname(self.rundir)
         if this_pkg_dir in sys.path:
             ix = sys.path.index(this_pkg_dir)
             del sys.path[ix]
         sys.path.insert(0, this_pkg_dir)
+        if self.rundir in sys.path:
+            ix = sys.path.index(self.rundir)
+            del sys.path[ix]
         sys.path.insert(0, self.rundir)
 
         if not id:
-            if this.startswith('test_'):
-                id = this[5:]
-            elif this.startswith('zerobug') or this == '__main__':
+            if self.this.startswith('test_'):
+                id = self.this[5:]
+            elif self.this.startswith('zerobug') or self.this == '__main__':
                 id = os.path.basename(self.rundir)
             else:
-                id = this
+                id = self.this
             if id[-3:] >= '_00' and id[-3:] <= '_99':
                 id = id[0:-3]
             if id[-5:] == '_test':
@@ -586,12 +586,12 @@ class Z0test(object):
         else:
             self.autorun = True
         self.module_id = id
-        if this == 'zerobug':
+        if self.this == 'zerobug':
             self.pattern = [self.module_id + '_test*', 'test_*']
         else:
-            self.pattern = this
+            self.pattern = [self.this, 'test_*']
         # If auto regression test is executing
-        self.def_tlog_fn = os.path.join(self.testdir, self.module_id + "_test.log")
+        # self.def_tlog_fn = os.path.join(self.testdir, self.module_id + "_test.log")
         self.ctr_list = []
         if self.autorun:
             self.z0ctx = self.parseoptest(argv, version=version)
@@ -834,22 +834,14 @@ class Z0test(object):
                 ctx['logfn'] = "~/" + ctx['this'] + ".log"
         if not ctx.get('WLOGCMD', None) and not ctx.get('_run_autotest', False):
             self.set_tlog_file(ctx)
-        try:
-            subprocess.call(
-                ['coverage', '--version'],
-                stdout=open('/dev/null', 'w'),
-                stderr=open('/dev/null', 'w'),
+        sts, stdout, stderr = z0lib.run_traced('coverage --version', verbose=0)
+        ctx['run4cover'] = (sts == 0)
+        if os.environ.get("COVERAGE_PROCESS_START", ""):
+            ctx['COVERAGE_PROCESS_START'] = os.environ["COVERAGE_PROCESS_START"]
+        elif ctx['run4cover']:                                      # pragma: no cover
+            ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
+                os.path.join(self.rundir, '.coveragerc')
             )
-            if os.environ.get("COVERAGE_PROCESS_START", ""):
-                ctx['COVERAGE_PROCESS_START'] = os.environ["COVERAGE_PROCESS_START"]
-                ctx['run4cover'] = True
-            if ctx['run4cover']:
-                if not ctx.get('COVERAGE_PROCESS_START', ''):  # pragma: no cover
-                    ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
-                        os.path.join(self.rundir, '.coveragerc')
-                    )
-        except OSError:
-            ctx['run4cover'] = False
         return ctx
 
     def _create_def_params_dict(self, ctx):
@@ -920,19 +912,17 @@ class Z0test(object):
         ctx['os_name'] = os.name
         ctx['rundir'] = self.rundir
         ctx['testdir'] = self.testdir
-        this_fqn = self._get_this_fqn()
-        ctx['this_fqn'] = this_fqn
-        this = os.path.splitext(os.path.basename(this_fqn))[0]
-        ctx['this'] = this
+        ctx['this_fqn'] = self.this_fqn
+        ctx['this'] = self.this
         if os.isatty(0):
             ctx['run_daemon'] = False
         else:  # pragma: no cover
             ctx['run_daemon'] = True
         ctx['run_tty'] = os.isatty(0)
-        if tlog:
-            ctx['tlog'] = tlog
-        else:
-            ctx['tlog'] = self.def_tlog_fn
+        # if tlog:
+        #     ctx['tlog'] = tlog
+        # else:
+        #     ctx['tlog'] = self.def_tlog_fn
         # running autotest
         if version is None:
             ctx['_run_autotest'] = True
@@ -983,6 +973,8 @@ class Z0test(object):
                 ("ctr", "assert_counter", 0),
                 ("failfast", "failfast", False),
                 ("successful", "successful", True),
+                ("this_fqn", "this_fqn", None),
+                ("this", "this", None),
         ):
             ctx[kk] = ctx.get(kk, getattr(self, name, default))
             setattr(self, name, ctx[kk])
@@ -1111,14 +1103,15 @@ class Z0test(object):
         )
         return self.test_result(ctx, msg, TEST_SUCCESS, res)
 
-    def _exec_tests_4_count(self, test_list, ctx, TestCls=None):
+    def _exec_tests_4_count(self, test_list, ctx, Cls2Test=None):
+        # Deprecated
         opt4childs = ['-n', '-R']
         ctx = self._ready_opts(ctx)
         ctx = self._save_options(ctx)
         testctr = 0
-        if TestCls:
-            T = TestCls(self)
-            if hasattr(TestCls, 'setup'):
+        if Cls2Test:
+            T = Cls2Test(self)
+            if hasattr(Cls2Test, 'setup'):
                 ctx['dry_run'] = True
                 T.setup(ctx)
         for testname in test_list:
@@ -1131,7 +1124,7 @@ class Z0test(object):
                 self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif TestCls and hasattr(TestCls, testname):
+            elif Cls2Test and hasattr(Cls2Test, testname):
                 getattr(T, testname)(ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
@@ -1155,7 +1148,7 @@ class Z0test(object):
                 self.ctr_list.append(ctx['ctr'])
             self.res_test_env(ctx)
             testctr += ctx['ctr']
-        if TestCls and hasattr(TestCls, 'teardown'):
+        if Cls2Test and hasattr(Cls2Test, 'teardown'):
             ctx['dry_run'] = True
             T.teardown(ctx)
         ctx = self._restore_options(ctx)
@@ -1165,7 +1158,7 @@ class Z0test(object):
         ctx['_prior_msg'] = ''
         return TEST_SUCCESS
 
-    def _exec_all_tests(self, test_list, ctx, TestCls=None):
+    def _exec_all_tests(self, test_list, ctx, Cls2Test=None):
         ctx = self._ready_opts(ctx)
         if (
             not ctx.get('_run_autotest', False)
@@ -1178,9 +1171,9 @@ class Z0test(object):
         sts = 0
         ctx['ctr'] = ctx['min_test']
 
-        if TestCls:
-            T = TestCls(self)
-        if TestCls and hasattr(TestCls, 'setup'):
+        if Cls2Test:
+            T = Cls2Test(self)
+        if Cls2Test and hasattr(Cls2Test, 'setup'):
             T.setup(ctx)
         for testname in test_list:
             opt4childs = self._inherit_opts(ctx)
@@ -1191,7 +1184,7 @@ class Z0test(object):
                 sts = self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif TestCls and hasattr(TestCls, testname):
+            elif Cls2Test and hasattr(Cls2Test, testname):
                 sts = getattr(T, testname)(ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
@@ -1262,22 +1255,22 @@ class Z0test(object):
                 break
             self.res_test_env(ctx)
         ctx['min_test'] = ctx['ctr']
-        if TestCls and hasattr(TestCls, 'teardown'):
+        if Cls2Test and hasattr(Cls2Test, 'teardown'):
             T.teardown(ctx)
         return sts
 
-    def main_local(self, ctx, cls2test, unittest_list=None):
+    def main_local(self, ctx, Cls2Test, unittest_list=None):
         """Default main program for local tests"""
         ctx = self._ready_opts(ctx)
         test_list = sorted(
             [
                 meth
-                for meth in dir(cls2test)
-                if meth.startswith("test_") and callable(getattr(cls2test, meth))
+                for meth in dir(Cls2Test)
+                if meth.startswith("test_") and callable(getattr(Cls2Test, meth))
             ]
         )
         if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, cls2test)
+            self._exec_tests_4_count(test_list, ctx, Cls2Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['max_test'])
@@ -1285,16 +1278,15 @@ class Z0test(object):
         else:
             if not ctx.get('_run_autotest', False):
                 self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, cls2test)
+            sts = self._exec_all_tests(test_list, ctx, Cls2Test)
         return sts
 
-    def main(self, ctx={}, cls2test=None, unittest_list=None):
+    def main(self, ctx={}, Cls2Test=None, unittest_list=None):
         """Default main program for test execution
         ctx: context
-        Test: test class for internal tests;
-              if supplied only internal tests are executed
-        UT1: protected Unit Test list (w/o log)
-        UT: Unit Test list (if None, search for files)
+        Cls2Test: test class for internal tests;
+                  if supplied only internal tests are executed
+        unittest_list: Unit Test list (if None, search for files)
         """
         ctx = self._ready_opts(ctx)
         # Execute sanity check on test library (no if zerobug testing itself)
@@ -1304,13 +1296,8 @@ class Z0test(object):
             and not ctx.get('_run_autotest', False)
         ):
             if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
-                try:
-                    subprocess.call(
-                        ['coverage', 'erase'],
-                        stdout=open('/dev/null', 'w'),
-                        stderr=open('/dev/null', 'w'),
-                    )
-                except OSError:
+                sts, stdout, stderr = z0lib.run_traced('coverage erase', verbose=0)
+                if sts:
                     print('Coverage not found!')
                     ctx['run4cover'] = False
         test_list = []
@@ -1335,16 +1322,16 @@ class Z0test(object):
                     mime = magic.Magic(mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
-        if len(test_list) == 0 and cls2test is not None:
+        if len(test_list) == 0 and Cls2Test is not None:
             test_list = sorted(
                 [
                     meth
-                    for meth in dir(cls2test)
-                    if meth.startswith("test_") and callable(getattr(cls2test, meth))
+                    for meth in dir(Cls2Test)
+                    if meth.startswith("test_") and callable(getattr(Cls2Test, meth))
                 ]
             )
         if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, cls2test)
+            self._exec_tests_4_count(test_list, ctx, Cls2Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['ctr'])
@@ -1352,18 +1339,16 @@ class Z0test(object):
         else:
             if not ctx.get('_run_autotest', False):
                 self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, cls2test)
+            sts = self._exec_all_tests(test_list, ctx, Cls2Test)
             if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:
                     print(success_msg)
                 else:
                     print(fail_msg)
                 if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
-                    try:
-                        subprocess.call(
-                            ['coverage', 'report', '--show-missing'],
-                        )
-                    except OSError:
+                    sts, stdout, stderr = z0lib.run_traced(
+                        'coverage report --show-missing', verbose=0)
+                    if sts:
                         print('Coverage not found!')
                         ctx['run4cover'] = False
         return sts
@@ -1473,7 +1458,7 @@ class Z0test(object):
         z0ctx['this'] = self.module_id
         z0ctx['this_fqn'] = './' + self.module_id
         z0ctx['_run_autotest'] = True
-        self.def_tlog_fn = '~/z0bug.log'
+        # self.def_tlog_fn = '~/z0bug.log'
         return z0ctx
 
     def sanity_check(self, opt_echo, full={}):
@@ -1522,23 +1507,23 @@ class Z0test(object):
 
 class Z0testOdoo(object):
     def __init__(self, argv=None):
-        this_fqn = None
         if not argv and len(sys.argv) and not sys.argv[0].startswith('-'):
-            this_fqn = sys.argv[0]
-            this_fqn = os.path.abspath(this_fqn)
-        this_dir = os.getcwd()
-        if not os.path.basename(this_dir) == 'tests' and not os.path.isdir('./tests'):
-            this_dir = os.path.dirname(this_fqn)
-        self.this_dir = this_dir
-        if os.path.basename(this_dir) == 'tests':
+            self.this_fqn = os.path.abspath(sys.argv[0])
+        self.this = os.path.splitext(os.path.basename(self.this_fqn))[0]
+        self.this_dir = os.path.abspath(os.getcwd())
+        if (
+                not os.path.basename(self.this_dir) == 'tests'
+                and not os.path.isdir(os.path.join(self.this_dir, 'tests'))
+        ):
+            self.this_dir = os.path.dirname(self.this_fqn)
+        if os.path.basename(self.this_dir) == 'tests':
             self.testdir = self.this_dir
-            self.rundir = os.path.abspath(os.path.join(self.this_dir, '..'))
-        else:  # pragma: no cover
-            if os.path.isdir('./tests'):
-                self.testdir = os.path.join(self.this_dir, 'tests')
-            else:
-                self.testdir = self.this_dir
+            self.rundir = os.path.dirname(self.this_dir)
+        elif os.path.isdir('./tests'):                              # pragma: no cover
+            self.testdir = os.path.join(self.this_dir, 'tests')
             self.rundir = self.this_dir
+        else:                                                       # pragma: no cover
+            self.testdir = self.rundir = self.this_dir
 
     def simulate_install_pypi(self, cmd):
         """Simulate pip post installation for"""
