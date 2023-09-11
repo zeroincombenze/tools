@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 import os
 import os.path as pth
-from subprocess import call
 
 __version__ = "2.0.11"
 
@@ -99,6 +97,7 @@ class PleaseZ0bug(object):
         )
         if not for_help:
             self.please.add_argument(parser, "-n")
+        self.please.add_argument(parser, "-O")
         parser.add_argument(
             "-p",
             "--pattern",
@@ -263,51 +262,46 @@ class PleaseZ0bug(object):
             # cmd = please.build_sh_me_cmd()
             # cmd = ["run_odoo_debug"]
             # cmd = ["run_odoo_debug"]
-            cmd = [sys.executable]
-            cmd.append(pth.join(pth.dirname(__file__), "run_odoo_debug.py"))
-            cmd.append("-T")
-            cmd.append("-m")
-            cmd.append(pth.basename(pth.abspath(os.getcwd())))
+            args = [
+                "-T",
+                "-m", pth.basename(pth.abspath(os.getcwd())),
+            ]
             if branch:
-                cmd.append("-b")
-                cmd.append(branch)
-            if please.opt_args.debug == 1:
-                cmd.append("-B")
-            elif please.opt_args.debug > 1:
-                cmd.append("-BB")
+                args.append("-b")
+                args.append(branch)
+            if please.opt_args.debug:
+                args.append("-" + ("B" * please.opt_args.debug))
             if please.opt_args.odoo_config:
-                cmd.append("-c")
-                cmd.append(please.opt_args.odoo_config)
+                args.append("-c")
+                args.append(please.opt_args.odoo_config)
             if please.opt_args.database:
-                cmd.append("-d")
-                cmd.append(please.opt_args.database)
+                args.append("-d")
+                args.append(please.opt_args.database)
             if please.opt_args.force:
-                cmd.append("-f")
+                args.append("-f")
             if please.opt_args.keep:
-                cmd.append("-k")
+                args.append("-k")
             if please.opt_args.verbose:
-                cmd.append("-" + ("v" * please.opt_args.verbose))
+                args.append("-" + ("v" * please.opt_args.verbose))
             if please.opt_args.dry_run:
-                cmd.append("-n")
-            cmd = " ".join(cmd)
-            if please.opt_args.verbose:
-                print("%s %s" % (">" if please.opt_args.dry_run else "$", cmd))
-            sts = call(cmd, shell=True) if not please.opt_args.dry_run else 0
+                args.append("-n")
+            sts = please.chain_python_cmd("run_odoo_debug.py", args)
             if sts:
                 return sts
             if not please.opt_args.no_verify and not please.opt_args.debug:
-                if "test" in please.cli_args:
-                    sub_list = [("test", "docs"),
-                                ("--no-verify", ""),
-                                ("--no-translate", "")]
-                else:
-                    sub_list = [("z0bug", "docs"),
-                                ("--no-verify", ""),
-                                ("--no-translate", "")]
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=sub_list)
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
+                # if "test" in please.cli_args:
+                #     sub_list = [("test", "docs"),
+                #                 ("--no-verify", ""),
+                #                 ("--no-translate", "")]
+                # else:
+                #     sub_list = [("z0bug", "docs"),
+                #                 ("--no-verify", ""),
+                #                 ("--no-translate", "")]
+                # please.sh_subcmd = please.pickle_params(
+                #     rm_obj=True, slist=sub_list)
+                # cmd = please.build_sh_me_cmd()
+                # sts = please.run_traced(cmd, rtime=True)
+                sts = please.do_docs()
             if sts:
                 return sts
             if not please.opt_args.no_verify and not please.opt_args.debug:

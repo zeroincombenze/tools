@@ -7,6 +7,11 @@ import re
 
 import psycopg2
 
+try:
+    from clodoo.clodoo import build_odoo_param
+except ImportError:
+    from clodoo import build_odoo_param
+
 __version__ = "2.0.11"
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 
@@ -58,6 +63,7 @@ class PleaseCwd(object):
         parser.add_argument(
             "--odoo-venv", action="store_true", help="Update Odoo virtual environments"
         )
+        self.please.add_argument(parser, "-O")
         if not for_help:
             self.please.add_argument(parser, "-q")
         self.please.add_argument(parser, "-v")
@@ -389,9 +395,65 @@ class PleaseCwd(object):
 
     def do_docs(self):
         please = self.please
-        if (
-                please.is_odoo_pkg()
-                or please.is_repo_odoo()
+        if please.is_odoo_pkg():
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                odoo_major_version = int(branch.split(".")[0])
+                # module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
+                repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+                if not pth.isdir("./static"):
+                    os.mkdir("./static")
+                if odoo_major_version <= 7:
+                    if not pth.isdir("./static/src"):
+                        os.mkdir("./static/src")
+                    if not pth.isdir("./static/src/img"):
+                        os.mkdir("./static/src/img")
+                else:
+                    if not pth.isdir("./static/description"):
+                        os.mkdir("./static/description")
+                if not pth.isdir("./readme"):
+                    os.mkdir("./readme")
+                    with open("./readme/CHANGELOG.rst", "w") as fd:
+                        # Convetional date on Odoo Days (1st October Thursday)
+                        fd.write(
+                            "%s.0.1.0 %s\n" % (
+                                branch,
+                                {
+                                    6: "2012-10-04",
+                                    7: "2013-10-03",
+                                    8: "2014-10-02",
+                                    9: "2015-10-01",
+                                    10: "2016-10-06",
+                                    11: "2017-10-05",
+                                    12: "2018-10-04",
+                                    13: "2019-10-03",
+                                    14: "2020-10-01",
+                                    15: "2021-10-07",
+                                    16: "2022-10-06",
+                                    17: "2023-10-05",
+                                }[odoo_major_version]
+                            )
+                        )
+                        fd.write("~~~~~~~~~~~~~~~~~~~~~\n")
+                        fd.write("\n")
+                        fd.write("* Initial implementation\n")
+                if please.opt_args.oca:
+                    sts = please.run_traced(
+                        "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
+                        % (branch, repo_name),
+                        rtime=True)
+                else:
+                    sts = please.chain_python_cmd("gen_readme.py", [])
+                    if sts == 0:
+                        sts = please.chain_python_cmd("gen_readme.py -H", [])
+                    if sts == 0 and odoo_major_version <= 7:
+                        sts = please.chain_python_cmd("gen_readme.py -RW", [])
+                if sts == 0:
+                    please.merge_test_result()
+                    self.do_clean()
+                return sts
+        elif (
+                please.is_repo_odoo()
                 or please.is_repo_ocb()
                 or please.is_pypi_pkg()
         ):

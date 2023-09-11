@@ -311,6 +311,7 @@ def get_actual_fqn(path, filename):
         fqn = pth.join(path, docdir, section.upper() + ".rst")
         if pth.isfile(fqn):
             return fqn
+        section = section.lower()
         fqn = pth.join(path, docdir, section + ".rst")
         if pth.isfile(fqn):
             return fqn
@@ -1344,10 +1345,10 @@ def parse_local_file(
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
-    if len(source) and filename in ("CHANGELOG.rst", "HISTORY.rst", "history.rst"):
+    if len(source) and section == "changelog":
         source = tail(source)
         if ctx["odoo_layer"] == "module":
-            ctx["history-summary"] = tail(source, max_ctr=1, max_days=15)
+            ctx["history-summary"] = tail(source, max_ctr=1, max_days=30)
     if len(source):
         if ctx["trace_file"]:
             mark = '.. !! from "%s"\n\n' % filename
@@ -1395,7 +1396,7 @@ def read_history(ctx, full_fn, module=None):
             ctx["histories"] += tail(_u(fd.read()), max_days=60, module=module)
     with open(full_fn, RMODE) as fd:
         ctx["history-summary"] += tail(
-            _u(fd.read()), max_ctr=1, max_days=15, module=module
+            _u(fd.read()), max_ctr=1, max_days=30, module=module
         )
 
 
@@ -1538,7 +1539,8 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         break
                 except KeyError:
                     pass
-                full_fn = pth.join(root, "egg-info", "CHANGELOG.rst")
+                full_fn = get_full_fn(
+                    ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
                 if pth.isfile(full_fn):
                     with open(full_fn, RMODE) as fd:
                         ctx["histories"] += tail(

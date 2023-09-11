@@ -30,7 +30,7 @@ import os.path as pth
 import sys
 import argparse
 import re
-
+from subprocess import call
 # import re
 import itertools
 
@@ -308,6 +308,8 @@ class Please(object):
                 help="do nothing (dry-run)",
                 action="store_true",
             )
+        elif arg in ('-O', '--oca'):
+            parser.add_argument("-O", "--oca", help="Use oca tools when possible")
         elif arg in ("-q", "--quite"):
             parser.add_argument(
                 "-q",
@@ -577,7 +579,30 @@ class Please(object):
                 return True
         return self.is_repo_ocb(pth.dirname(path))
 
-    def get_odoo_branch_from_git(self, raise_if_not_found=True):
+    def get_odoo_version(self, path=None):
+        path = path or pth.abspath(os.getcwd())
+        home = pth.expanduser("~/")
+        version = False
+        while not self.is_repo_ocb(path):
+            path = pth.dirname(path)
+            if path == home or path == "/":
+                break
+        if self.is_repo_ocb(path):
+            release = pth.join(path, "odoo", "release.py")
+            if not pth.isfile(release):
+                release = pth.join(path, "openerp", "release.py")
+            if os.path.isfile(release):
+                with open(release, "r") as fd:
+                    for line in fd.read().split("\n"):
+                        x = re.match(r"version_info *= *\([0-9]+ *, *[0-9]+", line)
+                        if x:
+                            version_info = eval(
+                                line[x.start(): x.end()].split("=")[1] + ")")
+                            version = "%s.%s" % (version_info[0], version_info[1])
+                            break
+        return version
+
+    def get_odoo_branch_from_git(self, try_by_fs=False, raise_if_not_found=True):
         branch = ""
         sts, stdout, stderr = z0lib.run_traced(
             "git branch", verbose=False, dry_run=False
@@ -597,6 +622,10 @@ class Please(object):
                 sts = 1
         if sts == 0:
             branch = branch[x.start(): x.end()]
+        elif try_by_fs:
+            branch = self.get_odoo_version()
+            if branch:
+                sts = 0
         return sts, branch
 
     def get_pypi_list(self, path=None, act_tools=True):
@@ -632,6 +661,69 @@ class Please(object):
                 return ""
         cmd += " " + (params or self.sh_subcmd)
         return cmd
+
+    def merge_test_result(self):
+        cat_fqn = pth.join("tests", "logs", "show-log.sh")
+        log_fqn = contents = ""
+        if pth.isfile(cat_fqn):
+            with open(cat_fqn, "r") as fd:
+                contents = fd.read()
+        for ln in contents.split("\n"):
+            if ln.startswith("less"):
+                log_fqn = pth.join("tests", "logs", ln.split("/")[-1])
+                break
+        if not log_fqn:
+            print("Test log file not found!")
+            return 3
+        with open(log_fqn, "r") as fd:
+            contents = fd.read()
+        params = {}
+        for ln in contents.split("\n"):
+            if ln.startswith("TOTAL"):
+                x = re.search("[0-9]+%?", ln)
+                if x:
+                    items = ln.split()
+                    params["rate"] = items[-1]
+                    params["total"] = int(items[-3])
+                    params["uncover"] = int(items[-2])
+                    params["cover"] = int(items[-3]) - int(items[-2])
+            if "SUCCESSFULLY completed" in ln:
+                x = re.search("[0-9]+ tests", ln)
+                if x:
+                    items = ln[x.start(): x.end()].split()
+                    params["testpoints"] = int(items[0])
+        if "total" not in params or "testpoints" not in params:
+            print("No stats found in %s" % log_fqn)
+            return 3
+        params["qrating"] = int(
+            (((params["cover"] / params["total"] * 1.2)
+              + min(params["testpoints"] / params["total"] * 4, 1.0) * 50) + 0.5))
+        test_cov_msg = (
+            "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"
+            " [%(testpoints)d TestPoints] - quality rating %(qrating)d/100" % params)
+        changelog_fqn = pth.join("readme", "CHANGELOG.rst")
+        if not pth.isfile(changelog_fqn):
+            changelog_fqn = pth.join("egg-info", "CHANGELOG.rst")
+        if not pth.isfile(changelog_fqn):
+            print("Changelog history file not found!")
+            return 3
+        sts = self.chain_python_cmd(
+            "arcangelo.py",
+            [changelog_fqn, "-i", "--test-res-msg=\"%s\"" % test_cov_msg])
+        return sts
+
+    def chain_python_cmd(self, pyfile, args):
+        cmd = [sys.executable]
+        cmd.append(pth.join(pth.dirname(__file__), pyfile))
+        for arg in args:
+            cmd.append(arg)
+        cmd = " ".join(cmd)
+        if self.opt_args.verbose:
+            print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
+        return call(cmd, shell=True) if not self.opt_args.dry_run else 0
+
+    def do_docs(self):
+        return PleaseCwd(self).do_docs()
 
     def do_external_cmd(self):
         cmd = self.build_sh_me_cmd()

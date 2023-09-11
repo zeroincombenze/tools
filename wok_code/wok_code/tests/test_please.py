@@ -28,6 +28,7 @@ def version():
 class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
+        # self.Z.inherit_cls(self)
         self.root = ''
 
     def _touch_file(self, fn):
@@ -158,15 +159,19 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh docs -vn" in stdout.split("\n")[4],
+            "/gen_readme.py" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[5],
+            "/gen_readme.py -H" in stdout.split("\n")[5],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[6],
+            "git add ./" in stdout.split("\n")[7],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh translate -vn" in stdout.split("\n")[8],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -322,20 +327,22 @@ class RegressionTest:
             "run_odoo_debug.py" in stdout.split("\n")[0],
         )
         self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "/please.sh docs -vn" in stdout.split("\n")[1],
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py" in stdout.split("\n")[1],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[2],
+            "/gen_readme.py -H" in stdout.split("\n")[2],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh translate -vn" in stdout.split("\n")[3],
+            "/please.sh translate -vn" in stdout.split("\n")[5],
         )
 
         os.chdir(self.odoo_moduledir)
