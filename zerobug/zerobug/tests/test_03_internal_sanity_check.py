@@ -29,9 +29,9 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
-        self.Z.inherit_cls(self)
+    def __init__(self, z0bug):
+        # self.Z = z0bug
+        z0bug.inherit_cls(self)
 
     def test_01(self, z0ctx):
         if z0ctx['dry_run']:

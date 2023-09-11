@@ -601,8 +601,11 @@ class Z0test(object):
         self.z0ctx = {}
 
     def inherit_cls(self, test_cls):
+        setattr(test_cls, "Z", self)
         for name in (
-                "assertEqual", "assertTrue", "assertFalse", "ret_sts",
+                "assertEqual", "assertTrue", "assertFalse",
+                "assertMatch", "assertNotMatch",
+                "ret_sts",
         ):
             setattr(test_cls, name, getattr(self, name))
 
@@ -1439,6 +1442,39 @@ class Z0test(object):
             print(msg_info)
         if first != second:
             print(msg or "Value <<%s>> is different form <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertIn(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(msg_info)
+        if first not in second:
+            print(msg or "Value <<%s>> is not in <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertMatch(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(msg_info)
+        if not re.match(second, first):
+            print(msg or "Value <<%s>> does not match <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertNotMatch(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(msg_info)
+        if re.match(second, first):
+            print(msg or "Value <<%s>> does match <<%s>>!" % (first, second))
             self.successful = False
             if self.failfast:
                 raise AssertionError

@@ -27,8 +27,8 @@ def version():
 
 class RegressionTest:
     def __init__(self, z0bug):
-        self.Z = z0bug
-        self.Z.inherit_cls(self)
+        # self.Z = z0bug
+        z0bug.inherit_cls(self)
 
     def test_01(self, z0ctx):
         # sts = TEST_SUCCESS
