@@ -10,7 +10,7 @@ import sys
 from z0bug_odoo import z0bugodoo
 from zerobug import z0test
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 MODULE_ID = 'z0bug_odoo'
 TEST_FAILED = 1
@@ -54,3 +54,4 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+

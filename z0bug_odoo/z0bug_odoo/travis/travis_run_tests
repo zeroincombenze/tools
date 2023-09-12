@@ -10,7 +10,7 @@ import sys
 from distutils.spawn import find_executable
 from travis_helpers import success_msg, fail_msg
 
-__version__ = '2.0.11'
+__version__ = '2.0.12'
 
 
 def main(test_list):
@@ -116,3 +116,4 @@ if __name__ == '__main__':
 
     if tests:
         exit(main(tests))
+

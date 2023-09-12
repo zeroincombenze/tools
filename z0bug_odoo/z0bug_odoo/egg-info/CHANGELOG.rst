@@ -1,3 +1,8 @@
+2.0.12 (2023-09-12)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: validate_records with 2 identical template records
+
 2.0.10 (2023-07-02)
 ~~~~~~~~~~~~~~~~~~~
 
