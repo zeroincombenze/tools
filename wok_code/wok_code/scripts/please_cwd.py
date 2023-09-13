@@ -110,11 +110,11 @@ class PleaseCwd(object):
                 last = " "
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] > last:
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[12:] > last:
                             last = fn[12:]
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] != last:
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[12:] != last:
                             cmd = "rm " + pth.join(root, fn)
                             sts = please.run_traced(cmd)
                             if sts:
@@ -675,58 +675,82 @@ class PleaseCwd(object):
         return sts
 
     def do_version(self):
-        def change_version(ffn):
+        def update_version(fqn, regex, sep):
             target = ""
             do_rewrite = False
-            ext = ffn.rsplit(".", 1)
+            # tag_found = False
+            ext = fqn.rsplit(".", 1)
             ext = ext[1] if len(ext) > 1 else ""
             if ext in BIN_EXTS:
                 return 0
-            with open(ffn) as fd:
+            with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        x = REGEX_VER.match(ln)
+                        # x = regex.match(ln) if not tag_found else None
+                        x = regex.match(ln)
                         if x:
-                            ver_text = ln[x.start(): x.end()].split("=")[1].strip()
-                            if ver_text.startswith("'") or ver_text.startswith("\""):
-                                ver_text = ver_text[1: -1]
-                            if pth.basename(ffn) == "setup.py":
+                            # tag_found = True
+                            if sep:
+                                ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
+                            else:
+                                ver_text = ln[x.start(): x.end()].strip()
+                            ver_text = re.sub(
+                                r".*(\d+\.\d+\.\d+(\.\d+)?(\.\d+)?(\.\d+)?).*",
+                                r"\1",
+                                ver_text
+                            )
+                            if pth.basename(fqn) in ("setup.py",
+                                                     "__manifest__.py",
+                                                     "__openerp__.rst"):
                                 self.ref_version = ver_text
-                                print(ffn, "->", ver_text)
+                                print(fqn, "->", ver_text)
                             elif ver_text != self.ref_version:
-                                print(ffn, "->", ver_text, "***")
+                                print(fqn, "->", ver_text, "***")
                             elif please.opt_args.verbose > 1:
-                                print(ffn)
+                                print(fqn)
                             if (
                                     please.opt_args.branch
                                     and ver_text != please.opt_args.branch
                             ):
-                                ln = ln.replace(ver_text, please.opt_args.branch)
+                                # ln = ln.replace(ver_text, please.opt_args.branch)
+                                ln = re.sub(
+                                    r"\d+\.\d+\.\d+(\.\d+)?(\.\d+)?(\.\d+)?",
+                                    please.opt_args.branch,
+                                    ln
+                                )
                                 do_rewrite = True
                         target += ln
                         target += "\n"
                 except BaseException as e:
                     do_rewrite = False
-                    print("Error %s reading %s" % (e, ffn))
+                    print("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
                     if please.opt_args.verbose:
-                        print(ffn, "=>", please.opt_args.branch)
+                        print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:
-                        with open(ffn, "w") as fd:
+                        with open(fqn, "w") as fd:
                             fd.write(target)
             return 0
 
         please = self.please
+        if please.opt_args.from_version:
+            REGEX_VER = re.compile(
+                "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
+                % please.opt_args.from_version)
+            REGEX_DICT_VER = re.compile(
+                "^ *[\"']version[\"']: [\"']%s[\"']"
+                % please.opt_args.from_version)
+            REGEX_TESTENV_VER = re.compile("^.* v%s" % please.opt_args.from_version)
+        else:
+            REGEX_VER = re.compile(
+                "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
+            REGEX_DICT_VER = re.compile(
+                "^ *[\"']version[\"']: [\"'][0-9.]+[\"']")
+            REGEX_TESTENV_VER = re.compile(
+                r"^.* v\d\.\d\.\d+")
         if please.is_pypi_pkg():
             sts = 0
             self.ref_version = ""
-            if please.opt_args.from_version:
-                REGEX_VER = re.compile(
-                    "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
-                    % please.opt_args.from_version)
-            else:
-                REGEX_VER = re.compile(
-                    "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
             for root, dirs, files in os.walk(self.cur_path_of_pkg()):
                 dirs[:] = [
                     d
@@ -768,13 +792,32 @@ class PleaseCwd(object):
                             or fn.startswith("LICENSE")
                     ):
                         continue
-                    sts = change_version(pth.join(root, fn))
+                    if fn in ("testenv.py", "testenv.rst"):
+                        rex = REGEX_TESTENV_VER
+                        sep = "v"
+                    elif fn in ("__manifest__.py", "__openerp__.rst"):
+                        rex = REGEX_DICT_VER
+                        sep = ":"
+                    else:
+                        rex = REGEX_VER
+                        sep = "="
+                    sts = update_version(pth.join(root, fn), rex, sep)
                     if sts:
                         break
             if sts == 0:
-                sts = change_version(pth.join(os.getcwd(), "docs", "conf.py"))
+                sts = update_version(pth.join(os.getcwd(), "docs", "conf.py"),
+                                     REGEX_VER,
+                                     "=")
             return sts
-        if (please.opt_args.branch or please.opt_args.from_version):
+        elif please.is_odoo_pkg():
+            fqn = "__manifest__.py"
+            if not pth.isfile(fqn):
+                fqn = "__openerp__.py"
+            if not pth.isfile(fqn):
+                print("Manifest file not found!")
+                return 3
+            return update_version(fqn, REGEX_DICT_VER, ":")
+        elif (please.opt_args.branch or please.opt_args.from_version):
             print("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)

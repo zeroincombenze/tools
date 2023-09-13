@@ -1476,13 +1476,13 @@ def read_manifest(ctx):
         ctx["manifest"] = {}
 
 
-def adj_version(ctx, version):
-    if not version:
-        version = "0.1.0"
-    if version[0].isdigit():
-        if not version.startswith(ctx["branch"]):
-            version = "%s.%s" % (ctx["branch"], version)
-    return version
+def adj_version(ctx, odoo_version):
+    if not odoo_version:
+        odoo_version = "0.1.0"
+    if odoo_version[0].isdigit():
+        if not odoo_version.startswith(ctx["branch"]):
+            odoo_version = "%s.%s" % (ctx["branch"], odoo_version)
+    return odoo_version
 
 
 def read_all_manifests(ctx, path=None, module2search=None):
