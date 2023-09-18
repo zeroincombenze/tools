@@ -695,7 +695,7 @@ class PleaseCwd(object):
                             else:
                                 ver_text = ln[x.start(): x.end()].strip()
                             ver_text = re.sub(
-                                r".*(\d+\.\d+\.\d+(\.\d+)?(\.\d+)?(\.\d+)?).*",
+                                r"[^\d]([\d\.]+)[^\d]",
                                 r"\1",
                                 ver_text
                             )
