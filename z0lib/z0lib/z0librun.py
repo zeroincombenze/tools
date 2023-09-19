@@ -374,7 +374,7 @@ def run_traced(cmd,
         sts = 0 if os.path.exists(tgtpath) else 1
         if sts:
             pass
-        elif opt_unk or not params["-f"]:
+        elif opt_unk or params["-f"]:
             sts, prcout, prcerr = call_os(argv, verbose=verbose)
         elif params["-R"]:
             shutil.rmtree(tgtpath)
