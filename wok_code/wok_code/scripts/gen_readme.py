@@ -898,7 +898,7 @@ def expand_macro_in_line(ctx, line, state=None):
     i = line.find("{{")
     j = line.find("}}")
     while 0 <= i < j:
-        tokens = line[i + 2 : j].split(":")
+        tokens = line[i + 2: j].split(":")
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
             print_red_message("*** Invalid macro %s!" % tokens[0])
@@ -916,9 +916,12 @@ def expand_macro_in_line(ctx, line, state=None):
             )
             if "srctype" in state:
                 del state["srctype"]
-            return state, line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
+            i = line.find("{{")
+            j = line.find("}}")
+            continue
         if len(value.split("\n")) > 1:
-            line = line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(
                 ctx, line, state=state, in_fmt=in_fmt, out_fmt=out_fmt
             )
@@ -927,9 +930,9 @@ def expand_macro_in_line(ctx, line, state=None):
             return state, value
         if len(tokens) > 1:
             fmt = tokens[1]
-            line = line[0:i] + (fmt % value) + line[j + 2 :]
+            line = line[0:i] + (fmt % value) + line[j + 2:]
         else:
-            line = line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
         i = line.find("{{")
         j = line.find("}}")
     if srctype in LIST_TAG:
@@ -1083,6 +1086,7 @@ def parse_acknowledge_list(ctx, source):
 
 def line_of_list(ctx, state, line):
     """Manage list of people like authors or contributors"""
+    out_fmt = state.get("out_fmt", "rst")
     text = line.strip()
     stop = True
     if line:
@@ -1104,9 +1108,18 @@ def line_of_list(ctx, state, line):
         if state.get("srctype") == "authors":
             line = line.replace("<", "\a").replace(">", "\b")
             fmt = "* `%s`__"
+        elif (
+                out_fmt == "html"
+                and line.startswith("* ")
+                and "<" in line
+                and ">" in line
+                and "@" not in line
+        ):
+            line = line.replace("<", "\a").replace(">", "\b")
+            fmt = "* `%s`__"
         else:
             fmt = "* %s"
-        if text[0:2] == "* ":
+        if text.startswith("* "):
             text = fmt % text[2:]
         else:
             text = fmt % line

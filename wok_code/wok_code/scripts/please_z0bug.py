@@ -215,8 +215,7 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
-            branch = None
-            sts = 127
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if (
                     not please.opt_args.no_verify
                     and pth.isdir("tests")
@@ -251,17 +250,6 @@ class PleaseZ0bug(object):
                         "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
                 please.run_traced(
                     "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
-            # if "test" in please.cli_args:
-            #     sub_list = [("--no-verify", ""), ("--no-translate", "")]
-            # else:
-            #     sub_list = [("z0bug", "test"),
-            #                 ("--no-verify", ""),
-            #                 ("--no-translate", "")]
-            # please.sh_subcmd = please.pickle_params(
-            #     rm_obj=True, slist=sub_list)
-            # cmd = please.build_sh_me_cmd()
-            # cmd = ["run_odoo_debug"]
-            # cmd = ["run_odoo_debug"]
             args = [
                 "-T",
                 "-m", pth.basename(pth.abspath(os.getcwd())),
@@ -289,18 +277,6 @@ class PleaseZ0bug(object):
             if sts:
                 return sts
             if not please.opt_args.no_verify and not please.opt_args.debug:
-                # if "test" in please.cli_args:
-                #     sub_list = [("test", "docs"),
-                #                 ("--no-verify", ""),
-                #                 ("--no-translate", "")]
-                # else:
-                #     sub_list = [("z0bug", "docs"),
-                #                 ("--no-verify", ""),
-                #                 ("--no-translate", "")]
-                # please.sh_subcmd = please.pickle_params(
-                #     rm_obj=True, slist=sub_list)
-                # cmd = please.build_sh_me_cmd()
-                # sts = please.run_traced(cmd, rtime=True)
                 sts = please.do_docs()
             if sts:
                 return sts
@@ -313,8 +289,7 @@ class PleaseZ0bug(object):
                     sub_list = [("test", "translate"), ("--no-verify", "")]
                 else:
                     sub_list = [("z0bug", "translate"), ("--no-verify", "")]
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=sub_list)
+                please.sh_subcmd = please.pickle_params(rm_obj=True, slist=sub_list)
                 cmd = please.build_sh_me_cmd()
                 sts = please.run_traced(cmd, rtime=True)
             return sts

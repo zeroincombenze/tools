@@ -346,6 +346,7 @@ OPTHELP=("this help"
     "set odoo xmlrpc port")
 OPTARGS=()
 
+source /home/odoo/devel/pypi/z0lib/z0lib/z0librc    #debug
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
     echo "$__version__"

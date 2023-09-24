@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python3.8
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -263,3 +263,4 @@ class PypiTest(z0testlib.PypiTest):
 if __name__ == "__main__":
     # exit(unittest.main())
     exit(z0testlib.main())
+

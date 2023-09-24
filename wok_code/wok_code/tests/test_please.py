@@ -134,12 +134,31 @@ class RegressionTest:
             stdout.split("\n")[0],
         )
 
+        # Test result (<PYTHON> = ~/VENV_*/bin/python
+        #              <SCRIPT> = ~/VENV_*/build/local/wok_code/scripts):
+        # 0 "> git add ./"
+        # 1 "> pre-commit run"
+        # 2 "> <SCRIPT>/please.sh lint -vn"
+        # 3 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -T -m test_module -b 12.0 -v -n"
+        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -RW"
+        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py"
+        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -H"
+        # 7 "Test log file not found!"
+        # 8 "> git add ./"
+        # 9 "> <SCRIPT>/please.sh translate -vn"
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
         cmd = "please zerobug -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
+        self.Z.test_result(
+            z0ctx, "%s> %s # file CHANGELOG" % (os.getcwd(), cmd), True,
+            os.path.isfile(chnglog),
+        )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             "git add ./" in stdout.split("\n")[0],
@@ -154,24 +173,29 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            bool(re.match(".*/python .*/run_odoo_debug.py -T -m test_module -v -n",
-                          stdout.split("\n")[3]))
+            bool(re.match(
+                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
+                stdout.split("\n")[3]))
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[4],
+            "/gen_readme.py -RW" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[5],
+            "/gen_readme.py" in stdout.split("\n")[5],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[7],
+            "/gen_readme.py -H" in stdout.split("\n")[6],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[8],
+            "git add ./" in stdout.split("\n")[8],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh translate -vn" in stdout.split("\n")[9],
         )
 
         os.chdir(self.odoo_moduledir)
@@ -315,6 +339,9 @@ class RegressionTest:
         )
 
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
         cmd = "please test -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
@@ -328,34 +355,43 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[1],
+            "/gen_readme.py -RW" in stdout.split("\n")[1],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[2],
+            "/gen_readme.py" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[4],
+            "/gen_readme.py -H" in stdout.split("\n")[3],
         )
         self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "/please.sh translate -vn" in stdout.split("\n")[5],
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[5],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "please.sh translate -vn" in stdout.split("\n")[6],
         )
 
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
         cmd = "please test -vn --no-translate"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
         self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "run_odoo_debug.py" in stdout.split("\n")[0],
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            bool(re.match(
+                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
+                stdout.split("\n")[0]))
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py -RW" in stdout.split("\n")[1],
         )
         return sts
 
@@ -549,9 +585,6 @@ class RegressionTest:
             self._touch_file(
                 os.path.join(self.odoo_moduledir, "tests", "logs", "show-log.sh")
             )
-
-    def tearoff(self, z0ctx):
-        pass
 
 
 #

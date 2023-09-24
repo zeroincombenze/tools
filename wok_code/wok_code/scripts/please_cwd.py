@@ -110,11 +110,11 @@ class PleaseCwd(object):
                 last = " "
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_\d{8}.txt$", fn) and fn[12:] > last:
-                            last = fn[12:]
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] > last:
+                            last = fn[-12:]
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_\d{8}.txt$", fn) and fn[12:] != last:
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[1-2:] != last:
                             cmd = "rm " + pth.join(root, fn)
                             sts = please.run_traced(cmd)
                             if sts:
@@ -413,8 +413,10 @@ class PleaseCwd(object):
                         os.mkdir("./static/description")
                 if not pth.isdir("./readme"):
                     os.mkdir("./readme")
-                    with open("./readme/CHANGELOG.rst", "w") as fd:
-                        # Convetional date on Odoo Days (1st October Thursday)
+                chnglog = "./readme/CHANGELOG.rst"
+                if not pth.isfile(chnglog):
+                    with open(chnglog, "w") as fd:
+                        # Conventional date on Odoo Days (October, 1st Thursday)
                         fd.write(
                             "%s.0.1.0 %s\n" % (
                                 branch,
@@ -437,6 +439,11 @@ class PleaseCwd(object):
                         fd.write("~~~~~~~~~~~~~~~~~~~~~\n")
                         fd.write("\n")
                         fd.write("* Initial implementation\n")
+                if (
+                    not pth.isfile("./readme/CONTRIBUTORS.rst")
+                    or not pth.isfile("./readme/AUTHORS.rst")
+                ):
+                    please.chain_python_cmd("gen_readme.py -RW", [])
                 if please.opt_args.oca:
                     sts = please.run_traced(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
@@ -447,7 +454,7 @@ class PleaseCwd(object):
                     if sts == 0:
                         sts = please.chain_python_cmd("gen_readme.py -H", [])
                     if sts == 0 and odoo_major_version <= 7:
-                        sts = please.chain_python_cmd("gen_readme.py -RW", [])
+                        sts = please.chain_python_cmd("gen_readme.py -R", [])
                 if sts == 0:
                     please.merge_test_result()
                     self.do_clean()
