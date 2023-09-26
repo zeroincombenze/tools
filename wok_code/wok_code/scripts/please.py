@@ -274,6 +274,10 @@ class Please(object):
                 metavar="BRANCH",
                 help="default Odoo version",
             )
+        elif arg in ("-C", "--odoo-config"):
+            parser.add_argument(
+                "-C", "--ignore-cache", action="store_true"
+            )
         elif arg in ("-c", "--odoo-config"):
             parser.add_argument(
                 "-c", "--odoo-config", metavar="FILE", help="Odoo configuration file"
@@ -724,6 +728,9 @@ class Please(object):
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()
+
+    def do_translate(self):
+        return PleaseCwd(self).do_translate()
 
     def do_external_cmd(self):
         cmd = self.build_sh_me_cmd()

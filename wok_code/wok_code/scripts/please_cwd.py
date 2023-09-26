@@ -6,7 +6,12 @@ from datetime import datetime, timedelta
 import re
 
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 try:
     from clodoo.clodoo import build_odoo_param
 except ImportError:
@@ -54,7 +59,9 @@ class PleaseCwd(object):
     def action_opts(self, parser, for_help=False):
         self.please.add_argument(parser, "-B")
         self.please.add_argument(parser, "-b")
+        self.please.add_argument(parser, "-C")
         self.please.add_argument(parser, "-c")
+        self.please.add_argument(parser, "-d")
         if not for_help:
             self.please.add_argument(parser, "-n")
         parser.add_argument('-F', '--from-version')
@@ -81,6 +88,100 @@ class PleaseCwd(object):
             pth.dirname(os.getcwd())
             if pth.basename(os.getcwd()) != "tools"
             else os.getcwd())
+
+    def get_config(self):
+        for (k, v) in (
+                ("config", None),
+                ("db_name", "demo"),
+                ("db_user", "odoo"),
+                ("db_pwd", "admin"),
+                ("db_host", "localhost"),
+                ("db_port", ""),
+                ("http_port", None),
+                ("xmlrpc_port", None),
+                ("addons_path", [])):
+            if not hasattr(self, k):
+                setattr(self, k, v)
+
+        rpcport = ""
+        if not self.config:
+            self.config = self.please.opt_args.odoo_config or build_odoo_param(
+                "CONFN", odoo_vid=".", multi=True)
+        if not pth.isfile(self.config):
+            print("No configuration file %s found!" % self.config)
+            return 126
+        Config = ConfigParser.RawConfigParser()
+        Config.read(self.config)
+        if not Config.has_section("options"):
+            print("Invalid Configuration file %s: missed [options] section!"
+                  % self.opt_args.config)
+            return 33
+        else:
+            for k in (
+                    "db_name",
+                    "db_user",
+                    "db_pwd",
+                    "db_host",
+                    "db_port",
+                    "addons_path"):
+                if Config.has_option("options", k):
+                    if Config.get("options", k) == "False":
+                        setattr(self, k, False)
+                    else:
+                        setattr(self, k, Config.get("options", k))
+            if Config.has_option("options", "http_port"):
+                rpcport = Config.get("options", "http_port")
+            if not rpcport and Config.has_option("options", "xmlrpc_port"):
+                rpcport = Config.get("options", "xmlrpc_port")
+            if rpcport:
+                rpcport = int(rpcport)
+
+        if not self.db_port:
+            self.db_port = 5432
+        elif self.db_port and self.db_port.isdigit():
+            self.db_port = int(self.db_port)
+        if not rpcport:
+            rpcport = build_odoo_param(
+                "RPCPORT", odoo_vid=".", multi=True)
+        if self.odoo_major_version < 10:
+            self.xmlrpc_port = rpcport
+        else:
+            self.http_port = rpcport
+        return 0
+
+    def connect_db(
+            self, db_name=None, db_user=None, db_pwd=None, db_host=None, db_port=None):
+        self.cnx = psycopg2.connect(
+            dbname=db_name or self.db_name,
+            user=db_user or self.db_user,
+            password=db_pwd or self.db_pwd,
+            host=db_host or self.db_host,
+            port=db_port or self.db_port,
+        )
+        self.create_sql_cursor()
+
+    def create_sql_cursor(self):
+        if self.cnx:
+            self.cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            self.cr = self.cnx.cursor()
+
+    def exec_sql(self, query, response=None, keep_cursor=False):
+        try:
+            self.cr.execute(query)
+            if response:
+                response = self.cr.fetchall()
+            else:
+                response = True
+        except psycopg2.OperationalError:
+            print("Error executing sql %s" % query)
+            response = False
+        if not keep_cursor:
+            try:
+                self.cr.close()
+                self.cr = None
+            except psycopg2.OperationalError:
+                pass
+        return response
 
     def do_clean(self):
         please = self.please
@@ -114,7 +215,7 @@ class PleaseCwd(object):
                             last = fn[-12:]
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_\d{8}.txt$", fn) and fn[1-2:] != last:
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
                             cmd = "rm " + pth.join(root, fn)
                             sts = please.run_traced(cmd)
                             if sts:
@@ -443,7 +544,7 @@ class PleaseCwd(object):
                     not pth.isfile("./readme/CONTRIBUTORS.rst")
                     or not pth.isfile("./readme/AUTHORS.rst")
                 ):
-                    please.chain_python_cmd("gen_readme.py -RW", [])
+                    please.chain_python_cmd("gen_readme.py", ["-RW"])
                 if please.opt_args.oca:
                     sts = please.run_traced(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
@@ -452,9 +553,9 @@ class PleaseCwd(object):
                 else:
                     sts = please.chain_python_cmd("gen_readme.py", [])
                     if sts == 0:
-                        sts = please.chain_python_cmd("gen_readme.py -H", [])
+                        sts = please.chain_python_cmd("gen_readme.py", ["-H"])
                     if sts == 0 and odoo_major_version <= 7:
-                        sts = please.chain_python_cmd("gen_readme.py -R", [])
+                        sts = please.chain_python_cmd("gen_readme.py", ["-R"])
                 if sts == 0:
                     please.merge_test_result()
                     self.do_clean()
@@ -490,6 +591,11 @@ class PleaseCwd(object):
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
             return please.run_traced(cmd)
+        return 1
+
+    def do_export(self):
+        if self.please.is_odoo_pkg():
+            return self._do_translate_export(action="export")
         return 1
 
     def do_publish(self):
@@ -593,13 +699,134 @@ class PleaseCwd(object):
         return please.do_iter_action("do_replace", act_all_pypi=True, act_tools=False)
 
     def do_translate(self):
+        if self.please.is_odoo_pkg():
+            return self._do_translate_export(action="all")
+        return 1
+
+    def _do_translate_export(self, action="all"):
+        def get_po_revision_date(pofile):
+            po_revision_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(pofile, "r") as fd:
+                for ln in fd.read().split("\n"):
+                    if "PO-Revision-Date:" in ln:
+                        x = re.search("[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}",
+                                      ln)
+                        if ln:
+                            po_revision_date = ln[x.start(): x.end()]
+                            break
+            return po_revision_date
+
         please = self.please
         if please.is_odoo_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
-            cmd = please.build_sh_me_cmd(
-                cmd=pth.join(pth.dirname(__file__), "please.sh")
-            )
-            return please.run_traced(cmd, rtime=True)
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                if not pth.isdir("./i18n"):
+                    if not please.opt_args.force:
+                        print("No directory i18n found! Use -f switch to create it")
+                        return 126
+                    os.mkdir("./i18n")
+                self.branch = branch
+                self.odoo_major_version = int(branch.split(".")[0])
+                module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
+                # repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+                pofile = "./i18n/it.po"
+                if not pth.isfile(pofile):
+                    if not please.opt_args.force:
+                        print("No file %s found! Use -f switch to create it" % pofile)
+                        return 126
+                    args = [
+                        "-f",
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    args.append(pofile)
+                    please.chain_python_cmd("makepo_it.py", args)
+                sts = self.get_config()
+                if sts:
+                    return sts
+                self.connect_db(db_name="template1")
+                response = self.exec_sql("SELECT datname FROM pg_catalog.pg_database",
+                                         response=True)
+                self.db_name = please.opt_args.database or (
+                    "test_%s_%s" % (module_name, self.odoo_major_version))
+                if self.db_name not in [x[0] for x in response]:
+                    print("Database %s does not exist!" % self.db_name)
+                    return 33
+                self.connect_db()
+                query = ("select state from ir_module_module where name = '%s'"
+                         % module_name)
+                response = self.exec_sql(query, response=True, keep_cursor=True)
+                state = response[0][0]
+                if state != "installed":
+                    print("Module %s not installed!" % module_name)
+                    return 33
+                query = ("select value from ir_config_parameter"
+                         " where key='database.create_date'")
+                response = self.exec_sql(query, response=True)
+                db_create_date = response[0][0]
+                po_revision_date = get_po_revision_date(pofile)
+                action_done = False
+                if (
+                        sts == 0
+                        and action in ("all", "translate")
+                        and (please.opt_args.force or db_create_date > po_revision_date)
+                ):
+                    args = [
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if please.opt_args.debug:
+                        args.append("-" + ("B" * please.opt_args.debug))
+                    if (
+                            hasattr(please.opt_args, "ignore_cache")
+                            and please.opt_args.ignore_cache
+                    ):
+                        args.append("-C")
+                    if self.config:
+                        args.append("-c")
+                        args.append(self.config)
+                    if self.db_name:
+                        args.append("-d")
+                        args.append(self.db_name)
+                    if please.opt_args.verbose:
+                        args.append("-" + ("v" * please.opt_args.verbose))
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    sts = please.chain_python_cmd("odoo_translation.py", args)
+                    action_done = True
+                if (
+                        sts == 0
+                        and action in ("all", "export")
+                        and (please.opt_args.force or db_create_date > po_revision_date)
+                ):
+                    args = [
+                        "-e",
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if self.config:
+                        args.append("-c")
+                        args.append(self.config)
+                    if self.db_name:
+                        args.append("-d")
+                        args.append(self.db_name)
+                    if please.opt_args.verbose:
+                        args.append("-" + ("v" * please.opt_args.verbose))
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    sts = please.chain_python_cmd("run_odoo_debug.py", args)
+                    action_done = True
+                if not action_done:
+                    print("No transaction done")
+                return sts
         return 1
 
     def do_update(self):

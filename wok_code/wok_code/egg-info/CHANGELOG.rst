@@ -4,9 +4,18 @@
 * [FIX] gen_readme.py: minor fixes
 * [IMP] gen_readme.py: manifest author priority
 * [FIX] gen_readme.py: coverage in CHANGELOG.rst"
+* [IMP] gen_readme.py: link to authors on README.rst and index.html
+* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
 * [FIX] license_mgnt: best organization recognition
 * [IMP] license_mgnt: powerp renamed to librerp
 * [FIX] run_odoo_debug: no doc neither translate after test error
+* [IMP] arcangelo: new rules
+* [IMP] arcangelo: new git conflict selection
+* [IMP] arcangelo: merge gen_readme.py formatting
+* [IMP] arcangelo: new switch --string-normalization
+* [FIX] deploy_odoo: minor fixes
+* [FIX] odoo_translation: sometime did not translate
+* [IMP] odoo_translation: best performance
 
 2.0.10 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~~

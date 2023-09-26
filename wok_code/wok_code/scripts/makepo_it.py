@@ -8,13 +8,11 @@ from __future__ import print_function
 import os.path
 import sys
 import argparse
-
-# import pdb
+import re
 
 __version__ = "2.0.11"
 
-PO_DEFAULT = """
-# Translation of Odoo Server.
+PO_DEFAULT = r"""# Translation of Odoo Server.
 # This file contains the translation of the following modules:
 #   * MODULE
 #
@@ -22,16 +20,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-18 12:39+0000\n"
-"PO-Revision-Date: 2021-09-28 10:37+0200\n"
+"POT-Creation-Date: 2023-06-26 19:07+0000\n"
+"PO-Revision-Date: 2023-06-26 22:06:00+0000\n"
 "Language-Team: \n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0\n"
 "Last-Translator: \n"
-"Language: it_IT\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: makepo_it.py\n"
 """
 
 
@@ -78,10 +76,8 @@ def main(cli_args=None):
         potext = ''
         saved_lines = []
         for line in polines:
-            if line.startswith('"#\t*'):
-                potext = add_po_line(potext, r'"# %s\n"' % opt_args.module)
-            elif line.startswith('"# *'):
-                potext = add_po_line(potext, r'"# %s\n"' % opt_args.module)
+            if re.match("#[ \t]+\\*", line):
+                potext = add_po_line(potext, "#\t* %s" % opt_args.module)
             elif line.startswith('#. module:'):
                 potext = add_po_line(potext, r'#. module: %s' % opt_args.module)
             elif line.startswith('"Project-Id-Version:'):
@@ -98,7 +94,7 @@ def main(cli_args=None):
                     potext,
                     r'"Language-Team: %s (%s)\n"' % (LAST_TEAM_NAME, LAST_TEAM_URL),
                 )
-                potext = add_po_line(potext, r'"Language: it_IT\n"')
+                potext = add_po_line(potext, r'"Language: it\n"')
             elif line.startswith('"Language:'):
                 pass
             elif line.startswith('"language'):
@@ -138,3 +134,7 @@ def main(cli_args=None):
 
     with open(opt_args.file_po, 'w') as fd:
         fd.write(potext)
+
+
+if __name__ == "__main__":
+    exit(main())

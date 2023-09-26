@@ -575,7 +575,6 @@ fi
 
 ext_test=""
 [[ -x $PKGPATH/tests/_test_synchro.py ]] && ext_test="$PKGPATH/tests/_test_synchro.py"
-# [[ -x $PKGPATH/tests/_test_synchro.sh ]] && ext_test="$PKGPATH/tests/_test_synchro.sh"
 [[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m" && opt_dae=1
 [[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
 

@@ -8,6 +8,7 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
+from datetime import datetime
 import re
 
 from z0lib import z0lib
@@ -150,6 +151,12 @@ class RegressionTest:
         chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
         if os.path.isfile(chnglog):
             os.unlink(chnglog)
+        i18ndir = os.path.join(self.odoo_moduledir, "i18n")
+        if not os.path.isdir(i18ndir):
+            os.mkdir(i18ndir)
+        pofile = os.path.join(self.odoo_moduledir, "i18n", "it.po")
+        self.create_pofile(pofile)
+        self.create_database("test_test_module_12")
         cmd = "please zerobug -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
@@ -195,7 +202,13 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[9],
+            ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[9]),
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[10]),
         )
 
         os.chdir(self.odoo_moduledir)
@@ -371,7 +384,13 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[6],
+            ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[7]),
         )
 
         os.chdir(self.odoo_moduledir)
@@ -539,6 +558,34 @@ class RegressionTest:
         )
         return sts
 
+    def create_pofile(self, pofile):
+        if os.path.isfile(pofile):
+            os.unlink(pofile)
+        with open(pofile, "w") as fd:
+            fd.write("msgid \"\"\n")
+            fd.write("msgstr \"\"\n")
+            fd.write("PO-Revision-Date: %s 00:01+0000\n\""
+                     % datetime.now().strftime("%Y-%m-%d"))
+
+    def create_database(self, database):
+        os.system("dropdb %s" % database)
+        os.system("createdb %s" % database)
+        os.system(("psql -c "
+                   "\"create table ir_module_module  ("
+                   "name varchar(64), "
+                   "state varchar(32))\" %s") % database)
+        os.system(("psql -c "
+                   "\"insert into ir_module_module (name, state) "
+                   "values ('test_module', 'installed')\" %s" % database))
+        os.system(("psql -c "
+                   "\"create table ir_config_parameter  ("
+                   "key varchar(32), "
+                   "value varchar(32))\" %s" % database))
+        os.system(("psql -c "
+                   "\"insert into ir_config_parameter (key, value) "
+                   "values ('database.create_date', '%s')\" %s"
+                   % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), database)))
+
     def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py")
@@ -585,6 +632,9 @@ class RegressionTest:
             self._touch_file(
                 os.path.join(self.odoo_moduledir, "tests", "logs", "show-log.sh")
             )
+
+    def tearoff(self, z0ctx):
+        os.system("dropdb test_test_module_12")
 
 
 #

@@ -285,13 +285,7 @@ class PleaseZ0bug(object):
             if sts:
                 return sts
             if not please.opt_args.no_translate and not please.opt_args.debug:
-                if "test" in please.cli_args:
-                    sub_list = [("test", "translate"), ("--no-verify", "")]
-                else:
-                    sub_list = [("z0bug", "translate"), ("--no-verify", "")]
-                please.sh_subcmd = please.pickle_params(rm_obj=True, slist=sub_list)
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
+                sts = please.do_translate()
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             if "test" in please.cli_args:
