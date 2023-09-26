@@ -8,7 +8,11 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
-from zerobug import z0test
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0test                                                # noqa: E402
 
 __version__ = "2.0.9"
 
@@ -23,10 +27,11 @@ def version():
 
 class RegressionTest:
     def __init__(self, z0bug):
-        self.Z = z0bug
+        # self.Z = z0bug
+        z0bug.inherit_cls(self)
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
+        # sts = TEST_SUCCESS
         res = False
         if not z0ctx['dry_run']:
             self.root = self.Z.build_os_tree(z0ctx, self.os_tree)
@@ -34,11 +39,12 @@ class RegressionTest:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            sts += self.Z.test_result(z0ctx, 'mkdir %s' % path, True, res)
-        return sts
+            # sts += self.Z.test_result(z0ctx, 'mkdir %s' % path, True, res)
+            self.assertTrue(res, msg_info='mkdir %s')
+        return self.ret_sts()
 
     def test_09(self, z0ctx):
-        sts = TEST_SUCCESS
+        # sts = TEST_SUCCESS
         res = False
         if not z0ctx['dry_run']:
             self.Z.remove_os_tree(z0ctx, self.os_tree)
@@ -46,8 +52,9 @@ class RegressionTest:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            sts += self.Z.test_result(z0ctx, 'rmdir %s' % path, False, res)
-        return sts
+            # sts += self.Z.test_result(z0ctx, 'rmdir %s' % path, False, res)
+            self.assertFalse(res, msg_info='rmdir %s')
+        return self.ret_sts()
 
     def setup(self, z0ctx):
         self.os_tree = [

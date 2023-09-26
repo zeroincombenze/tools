@@ -8,6 +8,8 @@
 from __future__ import print_function, unicode_literals
 import os
 import sys
+from datetime import datetime
+import re
 
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
@@ -27,6 +29,7 @@ def version():
 class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
+        # self.Z.inherit_cls(self)
         self.root = ''
 
     def _touch_file(self, fn):
@@ -132,12 +135,37 @@ class RegressionTest:
             stdout.split("\n")[0],
         )
 
+        # Test result (<PYTHON> = ~/VENV_*/bin/python
+        #              <SCRIPT> = ~/VENV_*/build/local/wok_code/scripts):
+        # 0 "> git add ./"
+        # 1 "> pre-commit run"
+        # 2 "> <SCRIPT>/please.sh lint -vn"
+        # 3 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -T -m test_module -b 12.0 -v -n"
+        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -RW"
+        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py"
+        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -H"
+        # 7 "Test log file not found!"
+        # 8 "> git add ./"
+        # 9 "> <SCRIPT>/please.sh translate -vn"
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
+        i18ndir = os.path.join(self.odoo_moduledir, "i18n")
+        if not os.path.isdir(i18ndir):
+            os.mkdir(i18ndir)
+        pofile = os.path.join(self.odoo_moduledir, "i18n", "it.po")
+        self.create_pofile(pofile)
+        self.create_database("test_test_module_12")
         cmd = "please zerobug -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
+        self.Z.test_result(
+            z0ctx, "%s> %s # file CHANGELOG" % (os.getcwd(), cmd), True,
+            os.path.isfile(chnglog),
+        )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             "git add ./" in stdout.split("\n")[0],
@@ -152,19 +180,35 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh test -vn" in stdout.split("\n")[3],
+            bool(re.match(
+                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
+                stdout.split("\n")[3]))
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh docs -vn" in stdout.split("\n")[4],
+            "/gen_readme.py -RW" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[5],
+            "/gen_readme.py" in stdout.split("\n")[5],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh translate -vn" in stdout.split("\n")[6],
+            "/gen_readme.py -H" in stdout.split("\n")[6],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[8],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[9]),
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[10]),
         )
 
         os.chdir(self.odoo_moduledir)
@@ -179,7 +223,7 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh test -vn" in stdout.split("\n")[1],
+            "run_odoo_debug.py" in stdout.split("\n")[1],
         )
         return sts
 
@@ -308,6 +352,9 @@ class RegressionTest:
         )
 
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
         cmd = "please test -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
@@ -317,36 +364,53 @@ class RegressionTest:
             z0ctx,
             "%s> %s" % (os.getcwd(), cmd),
             True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
-        )
-        self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "/please.sh docs -vn" in stdout.split("\n")[1],
+            "run_odoo_debug.py" in stdout.split("\n")[0],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[2],
+            "/gen_readme.py -RW" in stdout.split("\n")[1],
         )
         self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "/please.sh translate -vn" in stdout.split("\n")[3],
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py" in stdout.split("\n")[2],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py -H" in stdout.split("\n")[3],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "git add ./" in stdout.split("\n")[5],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[7]),
         )
 
         os.chdir(self.odoo_moduledir)
+        chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
+        if os.path.isfile(chnglog):
+            os.unlink(chnglog)
         cmd = "please test -vn --no-translate"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
         self.Z.test_result(
-            z0ctx,
-            "%s> %s" % (os.getcwd(), cmd),
-            True,
-            "/please.sh test -vn" in stdout.split("\n")[0],
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            bool(re.match(
+                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
+                stdout.split("\n")[0]))
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py -RW" in stdout.split("\n")[1],
         )
         return sts
 
@@ -494,6 +558,34 @@ class RegressionTest:
         )
         return sts
 
+    def create_pofile(self, pofile):
+        if os.path.isfile(pofile):
+            os.unlink(pofile)
+        with open(pofile, "w") as fd:
+            fd.write("msgid \"\"\n")
+            fd.write("msgstr \"\"\n")
+            fd.write("PO-Revision-Date: %s 00:01+0000\n\""
+                     % datetime.now().strftime("%Y-%m-%d"))
+
+    def create_database(self, database):
+        os.system("dropdb %s" % database)
+        os.system("createdb %s" % database)
+        os.system(("psql -c "
+                   "\"create table ir_module_module  ("
+                   "name varchar(64), "
+                   "state varchar(32))\" %s") % database)
+        os.system(("psql -c "
+                   "\"insert into ir_module_module (name, state) "
+                   "values ('test_module', 'installed')\" %s" % database))
+        os.system(("psql -c "
+                   "\"create table ir_config_parameter  ("
+                   "key varchar(32), "
+                   "value varchar(32))\" %s" % database))
+        os.system(("psql -c "
+                   "\"insert into ir_config_parameter (key, value) "
+                   "values ('database.create_date', '%s')\" %s"
+                   % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), database)))
+
     def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py")
@@ -542,7 +634,7 @@ class RegressionTest:
             )
 
     def tearoff(self, z0ctx):
-        pass
+        os.system("dropdb test_test_module_12")
 
 
 #

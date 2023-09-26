@@ -6,6 +6,16 @@ from datetime import datetime, timedelta
 import re
 
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
+try:
+    from clodoo.clodoo import build_odoo_param
+except ImportError:
+    from clodoo import build_odoo_param
 
 __version__ = "2.0.11"
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
@@ -49,7 +59,9 @@ class PleaseCwd(object):
     def action_opts(self, parser, for_help=False):
         self.please.add_argument(parser, "-B")
         self.please.add_argument(parser, "-b")
+        self.please.add_argument(parser, "-C")
         self.please.add_argument(parser, "-c")
+        self.please.add_argument(parser, "-d")
         if not for_help:
             self.please.add_argument(parser, "-n")
         parser.add_argument('-F', '--from-version')
@@ -58,6 +70,7 @@ class PleaseCwd(object):
         parser.add_argument(
             "--odoo-venv", action="store_true", help="Update Odoo virtual environments"
         )
+        self.please.add_argument(parser, "-O")
         if not for_help:
             self.please.add_argument(parser, "-q")
         self.please.add_argument(parser, "-v")
@@ -75,6 +88,100 @@ class PleaseCwd(object):
             pth.dirname(os.getcwd())
             if pth.basename(os.getcwd()) != "tools"
             else os.getcwd())
+
+    def get_config(self):
+        for (k, v) in (
+                ("config", None),
+                ("db_name", "demo"),
+                ("db_user", "odoo"),
+                ("db_pwd", "admin"),
+                ("db_host", "localhost"),
+                ("db_port", ""),
+                ("http_port", None),
+                ("xmlrpc_port", None),
+                ("addons_path", [])):
+            if not hasattr(self, k):
+                setattr(self, k, v)
+
+        rpcport = ""
+        if not self.config:
+            self.config = self.please.opt_args.odoo_config or build_odoo_param(
+                "CONFN", odoo_vid=".", multi=True)
+        if not pth.isfile(self.config):
+            print("No configuration file %s found!" % self.config)
+            return 126
+        Config = ConfigParser.RawConfigParser()
+        Config.read(self.config)
+        if not Config.has_section("options"):
+            print("Invalid Configuration file %s: missed [options] section!"
+                  % self.opt_args.config)
+            return 33
+        else:
+            for k in (
+                    "db_name",
+                    "db_user",
+                    "db_pwd",
+                    "db_host",
+                    "db_port",
+                    "addons_path"):
+                if Config.has_option("options", k):
+                    if Config.get("options", k) == "False":
+                        setattr(self, k, False)
+                    else:
+                        setattr(self, k, Config.get("options", k))
+            if Config.has_option("options", "http_port"):
+                rpcport = Config.get("options", "http_port")
+            if not rpcport and Config.has_option("options", "xmlrpc_port"):
+                rpcport = Config.get("options", "xmlrpc_port")
+            if rpcport:
+                rpcport = int(rpcport)
+
+        if not self.db_port:
+            self.db_port = 5432
+        elif self.db_port and self.db_port.isdigit():
+            self.db_port = int(self.db_port)
+        if not rpcport:
+            rpcport = build_odoo_param(
+                "RPCPORT", odoo_vid=".", multi=True)
+        if self.odoo_major_version < 10:
+            self.xmlrpc_port = rpcport
+        else:
+            self.http_port = rpcport
+        return 0
+
+    def connect_db(
+            self, db_name=None, db_user=None, db_pwd=None, db_host=None, db_port=None):
+        self.cnx = psycopg2.connect(
+            dbname=db_name or self.db_name,
+            user=db_user or self.db_user,
+            password=db_pwd or self.db_pwd,
+            host=db_host or self.db_host,
+            port=db_port or self.db_port,
+        )
+        self.create_sql_cursor()
+
+    def create_sql_cursor(self):
+        if self.cnx:
+            self.cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            self.cr = self.cnx.cursor()
+
+    def exec_sql(self, query, response=None, keep_cursor=False):
+        try:
+            self.cr.execute(query)
+            if response:
+                response = self.cr.fetchall()
+            else:
+                response = True
+        except psycopg2.OperationalError:
+            print("Error executing sql %s" % query)
+            response = False
+        if not keep_cursor:
+            try:
+                self.cr.close()
+                self.cr = None
+            except psycopg2.OperationalError:
+                pass
+        return response
 
     def do_clean(self):
         please = self.please
@@ -104,11 +211,11 @@ class PleaseCwd(object):
                 last = " "
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] > last:
-                            last = fn[12:]
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] > last:
+                            last = fn[-12:]
                 for root, dirs, files in os.walk(logdir):
                     for fn in files:
-                        if re.match(r".*_[0-9]{8}.txt$", fn) and fn[12:] != last:
+                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
                             cmd = "rm " + pth.join(root, fn)
                             sts = please.run_traced(cmd)
                             if sts:
@@ -389,9 +496,72 @@ class PleaseCwd(object):
 
     def do_docs(self):
         please = self.please
-        if (
-                please.is_odoo_pkg()
-                or please.is_repo_odoo()
+        if please.is_odoo_pkg():
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                odoo_major_version = int(branch.split(".")[0])
+                # module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
+                repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+                if not pth.isdir("./static"):
+                    os.mkdir("./static")
+                if odoo_major_version <= 7:
+                    if not pth.isdir("./static/src"):
+                        os.mkdir("./static/src")
+                    if not pth.isdir("./static/src/img"):
+                        os.mkdir("./static/src/img")
+                else:
+                    if not pth.isdir("./static/description"):
+                        os.mkdir("./static/description")
+                if not pth.isdir("./readme"):
+                    os.mkdir("./readme")
+                chnglog = "./readme/CHANGELOG.rst"
+                if not pth.isfile(chnglog):
+                    with open(chnglog, "w") as fd:
+                        # Conventional date on Odoo Days (October, 1st Thursday)
+                        fd.write(
+                            "%s.0.1.0 %s\n" % (
+                                branch,
+                                {
+                                    6: "2012-10-04",
+                                    7: "2013-10-03",
+                                    8: "2014-10-02",
+                                    9: "2015-10-01",
+                                    10: "2016-10-06",
+                                    11: "2017-10-05",
+                                    12: "2018-10-04",
+                                    13: "2019-10-03",
+                                    14: "2020-10-01",
+                                    15: "2021-10-07",
+                                    16: "2022-10-06",
+                                    17: "2023-10-05",
+                                }[odoo_major_version]
+                            )
+                        )
+                        fd.write("~~~~~~~~~~~~~~~~~~~~~\n")
+                        fd.write("\n")
+                        fd.write("* Initial implementation\n")
+                if (
+                    not pth.isfile("./readme/CONTRIBUTORS.rst")
+                    or not pth.isfile("./readme/AUTHORS.rst")
+                ):
+                    please.chain_python_cmd("gen_readme.py", ["-RW"])
+                if please.opt_args.oca:
+                    sts = please.run_traced(
+                        "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
+                        % (branch, repo_name),
+                        rtime=True)
+                else:
+                    sts = please.chain_python_cmd("gen_readme.py", [])
+                    if sts == 0:
+                        sts = please.chain_python_cmd("gen_readme.py", ["-H"])
+                    if sts == 0 and odoo_major_version <= 7:
+                        sts = please.chain_python_cmd("gen_readme.py", ["-R"])
+                if sts == 0:
+                    please.merge_test_result()
+                    self.do_clean()
+                return sts
+        elif (
+                please.is_repo_odoo()
                 or please.is_repo_ocb()
                 or please.is_pypi_pkg()
         ):
@@ -421,6 +591,11 @@ class PleaseCwd(object):
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
             return please.run_traced(cmd)
+        return 1
+
+    def do_export(self):
+        if self.please.is_odoo_pkg():
+            return self._do_translate_export(action="export")
         return 1
 
     def do_publish(self):
@@ -524,13 +699,134 @@ class PleaseCwd(object):
         return please.do_iter_action("do_replace", act_all_pypi=True, act_tools=False)
 
     def do_translate(self):
+        if self.please.is_odoo_pkg():
+            return self._do_translate_export(action="all")
+        return 1
+
+    def _do_translate_export(self, action="all"):
+        def get_po_revision_date(pofile):
+            po_revision_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(pofile, "r") as fd:
+                for ln in fd.read().split("\n"):
+                    if "PO-Revision-Date:" in ln:
+                        x = re.search("[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}",
+                                      ln)
+                        if ln:
+                            po_revision_date = ln[x.start(): x.end()]
+                            break
+            return po_revision_date
+
         please = self.please
         if please.is_odoo_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
-            cmd = please.build_sh_me_cmd(
-                cmd=pth.join(pth.dirname(__file__), "please.sh")
-            )
-            return please.run_traced(cmd, rtime=True)
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                if not pth.isdir("./i18n"):
+                    if not please.opt_args.force:
+                        print("No directory i18n found! Use -f switch to create it")
+                        return 126
+                    os.mkdir("./i18n")
+                self.branch = branch
+                self.odoo_major_version = int(branch.split(".")[0])
+                module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
+                # repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+                pofile = "./i18n/it.po"
+                if not pth.isfile(pofile):
+                    if not please.opt_args.force:
+                        print("No file %s found! Use -f switch to create it" % pofile)
+                        return 126
+                    args = [
+                        "-f",
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    args.append(pofile)
+                    please.chain_python_cmd("makepo_it.py", args)
+                sts = self.get_config()
+                if sts:
+                    return sts
+                self.connect_db(db_name="template1")
+                response = self.exec_sql("SELECT datname FROM pg_catalog.pg_database",
+                                         response=True)
+                self.db_name = please.opt_args.database or (
+                    "test_%s_%s" % (module_name, self.odoo_major_version))
+                if self.db_name not in [x[0] for x in response]:
+                    print("Database %s does not exist!" % self.db_name)
+                    return 33
+                self.connect_db()
+                query = ("select state from ir_module_module where name = '%s'"
+                         % module_name)
+                response = self.exec_sql(query, response=True, keep_cursor=True)
+                state = response[0][0]
+                if state != "installed":
+                    print("Module %s not installed!" % module_name)
+                    return 33
+                query = ("select value from ir_config_parameter"
+                         " where key='database.create_date'")
+                response = self.exec_sql(query, response=True)
+                db_create_date = response[0][0]
+                po_revision_date = get_po_revision_date(pofile)
+                action_done = False
+                if (
+                        sts == 0
+                        and action in ("all", "translate")
+                        and (please.opt_args.force or db_create_date > po_revision_date)
+                ):
+                    args = [
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if please.opt_args.debug:
+                        args.append("-" + ("B" * please.opt_args.debug))
+                    if (
+                            hasattr(please.opt_args, "ignore_cache")
+                            and please.opt_args.ignore_cache
+                    ):
+                        args.append("-C")
+                    if self.config:
+                        args.append("-c")
+                        args.append(self.config)
+                    if self.db_name:
+                        args.append("-d")
+                        args.append(self.db_name)
+                    if please.opt_args.verbose:
+                        args.append("-" + ("v" * please.opt_args.verbose))
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    sts = please.chain_python_cmd("odoo_translation.py", args)
+                    action_done = True
+                if (
+                        sts == 0
+                        and action in ("all", "export")
+                        and (please.opt_args.force or db_create_date > po_revision_date)
+                ):
+                    args = [
+                        "-e",
+                        "-m", module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if self.config:
+                        args.append("-c")
+                        args.append(self.config)
+                    if self.db_name:
+                        args.append("-d")
+                        args.append(self.db_name)
+                    if please.opt_args.verbose:
+                        args.append("-" + ("v" * please.opt_args.verbose))
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    sts = please.chain_python_cmd("run_odoo_debug.py", args)
+                    action_done = True
+                if not action_done:
+                    print("No transaction done")
+                return sts
         return 1
 
     def do_update(self):
@@ -613,58 +909,82 @@ class PleaseCwd(object):
         return sts
 
     def do_version(self):
-        def change_version(ffn):
+        def update_version(fqn, regex, sep):
             target = ""
             do_rewrite = False
-            ext = ffn.rsplit(".", 1)
+            # tag_found = False
+            ext = fqn.rsplit(".", 1)
             ext = ext[1] if len(ext) > 1 else ""
             if ext in BIN_EXTS:
                 return 0
-            with open(ffn) as fd:
+            with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        x = REGEX_VER.match(ln)
+                        # x = regex.match(ln) if not tag_found else None
+                        x = regex.match(ln)
                         if x:
-                            ver_text = ln[x.start(): x.end()].split("=")[1].strip()
-                            if ver_text.startswith("'") or ver_text.startswith("\""):
-                                ver_text = ver_text[1: -1]
-                            if pth.basename(ffn) == "setup.py":
+                            # tag_found = True
+                            if sep:
+                                ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
+                            else:
+                                ver_text = ln[x.start(): x.end()].strip()
+                            ver_text = re.sub(
+                                r"[^\d]([\d\.]+)[^\d]",
+                                r"\1",
+                                ver_text
+                            )
+                            if pth.basename(fqn) in ("setup.py",
+                                                     "__manifest__.py",
+                                                     "__openerp__.rst"):
                                 self.ref_version = ver_text
-                                print(ffn, "->", ver_text)
+                                print(fqn, "->", ver_text)
                             elif ver_text != self.ref_version:
-                                print(ffn, "->", ver_text, "***")
+                                print(fqn, "->", ver_text, "***")
                             elif please.opt_args.verbose > 1:
-                                print(ffn)
+                                print(fqn)
                             if (
                                     please.opt_args.branch
                                     and ver_text != please.opt_args.branch
                             ):
-                                ln = ln.replace(ver_text, please.opt_args.branch)
+                                # ln = ln.replace(ver_text, please.opt_args.branch)
+                                ln = re.sub(
+                                    r"\d+\.\d+\.\d+(\.\d+)?(\.\d+)?(\.\d+)?",
+                                    please.opt_args.branch,
+                                    ln
+                                )
                                 do_rewrite = True
                         target += ln
                         target += "\n"
                 except BaseException as e:
                     do_rewrite = False
-                    print("Error %s reading %s" % (e, ffn))
+                    print("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
                     if please.opt_args.verbose:
-                        print(ffn, "=>", please.opt_args.branch)
+                        print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:
-                        with open(ffn, "w") as fd:
+                        with open(fqn, "w") as fd:
                             fd.write(target)
             return 0
 
         please = self.please
+        if please.opt_args.from_version:
+            REGEX_VER = re.compile(
+                "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
+                % please.opt_args.from_version)
+            REGEX_DICT_VER = re.compile(
+                "^ *[\"']version[\"']: [\"']%s[\"']"
+                % please.opt_args.from_version)
+            REGEX_TESTENV_VER = re.compile("^.* v%s" % please.opt_args.from_version)
+        else:
+            REGEX_VER = re.compile(
+                "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
+            REGEX_DICT_VER = re.compile(
+                "^ *[\"']version[\"']: [\"'][0-9.]+[\"']")
+            REGEX_TESTENV_VER = re.compile(
+                r"^.* v\d\.\d\.\d+")
         if please.is_pypi_pkg():
             sts = 0
             self.ref_version = ""
-            if please.opt_args.from_version:
-                REGEX_VER = re.compile(
-                    "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
-                    % please.opt_args.from_version)
-            else:
-                REGEX_VER = re.compile(
-                    "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
             for root, dirs, files in os.walk(self.cur_path_of_pkg()):
                 dirs[:] = [
                     d
@@ -706,13 +1026,32 @@ class PleaseCwd(object):
                             or fn.startswith("LICENSE")
                     ):
                         continue
-                    sts = change_version(pth.join(root, fn))
+                    if fn in ("testenv.py", "testenv.rst"):
+                        rex = REGEX_TESTENV_VER
+                        sep = "v"
+                    elif fn in ("__manifest__.py", "__openerp__.rst"):
+                        rex = REGEX_DICT_VER
+                        sep = ":"
+                    else:
+                        rex = REGEX_VER
+                        sep = "="
+                    sts = update_version(pth.join(root, fn), rex, sep)
                     if sts:
                         break
             if sts == 0:
-                sts = change_version(pth.join(os.getcwd(), "docs", "conf.py"))
+                sts = update_version(pth.join(os.getcwd(), "docs", "conf.py"),
+                                     REGEX_VER,
+                                     "=")
             return sts
-        if (please.opt_args.branch or please.opt_args.from_version):
+        elif please.is_odoo_pkg():
+            fqn = "__manifest__.py"
+            if not pth.isfile(fqn):
+                fqn = "__openerp__.py"
+            if not pth.isfile(fqn):
+                print("Manifest file not found!")
+                return 3
+            return update_version(fqn, REGEX_DICT_VER, ":")
+        elif (please.opt_args.branch or please.opt_args.from_version):
             print("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)

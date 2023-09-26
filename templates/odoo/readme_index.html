@@ -52,6 +52,14 @@
         </div>
     </div>
 .. $fi
+.. $if defined known_issues
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan" style="color:#162832;">Known issues / Problemi conosciuti</h3>
+        <div class="oe_span12">
+{{known_issues}}
+        </div>
+    </div>
+.. $fi
 </section>
 
 <section class="oe_container oe_separator"/>
@@ -63,7 +71,7 @@
             <p class="oe_mt16">{{authors}}</p>
         </div>
         <div class="oe_span6" align="left">
-            <p class="oe_mt16">Contributors / Collaboratori:</p>
+            <p class="oe_mt16">Contributors / Contributi da:</p>
             <p class="oe_mt16">{{contributors}}</p>
         </div>
     </div>
@@ -94,6 +102,6 @@
 .. $fi
     </div>
     <div class="oe_row oe_spaced">
-        <p>This module is part of {{repos_name}} project.</p>
+        <p>This module is part of <a href="{{GIT_URL_ROOT}}">{{repos_name}}</a> project.</p>
     </div>
 </section>

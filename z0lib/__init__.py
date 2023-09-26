@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from . import scripts
-from .scripts import get_metadata
+try:
+    from .scripts import get_metadata
+except ImportError:
+    from scripts import get_metadata
 
 try:
     from . import z0librun as z0lib

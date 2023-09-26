@@ -60,6 +60,7 @@ class PleaseZ0bug(object):
             metavar="NUMBER",
             help="travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)",
         )
+        self.please.add_argument(parser, "-d")
         parser.add_argument(
             "-E",
             "--no-savenv",
@@ -96,6 +97,7 @@ class PleaseZ0bug(object):
         )
         if not for_help:
             self.please.add_argument(parser, "-n")
+        self.please.add_argument(parser, "-O")
         parser.add_argument(
             "-p",
             "--pattern",
@@ -213,6 +215,7 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if (
                     not please.opt_args.no_verify
                     and pth.isdir("tests")
@@ -247,40 +250,42 @@ class PleaseZ0bug(object):
                         "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
                 please.run_traced(
                     "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
-            if "test" in please.cli_args:
-                sub_list = [("--no-verify", ""), ("--no-translate", "")]
-            else:
-                sub_list = [("z0bug", "test"),
-                            ("--no-verify", ""),
-                            ("--no-translate", "")]
-            please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=sub_list)
-            cmd = please.build_sh_me_cmd()
-            sts = please.run_traced(cmd, rtime=True)
-            if sts == 0 and not please.opt_args.no_verify:
-                if "test" in please.cli_args:
-                    sub_list = [("test", "docs"),
-                                ("--no-verify", ""),
-                                ("--no-translate", "")]
-                else:
-                    sub_list = [("z0bug", "docs"),
-                                ("--no-verify", ""),
-                                ("--no-translate", "")]
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=sub_list)
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
-            if sts == 0 and not please.opt_args.no_verify:
+            args = [
+                "-T",
+                "-m", pth.basename(pth.abspath(os.getcwd())),
+            ]
+            if branch:
+                args.append("-b")
+                args.append(branch)
+            if please.opt_args.debug:
+                args.append("-" + ("B" * please.opt_args.debug))
+            if please.opt_args.odoo_config:
+                args.append("-c")
+                args.append(please.opt_args.odoo_config)
+            if please.opt_args.database:
+                args.append("-d")
+                args.append(please.opt_args.database)
+            if please.opt_args.force:
+                args.append("-f")
+            if please.opt_args.keep:
+                args.append("-k")
+            if please.opt_args.verbose:
+                args.append("-" + ("v" * please.opt_args.verbose))
+            if please.opt_args.dry_run:
+                args.append("-n")
+            sts = please.chain_python_cmd("run_odoo_debug.py", args)
+            if sts:
+                return sts
+            if not please.opt_args.no_verify and not please.opt_args.debug:
+                sts = please.do_docs()
+            if sts:
+                return sts
+            if not please.opt_args.no_verify and not please.opt_args.debug:
                 sts = please.run_traced("git add ./", rtime=True)
-            if sts == 0 and not please.opt_args.no_translate:
-                if "test" in please.cli_args:
-                    sub_list = [("test", "translate"), ("--no-verify", "")]
-                else:
-                    sub_list = [("z0bug", "translate"), ("--no-verify", "")]
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=sub_list)
-                cmd = please.build_sh_me_cmd()
-                sts = please.run_traced(cmd, rtime=True)
+            if sts:
+                return sts
+            if not please.opt_args.no_translate and not please.opt_args.debug:
+                sts = please.do_translate()
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             if "test" in please.cli_args:

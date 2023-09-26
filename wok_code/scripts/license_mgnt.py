@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 import re
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -19,7 +20,7 @@ COPY = {
         "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
         "github-user": "zeroincombenze",
     },
-    "shs": {
+    "shs-av": {
         "author": "SHS-AV s.r.l.",
         "website": "https://www.shs-av.com",
         "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
@@ -52,12 +53,21 @@ COPY = {
         "website": "https://www.didotech.com",
         "github-user": "iw3hxn",
     },
+    "agilebg.com": {
+        "author": "Agile Business Group sagl",
+        "website": "https://www.agilebg.com",
+    },
+    "apuliasoftware.it": {
+        "author": "Apulia Software s.r.l.",
+        "website": "https://www.apuliasoftware.it",
+    },
 }
 ALIAS = {
-    "shs-av": "shs",
     "zeroincombenze": "zero",
     "odooitaliancommunity": "odoo-italia",
     "odooitaliaassociazione": "odoo-italia",
+    "powerp": "librerp",
+    "powerp.it": "librerp",
 }
 
 
@@ -83,10 +93,16 @@ class License:
                     self.parse_file(fn)
                     break
         self.gpl2license = {
-            "agpl": "AGPL-3", "lgpl": "LGPL-3", "opl": "OPL-1", "oee": "OEE-1"
+            "agpl": "AGPL-3",
+            "lgpl": "LGPL-3",
+            "opl": "OPL-1",
+            "oee": "OEE-1",
         }
         self.license2gpl = {
-            "AGPL-3": "agpl", "LGPL-3": "lgpl", "OPL-1": "opl", "OEE-1": "oee"
+            "AGPL-3": "agpl",
+            "LGPL-3": "lgpl",
+            "OPL-1": "opl",
+            "OEE-1": "oee",
         }
 
     def add_copyright(self, org_id, name, website, email, years):
@@ -135,14 +151,14 @@ class License:
             x = re.match("[^<]*", line)
             y = re.search("[<][^>]*", line)
             if x and y:
-                name = line[x.start():x.end()].strip()
-                url = line[y.start() + 1:y.end()].strip()
+                name = line[x.start() : x.end()].strip()
+                url = line[y.start() + 1 : y.end()].strip()
             else:
                 x = re.match("[^(]*", line)
                 y = re.search("[(][^)]*", line)
                 if x and y:
-                    name = line[x.start():x.end()].strip()
-                    url = line[y.start() + 1:y.end()].strip()
+                    name = line[x.start() : x.end()].strip()
+                    url = line[y.start() + 1 : y.end()].strip()
                     if "http" not in url and "@" not in url:
                         name = line.strip()
                         url = ""
@@ -151,14 +167,17 @@ class License:
                     url = ""
             if url == "False":
                 url = ""
-            url = url.replace("http:", "https:")
+            url = url.replace("http:", "https:").replace("http//", "https://")
             if url.endswith("/"):
                 url = url[0:-1]
             if "@" in url or url.startswith("https://github.com/"):
                 email = url
                 if not name:
                     name = " ".join(
-                        [x.capitalize() for x in email.split("@")[0].split(".")]
+                        [
+                            x.capitalize()
+                            for x in email.split("@")[0].split(".")        # noqa: F812
+                        ]
                     )
             else:
                 found = False
@@ -169,17 +188,25 @@ class License:
                         website = "%s//%s/%s" % (parts.scheme, parts.netloc, org_id)
                     else:
                         org_id = parts.netloc.lower()
-                        website = parts.scheme + "//" + parts.netloc
+                        website = parts.scheme + "://" + parts.netloc
                 else:
                     org_id = re.sub("[^a-z0-9A-Z]*", "", name).lower()
                 org_id = ALIAS.get(org_id, org_id)
                 for kk, item in COPY.items():
                     if (
-                            org_id == kk
-                            or org_id == urlparse(item["website"]).netloc
-                            or (re.sub("[^a-z0-9A-Z&+-]*", "", name)
-                                ==
-                                re.sub("[^a-z0-9A-Z&+-]*", "", item["author"]))
+                        org_id == kk
+                        or (
+                            item["website"]
+                            and (
+                                org_id == urlparse(item["website"]).netloc
+                                or org_id
+                                == urlparse(item["website"]).netloc.split(".", 1)[-1]
+                            )
+                        )
+                        or (
+                            re.sub("[^a-z0-9A-Z&+-]*", "", name)
+                            == re.sub("[^a-z0-9A-Z&+-]*", "", item["author"])
+                        )
                     ):
                         org_id = kk
                         if item["website"]:
@@ -247,7 +274,7 @@ class License:
     def summary_authors(self, summarize=False):
         author = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
+            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech", "powerp"):
                 if org_id in self.org_ids:
                     author = self.org_ids[org_id][0]
                     break
@@ -260,11 +287,11 @@ class License:
             else:
                 for org_id in self.org_ids.keys():
                     author = "%s,%s" % (author, self.org_ids[org_id][0])
-                author = author[2:]
+                author = author[1:]
         elif self.authors:
             for item in self.authors.keys():
                 author = "%s,%s" % (author, self.authors[item][0])
-            author = author[2:]
+            author = author[1:]
         return author
 
     def get_website(self, org_id=None, repo=None, module=None):
@@ -272,13 +299,13 @@ class License:
         if org_id in self.org_ids:
             website = self.org_ids[org_id][1]
         elif self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
+            for org_id in ("oca", "librerp", "powerp", "zero", "shs-av", "didotech"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]
                     break
         if not website and self.org_ids:
             for item in self.org_ids.keys():
-                website = self.websites[item][1]
+                website = self.org_ids[item][1]
                 if website:
                     break
         if not website and self.authors:
@@ -287,7 +314,7 @@ class License:
                 if website:
                     break
         if repo and org_id == "oca":
-            website += ("/" + repo)
+            website += "/" + repo
         elif repo and org_id == "zero":
             if repo.startswith("l10n-italy"):
                 website += "/fatturazione-elettronica"
@@ -298,7 +325,7 @@ class License:
     def get_maintainer(self):
         maintainer = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs", "didotech", "powerp"):
+            for org_id in ("oca", "librerp", "powerp", "zero", "shs-av", "didotech"):
                 if org_id in self.org_ids:
                     maintainer = COPY[org_id].get("devman", "")
                     if maintainer:
@@ -330,5 +357,6 @@ class License:
                 git_orgid,
                 COPY[git_orgid]["author"],
                 COPY[git_orgid]["website"],
-                "", ""
+                "",
+                "",
             )

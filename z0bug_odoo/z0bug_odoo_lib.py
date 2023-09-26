@@ -24,7 +24,7 @@ from openpyxl import load_workbook
 
 from python_plus import unicodes
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 class Z0bugOdoo(object):
@@ -133,3 +133,4 @@ class Z0bugOdoo(object):
             self.get_data_file(model, pymodel)
         for xref in getattr(self, pymodel):
             pass
+

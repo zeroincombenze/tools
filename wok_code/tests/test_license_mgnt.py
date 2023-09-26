@@ -7,9 +7,13 @@
 """
 import os
 import sys
+sys.path.insert(0,
+                os.path.dirname(os.getcwd())
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.getcwd())
+from scripts import license_mgnt                                           # noqa: E402
 
-from wok_code.scripts import license_mgnt
-from zerobug import z0test, z0testodoo
+from zerobug import z0test, z0testodoo                                     # noqa: E402
 
 __version__ = "2.0.11"
 
@@ -27,7 +31,7 @@ MANIFEST_1 = """{
     'version': '12.0.1.0',
 }"""
 AUTHOR_2 = """
-* Powerp <http://powerp.it>
+* Librerp <http://librerp.it>
 * Shs-av <http://zeroincombenze.it>
 """
 CONTRIBUTORS_2 = """
@@ -46,7 +50,7 @@ class RegressionTest:
     def create_file_author_1(self, path):
         fn = os.path.join(path, "authors.txt")
         with open(fn, "w") as fd:
-            fd.write("""* Powerp <http://www.powerp.it/>""")
+            fd.write("""* Librerp <http://www.librerp.it/>""")
 
     def create_file_contributor_1(self, path):
         fn = os.path.join(path, "contributors.txt")
@@ -115,13 +119,13 @@ class RegressionTest:
             website = license.get_website()
             devman = license.get_maintainer()
         sts += self.Z.test_result(
-            z0ctx, "License author", "powERP enterprise network", author
+            z0ctx, "License author", "LibrERP enterprise network", author
         )
         sts += self.Z.test_result(
-            z0ctx, "License website", "https://www.powerp.it", website
+            z0ctx, "License website", "https://www.librerp.it", website
         )
         sts += self.Z.test_result(
-            z0ctx, "License maintainer", "powERP enterprise network", devman
+            z0ctx, "License maintainer", "LibrERP enterprise network", devman
         )
         return sts
 
@@ -137,13 +141,13 @@ class RegressionTest:
             website = license.get_website()
             devman = license.get_maintainer()
         sts += self.Z.test_result(
-            z0ctx, "License author", "powERP enterprise network, SHS-AV s.r.l.", author
+            z0ctx, "License author", "LibrERP enterprise network,SHS-AV s.r.l.", author
         )
         sts += self.Z.test_result(
-            z0ctx, "License website", "https://www.powerp.it", website
+            z0ctx, "License website", "https://www.librerp.it", website
         )
         sts += self.Z.test_result(
-            z0ctx, "License maintainer", "powERP enterprise network", devman
+            z0ctx, "License maintainer", "LibrERP enterprise network", devman
         )
         return sts
 

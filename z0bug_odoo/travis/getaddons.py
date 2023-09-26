@@ -20,7 +20,7 @@ except ImportError:
     except ImportError:
         from git_run import GitRun
 
-__version__ = '2.0.11'
+__version__ = '2.0.12'
 
 MANIFEST_FILES = ['__manifest__.py', '__odoo__.py', '__openerp__.py', '__terp__.py']
 
@@ -251,3 +251,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
+

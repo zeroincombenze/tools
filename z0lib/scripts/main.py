@@ -33,17 +33,6 @@ def get_pypi_info(pkgname):
         import pkg_resources
         try:
             pypi_metadata["version"] = pkg_resources.get_distribution(pkgname).version
-            # valid = False
-            # long_description = ""
-            # for ln in pkg_resources.get_distribution(pkgname).get_metadata(
-            #         "METADATA").split("\n"):
-            #     if not valid:
-            #         if not ln:
-            #             valid = True
-            #         continue
-            #     long_description += ln
-            #     long_description += "\n"
-            # pypi_metadata["long_description"] = long_description
         except BaseException:
             pass
     else:

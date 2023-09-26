@@ -193,12 +193,27 @@ if [ -n "$dblist" ]; then
       else
         run_traced "pg_dump $PG_DUMP_OPT -U$opt_user -Fp -f $sqlfname \"$db\""
       fi
+      if [[ -n $ODOO_FILESTORE_ROOT ]]; then
+        filestore=$(for p in $(find $ODOO_FILESTORE_ROOT -maxdepth 2 -type d -name filestore 2>/dev/null); do find $p -maxdepth 2 -type d -name $db; done)
+        if [[ -n $filestore ]]; then
+          fsfn="$DBCKDIR/$db-filestore.gz"
+          if [[ $opt_dry_run -ne 0 ]]; then
+            echo "> tar -czf $fsfn $filestore"
+          else
+            run_traced "tar -czf $fsfn $filestore"
+          fi
+        fi
+      fi
       if [ -z "$opt_name" -a "$BCK_ENV" == "PRD" ]; then
-        rmtfn=$(basename "$sqlfname")
-        if [ $opt_dry_run -ne 0 ]; then
-          wlog "> scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+        if [[ $RMTBCKDIR == "/dev/null" ]]; then
+          wlog "> scp $sqlfname $URL_DEV:$RMTBCKDIR  # No file copied!"
         else
-          run_traced "scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+          rmtfn=$(basename "$sqlfname")
+          if [ $opt_dry_run -ne 0 ]; then
+            wlog "> scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+          else
+            run_traced "scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+          fi
         fi
       fi
       ((ctr++))

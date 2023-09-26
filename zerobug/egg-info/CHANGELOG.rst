@@ -1,3 +1,9 @@
+2.0.9.1 (2023-09-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring
+* [IMP] New functions: assertEqual, assertTrue and assertFalse
+
 2.0.9 (2023-07-12)
 ~~~~~~~~~~~~~~~~~~
 

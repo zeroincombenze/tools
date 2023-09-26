@@ -156,7 +156,7 @@ class OdooDeploy(object):
             )
 
         if self.opt_args.action in ("clone", "reclone") and not self.opt_args.repos:
-            # Get infro from github about repositories of git organizations
+            # Get info from github about repositories of git organizations
             for git_org in opt_args.git_orgs:
                 self.get_repo_from_github(git_org=git_org)
             if "OCB" not in self.repo_list:
@@ -166,6 +166,12 @@ class OdooDeploy(object):
                 self.get_repo_from_github(git_org="oca")
 
         if self.opt_args.repos:
+            if not self.target_path:
+                print("***** Missing target path (switch -p)!")
+                self.target_path = build_odoo_param(
+                    "ROOT", odoo_vid=self.master_branch,
+                    git_org=opt_args.git_orgs[0], multi=self.opt_args.multi
+                )
             self.get_repo_from_switch()
 
         if not self.repo_list and not self.opt_args.target_path:
@@ -208,7 +214,7 @@ class OdooDeploy(object):
             ):
                 self.opt_args.git_orgs.append(rgit_org)
 
-            if repo == "OCB" or not self.master_branch:
+            if repo == "OCB" and not self.master_branch:
                 self.master_branch = build_odoo_param(
                     "FULLVER", odoo_vid=self.repo_info[repo]["BRANCH"]
                 )
@@ -273,7 +279,7 @@ class OdooDeploy(object):
         for repo in self.opt_args.repos.split(","):
             self.repo_info[repo] = {"PATH": self.get_path_of_repo(repo), "#": 1}
         self.repo_list = sorted(self.repo_info.keys())
-        if "OCB" in self.repo_list:
+        if "OCB" in self.repo_list and self.repo_list[0] != "OCB":
             del self.repo_list[self.repo_list.index("OCB")]
             self.repo_list = ["OCB"] + self.repo_list
 
@@ -614,7 +620,7 @@ class OdooDeploy(object):
         verbose = verbose and self.opt_args.verbose
         branch = self.master_branch
         stash_list = ""
-        url = None
+        url = ""
         sts, stdout, stderr = z0lib.run_traced("git branch", verbose=verbose)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
@@ -624,6 +630,8 @@ class OdooDeploy(object):
         sts, stdout, stderr = z0lib.run_traced("git remote -v", verbose=verbose)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
+                if not ln:
+                    continue
                 lns = ln.split()
                 if lns[0] == "origin":
                     url = lns[1]
@@ -783,7 +791,11 @@ class OdooDeploy(object):
                 if tag in ln:
                     if not self.opt_args.assume_yes:
                         print("Remove remote branch %s of %s!" % (repo_branch, repo))
-                        dummy = input("Delete (y/n)? ")
+                        if self.opt_args.dry_run:
+                            print("Delete (y/n)? ")
+                            dummy = "n"
+                        else:
+                            dummy = input("Delete (y/n)? ")
                     if self.opt_args.assume_yes or dummy.lower().startswith("y"):
                         self.run_traced(
                             "git push origin -d %s" % repo_branch,
@@ -838,7 +850,11 @@ class OdooDeploy(object):
                 return self.git_pull(tgtdir, branch, master_branch=odoo_master_branch)
             elif not self.opt_args.assume_yes:
                 print("Path %s of repo %s already exists!" % (tgtdir, repo))
-                dummy = input("Delete (y/n)? ")
+                if self.opt_args.dry_run:
+                    print("Delete (y/n)? ")
+                    dummy = "y"
+                else:
+                    dummy = input("Delete (y/n)? ")
                 if not dummy.lower().startswith("y"):
                     return 3
             if self.repo_is_ocb(repo):

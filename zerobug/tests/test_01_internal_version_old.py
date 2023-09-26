@@ -8,7 +8,11 @@ from __future__ import print_function, unicode_literals
 
 import os.path
 import sys
-from zerobug import z0test
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
+from zerobug import z0test                                                # noqa: E402
 
 
 __version__ = "2.0.9"
@@ -41,4 +45,4 @@ if __name__ == "__main__":
     UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
     UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
     UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
-    exit(z0test.main(ctx, UT=UT_LIST))
+    exit(z0test.main(ctx, unittest_list=UT_LIST))

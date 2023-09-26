@@ -311,6 +311,7 @@ def get_actual_fqn(path, filename):
         fqn = pth.join(path, docdir, section.upper() + ".rst")
         if pth.isfile(fqn):
             return fqn
+        section = section.lower()
         fqn = pth.join(path, docdir, section + ".rst")
         if pth.isfile(fqn):
             return fqn
@@ -897,7 +898,7 @@ def expand_macro_in_line(ctx, line, state=None):
     i = line.find("{{")
     j = line.find("}}")
     while 0 <= i < j:
-        tokens = line[i + 2 : j].split(":")
+        tokens = line[i + 2: j].split(":")
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
             print_red_message("*** Invalid macro %s!" % tokens[0])
@@ -915,9 +916,12 @@ def expand_macro_in_line(ctx, line, state=None):
             )
             if "srctype" in state:
                 del state["srctype"]
-            return state, line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
+            i = line.find("{{")
+            j = line.find("}}")
+            continue
         if len(value.split("\n")) > 1:
-            line = line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(
                 ctx, line, state=state, in_fmt=in_fmt, out_fmt=out_fmt
             )
@@ -926,9 +930,9 @@ def expand_macro_in_line(ctx, line, state=None):
             return state, value
         if len(tokens) > 1:
             fmt = tokens[1]
-            line = line[0:i] + (fmt % value) + line[j + 2 :]
+            line = line[0:i] + (fmt % value) + line[j + 2:]
         else:
-            line = line[0:i] + value + line[j + 2 :]
+            line = line[0:i] + value + line[j + 2:]
         i = line.find("{{")
         j = line.find("}}")
     if srctype in LIST_TAG:
@@ -1082,6 +1086,7 @@ def parse_acknowledge_list(ctx, source):
 
 def line_of_list(ctx, state, line):
     """Manage list of people like authors or contributors"""
+    out_fmt = state.get("out_fmt", "rst")
     text = line.strip()
     stop = True
     if line:
@@ -1103,9 +1108,18 @@ def line_of_list(ctx, state, line):
         if state.get("srctype") == "authors":
             line = line.replace("<", "\a").replace(">", "\b")
             fmt = "* `%s`__"
+        elif (
+                out_fmt == "html"
+                and line.startswith("* ")
+                and "<" in line
+                and ">" in line
+                and "@" not in line
+        ):
+            line = line.replace("<", "\a").replace(">", "\b")
+            fmt = "* `%s`__"
         else:
             fmt = "* %s"
-        if text[0:2] == "* ":
+        if text.startswith("* "):
             text = fmt % text[2:]
         else:
             text = fmt % line
@@ -1344,10 +1358,10 @@ def parse_local_file(
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
-    if len(source) and filename == "changelog.rst":
+    if len(source) and section == "changelog":
         source = tail(source)
         if ctx["odoo_layer"] == "module":
-            ctx["history-summary"] = tail(source, max_ctr=1, max_days=15)
+            ctx["history-summary"] = tail(source, max_ctr=1, max_days=30)
     if len(source):
         if ctx["trace_file"]:
             mark = '.. !! from "%s"\n\n' % filename
@@ -1395,7 +1409,7 @@ def read_history(ctx, full_fn, module=None):
             ctx["histories"] += tail(_u(fd.read()), max_days=60, module=module)
     with open(full_fn, RMODE) as fd:
         ctx["history-summary"] += tail(
-            _u(fd.read()), max_ctr=1, max_days=15, module=module
+            _u(fd.read()), max_ctr=1, max_days=30, module=module
         )
 
 
@@ -1475,13 +1489,13 @@ def read_manifest(ctx):
         ctx["manifest"] = {}
 
 
-def adj_version(ctx, version):
-    if not version:
-        version = "0.1.0"
-    if version[0].isdigit():
-        if not version.startswith(ctx["branch"]):
-            version = "%s.%s" % (ctx["branch"], version)
-    return version
+def adj_version(ctx, odoo_version):
+    if not odoo_version:
+        odoo_version = "0.1.0"
+    if odoo_version[0].isdigit():
+        if not odoo_version.startswith(ctx["branch"]):
+            odoo_version = "%s.%s" % (ctx["branch"], odoo_version)
+    return odoo_version
 
 
 def read_all_manifests(ctx, path=None, module2search=None):
@@ -1538,7 +1552,8 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         break
                 except KeyError:
                     pass
-                full_fn = pth.join(root, "egg-info", "CHANGELOG.rst")
+                full_fn = get_full_fn(
+                    ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
                 if pth.isfile(full_fn):
                     with open(full_fn, RMODE) as fd:
                         ctx["histories"] += tail(
