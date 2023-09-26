@@ -707,10 +707,10 @@ def init_company_ctx(ctx, c_id):
     company = browseL8(ctx, 'res.company', c_id)
     ctx['company_name'] = company.name
     if company.country_id:
-        ctx['company_country_id'] = company.country_id.name
+        ctx['company_country_id'] = company.country_id.id
     else:
         ctx['company_country_id'] = 0
-    ctx['company_partner_id'] = company.partner_id.name
+    ctx['company_partner_id'] = company.partner_id.id
     ctx['def_company_id'] = ctx['company_id']
     ctx['def_company_name'] = ctx['company_name']
     if ctx.get('company_country_id', 0) != 0:
@@ -722,13 +722,13 @@ def init_company_ctx(ctx, c_id):
 def init_user_ctx(ctx, user):
     # ctx['user_id'] = user.id
     if ctx['oe_version'] != "6.1":
-        ctx['user_partner_id'] = user.partner_id.name
+        ctx['user_partner_id'] = user.partner_id.id
     ctx['user_name'] = get_res_users(ctx, user, 'name')
     ctx['def_email'] = '%s%s@example.com' % (
         user.login,
         ctx['oe_version'].split('.')[0],
     )
-    ctx['user_company_id'] = user.company_id.name
+    ctx['user_company_id'] = user.company_id.id
     ctx['user_country_id'] = get_res_users(ctx, user, 'country_id')
     if ctx.get('def_company_id', 0) == 0:
         ctx['def_company_id'] = ctx['user_company_id']
@@ -1878,7 +1878,7 @@ def act_check_coa(ctx):
                 ctx, model, searchL8(ctx, model, [('code', 'like', prefix)])
             ):
                 if rec.code.startswith(prefix):
-                    writeL8(ctx, model, rec.name, {'user_type_id': type_id})
+                    writeL8(ctx, model, rec.id, {'user_type_id': type_id})
 
     msg = "Check for chart of account"
     msg_log(ctx, ctx['level'], msg)
@@ -1898,7 +1898,7 @@ def act_check_coa(ctx):
             reconcile = None
         if reconcile is not None:
             if acc.reconcile != reconcile:
-                writeL8(ctx, model, [acc.name], {'reconcile': reconcile})
+                writeL8(ctx, model, [acc.id], {'reconcile': reconcile})
     set_acc_type(env_ref(ctx, 'account.data_account_type_fixed_assets'), '120')
     set_acc_type(env_ref(ctx, 'account.data_account_type_fixed_assets'), '121')
     set_acc_type(env_ref(ctx, 'account.data_account_type_fixed_assets'), '122')
@@ -1924,8 +1924,8 @@ def act_check_tax(ctx):
     model = 'italy.ade.tax.nature'
     tax_nature = {}
     for tax in browseL8(ctx, model, searchL8(ctx, model, [])):
-        tax_nature[tax.code] = tax.name
-        tax_nature[tax.name] = tax.code
+        tax_nature[tax.code] = tax.id
+        tax_nature[tax.id] = tax.code
     model = 'account.account'
     sale_vat_acc = searchL8(
         ctx, model, [('company_id', '=', company_id), ('code', '=', '260010')]
@@ -1961,7 +1961,7 @@ def act_check_tax(ctx):
                     and not tax.parent_tax_ids
                     and abs(tax.amount) not in (4, 10, 21, 22)
                 ):
-                    writeL8(ctx, model, [tax.name], {'active': False})
+                    writeL8(ctx, model, [tax.id], {'active': False})
                     msg = 'Tax code %s deactivated' % tax.description
                     msg_log(ctx, ctx['level'] + 1, msg)
             if re.search('[Aa]rt[ .]*17[ -./]ter', tax.name):
@@ -2116,7 +2116,7 @@ def act_check_tax(ctx):
         if account_id:
             vals['vat_statement_account_id'] = account_id[0]
         if vals:
-            writeL8(ctx, model, [tax.name], vals)
+            writeL8(ctx, model, [tax.id], vals)
             if nature_id:
                 msg = 'Tax code %s: nature=%s' % (
                     tax.description,
@@ -2149,7 +2149,7 @@ def act_check_config(ctx):
         for fld in ('name', 'street', 'zip', 'city', 'vat', 'customer', 'supplier'):
             values[fld] = rec[fld]
         for fld in ('country_id', 'state_id'):
-            values[fld] = rec[fld].name
+            values[fld] = rec[fld].id
         return values
 
     def book_partner(avaiable_partner_ids, vals):
@@ -2205,13 +2205,13 @@ def act_check_config(ctx):
             writeL8(
                 ctx,
                 model,
-                xid.name,
+                xid.id,
                 {'module': 'base', 'name': 'state_%s' % xid.name.lower()},
             )
             msg_log(
                 ctx,
                 ctx['level'] + 1,
-                'External id %d renamed l10n_it_base -> base' % xid.name,
+                'External id %d renamed l10n_it_base -> base' % xid.id,
             )
     # Rename old state_id entries (Odoo 7.0 l10n_it_bbone)
     for xid in searchL8(
@@ -2226,24 +2226,22 @@ def act_check_config(ctx):
         if xid.name.startswith('it_') and len(xid.name) == 5:
             unlinkL8(ctx, model, [xid])
             msg_log(
-                ctx, ctx['level'] + 1,
-                'External id %d (l10n_it_bbone) removed' % xid.name
+                ctx, ctx['level'] + 1, 'External id %d (l10n_it_bbone) removed' % xid.id
             )
     # Rename deprecated testing prefix (base2/z0incombenze)
     for xid in browseL8(ctx, model, searchL8(ctx, model, [('module', '=', 'base2')])):
-        writeL8(ctx, model, xid.name, {'module': 'z0bug'})
+        writeL8(ctx, model, xid.id, {'module': 'z0bug'})
         msg_log(
-            ctx, ctx['level'] + 1,
-            'External id %d renamed from base2 to z0bug' % xid.name
+            ctx, ctx['level'] + 1, 'External id %d renamed from base2 to z0bug' % xid.id
         )
     for xid in browseL8(
         ctx, model, searchL8(ctx, model, [('module', '=', 'z0incombenze')])
     ):
-        writeL8(ctx, model, xid.name, {'module': 'z0bug'})
+        writeL8(ctx, model, xid.id, {'module': 'z0bug'})
         msg_log(
             ctx,
             ctx['level'] + 1,
-            'External id %d renamed from z0incombenze to z0bug' % xid.name,
+            'External id %d renamed from z0incombenze to z0bug' % xid.id,
         )
     # Check for testing environment
     ids = searchL8(
@@ -2310,11 +2308,11 @@ def act_check_config(ctx):
             xref_names[xname] = part_id
             xref_ids[xname] = id
     excl_list_user = [
-        x.partner_id.name
+        x.partner_id.id
         for x in browseL8(ctx, model_user, searchL8(ctx, model_user, []))
     ]
     excl_list_company = [
-        x.partner_id.name
+        x.partner_id.id
         for x in browseL8(ctx, model_company, searchL8(ctx, model_company, []))
     ]
     excl_xref = [
@@ -2398,7 +2396,7 @@ def act_check_config(ctx):
     )
     for inv_xid in browseL8(ctx, model, z0_invoice_xid_list):
         inv = browseL8(ctx, model_invoice, inv_xid.res_id)
-        part_id = inv.partner_id.name
+        part_id = inv.partner_id.id
         if part_id in partners_no_use:
             partner = browseL8(ctx, model_partner, part_id)
             vals = cvt_rec_2_vals(partner)
@@ -2428,27 +2426,27 @@ def act_check_config(ctx):
         for inv in browseL8(ctx, model_invoice, invoice_ids):
             # inv_state = inv.state
             if inv.state in INVOICES_STS_2_DRAFT:
-                reconcile_dict, move_dict = get_reconcile_from_invoices([inv.name], ctx)
+                reconcile_dict, move_dict = get_reconcile_from_invoices([inv.id], ctx)
                 unreconcile_invoices(reconcile_dict, ctx)
                 upd_invoices_2_draft(move_dict, ctx)
             writeL8(
                 ctx,
                 model_invoice,
-                inv.name,
-                {'partner_id': replacement_list[inv.partner_id.name]},
+                inv.id,
+                {'partner_id': replacement_list[inv.partner_id.id]},
             )
             msg_log(
                 ctx,
                 ctx['level'] + 1,
                 'Invoice id %d, new partner id=%d'
-                % (inv.name, replacement_list[inv.partner_id.name]),
+                % (inv.id, replacement_list[inv.partner_id.id]),
             )
             if inv.state in INVOICES_STS_2_DRAFT:
                 upd_invoices_2_posted(move_dict, ctx)
-                reconciles = reconcile_dict[inv.name]
+                reconciles = reconcile_dict[inv.id]
                 if len(reconciles):
                     cur_reconciles, cur_reconcile_dict = refresh_reconcile_from_inv(
-                        inv.name, reconciles, ctx
+                        inv.id, reconciles, ctx
                     )
                     reconcile_invoices(cur_reconcile_dict, ctx)
 
@@ -2551,10 +2549,10 @@ def act_check_partners(ctx):
         vals = {}
         if not partner.country_id and (partner.street or partner.city):
             vals['country_id'] = italy_id
-            msg = "Wrong country of %s (%d)" % (partner.name, partner.name)
+            msg = "Wrong country of %s (%d)" % (partner.name, partner.id)
             msg_log(ctx, ctx['level'], msg)
         elif partner.country_id:
-            vals['country_id'] = partner.country_id.name
+            vals['country_id'] = partner.country_id.id
         else:
             vals['country_id'] = False
         if is_valid_field(ctx, model, 'province'):
@@ -2609,10 +2607,10 @@ def act_check_partners(ctx):
             for id in city_ids:
                 city = browseL8(ctx, 'res.city', id)
                 if state_id is None:
-                    state_id = city.state_id.name
+                    state_id = city.state_id.id
                     msg = "Wrong province of %s" % partner.name
                     msg_log(ctx, ctx['level'], msg)
-                elif city.state_id.name != state_id:
+                elif city.state_id.id != state_id:
                     state_id = False
                     break
             if state_id:
@@ -2649,7 +2647,7 @@ def act_check_partners(ctx):
                 msg_log(ctx, ctx['level'], msg)
             if not partner.is_company:
                 vals['is_company'] = True
-                msg = '%s (%d) is company not person' % (partner.name, partner.name)
+                msg = '%s (%d) is company not person' % (partner.name, partner.id)
                 msg_log(ctx, ctx['level'], msg)
 
         if partner.fiscalcode and vals['country_id'] == italy_id:
@@ -2666,7 +2664,7 @@ def act_check_partners(ctx):
                 msg = '%s wrong zip' % partner.name
                 msg_log(ctx, ctx['level'], msg)
 
-        if not vals['country_id'] or vals['country_id'] == partner.country_id.name:
+        if not vals['country_id'] or vals['country_id'] == partner.country_id.id:
             del vals['country_id']
         if vals:
             try:
@@ -2858,17 +2856,17 @@ def act_check_balance(ctx):
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         warn_rec = False
-        move_hdr_id = move_line.move_id.name
+        move_hdr_id = move_line.move_id.id
         account = move_line.account_id
         account_tax = move_line.account_tax_id
         journal = move_line.journal_id
-        acctype_id = account.user_type.name
+        acctype_id = account.user_type.id
         acc_type = browseL8(ctx, 'account.account.type', acctype_id)
         if acc_type.report_type not in ("asset", "liability", "income", "expense"):
             warn_rec = "Untyped"
         if account.parent_id:
             parent_account = account.parent_id
-            parent_acctype_id = parent_account.user_type.name
+            parent_acctype_id = parent_account.user_type.id
             parent_acc_type = browseL8(ctx, 'account.account.type', parent_acctype_id)
             parent_code = parent_account.code
         else:
@@ -2908,24 +2906,24 @@ def act_check_balance(ctx):
             clf2 = "unknown"
             clf1 = "unknown"
 
-        if account.company_id.name != company_id:
+        if account.company_id.id != company_id:
             msg = "Invalid company account {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
-        if account_tax and account_tax.company_id.name != company_id:
+        if account_tax and account_tax.company_id.id != company_id:
             msg = "Invalid company account tax {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
-        if journal and journal.company_id.name != company_id:
+        if journal and journal.company_id.id != company_id:
             msg = "Invalid company journal {} in {:>6}/{:>6}  {}".format(
                 os0.u(code), move_hdr_id, move_line_id, os0.u(move_line.ref)
             )
             msg_log(ctx, ctx['level'] + 1, msg)
 
-        if move_line.partner_id and move_line.partner_id.name:
-            partner_id = move_line.partner_id.name
+        if move_line.partner_id and move_line.partner_id.id:
+            partner_id = move_line.partner_id.id
             if clf3 == "Crediti":
                 kk = 'C'
             elif clf3 == "Debiti":
@@ -3108,8 +3106,8 @@ def act_complete_partners(ctx):
             for id in city_ids:
                 city = browseL8(ctx, 'res.city', id)
                 if state_id is None:
-                    state_id = city.state_id.name
-                elif city.state_id.name != state_id:
+                    state_id = city.state_id.id
+                elif city.state_id.id != state_id:
                     state_id = False
                     break
             if state_id:
@@ -3152,7 +3150,7 @@ def act_hard_clean_module(ctx):
         if module.state == 'installed':
             continue
         try:
-            unlinkL8(ctx, model, [module.name])
+            unlinkL8(ctx, model, [module.id])
             msg = "Clean module %s" % module_name
             msg_log(ctx, ctx['level'] + 1, msg)
         except BaseException:
@@ -3451,7 +3449,7 @@ def set_journal_per_year(ctx):
     primary_ir_sequences = []
     for journal_id in journal_ids:
         id = browseL8(ctx, model, journal_id)
-        primary_ir_sequences.append(id.sequence_id.name)
+        primary_ir_sequences.append(id.sequence_id.id)
     if len(primary_ir_sequences) == 0:
         return
     model = 'ir.sequence'
@@ -3465,7 +3463,7 @@ def set_journal_per_year(ctx):
         fy = []
         if majver < 10:
             for o in ir_sequence.fiscal_ids:
-                fy_id = o.fiscalyear_id.name
+                fy_id = o.fiscalyear_id.id
                 fy.append(fy_id)
             for fy_id in fy_ids:
                 if fy_id not in fy:
@@ -3506,11 +3504,10 @@ def set_journal_per_year(ctx):
             for asf_id in searchL8(
                 ctx, 'account.sequence.fiscalyear', [('sequence_main_id', '=', ir_id)]
             ):
-                id = browseL8(
-                    ctx, 'account.sequence.fiscalyear', asf_id).sequence_id.name
+                id = browseL8(ctx, 'account.sequence.fiscalyear', asf_id).sequence_id.id
                 fy_id = browseL8(
                     ctx, 'account.sequence.fiscalyear', asf_id
-                ).fiscalyear_id.name
+                ).fiscalyear_id.id
                 fy_name = str(browseL8(ctx, 'account.fiscalyear', fy_id).date_stop.year)
                 name = browseL8(ctx, model, id).name
                 if not name.endswith(' ' + fy_name):
@@ -3576,8 +3573,8 @@ def get_payment_info(move_line, ctx):
     """Return move (header) and move_line (detail) ids of passed move line
     record and return payment state if needed to become draft
     """
-    move_line_id = move_line.name
-    move_id = move_line.move_id.name
+    move_line_id = move_line.id
+    move_id = move_line.move_id.id
     move_obj = browseL8(ctx, 'account.move', move_id)
     mov_state = False
     if move_obj.state in PAY_MOVE_STS_2_DRAFT:
@@ -3605,10 +3602,10 @@ def get_reconcile_from_inv(inv_id, ctx):
     if ctx['majver'] >= 10:
         if account_invoice.payment_move_line_ids:
             for move_line_id in account_invoice.payment_move_line_ids:
-                reconciles.append(move_line_id.name)
+                reconciles.append(move_line_id.id)
     elif account_invoice.payment_ids:
-        partner_id = account_invoice.partner_id.name
-        move_id = account_invoice.move_id.name
+        partner_id = account_invoice.partner_id.id
+        move_id = account_invoice.move_id.id
         move_line_ids = searchL8(
             ctx,
             'account.move.line',
@@ -3646,9 +3643,9 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     new_reconciles = []
     model = 'account.invoice'
     account_invoice = browseL8(ctx, model, inv_id)
-    partner_id = account_invoice.partner_id.name
+    partner_id = account_invoice.partner_id.id
     if account_invoice.move_id:
-        move_id = account_invoice.move_id.name
+        move_id = account_invoice.move_id.id
     else:
         move_id = False
     move_line_ids = searchL8(ctx, 'account.move.line', [('move_id', '=', move_id)])
@@ -3664,12 +3661,12 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
             type = browseL8(ctx, 'account.move.line', move_line_id).account_id.type
         if type in ('receivable', 'payable'):
             new_reconciles.append(move_line_id)
-    partner_id = account_invoice.partner_id.name
+    partner_id = account_invoice.partner_id.id
     if account_invoice.move_id:
-        move_id = account_invoice.move_id.name
+        move_id = account_invoice.move_id.id
     else:
         move_id = False
-    company_id = account_invoice.company_id.name
+    company_id = account_invoice.company_id.id
     valid_recs = True
     for move_line_id in reconciles[1:]:
         try:
@@ -3678,8 +3675,8 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
             move_line = False
         if move_line:
             if (
-                move_line.partner_id.name != partner_id
-                or move_line.company_id.name != company_id
+                move_line.partner_id.id != partner_id
+                or move_line.company_id.id != company_id
             ):
                 valid_recs = False
             else:
@@ -3730,7 +3727,7 @@ def get_reconcile_list_from_move_line(move_line, ctx):
     move_dict = {}
     for state in STATES_2_DRAFT:
         move_dict[state] = []
-    move_id = move_line.move_id.name
+    move_id = move_line.move_id.id
     model = 'account.invoice'
     invoice_ids = searchL8(ctx, model, [('move_id', '=', move_id)])
     if len(invoice_ids):
@@ -3815,12 +3812,12 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
     for inv_id in invoices:
         invoice = invoice_model.browse(inv_id)
         if not company_id:
-            company_id = invoice.company_id.name
-        elif invoice.company_id.name != company_id:
+            company_id = invoice.company_id.id
+        elif invoice.company_id.id != company_id:
             return None
         if not journal_id:
-            journal_id = invoice.journal_id.name
-        elif invoice.journal_id.name != journal_id:
+            journal_id = invoice.journal_id.id
+        elif invoice.journal_id.id != journal_id:
             return None
         if invoice[move_name]:
             list_keys[invoice[move_name]] = inv_id
@@ -3832,7 +3829,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
         registration_date = invoice.registration_date
         inv_type = invoice.type
         if invoice.move_id:
-            move_id = invoice.move_id.name
+            move_id = invoice.move_id.id
         else:
             move_id = False
         if inv_type in ('out_invoice', 'out_refund'):
@@ -4301,16 +4298,16 @@ def set_account_type(ctx):
         # valid = False       # debug
         if not account.parent_id:
             valid = False
-        acctype_id = account.user_type.name
+        acctype_id = account.user_type.id
         acc_type = browseL8(ctx, 'account.account.type', acctype_id)
         if acc_type.report_type not in ("asset", "liability", "income", "expense"):
             valid = False
         if not valid:
-            account_id = account.name
+            account_id = account.id
             if account_id not in accounts:
                 accounts.append(account_id)
             if not move_line.journal_id.update_posted:
-                journal_id = move_line.journal_id.name
+                journal_id = move_line.journal_id.id
                 if journal_id not in journals:
                     journals.append(journal_id)
             inv_reconcile_dict, inv_move_dict = get_reconcile_list_from_move_line(
@@ -5346,11 +5343,11 @@ def remove_company_partner_records(ctx):
                 5,
                 33523,
                 33783,
-                browseL8(ctx, 'res.company', company_id).name,
+                browseL8(ctx, 'res.company', company_id).id,
             )
         }
     else:
-        records2keep = {'res.partner': browseL8(ctx, 'res.company', company_id).name}
+        records2keep = {'res.partner': browseL8(ctx, 'res.company', company_id).id}
     special = {}
     specparams = {}
     sts = remove_group_records(
@@ -5741,7 +5738,7 @@ def add_external_name(ctx, o_model, row, id):
         and o_model['alias_field'] in row
         and row[o_model['alias_field']].find('None') < 0
     ):
-        res_id = browseL8(ctx, model, id)[o_model['alias_field']].name
+        res_id = browseL8(ctx, model, id)[o_model['alias_field']].id
         put_model_alias(
             ctx,
             model=o_model['alias_model2'],
@@ -6292,7 +6289,7 @@ def setup_global_config_param(ctx, name, value):
             try:
                 id = max(searchL8(ctx, model, []))
                 cur = browseL8(ctx, model, id)[name]
-                if cur.name == value:
+                if cur.id == value:
                     return sts
             except BaseException:
                 pass

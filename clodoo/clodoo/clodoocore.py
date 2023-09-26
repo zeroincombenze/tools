@@ -600,7 +600,7 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
         if ctx.get("company_id"):
             ctx["country_id"] = browseL8(
                 ctx, "res.company", ctx["company_id"]
-            ).partner_id.country_id.name
+            ).partner_id.country_id.id
         else:
             ctx["country_id"] = False
         pf_list = ("company_id", "country_id", "street")
@@ -633,14 +633,14 @@ def get_val_from_field(ctx, model, rec, field, format=False):
         if ctx["STRUCT"][model][field]["ttype"] in ("many2many", "one2many"):
             res = []
             for id in rec[field]:
-                res.append(id.name)
+                res.append(id.id)
             if format == "cmd":
                 res = [(6, 0, res)]
         elif ctx["STRUCT"][model][field]["ttype"] in ("date", "datetime"):
             if format in ("cmd", "str"):
                 res = str(res)
         elif ctx["STRUCT"][model][field]["ttype"] == "many2one":
-            res = rec[field].name
+            res = rec[field].id
             if format == "cmd":
                 res = [(6, 0, res)]
         elif ctx["STRUCT"][model][field]["ttype"] == ("integer", "float"):
@@ -819,13 +819,13 @@ def get_res_users(ctx, user, field):
     elif field == "country_id":
         if ctx["oe_version"] == "6.1":
             if user.company_id.country_id:
-                return user.company_id.country_id.name
+                return user.company_id.country_id.id
             return False
         else:
             if user.partner_id.country_id:
-                return user.partner_id.country_id.name
+                return user.partner_id.country_id.id
             elif user.company_id.country_id:
-                return user.company_id.country_id.name
+                return user.company_id.country_id.id
             return False
     return user[field]
 

@@ -150,7 +150,7 @@ wok_code: 2.0.10 (2023-07-10)
 * [IMP] please show docs: new interface
 * [REF] run_odoo_debug: partial refactoring
 * [IMP] run_odoo_debug: new switch --daemon
-* [IMP] arcangelo: new swicth --string-normalization
+* [IMP] arcangelo: new switch --string-normalization
 * [FIX] please test / run_odoo_debug: minor fixes
 
 
