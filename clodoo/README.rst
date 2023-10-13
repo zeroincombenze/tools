@@ -298,6 +298,61 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
+ChangeLog History
+-----------------
+
+2.0.7 (2023-09-26)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Some fixes due old wrong code (id -> name)
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [IMP] Incorporated new pypi oerlib3
+* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+* [IMP] New param IS_MULTI
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [FIX] clodoo.py: minor fixes
+* [IMP] odoorc: odoo version 16.0
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [IMP] odoorc: minor improvements
+* [IMP] odoorc: test for Odoo 16.0
+* [IMP] transodoo.py: minor improvements
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [FIX] odoorc: GIT_BRANCH sometimes fails
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [FIX] odoorc: GITORGID and other value, sometimes are wrong
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [IMP] Minor improvements
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.7.0.7
+~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
+
 |
 |
 
@@ -310,18 +365,24 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+|
+
+Authors
+-------
+
+* `Antonio Maria Vigliotti <False>`__
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
 Contributors
 ------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-* Antonio M. Vigliotti <info@shs-av.com>
-
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-08-06
+Last Update / Ultimo aggiornamento: 2023-09-28
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

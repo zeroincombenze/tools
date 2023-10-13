@@ -86,6 +86,11 @@ class RunOdoo(object):
             "-H", "--home-devel", metavar="PATH", help="Home devel directory"
         )
         parser.add_argument(
+            "-K", "--no-ext-test",
+            action="store_true",
+            help="Do not run external test (tests/concurrent_test/test_*.py)",
+        )
+        parser.add_argument(
             "-k",  "--keep",
             action="store_true",
             help="Do not create new DB and keep it after run",
@@ -99,6 +104,10 @@ class RunOdoo(object):
             "-i", "--import-i18n",
             action="store_true",
             help="Import translation (conflicts with -e -u -I -T, -i is deprecated)",
+        )
+        parser.add_argument(
+            "-L", "--log-level",
+            help="set log level: may be info or debug"
         )
         parser.add_argument(
             "-l", "--lang", action="store_true",
@@ -256,6 +265,8 @@ class RunOdoo(object):
             opts += "e"
         if self.opt_args.force:
             opts += "f"
+        if self.opt_args.no_ext_test:
+            opts += "K"
         if self.opt_args.keep:
             opts += "k"
         if self.opt_args.import_i18n:
@@ -282,6 +293,8 @@ class RunOdoo(object):
             cmd += (" -c" + self.opt_args.config)
         if self.opt_args.database:
             cmd += (" -d" + self.opt_args.database)
+        if self.opt_args.log_level:
+            cmd += (" -L" + self.opt_args.log_level)
         if self.opt_args.modules:
             cmd += (" -m" + self.opt_args.modules)
         if self.opt_args.db_user:

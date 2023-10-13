@@ -20,8 +20,8 @@ def check_4_depending(cr):
     This function check for valid modules which current module depends on.
     Usually Odoo checks for depending on through "depends" field in the manifest, but
     Odoo does not check for the version range neither check for incompatibilities.
-    With three new fields "version_depends", "conflicts" (for odoo modules) and
-    "version_external_dependencies" (for python packages), this function checks for
+    With three new fields "version_depends", "conflicts" (on odoo modules) and
+    "version_external_dependencies" (on python packages), this function checks for
     version range, like pip or apt/yum etc. Example:
         "version_depends": ["dep_module>=12.0.2.0"],
         "version_external_dependencies": ["Werkzeug>=0.16"],
@@ -31,21 +31,21 @@ def check_4_depending(cr):
         ],
         "pre_init_hook": "check_4_depending",
     In above example, current module installation fails if:
-    * version of the module named "dep_module" is less than 12.0.2.0
-    * modules named "incompatible" is installed
-    * module "quite_incompatible" is installed (*)
-    * author name or maintainer name of module "inv_auth" is 'Danger' (**)
-    * author name or maintainer name of module "req_ath" is not 'MySelf' (**)
-    * python package Werkzeug is less than 0.16.
+        * version of the module named "dep_module" is less than 12.0.2.0
+        * modules named "incompatible" is installed
+        * module "quite_incompatible" is installed (*)
+        * author name or maintainer name of module "inv_auth" is 'Danger' (**)
+        * author name or maintainer name of module "req_ath" is not 'MySelf' (**)
+        * python package Werkzeug is less than 0.16.
     Installation can even continue if system parameter "disable_module_incompatibility"
-    is True when:
-    (*) module name to match does not end with symbol "!"
-    (**) regex operators are '=~?' or '!=~?'
+    is True when (above example is followed by *):
+        (*) module name to match does not end with symbol "!"
+        (**) regex operators are '=~?' or '!=~?'
     Summary:
-    - Operators == != >= <= > < match always with module version
-    - Conflicts key 'name' (can disable) or 'name!' (always) match installed module
-    - Operators =~ (always) !=~ (negate+always) =~? (disable) !=~? (negate+disable)
-      match module author o maintainer
+        - Operators == != >= <= > < match with module version
+        - "Conflicts" key matches module 'name' (can be disabled) or 'name!' (always)
+        - Operators =~ (always) !=~ (negate+always) =~? (disable) !=~? (negate+disable)
+          match regex on module author o module maintainer
     Notice: __init__.py in current module root must contain the statement:
         from ._check4deps_ import check_4_depending
     """

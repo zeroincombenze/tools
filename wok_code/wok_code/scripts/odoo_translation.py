@@ -1030,7 +1030,22 @@ class OdooTranslation(object):
                     }
                     for name in ("src", "source", "type", "name", "module"):
                         vals[name] = term[name]
-                    clodoo.createL8(ctx, model_translation, vals)
+                    tnl2_id = clodoo.searchL8(
+                        ctx,
+                        model_translation,
+                        [("type", "=", vals["type"]),
+                         ("name", "=", vals["name"]),
+                         ("lang", "=", vals["lang"]),
+                         ("res_id", "=", vals["res_id"])])
+                    if not tnl2_id:
+                        clodoo.createL8(ctx, model_translation, vals)
+                    else:
+                        clodoo.writeL8(
+                            ctx,
+                            model_translation,
+                            tnl2_id,
+                            vals
+                        )
                     ctr_write += 1
             elif value != term_tnl.value:
                 try:
@@ -1073,6 +1088,8 @@ class OdooTranslation(object):
                     order="src",
                 ),
             ):
+                if not term.src:
+                    continue
                 if self.opt_args.verbose:
                     msg_burst("%s ..." % term.src[:60].split("\n")[0])
                 ctr_read += 1

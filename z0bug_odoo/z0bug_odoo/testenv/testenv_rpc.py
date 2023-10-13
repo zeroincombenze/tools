@@ -10,7 +10,7 @@ Your python test file should have to contain some following example lines:
 
     import os
     import logging
-    from .testenv import MainTest as SingleTransactionCase
+    from .testenv_rpc import MainTest as SingleTransactionCase
 
     _logger = logging.getLogger(__name__)
 
@@ -32,71 +32,12 @@ Your python test file should have to contain some following example lines:
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):  # pragma: no cover
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()                    # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
                 "🎺 Testing test_mytest"    # Use unicode char to best log reading
             )
             ...
-
-        def test_mywizard(self):
-            self.wizard(...)                # Test requires wizard simulator
-
-External reference
-~~~~~~~~~~~~~~~~~~
-
-Every record is tagged by an external reference.
-The external reference may be:
-
-* Ordinary Odoo external reference (a), called xref, format "module.name"
-* Test reference, format "z0bug.name" (b)
-* Key value, format "external.key" (c)
-* 2 keys reference, for header/detail relationship (d)
-* Magic reference for 'product.template' / 'product.product' (e)
-* Magic 3 level Odoo xref, format "module.name.field" (f)
-
-Ordinary Odoo external reference (a) is a record of 'ir.model.data';
-you can see them from Odoo GUI interface.
-
-Test reference (b) are like external reference (a) but they are visible just in the
-test environment. They are identified by "z0bug." prefix module name.
-
-External key reference (c) is identified by "external." prefix followed by
-the key value used to retrieve the record. The field "code" or "name" are usually used
-to search record; for account.tax the "description" field is used.
-Please set self.debug_level = 2 (or more) to log these field keys.
-
-The 2 keys reference (d) needs to address child record inside header record
-at 2 level model (header/detail) relationship.
-The key MUST BE the couple of header key plus "_" and plus line key (usually 'sequence'
-field); the header key is the same key of the parent record. The line key may be:
-
-* the sequence value (if present n model)
-* the most meaningful field value
-* an index value
-
-i.e. "z0bug.invoice_1_3" means: line with sequence 3 of 'account.invoice.line'
-which is child of record "z0bug.invoice_1" of 'account.invoice'.
-i.e.: "EUR.2023-06-26" should be the key for res.currency.rate where "EUR" is the header
-key (res.currency) and "2023-06-26" is the date of rate.
-Please set self.debug_level = 2 (or more) to log these relationships.
-
-For 'product.template' (product) you must use '_template' text in reference (e).
-TestEnv inherit 'product.product' (variant) external reference (read above
-'Magic relationship).
-
-The magic 3 level Odoo xref is a special reference applicable on all kind of data.
-The format is like standard odoo xref with a 3th level which is the field name.
-i.e. "base.partner_1.name" means the field name of the standard Odoo external reference
-"base.partner_1". Notice:
-
-* every field of xref may be used
-* TestEnv does not match the type of current field and xref field
-* External reference may one of above (a) (b) (c) (d) or (e)
 
 For furthermore information, please:
 
@@ -268,7 +209,7 @@ class MainTest(test_common.TransactionCase):
 
     def tearDown(self):
         super(MainTest, self).tearDown()
-        self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        self._logger.info("🏆🥇 %d RPC tests SUCCESSFULLY completed" % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --

@@ -166,7 +166,7 @@ class OdooDeploy(object):
                 self.get_repo_from_github(git_org="oca")
 
         if self.opt_args.repos:
-            if not self.target_path:
+            if not self.opt_args.target_path:
                 print("***** Missing target path (switch -p)!")
                 self.target_path = build_odoo_param(
                     "ROOT", odoo_vid=self.master_branch,

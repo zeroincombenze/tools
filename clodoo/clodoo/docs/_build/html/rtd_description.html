@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Introduction &#8212; clodoo 2.0.7 documentation</title>
+    <title>&lt;no title&gt; &#8212; clodoo 2.0.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css" />
     <script src="_static/jquery.js"></script>
@@ -28,7 +28,7 @@
           <a href="index.html" title="Indices and tables"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">clodoo 2.0.7 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
       </ul>
     </div>  
 
@@ -39,262 +39,11 @@
             
   <div class="toctree-wrapper compound">
 </div>
-<section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h1>
-<p>Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.</p>
-<p>With clodoo you can do massive operations on 1 or more Odoo databases based on
-different Odoo versions. Main operation are:</p>
-<ul class="simple">
-<li><p>create consistent database to run tests</p></li>
-<li><p>repeat consistent action on many db with same or different Odoo version</p></li>
-<li><p>repeat above actions on every new database</p></li>
-</ul>
-<p>clodoo is also a PYPI package to simplify RPC connection to Odoo.
-The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
-can execute any command to any Odoo version server (from 6.1 to 13.0)</p>
-<p>Available commands &amp; features are:</p>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>Function</p></td>
-<td><p>Note</p></td>
-</tr>
-<tr class="row-even"><td><p>Add new repository</p></td>
-<td><p>odoo_install_repository</p></td>
-</tr>
-<tr class="row-odd"><td><p>Update paid invoice</p></td>
-<td><p>inv2draft_n_restore.py</p></td>
-</tr>
-<tr class="row-even"><td><p>List requirement of Odoo</p></td>
-<td><p>list_requirements.py</p></td>
-</tr>
-<tr class="row-odd"><td><p>Create full configurated Odoo DB</p></td>
-<td><p>manage_db</p></td>
-</tr>
-<tr class="row-even"><td><p>Manage Odoo installation</p></td>
-<td><p>manage_odoo</p></td>
-</tr>
-<tr class="row-odd"><td><p>Set Odoo Skin (backoffice)</p></td>
-<td><p>odoo_skin.sh</p></td>
-</tr>
-<tr class="row-even"><td><p>Run Odoo instance to debug</p></td>
-<td><p>run_odoo_debug</p></td>
-</tr>
-<tr class="row-odd"><td><p>Manage version depending names</p></td>
-<td><p>transodoo.py</p></td>
-</tr>
-<tr class="row-even"><td><p>General Purpose RPC</p></td>
-<td><p>clodoo.py</p></td>
-</tr>
-<tr class="row-odd"><td><p>Export Odoo model to test file</p></td>
-<td><p>export_db_model.py</p></td>
-</tr>
-<tr class="row-even"><td><p>Migrate Odoo</p></td>
-<td><p>migrate_odoo.py (deprecated)</p></td>
-</tr>
-<tr class="row-odd"><td><p>Examples</p></td>
-<td><p>example*.py</p></td>
-</tr>
-</tbody>
-</table>
-<section id="clodoo-py-general-purpose-rpc">
-<h2>clodoo.py: general Purpose RPC<a class="headerlink" href="#clodoo-py-general-purpose-rpc" title="Permalink to this heading"></a></h2>
-<p>clodoo.py ia general purpose xmlrpc / json interface.
-It is called by bash console, there is no funcional web/GUI interface.</p>
-<blockquote>
-<div><dl>
-<dt>$ usage: clodoo.py [-h] [-A actions] [-b version] [-c file] [-d regex] [-D]</dt><dd><p>[-l iso_lang] [-n] [-p dir] [-P password] [-q] [-r port]
-[-U username] [-u list] [-v] [-V] [-x]</p>
-</dd>
-<dt>optional arguments:</dt><dd><dl class="option-list">
-<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
-<dd><p>show this help message and exit</p>
-</dd>
-<dt><kbd><span class="option">-A <var>actions</var></span>, <span class="option">--action-to-do <var>actions</var></span></kbd></dt>
-<dd><p>action to do (use help to dir)</p>
-</dd>
-<dt><kbd><span class="option">-b <var>version</var></span>, <span class="option">--odoo-branch <var>version</var></span></kbd></dt>
-<dd><p>talk server Odoo version</p>
-</dd>
-<dt><kbd><span class="option">-c <var>file</var></span>, <span class="option">--config <var>file</var></span></kbd></dt>
-<dd><p>configuration command file</p>
-</dd>
-<dt><kbd><span class="option">-d <var>regex</var></span>, <span class="option">--dbfilter <var>regex</var></span></kbd></dt>
-<dd><p>DB filter</p>
-</dd>
-<dt><kbd><span class="option">-D</span>, <span class="option">--with-demo</span></kbd></dt>
-<dd><p>create db with demo data</p>
-</dd>
-<dt><kbd><span class="option">-l <var>iso_lang</var></span>, <span class="option">--lang <var>iso_lang</var></span></kbd></dt>
-<dd><p>user language</p>
-</dd>
-<dt><kbd><span class="option">-n</span>, <span class="option">--dry-run</span></kbd></dt>
-<dd><p>test execution mode</p>
-</dd>
-<dt><kbd><span class="option">-p <var>dir</var></span>, <span class="option">--data-path <var>dir</var></span></kbd></dt>
-<dd><p>Import file path</p>
-</dd>
-<dt><kbd><span class="option">-P <var>password</var></span>, <span class="option">--pwd <var>password</var></span></kbd></dt>
-<dd><p>login password</p>
-</dd>
-<dt><kbd><span class="option">-q</span>, <span class="option">--quiet</span></kbd></dt>
-<dd><p>run silently</p>
-</dd>
-<dt><kbd><span class="option">-r <var>port</var></span>, <span class="option">--xmlrpc-port <var>port</var></span></kbd></dt>
-<dd><p>xmlrpc port</p>
-</dd>
-<dt><kbd><span class="option">-U <var>username</var></span>, <span class="option">--user <var>username</var></span></kbd></dt>
-<dd><p>login username</p>
-</dd>
-<dt><kbd><span class="option">-u <var>list</var></span>, <span class="option">--upgrade-modules <var>list</var></span></kbd></dt>
-<dd><p>Module list to upgrade</p>
-</dd>
-<dt><kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></dt>
-<dd><p>run with debugging output</p>
-</dd>
-<dt><kbd><span class="option">-V</span>, <span class="option">--version</span></kbd></dt>
-<dd><p>show program’s version number and exit</p>
-</dd>
-<dt><kbd><span class="option">-x</span>, <span class="option">--exit-on-error</span></kbd></dt>
-<dd><p>exit on error</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</div></blockquote>
-<section id="import-file">
-<h3>Import_file<a class="headerlink" href="#import-file" title="Permalink to this heading"></a></h3>
-<p>Import file loads data from a csv file into DB. This action works as standard
-Odoo but has some enhanced features.
-Field value may be:</p>
-<ul class="simple">
-<li><p>external identifier, format module.name (as Odoo standard)
-i.e. ‘base.main_company’</p></li>
-<li><p>text with macros, format ${macro} (no Odoo standard), dictionary passed
-i.e. ‘${company_id}’
-text may contains one or more macros</p></li>
-<li><p>text with DB extraction, format ${model:values} (w/o company, no Odoo std)
-i.e. ‘${res.company:your company}’
-data is searched by name</p></li>
-<li><p>text with DB extraction, format ${model::values} (with company, no Odoo std)
-i.e. ‘${res.partner::Odoo SA}’
-data is searched by name, company from ctx[‘company_id’]</p></li>
-<li><p>text with DB extraction, format ${model(params):values} (w/o company)
-i.e. ‘${res.company(zip):1010}’
-data is searched by param(s)</p></li>
-<li><p>text with function, format ${function(params)::values} (add company)
-i.e. ‘${res.partner(zip)::1010}’
-data is searched by param(s), company from ctx[‘company_id’]</p></li>
-<li><p>full text function, format ${function[field](params):values} (w/o company)
-full text function, format ${function[field](params)::values} (add company)
-i.e. ‘${res.partner[name](zip)::1010}’
-data is searched as in above function;
-returned value is not id but <cite>field</cite></p></li>
-<li><p>crypted data, begins with $1$!
-i.e ‘$1$!abc’</p></li>
-<li><p>expression, begin with = (deprecated)</p></li>
-<li><p>odoo multiversion text, format model.constant.0 (in model replace ‘.’ by ‘_’)
-i.e. ‘res_groups.SALES.0’</p></li>
-<li><p>odoo versioned value, format model.value.majversion
-i.e. ‘res_groups.Sales.8’</p></li>
-</ul>
-<p>Predefines macros (in ctx):</p>
-<blockquote>
-<div><p>company_id     default company_id
-company_name   name of default company (if company_id not valid)
-country_code   ISO-3166 default country (see def_country_id)
-customer-supplier if field contains ‘customer’ or ‘client’ set customer=True if it contains ‘supplier’ or ‘vendor’ or ‘fornitore’ set supplier=True
-def_country_id default country id (from company or from user)
-def_email      default mail; format: <a class="reference external" href="mailto:{username}{majversion}&#37;&#52;&#48;example&#46;com">{username}{majversion}<span>&#64;</span>example<span>&#46;</span>com</a>
-full_model     load all field values, even if not in csv
-header_id      id of header when import header/details files
-lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
-name2          if present, is merged with name
-name_first     if present with name last, are merged to compose name
-name_last      if present with name first, are merged to compose name
-street2        if present and just numeric, is merged with street
-zeroadm_mail   default user mail from conf file or &lt;def_mail&gt; if -D switch
-zeroadm_login  default admin username from conf file
-oneadm_mail    default user2 mail from conf file or &lt;def_mail&gt; if -D switch
-oneadm_login   default admin2 username from conf file
-botadm_mail    default bot user mail from conf file or &lt;def_mail&gt; if -D switch
-botadm_login   default bot username from conf file
-_today         date.today()
-_current_year  date.today().year
-_last_year’    date.today().year - 1
-TNL_DICT       dictionary with field translation, format csv_name: field_name; i.e {‘partner_name’: ‘name’} or csv_position: field_name, i.e. {‘0’: ‘name’}
-TNL_VALUE      dictionary with value translation for field; format is field_name: {csv_value: field_value, …} i.e. {‘country’: {‘Inghilterra’: ‘Regno Unito’}} special value ‘$BOOLEAN’ return True or False
-DEFAULT        dictionary with default value, format field_name: value
-EXPR           evaluate value from expression, format csv_name: expression; expression can refer to other fields of csv record in format csv[field_name] or other fields of record in format row[field_name] i.e. {‘is_company’: ‘row[“ref”] != “”’} {‘is_company’: ‘csv[“CustomerRef”] != “”’}
-MANDATORY      dictionary with mandatory field names</p>
-</div></blockquote>
-<p>Import searches for existing data (this behavior differs from Odoo standard)
-Search is based on &lt;o_model&gt; dictionary;
-default field to search is ‘name’ or ‘id’, if passed.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="n">csv</span> <span class="n">can</span> <span class="n">contain</span> <span class="n">some</span> <span class="n">special</span> <span class="n">fields</span><span class="p">:</span>
-<span class="n">db_type</span><span class="p">:</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">DB</span> <span class="n">name</span> <span class="n">matches</span> <span class="n">db</span> <span class="nb">type</span><span class="p">;</span> <span class="n">values</span> <span class="n">are</span>
-    <span class="s1">&#39;D&#39;</span> <span class="k">for</span> <span class="n">demo</span><span class="p">,</span>
-    <span class="s1">&#39;T&#39;</span> <span class="k">for</span> <span class="n">test</span><span class="p">,</span>
-    <span class="s1">&#39;Z&#39;</span> <span class="k">for</span> <span class="n">zeroincombenze</span> <span class="n">production</span><span class="p">,</span>
-    <span class="s1">&#39;V&#39;</span> <span class="k">for</span> <span class="n">VG7</span> <span class="n">customers</span>
-    <span class="s1">&#39;C&#39;</span> <span class="n">other</span> <span class="n">customers</span>
-<span class="n">oe_versions</span><span class="p">:</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">matches</span> <span class="n">Odoo</span> <span class="n">version</span>
-    <span class="n">i</span><span class="o">.</span><span class="n">e</span>  <span class="o">+</span><span class="mf">11.0</span><span class="o">+</span><span class="mf">10.0</span> <span class="o">=&gt;</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">Odoo</span> <span class="mf">11.0</span> <span class="ow">or</span> <span class="mf">10.0</span>
-    <span class="n">i</span><span class="o">.</span><span class="n">e</span>  <span class="o">-</span><span class="mf">6.1</span><span class="o">-</span><span class="mf">7.0</span> <span class="o">=&gt;</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">Odoo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="mf">6.1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">7.0</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="odoo-install-repository-manage-repositories">
-<h2>odoo_install_repository: manage repositories<a class="headerlink" href="#odoo-install-repository-manage-repositories" title="Permalink to this heading"></a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">odoo_install_repository</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">b</span> <span class="n">branch</span><span class="p">][</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">CDjLmn</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">git</span><span class="o">-</span><span class="n">org</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="n">path</span><span class="p">][</span><span class="o">-</span><span class="n">qrU</span><span class="p">][</span><span class="o">-</span><span class="n">u</span> <span class="n">username</span><span class="p">][</span><span class="o">-</span><span class="n">Vvy1</span><span class="p">]</span> <span class="n">git_repo</span> <span class="n">odoo_vid</span> <span class="n">new_odoo_vid</span>
-<span class="n">Add</span> <span class="ow">or</span> <span class="n">duplicate</span> <span class="n">odoo</span> <span class="n">repository</span> <span class="n">into</span> <span class="n">local</span> <span class="n">filesystem</span>
- <span class="o">-</span><span class="n">h</span>              <span class="n">this</span> <span class="n">help</span>
- <span class="o">-</span><span class="n">b</span> <span class="n">branch</span>       <span class="n">default</span> <span class="n">odoo</span> <span class="n">branch</span>
- <span class="o">-</span><span class="n">c</span> <span class="n">file</span>         <span class="n">configuration</span> <span class="n">file</span> <span class="p">(</span><span class="k">def</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">conf</span><span class="p">)</span>
- <span class="o">-</span><span class="n">C</span>              <span class="n">do</span> <span class="ow">not</span> <span class="n">touch</span> <span class="n">configuration</span> <span class="n">file</span> <span class="p">(</span><span class="n">conflict</span> <span class="k">with</span> <span class="o">-</span><span class="n">D</span><span class="p">)</span>
- <span class="o">-</span><span class="n">D</span>              <span class="n">update</span> <span class="n">default</span> <span class="n">values</span> <span class="ow">in</span> <span class="o">/</span><span class="n">etc</span> <span class="n">configuration</span> <span class="n">file</span> <span class="n">before</span> <span class="n">creating</span> <span class="n">script</span> <span class="p">(</span><span class="n">conflict</span> <span class="k">with</span> <span class="o">-</span><span class="n">C</span><span class="p">)</span>
- <span class="o">-</span><span class="n">j</span>              <span class="n">install</span> <span class="n">only</span> <span class="n">repository</span> <span class="n">owned</span> <span class="n">by</span> <span class="n">git</span> <span class="n">organization</span>
- <span class="o">-</span><span class="n">L</span>              <span class="n">create</span> <span class="n">symbolic</span> <span class="n">link</span> <span class="n">rather</span> <span class="n">copy</span> <span class="n">files</span> <span class="p">(</span><span class="k">if</span> <span class="n">new_odoo_ver</span> <span class="n">supplied</span><span class="p">)</span>
- <span class="o">-</span><span class="n">m</span>              <span class="n">multi</span><span class="o">-</span><span class="n">version</span> <span class="n">odoo</span> <span class="n">environment</span>
- <span class="o">-</span><span class="n">n</span>              <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
- <span class="o">-</span><span class="n">O</span> <span class="n">git</span><span class="o">-</span><span class="n">org</span>      <span class="n">git</span> <span class="n">organization</span><span class="p">,</span> <span class="n">one</span> <span class="n">of</span> <span class="n">oca</span> <span class="n">oia</span><span class="p">[</span><span class="o">-</span><span class="n">git</span><span class="o">|-</span><span class="n">http</span><span class="p">]</span> <span class="n">zero</span><span class="p">[</span><span class="o">-</span><span class="n">git</span><span class="o">|-</span><span class="n">http</span><span class="p">]</span> <span class="p">(</span><span class="k">def</span> <span class="nf">zero</span><span class="p">)</span>
- <span class="o">-</span><span class="n">o</span> <span class="n">path</span>         <span class="n">odoo</span> <span class="n">directory</span>
- <span class="o">-</span><span class="n">q</span>              <span class="n">silent</span> <span class="n">mode</span>
- <span class="o">-</span><span class="n">r</span>              <span class="n">do</span> <span class="n">just</span> <span class="n">update</span> <span class="n">remote</span> <span class="n">info</span> <span class="p">(</span><span class="k">if</span> <span class="n">no</span> <span class="n">new_odoo_ver</span> <span class="n">supplied</span><span class="p">)</span>
- <span class="o">-</span><span class="n">U</span>              <span class="n">do</span> <span class="ow">not</span> <span class="n">install</span><span class="p">,</span> <span class="n">do</span> <span class="n">upgrade</span>
- <span class="o">-</span><span class="n">u</span> <span class="n">username</span>     <span class="n">execute</span> <span class="k">as</span> <span class="n">username</span> <span class="p">(</span><span class="n">def</span><span class="o">=</span><span class="n">odoo</span><span class="p">)</span>
- <span class="o">-</span><span class="n">V</span>              <span class="n">show</span> <span class="n">version</span>
- <span class="o">-</span><span class="n">v</span>              <span class="n">verbose</span> <span class="n">mode</span>
- <span class="o">-</span><span class="n">y</span>              <span class="n">assume</span> <span class="n">yes</span>
- <span class="o">-</span><span class="mi">1</span>              <span class="k">if</span> <span class="n">clone</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
-</pre></div>
-</div>
-</section>
-<section id="odoorc-general-purpose-bash-function">
-<h2>odoorc: general purpose bash function<a class="headerlink" href="#odoorc-general-purpose-bash-function" title="Permalink to this heading"></a></h2>
-<p>The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
-Some values may depends by environment:</p>
-<ul class="simple">
-<li><p>ODOO_DB_USER is the rule to return db username (def odoo%(MAJVER)s)</p></li>
-<li><p>ODOO_GIT_HOSTNAME is the git hostname (def github.com)</p></li>
-<li><p>ODOO_GIT_SHORT -&gt; regex of git organizzations with vid short name (def /(oca)/, see odoo-vid)</p></li>
-</ul>
-<p>Usage:</p>
-<blockquote>
-<div><p>. odoorc
-RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rptname&gt;|&lt;modname&gt;)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])</p>
-</div></blockquote>
-<p>where:</p>
-<blockquote>
-<div><p>PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)</p>
-</div></blockquote>
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-08-06</p>
-</section>
-</section>
+<p>Last Update / Ultimo aggiornamento: 2023-09-28</p>
 
 
             <div class="clearer"></div>
@@ -306,21 +55,6 @@ RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rpt
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Introduction</a><ul>
-<li><a class="reference internal" href="#clodoo-py-general-purpose-rpc">clodoo.py: general Purpose RPC</a><ul>
-<li><a class="reference internal" href="#import-file">Import_file</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#odoo-install-repository-manage-repositories">odoo_install_repository: manage repositories</a></li>
-<li><a class="reference internal" href="#odoorc-general-purpose-bash-function">odoorc: general purpose bash function</a></li>
-</ul>
-</li>
-</ul>
-
-  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="index.html"
@@ -357,7 +91,7 @@ RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rpt
           <a href="index.html" title="Indices and tables"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">clodoo 2.0.7 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

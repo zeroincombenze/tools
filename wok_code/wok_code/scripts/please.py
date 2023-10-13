@@ -503,6 +503,16 @@ class Please(object):
             return root
         return pth.join(root, pkgname)
 
+    def get_tools_dir(self, pkgtool=False):
+        if hasattr(self.opt_args, "debug") and self.opt_args.debug:
+            if pkgtool:
+                tools_path = self.get_home_pypi_pkg("tools")
+            else:
+                tools_path = self.get_home_pypi()
+        else:
+            tools_path = self.get_home_tools()
+        return tools_path
+
     def is_pypi_pkg(self, path=None):
         path = path or os.getcwd()
         pkgname = pth.basename(path)
@@ -632,6 +642,20 @@ class Please(object):
                 sts = 0
         return sts, branch
 
+    def get_pypi_version(self, path=None):
+        path = path or os.getcwd()
+        setup = pth.join(path, "setup.py")
+        if not pth.isfile(setup):
+            setup = pth.join(pth.dirname(path), "setup.py")
+        if not pth.isfile(setup):
+            print("No file %s found!" % setup)
+            return "2.0.0"
+        sts, stdout, stderr = self.call_chained_python_cmd(setup, ["--version"])
+        if sts:
+            print(stderr)
+            return "2.0.0"
+        return stdout.split("\n")[0].strip()
+
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
             self.get_home_pypi()
@@ -725,6 +749,14 @@ class Please(object):
         if self.opt_args.verbose:
             print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
         return call(cmd, shell=True) if not self.opt_args.dry_run else 0
+
+    def call_chained_python_cmd(self, pyfile, args):
+        cmd = [sys.executable]
+        cmd.append(pth.join(pth.dirname(__file__), pyfile))
+        for arg in args:
+            cmd.append(arg)
+        cmd = " ".join(cmd)
+        return z0lib.run_traced(cmd, verbose=False, dry_run=self.opt_args.dry_run)
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()

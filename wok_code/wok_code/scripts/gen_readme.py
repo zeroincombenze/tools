@@ -2294,10 +2294,10 @@ def generate_readme(ctx):
             ctx[section] = ctx["manifest"].get(
                 section, ctx["license_mgnt"].get_website(
                     org_id=ctx["git_orgid"], repo=ctx["repos_name"]))
-        if not ctx["suppress_warning"] and ctx["manifest"][section] != ctx[section]:
+        if not ctx["suppress_warning"] and ctx["manifest"].get(section) != ctx[section]:
             print_red_message(
                 "*** Warning: website %s in the manifest replaced by %s!" % (
-                    ctx["manifest"][section], ctx[section])
+                    ctx["manifest"].get(section, ""), ctx[section])
             )
         ctx["manifest"][section] = ctx[section]
         section = "maintainer"

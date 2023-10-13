@@ -32,6 +32,6 @@ if __name__ == "__main__":
     exit(
         z0test.main(
             z0test.parseoptest(sys.argv[1:], version=version()),
-            UT=['__doctest_${rundir}/egg-info/os0_${os_name}.rst'],
+            unittest_list=['__doctest_${rundir}/egg-info/os0_${os_name}.rst'],
         )
     )

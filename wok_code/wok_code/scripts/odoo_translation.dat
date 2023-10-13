@@ -6123,6 +6123,80 @@ stock_picking_package_preparation_line	State	Stato
 	VAT rate	Aliquota IVA
 	name'	nome'
 	<code style="white-space: pre-wrap">partner_name = record.name + '_code'env['res.partner'].create({'name': partner_name})</code>	<code style="white-space: pre-wrap">partner_name = record.name + '_code'env['res.partner'].create({'nome': partner_name})</code>
+	format is	parte da connettereformato
+	username	username
+	url	url
+	port	port
+	3th Party Sender URL to connect;format is [username@]url[:port]	URL trasmittente 3° parte da connettereformato [username@]url[:port]
+	Account Entry	Registrazione contabile
+	All Level	Tutti i livelli
+	All Records	Tutte le registrazioni
+	Always Update	Aggiorna sempre
+	Analytic Account	Conto analitico
+	Analytic Line	Riga analitica
+	Analytic Tags	Etichette analitiche
+	Backend	Dorsale
+	Backend Name	Nome dorsale
+	But current value is empty	Solo se valore corrente è vuoto
+	But new value not empty	Solo se nuovo valore non è vuoto
+	By file CSV	Tramite file CSV
+	By FTP	Tramite FTP
+	By JSON	Tramite JSON
+	By JSON (rpc)	Tramite JSON (rpc)
+	By mail PEC	Tramite mail PEC
+	By XML	Tramite XML
+	By XML (rpc)	Tramite XML (rpc)
+	Check Connection	Verifica connessione
+	Checked	Verificato/a
+	th Party Sender or DB name	à parte
+	Client key assigned by 3th Party Sender or DB name	nome DB o chiave assegnata da 3à parte
+	Counterpart endpoint	Terminale controparte
+	Counterpart field name	Nome campo controparte
+	Counterpart identity	Identità controparte
+	Counterpart model name	Nome modello controparte
+	Error message	Messaggio di errore
+	Exchange directory path	Percorso directory di scambio
+	External field value	Valore campo esterno
+	External ID name	Nome identificativo esterno
+	External Odoo version	Versione Odoo esterna
+	Field for foreign search with unique name	Nome univoco per ricerca esterna
+	Field mapping	Mappatura campo
+	Field mapping for Synchonization	Mappatura campo per sincronizzazione
+	Generic counterpart	Controparte generica
+	Give a unique name for Backend	Assegna un nome univoco alla dorsale
+	How data will be sent and received	Come i dati saranno inviati e ricevuti
+	In Production	In produzione
+	Nesting Level	Livello nidificato
+	New Records	Nuove registrazioni
+	No Deep	Non approfondito
+	minimal data	
+	No Deep, minimal data	dati minimi senza approfondimento
+	No Error	Nessun errore
+	Odoo field value	Valore campo Odoo
+	Original Status	Stato originale
+	Pricelist	Listino
+	Procurement Rule	Regola di approvvigionamento
+	Product Category	Categoria prodotto
+	Product Unit of Measure	Unità di misura del prodotto
+	Product Variant	Variante prodotto
+	Protected field	Campo protetto
+	Pull	Levare
+	import	importare
+	record from counterpart	registrazione da controparte
+	Pull (import) record from counterpart	levare (importare) registrazione da controparte
+	Pull Records	Levare registrazioni
+	Purchase Order	Ordine di acquisto
+	Purchase Order Line	Riga ordine di acquisto
+	Pythonic key search sequence	Sequenza ricerca chiave
+	Record Selection	Selezione registrazioni
+	Refresh Records	Rinnovare registrazini
+	Required field	Campo obbligatorio
+	Sequence to use in search record when not yet synchronizedi.e.	Sequenza da usare in ricerca record quando non ancora sincronizzatoesempio
+	name"	name"
+	will search for record with name and company keys	cerca un record per nome e azienda
+	if not foundsearch for record just with name	se non trovato cerca solo per nome
+	Sequence to use in search record when not yet synchronizedi.e. (["name","company_id"],["name"])will search for record with name and company keys; if not foundsearch for record just with name	sequenza da usare in ricerca record quando non ancora sincronizzatoesempio (["name","company_id"],["name"])cerca un record per nome e azienda; se non trovato cerca solo per nome
+	Synchronize	Sincronizzare
 account	Litigation	Aperto
 account	Litigation	aperto
 account_fiscal_year_closing	Balance	Saldo
@@ -6171,6 +6245,9 @@ sale_revert_done	Order(s) are not in state "done" so they cannot be reset from "
 	Code already exists	Il codice esiste già
 	Code must be unique per fiscal year closing	Il codice deve essere univoco per chiusura anno fiscale
 	Confirm	Confermare
+	Counterpart Date	Data controparte
+	Counterpart Name	Nome controparte
+	Counterpart Reference	Riferimento controparte
 	Create Backorder	Creare ordine a saldo
 	Date options	Opzioni date
 	Default paper format	Formato di pagina predefinito
@@ -6182,11 +6259,41 @@ sale_revert_done	Order(s) are not in state "done" so they cannot be reset from "
 	Group by.	Raggruppa per
 	Impossible to set draft document when invoiced	Impossibile riportare in bozza un documento con fattura
 	Internal note	Nota interna
+	Issue	Segnalazione
+	Lot	Lotto/i
+	Model to complete asynchronously	Modello da completare in modo asincrono
 	No record found	Nessun record trovato
+	Odoo model name	Nome modello Odoo
+	Online Task Submission	Sollecitare lavoro online
+	Online Ticket Submission	Sollecitare biglietto online
+	Only Unknown Records	Solo registrazioni sconosciute
 	Please define an accounting sale journal for this company	Definire un registro sezionale vendita per questa azienda
+	Prefix for field names	Prefisso nomi campo
+	Products without variants	Prodotti senza varianti
+	Protect field against update	Protezione anti-modifiche
+	Pull Records from counterpart	Estrarre registrazioni da controparte
+	Select model to import	Selezionare modello da importare
+	Selet which records you want to import	Selezionare quali registrazioni si vuole importare
+	Send/Receive method	Metodo invio/ricezione
 	Street	Indirizzo
 	Sub-accounts selection	Selezione sottoconti
+	Synchonization Backend	Dorsale di sincronizzazione
+	Synchonization Channel	Dorsale di sincronizzazione
+	Synchonization Log	Registro sincronizzazioni
+	Synchonization Model	Modello di sincronizzazione
 	The sequence of the line must be unique per template	La sequenza di riga deve essere unica nel modello
 	There is no more contacts to merge for this request	Non ci sono più contatti da unire per questa richiesta
 	There should be only one fiscal year closing for that year and company	Ammesso un solo anno fiscale per anno e azienda
 	This name is already used by another template	Nome usato in altro modello
+	Trace Level	Livello segnalazioni
+	Translation Domains	Domini di traduzione
+	On Consignment	Conto Deposito
+	For Evaluation	Conto Visione
+	On Consignment Return	Rientro C/Deposito
+	Evaluation Return	Rientro C/Visione
+	On Consignment in	Consegna C/Deposito in
+	step	passo
+	ship	
+	On Consignment in 1 step (ship)	consegna C/Deposito in 1 passo
+	For Evaluation in	Consegna C/Visione in
+	For Evaluation in 1 step (ship)	consegna C/Visione in 1 passo

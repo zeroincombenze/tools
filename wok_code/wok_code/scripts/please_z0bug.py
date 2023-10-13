@@ -3,6 +3,8 @@
 import os
 import os.path as pth
 
+import re
+
 __version__ = "2.0.11"
 
 
@@ -80,6 +82,11 @@ class PleaseZ0bug(object):
             "--keep",
             action="store_true",
             help="Keep database test",
+        )
+        parser.add_argument(
+            "-K", "--no-ext-test",
+            action="store_true",
+            help="Do not run external test (tests/concurrent_test/test_*.py)",
         )
         parser.add_argument(
             "-L",
@@ -250,6 +257,22 @@ class PleaseZ0bug(object):
                         "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
                 please.run_traced(
                     "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
+                for fn in os.listdir("tests/"):
+                    if fn.startswith("test_") and fn.endswith(".py"):
+                        with open(pth.join("tests", fn), "r") as fd:
+                            content = fd.read()
+                        do_rewrite = False
+                        new_content = ""
+                        for ln in content.split("\n"):
+                            new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
+                                            r"\1 0\2",
+                                            ln)
+                            new_content += new_ln
+                            new_content += "\n"
+                            do_rewrite |= (new_ln != ln)
+                        if do_rewrite:
+                            with open(pth.join("tests", fn), "w") as fd:
+                                fd.write(new_content)
             args = [
                 "-T",
                 "-m", pth.basename(pth.abspath(os.getcwd())),
@@ -267,6 +290,8 @@ class PleaseZ0bug(object):
                 args.append(please.opt_args.database)
             if please.opt_args.force:
                 args.append("-f")
+            if hasattr(please, "no_ext_test") and please.no_ext_test:
+                args.append("-K")
             if please.opt_args.keep:
                 args.append("-k")
             if please.opt_args.verbose:

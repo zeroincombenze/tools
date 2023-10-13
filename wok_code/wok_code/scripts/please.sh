@@ -715,7 +715,6 @@ do_docs() {
       run_traced "rsync -avz --delete $HOME_DEVEL/pypi/$x/$x/docs/ $docs_dir/$b/"
     fi
   done
-  # [[ $(basename $PWD) == "tools" && -f egg-info/history.rst ]] && run_traced "rm -f egg-info/history.rst"
   [[ $(basename $PWD) == "tools" ]] && run_traced "gen_readme.py $opts -W" || run_traced "gen_readme.py $opts"
   [[ $(grep "\.\. include:: MAINPAGE.rst" docs/index.rst) ]] && run_traced "gen_readme.py $opts -t mainpage -o $docs_dir/MAINPAGE.rst"
   run_traced "pushd $docs_dir >/dev/null"
