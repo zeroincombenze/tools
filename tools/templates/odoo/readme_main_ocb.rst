@@ -5,7 +5,7 @@ Overview / Panoramica
 
 |en| {{description}}
 
-|it| {{descrizione}}
+|it| {{description_i18n}}
 .. $if defined features
 
 Features / Caratteristiche

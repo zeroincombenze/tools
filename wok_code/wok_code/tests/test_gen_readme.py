@@ -83,8 +83,6 @@ Unknown Odoo version
 """
 
 README_7 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
@@ -111,8 +109,6 @@ Unknown Odoo version
 
 """
 README_10 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
@@ -139,8 +135,6 @@ odoo 10.0
 
 """
 README_12 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit

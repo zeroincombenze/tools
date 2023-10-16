@@ -104,14 +104,22 @@ def convert_text(ctx, src_string):
         if not hdr_read:
             csv_obj.fieldnames = items_2_unicode(row['undef_name'])
             for p in csv_obj.fieldnames:
-                col_size[p] = min(len(p), 16)
+                col_size[p] = min(len(p), 8)
             hdr_read = True
             continue
         if row[csv_obj.fieldnames[0]][0:4] == '.. $':
             pass
         else:
             for p in csv_obj.fieldnames:
-                col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
+                col_size[p] = max(col_size[p], min(len(row[p] or ""), max_col_width))
+    tot_size = 1
+    for p in csv_obj.fieldnames:
+        tot_size += col_size[p]
+        tot_size += 1
+    if tot_size < 88:
+        ratio = 88 / tot_size
+        for p in csv_obj.fieldnames:
+            col_size[p] = int(col_size[p] * ratio)
     csv_fd.close()
     if sys.version_info[0] == 2:
         csv_fd = BytesIO(_b(src_string))
@@ -181,3 +189,8 @@ def main(cli_args=None):
     parser.add_argument('dst_file', nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
     return convert_file(ctx)
+
+
+if __name__ == "__main__":
+    exit(main())
+

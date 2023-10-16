@@ -141,9 +141,9 @@ class RegressionTest:
         # 1 "> pre-commit run"
         # 2 "> <SCRIPT>/please.sh lint -vn"
         # 3 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -T -m test_module -b 12.0 -v -n"
-        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -RW"
-        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py"
-        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -H"
+        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n -RW"
+        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n"
+        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n -H"
         # 7 "Test log file not found!"
         # 8 "> git add ./"
         # 9 "> <SCRIPT>/please.sh translate -vn"
@@ -185,15 +185,15 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[4],
+            "/gen_readme.py -b 12.0 -f -n -RW" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[5],
+            "/gen_readme.py -b 12.0 -f -n" in stdout.split("\n")[5],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[6],
+            "/gen_readme.py -b 12.0 -f -n -H" in stdout.split("\n")[6],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
@@ -367,29 +367,25 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[1],
+            "/gen_readme.py -b 12.0 -n" in stdout.split("\n")[1],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[2],
+            "/gen_readme.py -b 12.0 -n -H" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[3],
-        )
-        self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[5],
+            "git add ./" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
-             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[5]),
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
-             " -d test_test_module_12 -v -n" in stdout.split("\n")[7]),
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
         )
 
         os.chdir(self.odoo_moduledir)
@@ -409,7 +405,11 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[1],
+            "/gen_readme.py -b 12.0 -n" in stdout.split("\n")[1],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py -b 12.0 -n -H" in stdout.split("\n")[2],
         )
         return sts
 

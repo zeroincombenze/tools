@@ -189,58 +189,16 @@ class PleaseCwd(object):
         please = self.please
         branch = self.branch
         docdir = self.docdir
-        odoo_major_version = int(branch.split(".")[0])
-
-        if not please.opt_args.dry_run and not is_repo:
-            docdir2 = pth.join(docdir, "static")
-            if not pth.isdir(docdir2):
-                os.mkdir(docdir2)
-            if odoo_major_version <= 7:
-                docdir2 = pth.join(docdir, "static", "src")
-                if not pth.isdir(docdir2):
-                    os.mkdir(docdir2)
-                docdir2 = pth.join(docdir, "static", "src", "img")
-                if not pth.isdir(docdir2):
-                    os.mkdir(docdir2)
-            else:
-                docdir2 = pth.join(docdir, "static", "description")
-                if not pth.isdir(docdir2):
-                    os.mkdir(docdir2)
-
-        chnglog = pth.join(docdir, "CHANGELOG.rst")
-        if not please.opt_args.dry_run and not pth.isfile(chnglog):
-            with open(chnglog, "w") as fd:
-                # Conventional date on Odoo Days (October, 1st Thursday)
-                fd.write(
-                    "%s.0.1.0 (%s)\n" % (
-                        branch,
-                        {
-                            6: "2012-10-04",
-                            7: "2013-10-03",
-                            8: "2014-10-02",
-                            9: "2015-10-01",
-                            10: "2016-10-06",
-                            11: "2017-10-05",
-                            12: "2018-10-04",
-                            13: "2019-10-03",
-                            14: "2020-10-01",
-                            15: "2021-10-07",
-                            16: "2022-10-06",
-                            17: "2023-10-05",
-                        }[int(branch.split(".")[0])]
-                    )
-                )
-                fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
-                fd.write("\n")
-                fd.write("* Initial implementation\n")
-
         if (
-                not please.opt_args.oca
+                please.opt_args.force
+                and not please.opt_args.oca
                 and not is_repo
                 and (not pth.isfile(pth.join(docdir, "CONTRIBUTORS.rst"))
                      or not pth.isfile(pth.join(docdir, "AUTHORS.rst")))
         ):
-            return please.chain_python_cmd("gen_readme.py", ["-RW"])
+            args = self.get_gen_readme_base_args(branch=branch)
+            args.append("-RW")
+            return please.chain_python_cmd("gen_readme.py", args)
         return 0
 
     def assure_doc_dirs_pypi(self):
@@ -282,7 +240,6 @@ class PleaseCwd(object):
                 if not please.opt_args.dry_run:
                     shutil.copy(srclogo, logo)
 
-        # branch = self.branch
         docdir = docdir or ("readme" if pkgtype == "odoo" else "egg-info")
         if (
                 not docdir.startswith("/")
@@ -304,6 +261,20 @@ class PleaseCwd(object):
         elif pkgtype == "pypi":
             return self.assure_doc_dirs_pypi()
         return 33
+
+    def get_gen_readme_base_args(self, branch=None):
+        branch = branch or self.branch
+        args = []
+        if self.please.opt_args.debug:
+            args.append("-B")
+        if branch:
+            args.append("-b")
+            args.append(branch)
+        if self.please.opt_args.force:
+            args.append("-f")
+        if self.please.opt_args.dry_run:
+            args.append("-n")
+        return args
 
     def extract_fn_from_index(self, index_fn):
         if (
@@ -386,14 +357,7 @@ class PleaseCwd(object):
         with open(fn, "w") as fd:
             fd.write(doctext)
         if doc.startswith("rtd_"):
-            args = []
-            if self.please.opt_args.debug:
-                args.append("-B")
-            if branch:
-                args.append("-b")
-                args.append(branch)
-            if self.please.opt_args.dry_run:
-                args.append("-n")
+            args = self.get_gen_readme_base_args(branch=branch)
             args.append("-t")
             args.append(fn)
             args.append("-o")
@@ -720,11 +684,15 @@ class PleaseCwd(object):
                         % (branch, repo_name),
                         rtime=True)
                 else:
-                    sts = please.chain_python_cmd("gen_readme.py", [])
+                    args = self.get_gen_readme_base_args(branch=branch)
+                    sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
-                        sts = please.chain_python_cmd("gen_readme.py", ["-H"])
+                        args.append("-H")
+                        sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0 and odoo_major_version <= 7:
-                        sts = please.chain_python_cmd("gen_readme.py", ["-R"])
+                        args = self.get_gen_readme_base_args(branch=branch)
+                        args.append("-R")
+                        sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
                     please.merge_test_result()
                     self.do_clean()
@@ -740,7 +708,8 @@ class PleaseCwd(object):
                 if sts:
                     return sts
                 if not please.opt_args.oca:
-                    sts = please.chain_python_cmd("gen_readme.py", [])
+                    args = self.get_gen_readme_base_args(branch=branch)
+                    sts = please.chain_python_cmd("gen_readme.py", args)
             return sts
         elif please.is_pypi_pkg():
             branch = please.get_pypi_version()
@@ -1035,6 +1004,7 @@ class PleaseCwd(object):
                 return 2
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
+            sts = 0
             if pkgname != "tools":
                 fn = pth.join(pth.dirname(srcdir), "setup.py")
                 if pth.isfile(fn):

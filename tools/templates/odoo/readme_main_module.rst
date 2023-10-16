@@ -7,7 +7,7 @@ Overview / Panoramica
 
 |
 
-|it| {{descrizione}}
+|it| {{description_i18n}}
 .. $if defined features
 
 |

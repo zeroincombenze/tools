@@ -700,8 +700,8 @@ class Please(object):
             if ln.startswith("less"):
                 log_fqn = pth.join("tests", "logs", ln.split("/")[-1])
                 break
-        if not log_fqn:
-            print("Test log file not found!")
+        if not log_fqn or not pth.isfile(log_fqn):
+            print("Test log file %s not found!" % log_fqn)
             return 3
         with open(log_fqn, "r") as fd:
             contents = fd.read()
