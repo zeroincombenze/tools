@@ -172,6 +172,11 @@ DEFINED_TAG = [
     "acknowledges",
     "maintainer",
 ]
+DRAW_SECTIONS = [
+    "description",
+    "configuration",
+    "usage",
+]
 MAGIC_SECTIONS = [
     "histories",
     "history-summary",
@@ -768,7 +773,7 @@ def totroff(text, state=None):
     return state, text
 
 
-def tohtml(ctx, text, state=None):
+def tohtml(ctx, text, state=None, draw_button=False):
     def get_tag_image(state):
         html_tag = '<img src="%s"' % state["html_state"]["url"]
         for tag in ("alt", "target"):
@@ -808,6 +813,29 @@ def tohtml(ctx, text, state=None):
             value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
             text = text[0:start] + value + text[start + len(tok):]
             start = text.find(tok)
+
+    if draw_button:
+        x = re.search(r"\[\w[\w ]+\w\]", text)
+        while x:
+            button_text = text[x.start() + 1:x.end() - 1]
+            if len(button_text) <= 12:
+                button_text = " " + button_text + " "
+            button_text = button_text.replace(" ", "&#160;")
+            text = ("%s<span style=\"color:white;background-color:#7C7BAD\">%s</span>%s"
+                    % (text[0:x.start()],
+                       button_text,
+                       text[x.end():]))
+            x = re.search(r"\[\w[\w ]+\w\]", text)
+        x = re.search(r"\[`[\w ]+`\]", text)
+        while x:
+            tabbed_text = " " + text[x.start() + 2:x.end() - 2] + " "
+            tabbed_text = tabbed_text.replace(" ", "&#160;")
+            text = ("%s<span style=\"border-style:solid;border-width:1px 1px 0px 1px\">"
+                    "%s</span>%s"
+                    % (text[0:x.start()],
+                       tabbed_text,
+                       text[x.end():]))
+            x = re.search(r"\[`[\w ]+`\]", text)
 
     # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
     start = text.find("`")
@@ -865,6 +893,7 @@ def tohtml(ctx, text, state=None):
                                   text[x.start() + 1: x.end() - 1],
                                   text[x.end() + 1:])
         x = re.search(r"\*\w+\*", text)
+
     stop = 0
     start = text.find("☰", stop)
     while start >= 0:
@@ -891,8 +920,9 @@ def tohtml(ctx, text, state=None):
     open_para = 0
     lineno = 0
     while lineno < len(lines):
-        if lines[lineno][0:2] != "..":
-            if state["html_state"].get("tag") == "image":
+        # if not re.match(ctx["pre_pat"], lines[lineno]):
+        if not lines[lineno].startswith(".. "):
+            if state["html_state"].get("tag") in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
                 if x:
                     state["html_state"][lines[lineno][x.start():x.end()].strip(
@@ -999,18 +1029,27 @@ def tohtml(ctx, text, state=None):
             elif open_para:
                 lines.insert(lineno, "</p>")
                 open_para -= 1
-            if lines[lineno].startswith(".. image::"):
+            # if lines[lineno].startswith(".. image::"):
+            if is_rst_tag(ctx, lines[lineno], "image"):
                 state["html_state"]["tag"] = "image"
-                state["html_state"]["url"] = lines[lineno][10:].strip()
+                # state["html_state"]["url"] = lines[lineno][10:].strip()
+                state["html_state"]["url"] = get_rst_tokens(
+                    ctx, lines[lineno], "image")[0]
                 del lines[lineno]
                 continue
-            elif lines[lineno].startswith(".. figure::"):
-                state["html_state"]["tag"] = "image"
-                state["html_state"]["url"] = lines[lineno][11:].strip()
+            # elif lines[lineno].startswith(".. figure::"):
+            elif is_rst_tag(ctx, lines[lineno], "figure"):
+                state["html_state"]["tag"] = "figure"
+                # state["html_state"]["url"] = lines[lineno][11:].strip()
+                state["html_state"]["url"] = get_rst_tokens(
+                    ctx, lines[lineno], "figure")[0]
                 del lines[lineno]
                 continue
         lineno += 1
     if state["html_state"].get("tag") == "image":
+        lines.append(get_tag_image(state))
+        del state["html_state"]
+    elif state["html_state"].get("tag") == "figure":
         lines.append(get_tag_image(state))
         del state["html_state"]
     elif in_table:
@@ -1168,6 +1207,7 @@ def expand_macro_in_line(ctx, line, state=None):
     # All internal macros are in rst format
     in_fmt = "rst"
     srctype = state.get("srctype", "")
+    section = ""
     x = re.search(r"\{\{[^}]+\}\}", line)
     if x:
         tokens = line[x.start() + 2: x.end() - 2].split(":")
@@ -1176,6 +1216,10 @@ def expand_macro_in_line(ctx, line, state=None):
                 ctx, tokens[0], state=state)
             return expand_macro_in_line(
                 ctx, line[: x.start()] + token + line[x.end():], state=state)
+        for sect in DEFINED_SECTIONS + DEFINED_TAG:
+            if tokens[0].startswith(sect):
+                section = sect
+                break
         value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
             print_red_message("*** Invalid macro %s!" % tokens[0])
@@ -1189,7 +1233,7 @@ def expand_macro_in_line(ctx, line, state=None):
 
         if state["in_fmt"] in ("html", "troff"):
             state, value = parse_source(
-                ctx, value, state=state, in_fmt=in_fmt, out_fmt=out_fmt
+                ctx, value, state=state, in_fmt=in_fmt, out_fmt=out_fmt, section=section
             )
             if "srctype" in state:
                 del state["srctype"]
@@ -1199,7 +1243,7 @@ def expand_macro_in_line(ctx, line, state=None):
         line = line[: x.start()] + value + line[x.end():]
         if len(value.split("\n")) > 1:
             state, value = parse_source(
-                ctx, line, state=state, in_fmt=in_fmt, out_fmt=out_fmt
+                ctx, line, state=state, in_fmt=in_fmt, out_fmt=out_fmt, section=section
             )
             if "srctype" in state:
                 del state["srctype"]
@@ -1269,8 +1313,22 @@ def default_token(ctx, token):
     return ""
 
 
+def is_rst_tag(ctx, line, tag):
+    return re.match(ctx["pre_pat"][: -2] + tag + "::", line) if line else None
+
+
+def get_rst_tokens(ctx, line, tag, maxsplit=None):
+    return [
+        x
+        for x in qsplit(re.match(ctx["pre_pat"][: -2] + tag + "::(.*)?$",
+                                 line).groups()[0],
+                        "", maxsplit, enquote=True, strip=True)
+        if x
+    ]
+
+
 def is_preproc_tag(ctx, line, tag):
-    return re.match(ctx["pre_pat"] + tag + r"(\W.*)?$", line)
+    return re.match(ctx["pre_pat"] + tag + r"(\W.*)?$", line) if line else None
 
 
 def get_preproc_tokens(ctx, line, tag, maxsplit=None):
@@ -1581,7 +1639,12 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     if in_fmt == "rst" and out_fmt == "html":
-        state, target = tohtml(ctx, target, state=state)
+        state, target = tohtml(
+            ctx, target,
+            state=state,
+            draw_button=any([x
+                             for x in DRAW_SECTIONS
+                             if (section and section.startswith(x))]))
     elif in_fmt == "rst" and out_fmt == "troff":
         state, target = totroff(target, state=state)
     else:
@@ -2260,7 +2323,8 @@ def read_purge_readme(ctx, source):
     while ix < len(lines):
         line = lines[ix]
         next_line = lines[ix + 1] if ix < (len(lines) - 1) else ""
-        if line.startswith(".. contents::"):
+        # if line.startswith(".. contents::"):
+        if is_rst_tag(ctx, line, "contents"):
             out_sections = {"description": "", "authors": "", "contributors": ""}
             ix += 1
             continue
