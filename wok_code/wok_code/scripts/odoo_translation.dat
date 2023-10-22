@@ -6197,6 +6197,72 @@ stock_picking_package_preparation_line	State	Stato
 	if not foundsearch for record just with name	se non trovato cerca solo per nome
 	Sequence to use in search record when not yet synchronizedi.e. (["name","company_id"],["name"])will search for record with name and company keys; if not foundsearch for record just with name	sequenza da usare in ricerca record quando non ancora sincronizzatoesempio (["name","company_id"],["name"])cerca un record per nome e azienda; se non trovato cerca solo per nome
 	Synchronize	Sincronizzare
+	Counterpart Date	Data controparte
+	Counterpart Name	Nome controparte
+	Counterpart Reference	Riferimento controparte
+	Issue	Segnalazione
+	Lot	Lotto/i
+	Model to complete asynchronously	Modello da completare in modo asincrono
+	Odoo model name	Nome modello Odoo
+	Online Task Submission	Sollecitare lavoro online
+	Online Ticket Submission	Sollecitare biglietto online
+	Only Unknown Records	Solo registrazioni sconosciute
+	Prefix for field names	Prefisso nomi campo
+	Products without variants	Prodotti senza varianti
+	Protect field against update	Protezione anti-modifiche
+	Pull Records from counterpart	Estrarre registrazioni da controparte
+	Select model to import	Selezionare modello da importare
+	Selet which records you want to import	Selezionare quali registrazioni si vuole importare
+	Send/Receive method	Metodo invio/ricezione
+	Synchonization Backend	Dorsale di sincronizzazione
+	Synchonization Channel	Dorsale di sincronizzazione
+	Synchonization Log	Registro sincronizzazioni
+	Synchonization Model	Modello di sincronizzazione
+	Trace Level	Livello segnalazioni
+	Translation Domains	Domini di traduzione
+	On Consignment	Conto Deposito
+	For Evaluation	Conto Visione
+	On Consignment Return	Rientro C/Deposito
+	Evaluation Return	Rientro C/Visione
+	On Consignment in	Consegna C/Deposito in
+	step	passo
+	ship	
+	On Consignment in 1 step (ship)	consegna C/Deposito in 1 passo
+	For Evaluation in	Consegna C/Visione in
+	For Evaluation in 1 step (ship)	consegna C/Visione in 1 passo
+	 (Portal)	 (Portale)
+	Accept	Accettare
+	Allowed Move	Movimento ammesso
+	Allowed Picking	Prelievo ammesso
+	Allowed Product	Prodotto ammesso
+	Choose a delivery address	Scegliere indirizzo di consegna
+	Comment anything relevant to the return	Inserire le notazioni importanti ai fini del rientro
+	like serial numbers	esempio numero di serie o motivo del rientro
+	a description of the issue	
+	Comment anything relevant to the return, like serial numbers, a description of the issue, etc	inserire le notazioni importanti ai fini del rientro, esempio numero di serie o motivo del rientro
+	Commercial entity	Entità commerciale
+	Create RMA	Creare RMA
+	Create RMAs	Creare RMA
+	Custom Description	Descrizione specifica
+	Delivery order	Ordine di consegna
+	For Evaluation Order	Ordine di conto visione
+	Full page RMA creation	Pagina completa per creazione RMA
+	has been created	è stato creato
+	have been created	sono stati creati
+	Lotto/Serie	Lotto/Seriale
+	On Consignment Order	Ordine di conto deposito
+	Origin Delivery	Consegna originale
+	Origin move	Movimento originale
+	Request RMAs	Richieste RMA
+	Requested operation	Operazione richiesta
+	RMA	RMA (ORDINE DI RESO)
+	RMA location	Ubicazione RMA
+	RMA request for order	Richiesta reso
+	Sale Order Line Rma Wizard	Procedura reso riga ordine di vendita
+	Sale Order Rma Wizard	Proceura reso ordine di vendita
+	Select the product quantity and the requested operation	Selezionare quantità prodotto e operazione richiesta
+	You can only return as much product units as you received for this order	Si può rendere al massimo le quantità gestite per questo ordine
+	You may only create RMAs from a confirmed or done sale order	Si può creare ordini di reso soltanto per ordini confermati
 account	Litigation	Aperto
 account	Litigation	aperto
 account_fiscal_year_closing	Balance	Saldo
@@ -6245,9 +6311,6 @@ sale_revert_done	Order(s) are not in state "done" so they cannot be reset from "
 	Code already exists	Il codice esiste già
 	Code must be unique per fiscal year closing	Il codice deve essere univoco per chiusura anno fiscale
 	Confirm	Confermare
-	Counterpart Date	Data controparte
-	Counterpart Name	Nome controparte
-	Counterpart Reference	Riferimento controparte
 	Create Backorder	Creare ordine a saldo
 	Date options	Opzioni date
 	Default paper format	Formato di pagina predefinito
@@ -6259,41 +6322,11 @@ sale_revert_done	Order(s) are not in state "done" so they cannot be reset from "
 	Group by.	Raggruppa per
 	Impossible to set draft document when invoiced	Impossibile riportare in bozza un documento con fattura
 	Internal note	Nota interna
-	Issue	Segnalazione
-	Lot	Lotto/i
-	Model to complete asynchronously	Modello da completare in modo asincrono
 	No record found	Nessun record trovato
-	Odoo model name	Nome modello Odoo
-	Online Task Submission	Sollecitare lavoro online
-	Online Ticket Submission	Sollecitare biglietto online
-	Only Unknown Records	Solo registrazioni sconosciute
 	Please define an accounting sale journal for this company	Definire un registro sezionale vendita per questa azienda
-	Prefix for field names	Prefisso nomi campo
-	Products without variants	Prodotti senza varianti
-	Protect field against update	Protezione anti-modifiche
-	Pull Records from counterpart	Estrarre registrazioni da controparte
-	Select model to import	Selezionare modello da importare
-	Selet which records you want to import	Selezionare quali registrazioni si vuole importare
-	Send/Receive method	Metodo invio/ricezione
 	Street	Indirizzo
 	Sub-accounts selection	Selezione sottoconti
-	Synchonization Backend	Dorsale di sincronizzazione
-	Synchonization Channel	Dorsale di sincronizzazione
-	Synchonization Log	Registro sincronizzazioni
-	Synchonization Model	Modello di sincronizzazione
 	The sequence of the line must be unique per template	La sequenza di riga deve essere unica nel modello
 	There is no more contacts to merge for this request	Non ci sono più contatti da unire per questa richiesta
 	There should be only one fiscal year closing for that year and company	Ammesso un solo anno fiscale per anno e azienda
 	This name is already used by another template	Nome usato in altro modello
-	Trace Level	Livello segnalazioni
-	Translation Domains	Domini di traduzione
-	On Consignment	Conto Deposito
-	For Evaluation	Conto Visione
-	On Consignment Return	Rientro C/Deposito
-	Evaluation Return	Rientro C/Visione
-	On Consignment in	Consegna C/Deposito in
-	step	passo
-	ship	
-	On Consignment in 1 step (ship)	consegna C/Deposito in 1 passo
-	For Evaluation in	Consegna C/Visione in
-	For Evaluation in 1 step (ship)	consegna C/Visione in 1 passo

@@ -18,6 +18,7 @@ changelog        Changelog history (formerly history)
 contact_us
 contributors     Contributors list
 configuration    How to configure
+configuration_i18n
 copyright_notes
 description      English description of the repository/module (mandatory)
 description_i18n Descrizione modulo/progetto in italiano (obbligatoria)
@@ -183,6 +184,7 @@ ALTERNATE_NAMES = {
     "changelog": "history",
     "__manifest__": "__init__",
     "description_i18n": "descrizione",
+    "configuration": "configure",
     "summary_i18n": "sommario"
 }
 ZERO_PYPI_PKGS = "wok_code"
@@ -313,7 +315,7 @@ def __init__(ctx):
         ctx["odoo_majver"] = 0
     else:
         ctx["branch"] = build_odoo_param(
-            "FULLVER", odoo_vid=ctx["odoo_vid"], multi=True
+            "FULLVER", odoo_vid=".", multi=True
         )
         if ctx["branch"] not in (
             "17.0",
@@ -338,7 +340,7 @@ def __init__(ctx):
         ctx["odoo_majver"] = int(ctx["branch"].split(".")[0])
         if not ctx["git_orgid"]:
             ctx["git_orgid"] = build_odoo_param(
-                "GIT_ORGID", odoo_vid=ctx["odoo_vid"], multi=True
+                "GIT_ORGID", odoo_vid=".", multi=True
             )
 
     if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp", "didotech"):
@@ -470,6 +472,18 @@ def create_def_description_i18n(ctx):
         fd.write("Descrizione non disponibile\n")
 
 
+def create_def_configuration(ctx):
+    fn = "./readme/CONFIGURATION.rst"
+    with open(fn, "w") as fd:
+        fd.write("")
+
+
+def create_def_configuration_i18n(ctx):
+    fn = "./readme/CONFIGURATION_I18N.rst"
+    with open(fn, "w") as fd:
+        fd.write("")
+
+
 def create_def_usage(ctx):
     fn = "./readme/USAGE.rst"
     with open(fn, "w") as fd:
@@ -477,12 +491,12 @@ def create_def_usage(ctx):
 
 
 def create_def_usage_i18n(ctx):
-    fn = "./readme/USAGE_i18n.rst"
+    fn = "./readme/USAGE_I18N.rst"
     with open(fn, "w") as fd:
         fd.write("")
 
 
-def get_actual_fqn(path, filename):
+def get_actual_fqn(ctx, path, filename):
     if "." in filename:
         fqn = pth.join(path, filename)
         if pth.isfile(fqn):
@@ -498,10 +512,24 @@ def get_actual_fqn(path, filename):
             if pth.isfile(fqn):
                 return fqn
         section, ext = pth.splitext(filename)
-        fqn = pth.join(path, docdir, section.upper() + ".rst")
+        SECTION = section.upper()
+        if section.endswith("_i18n"):
+            fqn = pth.join(path, docdir, SECTION[: -5] + "." + ctx["lang"] + ext)
+            if pth.isfile(fqn):
+                return fqn
+            fqn = pth.join(path, docdir, section[: -5] + "." + ctx["lang"] + ext)
+            if pth.isfile(fqn):
+                return fqn
+        fqn = pth.join(path, docdir, SECTION + ".csv")
+        if pth.isfile(fqn):
+            return fqn
+        fqn = pth.join(path, docdir, SECTION + ".rst")
         if pth.isfile(fqn):
             return fqn
         section = section.lower()
+        fqn = pth.join(path, docdir, section + ".csv")
+        if pth.isfile(fqn):
+            return fqn
         fqn = pth.join(path, docdir, section + ".rst")
         if pth.isfile(fqn):
             return fqn
@@ -509,7 +537,7 @@ def get_actual_fqn(path, filename):
         if pth.isfile(fqn):
             return fqn
     if section in ALTERNATE_NAMES:
-        return get_actual_fqn(path, ALTERNATE_NAMES[section])
+        return get_actual_fqn(ctx, path, ALTERNATE_NAMES[section])
     docdir = "readme" if pth.isdir(pth.join(path, "readme")) else "egg-info"
     return pth.join(path, docdir, section.upper() + ".rst")
 
@@ -520,12 +548,12 @@ def get_fqn(ctx, src_path, filename):
             ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"]))
     else:
         dirname = pth.join(src_path.replace("${p}", ctx["product_doc"]))
-    fqn = get_actual_fqn(dirname, filename)
+    fqn = get_actual_fqn(ctx, dirname, filename)
     if (
             pth.basename(pth.dirname(fqn)) == "docs" and
             not pth.isdir(pth.dirname(fqn))
     ):
-        fqn = get_actual_fqn(pth.dirname(pth.dirname(fqn)), filename)
+        fqn = get_actual_fqn(ctx, pth.dirname(pth.dirname(fqn)), filename)
     return fqn
 
 
@@ -594,7 +622,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             fqn = ""
         return found, fqn
 
-    body = True if template[0:7] not in ("header_", "footer_") else False
+    body = False if (template.startswith("header_")
+                     or template.startswith("footer_")) else True
     found, fqn = search_tmpl(ctx, template, body)
     if not found and body and (ctx["force"] or ctx["write_authinfo"]):
         fct = "create_def_" + pth.splitext(template)[0].lower()
@@ -740,6 +769,29 @@ def totroff(text, state=None):
 
 
 def tohtml(ctx, text, state=None):
+    def get_tag_image(state):
+        html_tag = '<img src="%s"' % state["html_state"]["url"]
+        for tag in ("alt", "target"):
+            if tag in state["html_state"]:
+                # style="width:18px;height:16px;"
+                html_tag += (" %s=\"%s\"" % (tag, state["html_state"][tag]))
+                del state["html_state"][tag]
+        styled = False
+        for tag in ("width", "height"):
+            if tag in state["html_state"]:
+                if not styled:
+                    # style="width:18px;height:16px;"
+                    html_tag += " style=\""
+                    styled = True
+                html_tag += ("%s:%s;" % (tag, state["html_state"][tag]))
+                del state["html_state"][tag]
+        if styled:
+            html_tag += "max-width:1140px"
+            html_tag += "\""
+        del state["html_state"]["tag"]
+        html_tag += "/>"
+        return html_tag
+
     if not text:
         return state, text
     state = state or {}
@@ -747,24 +799,27 @@ def tohtml(ctx, text, state=None):
     text = text.replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace("\a", "<").replace("\b", ">")
     text = text.replace(" & ", " &amp; ")
-
+    for t in list(RST2HTML_GRYMB.keys()):
+        text = text.replace(t, RST2HTML_GRYMB[t])
     for token in DEFINED_GRYMB_SYMBOLS:
         tok = "|" + token + "|"
-        i = text.find(tok)
-        while i >= 0:
+        start = text.find(tok)
+        while start >= 0:
             value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
-            text = text[0:i] + value + text[i + len(tok) :]
-            i = text.find(tok)
+            text = text[0:start] + value + text[start + len(tok):]
+            start = text.find(tok)
 
     # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
-    i = text.find("`")
-    j = text.find("`__")
-    k = text.find("`", i + 1)
-    while i >= 0 and (j > i or k > i):
-        if k > 0 and (k < j or j < 0):
-            text = "%s<code>%s</code>%s" % (text[0:i], text[i + 1 : k], text[k + 1 :])
+    start = text.find("`")
+    stop = text.find("`__")
+    stop2 = text.find("`", start + 1)
+    while start >= 0 and (stop > start or stop2 > start):
+        if stop2 > 0 and (stop2 < stop or stop < 0):
+            text = "%s<code>%s</code>%s" % (text[0:start],
+                                            text[start + 1: stop2],
+                                            text[stop2 + 1:])
         else:
-            t = text[i + 1 : j]
+            t = text[start + 1: stop]
             ii = t.find("<")
             jj = t.find(">")
             if ii < 0 and jj < 0:
@@ -772,38 +827,58 @@ def tohtml(ctx, text, state=None):
                 ii = t.find("<")
                 jj = t.find(">")
             if ii >= 0 and jj > ii:
-                url = t[ii + 1 : jj]
+                url = t[ii + 1: jj]
                 if url.startswith("http") and not url.startswith("https"):
                     url.replace("http", "https")
                 if url.startswith("http") and not url.endswith("/"):
                     url += "/"
-                if (j + 3) < len(text):
+                if (stop + 3) < len(text):
                     text = '%s<a href="%s">%s</a>%s' % (
-                        text[0:i],
+                        text[0:start],
                         url,
                         t[0 : ii - 1].strip(),
-                        text[j + 3 :],
+                        text[stop + 3 :],
                     )
                 else:
                     text = '%s<a href="%s">%s</a>' % (
-                        text[0:i],
+                        text[0:start],
                         url,
                         t[0 : ii - 1].strip(),
                     )
-            elif j >= 0 and t.find("&lt;") < 0 and t.find("&gt;"):
-                text = text[0:i] + text[i + 1 : j] + text[j + 3 :]
+            elif stop >= 0 and t.find("&lt;") < 0 and t.find("&gt;"):
+                text = text[0:start] + text[start + 1 : stop] + text[stop + 3 :]
             else:
                 break
-        i = text.find("`")
-        j = text.find("`__")
-        k = text.find("`", i + 1)
-    # Parse multi-line rst tags: <**>BOLD<**>
-    i = text.find("**")
-    j = text.find("**", i + 2)
-    while i > 0 and j > i:
-        text = "%s<b>%s</b>%s" % (text[0:i], text[i + 2 : j], text[j + 2 :])
-        i = text.find("**")
-        j = text.find("**", i + 2)
+        start = text.find("`")
+        stop = text.find("`__")
+        stop2 = text.find("`", start + 1)
+    # Parse single-line rst tags: <*>BOLD<*> | <**>ITALIC<**>
+    x = re.search(r"\*\*\w+\*\*", text)
+    while x:
+        text = "%s<b>%s</b>%s" % (text[0:x.start()],
+                                  text[x.start() + 2: x.end() - 2],
+                                  text[x.end() + 2:])
+        x = re.search(r"\*\*\w+\*\*", text)
+    x = re.search(r"\*\w+\*", text)
+    while x:
+        text = "%s<i>%s</i>%s" % (text[0:x.start()],
+                                  text[x.start() + 1: x.end() - 1],
+                                  text[x.end() + 1:])
+        x = re.search(r"\*\w+\*", text)
+    stop = 0
+    start = text.find("☰", stop)
+    while start >= 0:
+        text = text[0:start] + '<span class="fa fa-navicon"/>' + text[start + 1:]
+        stop = start + 29
+        start = text.find("☰", stop)
+
+    # Parse multi-line rst tags: <**>BOLD<**> ?
+    start = text.find("**")
+    stop = text.find("**", start + 2)
+    while start > 0 and stop > start:
+        text = "%s<b>%s</b>%s" % (text[0:start], text[start + 2: stop], text[stop + 2:])
+        start = text.find("**")
+        stop = text.find("**", start + 2)
     # Parse single line rst tags; remove trailing and tailing empty lines
     lines = text.split("\n")
     while len(lines) > 1 and not lines[-1]:
@@ -818,20 +893,13 @@ def tohtml(ctx, text, state=None):
     while lineno < len(lines):
         if lines[lineno][0:2] != "..":
             if state["html_state"].get("tag") == "image":
-                x = re.match(r" +:alt:", lines[lineno])
+                x = re.match(r" +:(alt|target|width|height):", lines[lineno])
                 if x:
-                    state["html_state"]["alt"] = lines[lineno][x.end() :].strip()
+                    state["html_state"][lines[lineno][x.start():x.end()].strip(
+                        )[1: -1]] = lines[lineno][x.end():].strip()
                     del lines[lineno]
                     continue
-                x = re.match(r" +:target:", lines[lineno])
-                if x:
-                    state["html_state"]["target"] = lines[lineno][x.end() :].strip()
-                    del lines[lineno]
-                    continue
-                lines.insert(lineno, '<img src="%s"/>' % state["html_state"]["url"])
-                for tag in ("tag", "alt", "target"):
-                    if tag in state["html_state"]:
-                        del state["html_state"][tag]
+                lines.insert(lineno, get_tag_image(state))
             elif (
                 lines[lineno]
                 and lines[lineno][0] == " "
@@ -911,16 +979,16 @@ def tohtml(ctx, text, state=None):
             elif lines[lineno] == "|":
                 lines[lineno] = "<br/>"
             else:
-                i = lines[lineno].find("*")
-                j = lines[lineno].find("*", i + 1)
-                while i > 0 and j > i:
+                start = lines[lineno].find("*")
+                stop = lines[lineno].find("*", start + 1)
+                while start > 0 and stop > start:
                     lines[lineno] = "%s<i>%s</i>%s" % (
-                        lines[lineno][0:i],
-                        lines[lineno][i + 1 : j],
-                        lines[lineno][j + 1 :],
+                        lines[lineno][0:start],
+                        lines[lineno][start + 1 : stop],
+                        lines[lineno][stop + 1 :],
                     )
-                    i = lines[lineno].find("*")
-                    j = lines[lineno].find("*", i + 1)
+                    start = lines[lineno].find("*")
+                    stop = lines[lineno].find("*", start + 1)
         else:
             if in_table:
                 lines[lineno - 1] = "</tr></table>"
@@ -936,16 +1004,21 @@ def tohtml(ctx, text, state=None):
                 state["html_state"]["url"] = lines[lineno][10:].strip()
                 del lines[lineno]
                 continue
+            elif lines[lineno].startswith(".. figure::"):
+                state["html_state"]["tag"] = "image"
+                state["html_state"]["url"] = lines[lineno][11:].strip()
+                del lines[lineno]
+                continue
         lineno += 1
     if state["html_state"].get("tag") == "image":
-        lines.append('<img src="%s"/>' % state["html_state"]["url"])
+        lines.append(get_tag_image(state))
         del state["html_state"]
     elif in_table:
         lines[-1] = "</tr></table>"
-        in_table = False
+        # in_table = False
     elif in_list:
         lines.append("</ul>")
-        in_list = False
+        # in_list = False
     if open_para:
         lines.append("</p>")
         open_para -= 1
@@ -1547,7 +1620,7 @@ def parse_local_file(
     if fqn.endswith(".csv"):
         fqn_csv = fqn
         fqn = fqn_csv.replace(".csv", ".rst")
-        remove_fqn = True
+        remove_fqn = not pth.isfile(fqn)
     elif fqn.endswith(".rst"):
         fqn_csv = fqn.replace(".rst", ".csv")
         remove_fqn = False
@@ -2292,7 +2365,7 @@ def item_2_test(ctx, section):
 
 
 def write_rst_file(ctx, path, section):
-    fqn = get_actual_fqn(path, section)
+    fqn = get_actual_fqn(ctx, path, section)
     force_write = False
     if (
         section == "changelog"
@@ -2362,13 +2435,13 @@ def generate_readme(ctx):
                 )
                 if not ctx["module_name"]:
                     ctx["module_name"] = build_odoo_param(
-                        "PKGNAME", odoo_vid=ctx["branch"], multi=True
+                        "PKGNAME", odoo_vid=".", multi=True
                     )
             if not ctx["repos_name"]:
                 ctx["repos_name"] = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if not ctx["repos_name"]:
                     ctx["repos_name"] = build_odoo_param(
-                        "REPOS", odoo_vid=ctx["branch"], multi=True
+                        "REPOS", odoo_vid=".", multi=True
                     )
             read_manifest(ctx)
         return ctx
@@ -2480,17 +2553,6 @@ def generate_readme(ctx):
             ctx[section] = ctx["manifest"][section]
             ctx["opt_gpl"] = ctx["license_mgnt"].license_code(ctx[section])
 
-    def set_configuration(ctx):
-        section = "configuration"
-        if not ctx[section]:
-            ctx[section] = parse_local_file(
-                ctx,
-                "CONFIGURE.rst",
-                ignore_ntf=True,
-                out_fmt=None,
-                section=section,
-            )[1]
-
     def set_name_i18n(ctx):
         section = "name_i18n"
         if not ctx.get(section):
@@ -2517,6 +2579,12 @@ def generate_readme(ctx):
             ctx[section] = x[2]
         if re.match(r"\s*$", ctx[section]):
             ctx[section] = ""
+        if pth.isfile(pth.join("static", "description", "%s.png" % section)):
+            ctx["%s_png" % section] = """.. figure:: /%s/static/description/%s.png
+  :alt: %s
+  :width: 98%%""" % (ctx["module_name"], section, ctx["name"])
+        else:
+            ctx["%s_png" % section] = ""
 
     # === Starting generate ===
     __init__(ctx)
@@ -2578,7 +2646,6 @@ def generate_readme(ctx):
         set_website(ctx)
         set_maintainer(ctx)
         set_license(ctx)
-        set_configuration(ctx)
 
     set_name_i18n(ctx)
     set_summary(ctx)
@@ -2600,14 +2667,16 @@ def generate_readme(ctx):
                 src_icon = pth.join(ctx["HOME_DEVEL"],
                                     "pypi",
                                     "tools",
-                                    "template",
+                                    "templates",
                                     "odoo",
+                                    "icons",
                                     ctx["src_icon"])
             else:
                 src_icon = pth.join(ctx["ODOO_ROOT"],
                                     "tools",
-                                    "template",
+                                    "templates",
                                     "odoo",
+                                    "icons",
                                     ctx["src_icon"])
             if pth.isfile(src_icon):
                 copyfile(src_icon, icon_fn)
@@ -2723,5 +2792,6 @@ def main(cli_args=None):
 
 
 if __name__ == "__main__":
+    exit(main())
     exit(main())
 

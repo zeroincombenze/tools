@@ -705,7 +705,7 @@ class Please(object):
             return 3
         with open(log_fqn, "r") as fd:
             contents = fd.read()
-        params = {}
+        params = {"testpoints": 0}
         for ln in contents.split("\n"):
             if ln.startswith("TOTAL"):
                 x = re.search("[0-9]+%?", ln)
@@ -720,15 +720,16 @@ class Please(object):
                 if x:
                     items = ln[x.start(): x.end()].split()
                     params["testpoints"] = int(items[0])
-        if "total" not in params or "testpoints" not in params:
+        if "total" not in params:
             print("No stats found in %s" % log_fqn)
             return 3
-        params["qrating"] = int(
-            (((params["cover"] / params["total"] * 1.2)
-              + min(params["testpoints"] / params["total"] * 4, 1.0) * 50) + 0.5))
+        params["qrating"] = int(params["cover"] * 0.6
+                                + params["testpoints"] * 400 / params["total"]
+                                + 1)
         test_cov_msg = (
             "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"
-            " [%(testpoints)d TestPoints] - quality rating %(qrating)d/100" % params)
+            " [%(testpoints)d TestPoints] - quality rating %(qrating)d (target 100)"
+            % params)
         changelog_fqn = pth.join("readme", "CHANGELOG.rst")
         if not pth.isfile(changelog_fqn):
             changelog_fqn = pth.join("egg-info", "CHANGELOG.rst")
