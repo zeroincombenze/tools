@@ -1,6 +1,6 @@
 .. $include readme_header.rst
 
-Overview / Panoramica
+Overview | Panoramica
 =====================
 
 |en| {{description}}
@@ -12,7 +12,7 @@ Overview / Panoramica
 
 |
 
-Features / Caratteristiche
+Features | Caratteristiche
 --------------------------
 
 {{features}}
@@ -22,7 +22,7 @@ Features / Caratteristiche
 |
 |
 
-Certifications / Certificazioni
+Certifications | Certificazioni
 -------------------------------
 
 {{certifications}}
@@ -31,7 +31,7 @@ Certifications / Certificazioni
 
 |
 
-Usage / Utilizzo
+Usage | Utilizzo
 ----------------
 
 {{usage}}
@@ -41,7 +41,7 @@ Usage / Utilizzo
 
 |
 
-OCA comparation / Confronto con OCA
+OCA comparation | Confronto con OCA
 -----------------------------------
 
 {{oca_diff}}
@@ -50,14 +50,14 @@ OCA comparation / Confronto con OCA
 
 |
 
-Getting started / Primi passi
+Getting started | Primi passi
 =============================
 
 |Try Me|
 
 .. $if defined prerequisites
 
-Prerequisites / Prerequisiti
+Prerequisites | Prerequisiti
 ----------------------------
 
 {{prerequisites}}
@@ -66,7 +66,7 @@ Prerequisites / Prerequisiti
 
 |
 
-Installation / Installazione
+Installation | Installazione
 ----------------------------
 
 {{installation}}
@@ -75,7 +75,7 @@ Installation / Installazione
 
 |
 
-Configuration / Configurazione
+Configuration | Configurazione
 ------------------------------
 
 {{configuration}}
@@ -84,7 +84,7 @@ Configuration / Configurazione
 
 |
 
-Upgrade / Aggiornamento
+Upgrade | Aggiornamento
 -----------------------
 
 {{upgrade}}
@@ -93,7 +93,7 @@ Upgrade / Aggiornamento
 
 |
 
-Support / Supporto
+Support | Supporto
 ------------------
 
 {{support}}
@@ -103,7 +103,7 @@ Support / Supporto
 |
 |
 
-Get involved / Ci mettiamo in gioco
+Get involved | Ci mettiamo in gioco
 ===================================
 
 {{maintenance}}
@@ -112,7 +112,7 @@ Get involved / Ci mettiamo in gioco
 
 |
 
-Troubleshooting / Risoluzione dei problemi
+Troubleshooting | Risoluzione dei problemi
 ------------------------------------------
 
 {{troubleshooting}}
@@ -121,7 +121,7 @@ Troubleshooting / Risoluzione dei problemi
 
 |
 
-Known issues / Roadmap
+Known issues | Roadmap
 ----------------------
 
 {{known_issues}}
@@ -135,14 +135,14 @@ Proposals for enhancement
 .. $fi
 .. $if defined changelog
 
-ChangeLog History / Cronologia modifiche
+ChangeLog History | Cronologia modifiche
 ----------------------------------------
 
 {{changelog}}
 .. $fi
 .. $if defined faq
 
-FAQ / Domande & Risposte
+FAQ | Domande & Risposte
 ------------------------
 
 {{faq}}
@@ -151,7 +151,7 @@ FAQ / Domande & Risposte
 |
 |
 
-Credits / Didascalie
+Credits | Didascalie
 ====================
 
 Copyright
@@ -163,28 +163,28 @@ Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
 
 |
 
-Authors / Autori
+Authors | Autori
 -----------------
 
 {{authors}}
 .. $fi
 .. $if defined contributors
 
-Contributors / Contributi da
+Contributors | Contributi da
 ----------------------------
 
 {{contributors}}
 .. $fi
 .. $if defined acknowledges
 
-Acknowledges / Riconoscimenti
+Acknowledges | Riconoscimenti
 -----------------------------
 
 {{acknowledges}}
 .. $fi
 .. $if defined translators
 
-Translations by / Traduzioni a cura di
+Translations by | Traduzioni a cura di
 --------------------------------------
 
 {{translators}}
@@ -198,7 +198,7 @@ Sponsor
 .. $fi
 .. $if defined maintainer
 
-Maintainer / Manutenzione
+Maintainer | Manutenzione
 -------------------------
 
 {{maintainer}}
