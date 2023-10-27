@@ -31,33 +31,33 @@ can execute any command to any Odoo version server (from 6.1 to 13.0)
 
 Available commands & features are:
 
-+----------------------------------+------------------------------+
-| Function                         | Note                         |
-+----------------------------------+------------------------------+
-| Add new repository               | odoo_install_repository      |
-+----------------------------------+------------------------------+
-| Update paid invoice              | inv2draft_n_restore.py       |
-+----------------------------------+------------------------------+
-| List requirement of Odoo         | list_requirements.py         |
-+----------------------------------+------------------------------+
-| Create full configurated Odoo DB | manage_db                    |
-+----------------------------------+------------------------------+
-| Manage Odoo installation         | manage_odoo                  |
-+----------------------------------+------------------------------+
-| Set Odoo Skin (backoffice)       | odoo_skin.sh                 |
-+----------------------------------+------------------------------+
-| Run Odoo instance to debug       | run_odoo_debug               |
-+----------------------------------+------------------------------+
-| Manage version depending names   | transodoo.py                 |
-+----------------------------------+------------------------------+
-| General Purpose RPC              | clodoo.py                    |
-+----------------------------------+------------------------------+
-| Export Odoo model to test file   | export_db_model.py           |
-+----------------------------------+------------------------------+
-| Migrate Odoo                     | migrate_odoo.py (deprecated) |
-+----------------------------------+------------------------------+
-| Examples                         | example*.py                  |
-+----------------------------------+------------------------------+
++----------------------------------------------+-----------------------------------------+
+| Function                                     | Note                                    |
++----------------------------------------------+-----------------------------------------+
+| Add new repository                           | odoo_install_repository                 |
++----------------------------------------------+-----------------------------------------+
+| Update paid invoice                          | inv2draft_n_restore.py                  |
++----------------------------------------------+-----------------------------------------+
+| List requirement of Odoo                     | list_requirements.py                    |
++----------------------------------------------+-----------------------------------------+
+| Create full configurated Odoo DB             | manage_db                               |
++----------------------------------------------+-----------------------------------------+
+| Manage Odoo installation                     | manage_odoo                             |
++----------------------------------------------+-----------------------------------------+
+| Set Odoo Skin (backoffice)                   | odoo_skin.sh                            |
++----------------------------------------------+-----------------------------------------+
+| Run Odoo instance to debug                   | run_odoo_debug                          |
++----------------------------------------------+-----------------------------------------+
+| Manage version depending names               | transodoo.py                            |
++----------------------------------------------+-----------------------------------------+
+| General Purpose RPC                          | clodoo.py                               |
++----------------------------------------------+-----------------------------------------+
+| Export Odoo model to test file               | export_db_model.py                      |
++----------------------------------------------+-----------------------------------------+
+| Migrate Odoo                                 | migrate_odoo.py (deprecated)            |
++----------------------------------------------+-----------------------------------------+
+| Examples                                     | example*.py                             |
++----------------------------------------------+-----------------------------------------+
 
 
 
@@ -245,15 +245,19 @@ where:
 Getting started
 ===============
 
-
-Installation
-------------
+Prerequisites
+-------------
 
 Zeroincombenze tools require:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
 * python 2.7+, some tools require python 3.6+
 * bash 5.0+
+
+
+Installation
+------------
+
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -276,8 +280,10 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
+
 Upgrade
 -------
+
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -296,6 +302,7 @@ Current version via Git
     cd $HOME
     ./install_tools.sh -U
     source $HOME/devel/activate_tools
+
 
 
 ChangeLog History
@@ -331,27 +338,6 @@ ChangeLog History
 
 * [FIX] odoorc: GIT_BRANCH sometimes fails
 
-2.0.7.0.7
-~~~~~~~~~
-
-* [FIX] odoorc: GITORGID and other value, sometimes are wrong
-
-2.0.7.0.7
-~~~~~~~~~
-
-* [IMP] Minor improvements
-
-2.0.7.0.7
-~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.7.0.7
-~~~~~~~~~
-
-* [IMP] odoorc: best virtual environment recognize
-* [FIX] odoorc: SVCNAME
-
 
 |
 |
@@ -376,13 +362,15 @@ Authors
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+
+
 
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-09-28
+Last Update / Ultimo aggiornamento: 2023-10-27
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

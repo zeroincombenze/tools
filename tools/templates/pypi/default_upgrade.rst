@@ -1,6 +1,3 @@
-Upgrade
--------
-
 .. $if not no_pypi
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

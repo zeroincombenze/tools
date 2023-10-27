@@ -50,19 +50,26 @@ Getting started
 ===============
 
 .. $if defined prerequisites
-
 Prerequisites
 -------------
 
 {{prerequisites}}
+
 .. $fi
 .. $if defined installation
+Installation
+------------
 
 {{installation}}
+
 .. $fi
 .. $if defined upgrade
 
+Upgrade
+-------
+
 {{upgrade}}
+
 .. $fi
 .. $if defined support
 
@@ -142,6 +149,7 @@ Contributors
 ------------
 
 {{contributors}}
+
 .. $fi
 .. $if defined acknowledges
 
@@ -149,6 +157,7 @@ Acknowledges
 ------------
 
 {{acknowledges}}
+
 .. $fi
 .. $if defined translators
 
@@ -156,6 +165,7 @@ Translations by
 ---------------
 
 {{translators}}
+
 .. $fi
 .. $if defined sponsor
 
@@ -169,9 +179,12 @@ Sponsor
 |
 
 {{copyright_notes}}
+
 .. $fi
 .. $if defined contact_us
 
 {{contact_us}}
+
 .. $fi
+
 .. $include readme_footer.rst

@@ -835,8 +835,8 @@ class Z0test(object):
                 ctx['logfn'] = ctx['tlog']
             else:
                 ctx['logfn'] = "~/" + ctx['this'] + ".log"
-        if not ctx.get('WLOGCMD', None) and not ctx.get('_run_autotest', False):
-            self.set_tlog_file(ctx)
+        # if not ctx.get('WLOGCMD', None) and not ctx.get('_run_autotest', False):
+        #     self.set_tlog_file(ctx)
         sts, stdout, stderr = z0lib.run_traced('coverage --version', verbose=0)
         ctx['run4cover'] = (sts == 0)
         if os.environ.get("COVERAGE_PROCESS_START", ""):
@@ -1279,8 +1279,8 @@ class Z0test(object):
                 print(ctx['max_test'])
             sts = TEST_SUCCESS
         else:
-            if not ctx.get('_run_autotest', False):
-                self.set_tlog_file(ctx)
+            # if not ctx.get('_run_autotest', False):
+            #     self.set_tlog_file(ctx)
             sts = self._exec_all_tests(test_list, ctx, Cls2Test)
         return sts
 
@@ -1340,8 +1340,8 @@ class Z0test(object):
                 print(ctx['ctr'])
             sts = TEST_SUCCESS
         else:
-            if not ctx.get('_run_autotest', False):
-                self.set_tlog_file(ctx)
+            # if not ctx.get('_run_autotest', False):
+            #     self.set_tlog_file(ctx)
             sts = self._exec_all_tests(test_list, ctx, Cls2Test)
             if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:
