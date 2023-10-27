@@ -503,6 +503,16 @@ class Please(object):
             return root
         return pth.join(root, pkgname)
 
+    def get_tools_dir(self, pkgtool=False):
+        if hasattr(self.opt_args, "debug") and self.opt_args.debug:
+            if pkgtool:
+                tools_path = self.get_home_pypi_pkg("tools")
+            else:
+                tools_path = self.get_home_pypi()
+        else:
+            tools_path = self.get_home_tools()
+        return tools_path
+
     def is_pypi_pkg(self, path=None):
         path = path or os.getcwd()
         pkgname = pth.basename(path)
@@ -632,6 +642,20 @@ class Please(object):
                 sts = 0
         return sts, branch
 
+    def get_pypi_version(self, path=None):
+        path = path or os.getcwd()
+        setup = pth.join(path, "setup.py")
+        if not pth.isfile(setup):
+            setup = pth.join(pth.dirname(path), "setup.py")
+        if not pth.isfile(setup):
+            print("No file %s found!" % setup)
+            return "2.0.0"
+        sts, stdout, stderr = self.call_chained_python_cmd(setup, ["--version"])
+        if sts:
+            print(stderr)
+            return "2.0.0"
+        return stdout.split("\n")[0].strip()
+
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
             self.get_home_pypi()
@@ -676,12 +700,12 @@ class Please(object):
             if ln.startswith("less"):
                 log_fqn = pth.join("tests", "logs", ln.split("/")[-1])
                 break
-        if not log_fqn:
-            print("Test log file not found!")
+        if not log_fqn or not pth.isfile(log_fqn):
+            print("Test log file %s not found!" % log_fqn)
             return 3
         with open(log_fqn, "r") as fd:
             contents = fd.read()
-        params = {}
+        params = {"testpoints": 0}
         for ln in contents.split("\n"):
             if ln.startswith("TOTAL"):
                 x = re.search("[0-9]+%?", ln)
@@ -696,15 +720,16 @@ class Please(object):
                 if x:
                     items = ln[x.start(): x.end()].split()
                     params["testpoints"] = int(items[0])
-        if "total" not in params or "testpoints" not in params:
+        if "total" not in params:
             print("No stats found in %s" % log_fqn)
             return 3
-        params["qrating"] = int(
-            (((params["cover"] / params["total"] * 1.2)
-              + min(params["testpoints"] / params["total"] * 4, 1.0) * 50) + 0.5))
+        params["qrating"] = int(params["cover"] * 0.6
+                                + params["testpoints"] * 400 / params["total"]
+                                + 1)
         test_cov_msg = (
             "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"
-            " [%(testpoints)d TestPoints] - quality rating %(qrating)d/100" % params)
+            " [%(testpoints)d TestPoints] - quality rating %(qrating)d (target 100)"
+            % params)
         changelog_fqn = pth.join("readme", "CHANGELOG.rst")
         if not pth.isfile(changelog_fqn):
             changelog_fqn = pth.join("egg-info", "CHANGELOG.rst")
@@ -725,6 +750,14 @@ class Please(object):
         if self.opt_args.verbose:
             print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
         return call(cmd, shell=True) if not self.opt_args.dry_run else 0
+
+    def call_chained_python_cmd(self, pyfile, args):
+        cmd = [sys.executable]
+        cmd.append(pth.join(pth.dirname(__file__), pyfile))
+        for arg in args:
+            cmd.append(arg)
+        cmd = " ".join(cmd)
+        return z0lib.run_traced(cmd, verbose=False, dry_run=self.opt_args.dry_run)
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()

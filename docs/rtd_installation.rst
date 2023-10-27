@@ -1,40 +1,12 @@
 .. toctree::
    :maxdepth: 2
 
-Installation
-------------
-
-Zeroincombenze tools require:
-
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
-* bash 5.0+
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install repos_name
-
-|
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -p
-    source $HOME/devel/activate_tools
 
 
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-08-07
+Last Update / Ultimo aggiornamento: 2023-10-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

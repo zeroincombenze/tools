@@ -1,32 +1,12 @@
 .. toctree::
    :maxdepth: 2
 
-Upgrade
--------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install repos_name -U
-
-|
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    ./install_tools.sh -U
-    source $HOME/devel/activate_tools
 
 
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-08-07
+Last Update / Ultimo aggiornamento: 2023-10-22
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

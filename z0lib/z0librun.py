@@ -491,6 +491,8 @@ class parseoptargs(object):
             else:
                 if 'dest' in kwargs:
                     self.param_list.append(kwargs['dest'])
+                elif len(args) == 2 and args[1].startswith("--"):
+                    self.param_list.append(args[1][2:].replace("-", "_"))
                 self.parser.add_argument(*args, **kwargs)
 
     def default_conf(self, ctx):

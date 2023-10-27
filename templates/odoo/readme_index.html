@@ -1,52 +1,114 @@
 <section class="oe_container">
     <div class="oe_row oe_spaced">
+.. $if summary == summary_i18n
 .. $if branch in '8.0'
-        <h2 class="oe_slogan" style="color:#162832;">{{name}}</h2>
+        <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
 .. $else
         <div class="oe_span12">
-            <h2 class="oe_slogan" style="color:#162832;">{{name}}</h2>
+            <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
         </div>
+.. $fi
+.. $else
+.. $if branch in '8.0'
+        <h2 class="oe_slogan" style="color:#162832;">{{summary}} | {{summary_i18n}}</h2>
+.. $else
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+            </p>
+            <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
+        </div>
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+            </p>
+            <h2 class="oe_slogan" style="color:#162832;">{{summary_i18n}}</h2>
+        </div>
+.. $fi
 .. $fi
         <div class="oe_span6">
             <p align="center">
-                <img src="{{grymb_image_en}}" alt="English"/>
+                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{description}}</p>
         </div>
         <div class="oe_span6">
             <p align="center">
-                <img src="{{grymb_image_it}}" alt="Italiano"/>
+                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
             </p>
-            <p class="oe_mt16" align="justify">{{descrizione}}</p>
+            <p class="oe_mt16" align="justify">{{description_i18n}}</p>
         </div>
+        {{description_png}}
     </div>
 .. $if defined features
     <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">Features / Caratteristiche</h3>
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Features | Caratteristiche</h3>
         <div class="oe_span12">
 {{features}}
         </div>
     </div>
 .. $fi
+.. $if defined configuration
+    <div class="oe_row oe_spaced">
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Configuration | Configurazione</h3>
+.. $if configuration == configuration_i18n
+        <div class="oe_span12">
+{{configuration}}
+        </div>
+.. $else
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{configuration}}</p>
+        </div>
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{configuration_i18n}}</p>
+        </div>
+.. $fi
+    </div>
+.. $fi
+.. $if defined usage
+    <div class="oe_row oe_spaced">
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Usage | Utilizzo</h3>
+.. $if usage == usage_i18n
+        <div class="oe_span12">
+{{usage}}
+        </div>
+.. $else
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{usage}}</p>
+        </div>
+        <div class="oe_span6">
+            <p align="center">
+                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{usage_i18n}}</p>
+        </div>
+.. $fi
+    </div>
+.. $fi
 .. $if defined oca_diff
     <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">OCA comparation / Confronto con OCA</h3>
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">OCA comparation | Confronto con OCA</h3>
         <div class="oe_span12">
 {{oca_diff}}
         </div>
     </div>
 .. $fi
-.. $if defined usage
-    <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">Usage / Utilizzo</h3>
-        <div class="oe_span12">
-{{usage}}
-        </div>
-    </div>
-.. $fi
 .. $if defined changelog
     <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">ChangeLog History / Cronologia modifiche</h3>
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">ChangeLog History | Cronologia modifiche</h3>
         <div class="oe_span12">
 {{changelog}}
         </div>
@@ -54,7 +116,7 @@
 .. $fi
 .. $if defined known_issues
     <div class="oe_row oe_spaced">
-        <h3 class="oe_slogan" style="color:#162832;">Known issues / Problemi conosciuti</h3>
+        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Known issues | Problemi conosciuti</h3>
         <div class="oe_span12">
 {{known_issues}}
         </div>
@@ -67,11 +129,11 @@
 <section class="oe_container">
     <div class="oe_row oe_spaced">
         <div class="oe_span6" align="left">
-            <p class="oe_mt16">Authors / Autori:</p>
+            <p class="oe_mt16">Authors | Autori:</p>
             <p class="oe_mt16">{{authors}}</p>
         </div>
         <div class="oe_span6" align="left">
-            <p class="oe_mt16">Contributors / Contributi da:</p>
+            <p class="oe_mt16">Contributors | Contributi da:</p>
             <p class="oe_mt16">{{contributors}}</p>
         </div>
     </div>
@@ -88,7 +150,7 @@
             <p class="oe_mt16" align="justify"><a href="http://www.librerp.it/">Librerp</a> è una rete di imprese, nata nel 2020 che rilascia moduli per la contabilità italiana evoluta.</p>
         </div>
         <div class="oe_span12">
-            <p class="oe_mt16">Founders are / I soci fondatori sono:</p>
+            <p class="oe_mt16">Founders are | I soci fondatori sono:</p>
             <ul>
                 <li><a href="http://www.didotech.com/">Didotech s.r.l.</a></li>
                 <li><a href="https://www.shs-av.com/">SHS-AV s.r.l.</a></li>

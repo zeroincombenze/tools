@@ -1030,7 +1030,22 @@ class OdooTranslation(object):
                     }
                     for name in ("src", "source", "type", "name", "module"):
                         vals[name] = term[name]
-                    clodoo.createL8(ctx, model_translation, vals)
+                    tnl2_id = clodoo.searchL8(
+                        ctx,
+                        model_translation,
+                        [("type", "=", vals["type"]),
+                         ("name", "=", vals["name"]),
+                         ("lang", "=", vals["lang"]),
+                         ("res_id", "=", vals["res_id"])])
+                    if not tnl2_id:
+                        clodoo.createL8(ctx, model_translation, vals)
+                    else:
+                        clodoo.writeL8(
+                            ctx,
+                            model_translation,
+                            tnl2_id,
+                            vals
+                        )
                     ctr_write += 1
             elif value != term_tnl.value:
                 try:
@@ -1052,11 +1067,12 @@ class OdooTranslation(object):
         if not os.path.isfile(self.opt_args.config):
             print("File %s not found!" % self.opt_args.config)
             return 1
-        ctr_read = ctr_write = 0
+        ctr_read = ctr_write = db_tnl = 0
         for database in self.opt_args.database.split(","):
             ctx = self.connect_db(database)
             if ctx is None:
                 continue
+            db_tnl += 1
             ctx["lang"] = self.opt_args.lang
             self.install_lang(self.opt_args.lang, ctx)
             model_translation = "ir.translation"
@@ -1073,10 +1089,15 @@ class OdooTranslation(object):
                     order="src",
                 ),
             ):
+                if not term.src:
+                    continue
                 if self.opt_args.verbose:
                     msg_burst("%s ..." % term.src[:60].split("\n")[0])
                 ctr_read += 1
                 ctr_write += write_term(term)
+        if db_tnl == 0:
+            print("No DB translated!")
+            return 126
         if self.opt_args.verbose:
             print("%d records read, %d records written" % (ctr_read, ctr_write))
         return 0
@@ -1188,6 +1209,7 @@ def main(cli_args=None):
     parser.add_argument("-x", "--file-xlsx", help="Default dictionary")
 
     odoo_tnxl = OdooTranslation(parser.parse_args(cli_args))
+    sts = 0
     if odoo_tnxl.opt_args.test:
         odoo_tnxl.load_terms_for_test()
     elif odoo_tnxl.opt_args.file_xlsx or odoo_tnxl.opt_args.target_path:
@@ -1200,7 +1222,7 @@ def main(cli_args=None):
         and odoo_tnxl.opt_args.file_xlsx
         and not odoo_tnxl.opt_args.rewrite_xlsx
     ):
-        odoo_tnxl.translate_db()
+        sts = odoo_tnxl.translate_db()
     elif odoo_tnxl.opt_args.module_name:
         odoo_tnxl.translate_module()
     if odoo_tnxl.opt_args.rewrite_xlsx:
@@ -1227,7 +1249,7 @@ def main(cli_args=None):
         print("%d test executed with %d error detected." % (ctr, ctr_err))
     else:
         odoo_tnxl.write_text()
-    return 0
+    return sts
 
 
 if __name__ == "__main__":

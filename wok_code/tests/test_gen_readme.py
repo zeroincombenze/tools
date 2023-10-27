@@ -83,8 +83,6 @@ Unknown Odoo version
 """
 
 README_7 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
@@ -111,8 +109,6 @@ Unknown Odoo version
 
 """
 README_10 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
@@ -139,8 +135,6 @@ odoo 10.0
 
 """
 README_12 = """
-Lorem ipsum
------------
 
 Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
@@ -173,7 +167,11 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z):
+    def __init__(self, z0bug):
+        self.Z = z0bug
+        self.Z.inherit_cls(self)
+
+    def setup(self, z0ctx):
         self.templatedir = os.path.join(
             os.path.expanduser("~"), "devel", "pypi", "tools", "templates"
         )
@@ -228,7 +226,7 @@ Acknoledges to
                 )
             )
         with open(
-            os.path.join(self.templatedir, "readme_main_repository.rst"), "w"
+                os.path.join(self.templatedir, "readme_main_repository.rst"), "w"
         ) as fd:
             fd.write(
                 _c(
@@ -245,44 +243,32 @@ Acknoledges to
 """
                 )
             )
-        self.Z = z
-
-    def setup(self, z0ctx):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
         )
 
     def get_doc_path(self, odoo_path, gitorg):
-        if gitorg == "zero":
-            doc_path = os.path.join(odoo_path, "egg-info")
-        else:
-            doc_path = os.path.join(odoo_path, "readme")
+        doc_path = os.path.join(odoo_path, "readme")
         if not os.path.isdir(doc_path):
             os.mkdir(doc_path)
         return doc_path
 
     def create_description_file(self, moduledir, odoo_version, gitorg):
         egg_info_path = self.get_doc_path(moduledir, gitorg)
-        if gitorg == "zero":
-            descr_fn = os.path.join(egg_info_path, "description.rst")
-        else:
-            descr_fn = os.path.join(egg_info_path, "DESCRIPTION.rst")
+        descr_fn = os.path.join(egg_info_path, "DESCRIPTION.rst")
         with open(descr_fn, "w") as fd:
             fd.write(_c(DESCR_FN % odoo_version))
 
     def create_authors_file(self, moduledir, odoo_version, gitorg):
         egg_info_path = self.get_doc_path(moduledir, gitorg)
         if gitorg == "zero":
-            descr_fn = os.path.join(egg_info_path, "authors.rst")
+            descr_fn = os.path.join(egg_info_path, "AUTHORS.rst")
             with open(descr_fn, "w") as fd:
                 fd.write(_c(AUTHORS_FN % odoo_version))
 
     def create_contributors_file(self, moduledir, odoo_version, gitorg):
         egg_info_path = self.get_doc_path(moduledir, gitorg)
-        if gitorg == "zero":
-            descr_fn = os.path.join(egg_info_path, "contributors.rst")
-        else:
-            descr_fn = os.path.join(egg_info_path, "CONTRIBUTORS.rst")
+        descr_fn = os.path.join(egg_info_path, "CONTRIBUTORS.rst")
         with open(descr_fn, "w") as fd:
             fd.write(_c(CONTRIBUTORS_FN % odoo_version))
 
@@ -309,39 +295,43 @@ Acknoledges to
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
-                sts, stdout, stderr = z0lib.run_traced("%s -Bw -G %s" % (cmd, gitorg))
-                if sts:
-                    sts += self.Z.test_result(
-                        z0ctx,
-                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
-                        0,
-                        sts,
-                    )
-                    break
+                cmd = "%s -fBwG%s" % (cmd, gitorg)
+                sts, stdout, stderr = z0lib.run_traced(cmd)
+                self.assertEqual(sts, 0, msg_info=cmd)
+                for fn in ("__manifest__.rst",
+                           "CHANGELOG.rst",
+                           "DESCRIPTION.it_IT.rst",
+                           "USAGE.rst",
+                           "USAGE.it_IT.rst",
+                           "CONFIGURATION.rst",
+                           "CONFIGURATION.it_IT.rst",
+                           ):
+                    self.assertTrue(
+                        os.path.isfile(os.path.join(moduledir, "readme", fn)),
+                        msg_info=cmd)
+
                 if odoo_version == "7.0":
-                    sts += self.Z.test_result(
-                        z0ctx,
-                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
+                    self.assertEqual(
                         README_7,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
-                    )
+                        msg_info=os.path.join(moduledir,
+                                              "README.rst") + "  #" + odoo_version)
                 elif odoo_version == "10.0":
-                    sts += self.Z.test_result(
-                        z0ctx,
-                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
+                    self.assertEqual(
                         README_10,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
-                    )
+                        msg_info=os.path.join(moduledir,
+                                              "README.rst") + "  #" + odoo_version)
                 elif odoo_version == "12.0":
-                    sts += self.Z.test_result(
-                        z0ctx,
-                        os.path.join(moduledir, "README.rst") + "  #" + odoo_version,
+                    self.assertEqual(
                         README_12,
                         self.fn_source(os.path.join(moduledir, "README.rst")),
-                    )
+                        msg_info=os.path.join(moduledir,
+                                              "README.rst") + "  #" + odoo_version)
         return sts
 
 
+#
 # Run main if executed as a script
 if __name__ == "__main__":
     exit(

@@ -141,31 +141,30 @@ class RegressionTest:
         # 1 "> pre-commit run"
         # 2 "> <SCRIPT>/please.sh lint -vn"
         # 3 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -T -m test_module -b 12.0 -v -n"
-        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -RW"
-        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py"
-        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -H"
+        # 4 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n -RW"
+        # 5 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n"
+        # 6 "> <PYTHON> <SCRIPT>/gen_readme.py -b 12.0 -n -H"
         # 7 "Test log file not found!"
         # 8 "> git add ./"
         # 9 "> <SCRIPT>/please.sh translate -vn"
         os.chdir(self.odoo_moduledir)
+        rdme_dir = os.path.join(self.odoo_moduledir, "readme")
+        if not os.path.isdir(rdme_dir):
+            os.mkdir(rdme_dir)
         chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
         if os.path.isfile(chnglog):
             os.unlink(chnglog)
-        i18ndir = os.path.join(self.odoo_moduledir, "i18n")
-        if not os.path.isdir(i18ndir):
-            os.mkdir(i18ndir)
+        i18n_dir = os.path.join(self.odoo_moduledir, "i18n")
+        if not os.path.isdir(i18n_dir):
+            os.mkdir(i18n_dir)
         pofile = os.path.join(self.odoo_moduledir, "i18n", "it.po")
         self.create_pofile(pofile)
         self.create_database("test_test_module_12")
-        cmd = "please zerobug -vn"
+        cmd = "please zerobug -vfn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         if sts:
             self.Z.test_result(z0ctx, cmd, 0, sts)
             return sts
-        self.Z.test_result(
-            z0ctx, "%s> %s # file CHANGELOG" % (os.getcwd(), cmd), True,
-            os.path.isfile(chnglog),
-        )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             "git add ./" in stdout.split("\n")[0],
@@ -176,25 +175,25 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "please.sh lint -vn" in stdout.split("\n")[2],
+            "please.sh lint -vfn" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             bool(re.match(
-                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
+                ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n",
                 stdout.split("\n")[3]))
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[4],
+            "/gen_readme.py -b 12.0 -f -n -RW" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[5],
+            "/gen_readme.py -b 12.0 -f -n" in stdout.split("\n")[5],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[6],
+            "/gen_readme.py -b 12.0 -f -n -H" in stdout.split("\n")[6],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
@@ -368,29 +367,25 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[1],
+            "/gen_readme.py -b 12.0 -n" in stdout.split("\n")[1],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py" in stdout.split("\n")[2],
+            "/gen_readme.py -b 12.0 -n -H" in stdout.split("\n")[2],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -H" in stdout.split("\n")[3],
-        )
-        self.Z.test_result(
-            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "git add ./" in stdout.split("\n")[5],
+            "git add ./" in stdout.split("\n")[4],
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             ("/odoo_translation.py -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
-             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[5]),
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
             ("/run_odoo_debug.py -e -m test_module -b 12.0 -c /etc/odoo/odoo12.conf"
-             " -d test_test_module_12 -v -n" in stdout.split("\n")[7]),
+             " -d test_test_module_12 -v -n" in stdout.split("\n")[6]),
         )
 
         os.chdir(self.odoo_moduledir)
@@ -410,7 +405,11 @@ class RegressionTest:
         )
         self.Z.test_result(
             z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
-            "/gen_readme.py -RW" in stdout.split("\n")[1],
+            "/gen_readme.py -b 12.0 -n" in stdout.split("\n")[1],
+        )
+        self.Z.test_result(
+            z0ctx, "%s> %s" % (os.getcwd(), cmd), True,
+            "/gen_readme.py -b 12.0 -n -H" in stdout.split("\n")[2],
         )
         return sts
 
@@ -572,18 +571,23 @@ class RegressionTest:
         os.system("createdb %s" % database)
         os.system(("psql -c "
                    "\"create table ir_module_module  ("
+                   "id integer, "
                    "name varchar(64), "
-                   "state varchar(32))\" %s") % database)
-        os.system(("psql -c "
-                   "\"insert into ir_module_module (name, state) "
-                   "values ('test_module', 'installed')\" %s" % database))
+                   "state varchar(32), "
+                   "latest_version varchar(16), "
+                   "published_version varchar(16))\" %s") % database)
+        os.system((
+            "psql -c "
+            "\"insert into ir_module_module (id, name, state, published_version) "
+            "values (1, 'test_module', 'installed', '12.0.1')\" %s" % database))
         os.system(("psql -c "
                    "\"create table ir_config_parameter  ("
+                   "id integer, "
                    "key varchar(32), "
                    "value varchar(32))\" %s" % database))
         os.system(("psql -c "
-                   "\"insert into ir_config_parameter (key, value) "
-                   "values ('database.create_date', '%s')\" %s"
+                   "\"insert into ir_config_parameter (id, key, value) "
+                   "values (1, 'database.create_date', '%s')\" %s"
                    % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), database)))
 
     def setup(self, z0ctx):

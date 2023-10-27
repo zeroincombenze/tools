@@ -8,6 +8,8 @@ import re
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+import shutil
+
 try:
     import ConfigParser
 except ImportError:
@@ -183,6 +185,201 @@ class PleaseCwd(object):
                 pass
         return response
 
+    def assure_doc_dirs_odoo(self, is_repo=False):
+        please = self.please
+        branch = self.branch
+        docdir = self.docdir
+        if (
+                please.opt_args.force
+                and not please.opt_args.oca
+                and not is_repo
+                and (not pth.isfile(pth.join(docdir, "CONTRIBUTORS.rst"))
+                     or not pth.isfile(pth.join(docdir, "AUTHORS.rst")))
+        ):
+            args = self.get_gen_readme_base_args(branch=branch)
+            args.append("-RW")
+            return please.chain_python_cmd("gen_readme.py", args)
+        return 0
+
+    def assure_doc_dirs_pypi(self):
+        branch = self.branch
+        docdir = self.docdir
+        if not self.please.opt_args.dry_run:
+            chnglog = pth.join(docdir, "CHANGELOG.rst")
+            if not pth.isfile(chnglog):
+                with open(chnglog, "w") as fd:
+                    fd.write("%s (%s)\n" % (branch, "2023-09-23"))
+                    fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
+                    fd.write("\n")
+                    fd.write("* Initial implementation\n")
+        return 0
+
+    def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
+        if pkgtype not in ("odoo", "pypi"):
+            print("Invalid package type: use 'odoo' or 'pypi'!")
+            return 33
+        please = self.please
+        if pkgtype == "pypi":
+            docs_dir = "./docs"
+            if not pth.isdir(docs_dir):
+                if please.opt_args.verbose:
+                    print("Directory %s not found!" % docs_dir)
+                if not please.opt_args.force and not please.opt_args.dry_run:
+                    return 126
+                if not please.opt_args.dry_run:
+                    os.mkdir(docs_dir)
+            self.docs_dir = docs_dir
+            logo = pth.join(docs_dir, "logozero_180x46.png")
+            if not pth.isfile(logo):
+                srclogo = pth.join(
+                    please.get_tools_dir(pkgtool=True), "docs", "logozero_180x46.png")
+                if please.opt_args.verbose:
+                    print("%s cp %s %s" % (">" if please.opt_args.dry_run else "$",
+                                           srclogo,
+                                           logo))
+                if not please.opt_args.dry_run:
+                    shutil.copy(srclogo, logo)
+
+        docdir = docdir or ("readme" if pkgtype == "odoo" else "egg-info")
+        if (
+                not docdir.startswith("/")
+                and not docdir.startswith("./")
+                and not docdir.startswith("~/")
+        ):
+            docdir = pth.join(".", docdir)
+        if not pth.isdir(docdir):
+            if please.opt_args.verbose:
+                print("Directory %s not found!" % docdir)
+            if not please.opt_args.force and not please.opt_args.dry_run:
+                return 126
+            if not please.opt_args.dry_run:
+                os.mkdir(docdir)
+        self.docdir = docdir
+
+        if pkgtype == "odoo":
+            return self.assure_doc_dirs_odoo(is_repo=is_repo)
+        elif pkgtype == "pypi":
+            return self.assure_doc_dirs_pypi()
+        return 33
+
+    def get_gen_readme_base_args(self, branch=None):
+        branch = branch or self.branch
+        args = []
+        if self.please.opt_args.debug:
+            args.append("-B")
+        if branch:
+            args.append("-b")
+            args.append(branch)
+        if self.please.opt_args.force:
+            args.append("-f")
+        if self.please.opt_args.dry_run:
+            args.append("-n")
+        return args
+
+    def extract_fn_from_index(self, index_fn):
+        if (
+                not index_fn.startswith("/")
+                and not index_fn.startswith("./")
+                and not index_fn.startswith("~/")
+        ):
+            index_fn = pth.join(".", "docs", index_fn)
+        doc_files = []
+        if not pth.isfile(index_fn):
+            print("Index file %s not found!" % index_fn)
+        else:
+            with open(index_fn, "r") as fd:
+                for ln in fd.read().split("\n"):
+                    if re.match("^ *(rtd_|pypi_)", ln):
+                        doc_files.append(ln.strip())
+        return doc_files
+
+    def extract_imported_names(self, py_file):
+        if (
+                not py_file.startswith("/")
+                and not py_file.startswith("./")
+                and not py_file.startswith("~/")
+        ):
+            py_file = pth.join(".", py_file)
+        imported_names = []
+        if not pth.isfile(py_file):
+            print("Python file %s not found!" % py_file)
+        else:
+            with open(py_file, "r") as fd:
+                for ln in fd.read().split("\n"):
+                    if re.match("^from . import", ln):
+                        name = ln.strip().split()[3]
+                        if name not in ("scripts", "travis", "_travis"):
+                            imported_names.append(name)
+        return imported_names
+
+    def build_doc_template(self, doc):
+        pkg_name = pth.basename(pth.dirname(os.getcwd()))
+        doctext = ".. toctree::\n"
+        doctext += "   :maxdepth: 2\n"
+        doctext += "\n"
+        if doc == "rtd_automodule":
+            doctext += "Code documentation\n"
+            doctext += "------------------\n"
+            doctext += "\n"
+            names = self.extract_imported_names("__init_.py")
+            for name in names:
+                doctext += ".. automodule:: %s.%s\n" % (pkg_name, name)
+            if pth.isfile("./testenv.py"):
+                doctext += ".. automodule:: %s.testenv.testenv\n" % pkg_name
+        elif doc.startswith("rtd_"):
+            name = doc[4:]
+            if name == "features":
+                doctext += "Features\n"
+                doctext += "--------\n"
+            elif name == "usage":
+                doctext += "Usage\n"
+                doctext += "-----\n"
+            doctext += "\n"
+            doctext += ".. $include readme_footer.rst\n"
+        elif doc.startswith("pypi_"):
+            x = re.match("^pypi.*/index", doc)
+            if x:
+                fn = doc[x.start(): x.end()]
+                dir_fn = pth.join(".", "docs", pth.dirname(fn))
+                # base_fn = pth.basename(fn)
+                if pth.isdir(dir_fn):
+                    os.mkdir(dir_fn)
+                os.system(
+                    "rsync -avz --delete $HOME_DEVEL/pypi/$x/$x/docs/ $docs_dir/$b/")
+        return doctext
+
+    def write_doc(self, doc, doctext):
+        branch = self.branch
+        if doc == "rtd_automodule":
+            fn = pth.join(self.docs_dir, "rtd_automodule.rst")
+        elif doc.startswith("rtd_"):
+            fn = "./rtd_template.rst"
+        with open(fn, "w") as fd:
+            fd.write(doctext)
+        if doc.startswith("rtd_"):
+            args = self.get_gen_readme_base_args(branch=branch)
+            args.append("-t")
+            args.append(fn)
+            args.append("-o")
+            args.append(pth.join(self.docs_dir, doc + ".rst"))
+            sts = self.please.chain_python_cmd("gen_readme.py", args)
+            if sts == 0:
+                os.unlink(fn)
+
+    def get_pypi_author(self, path=None):
+        path = path or os.getcwd()
+        setup = pth.join(path, "setup.py")
+        if not pth.isfile(setup):
+            setup = pth.join(pth.dirname(path), "setup.py")
+        if not pth.isfile(setup):
+            print("No file %s found!" % setup)
+            return "2.0.0"
+        sts, stdout, stderr = self.please.call_chained_python_cmd(setup, ["--author"])
+        if sts:
+            print(stderr)
+            return "2.0.0"
+        return stdout.split("\n")[0].strip()
+
     def do_clean(self):
         please = self.please
         is_odoo = please.is_odoo_pkg()
@@ -289,17 +486,11 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            if os.environ.get("HOME_DEVEL"):
-                tgtdir = pth.join(
-                    pth.dirname(os.environ["HOME_DEVEL"]), "tools"
-                )
-            elif pth.isdir("~/odoo/tools"):
-                tgtdir = pth.expanduser("~/odoo/tools")
-            else:
-                tgtdir = pth.expanduser("~/tools")
+            tgtdir = please.get_tools_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2
+
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
@@ -362,7 +553,7 @@ class PleaseCwd(object):
                         if sts:
                             break
             return sts
-        return please.do_iter_action("do_replace", act_all_pypi=True, act_tools=False)
+        return please.do_iter_action("do_commit", act_all_pypi=True, act_tools=False)
 
     def do_defcon(self):
         print("Missed sepcification:\nplease defcon precommit|gitignore")
@@ -399,25 +590,7 @@ class PleaseCwd(object):
             if pth.isdir(pth.join(ffn, ".git")):
                 submodules.append("/%s" % fn)
 
-        if please.opt_args.debug:
-            if os.environ.get("HOME_DEVEL"):
-                srcpath = pth.join(os.environ["HOME_DEVEL"], "pypi")
-            elif pth.isdir("~/odoo/tools"):
-                srcpath = pth.expanduser("~/odoo/devel/pypi")
-            else:
-                srcpath = pth.expanduser("~/devel/pypi")
-            srcpath = pth.join(srcpath, "tools", "templates")
-        else:
-            if os.environ.get("HOME_DEVEL"):
-                srcpath = pth.join(
-                    pth.dirname(os.environ["HOME_DEVEL"]), "tools"
-                )
-            elif pth.isdir("~/odoo/tools"):
-                srcpath = pth.expanduser("~/odoo/tools")
-            else:
-                srcpath = pth.expanduser("~/odoo/tools")
-            srcpath = pth.join(srcpath, "templates")
-
+        srcpath = pth.join(please.get_tools_dir(pkgtool=True), "templates")
         if is_odoo_pkg and py23 == 2 and tmpl_fn == "pre-commit-config2.yaml":
             srcpath = pth.join(srcpath, "pre-commit-config2.yaml")
         else:
@@ -499,63 +672,27 @@ class PleaseCwd(object):
         if please.is_odoo_pkg():
             sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if sts == 0:
+                self.branch = branch
+                sts = self.assure_doc_dirs(pkgtype="odoo")
+                if sts:
+                    return sts
                 odoo_major_version = int(branch.split(".")[0])
-                # module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
-                if not pth.isdir("./static"):
-                    os.mkdir("./static")
-                if odoo_major_version <= 7:
-                    if not pth.isdir("./static/src"):
-                        os.mkdir("./static/src")
-                    if not pth.isdir("./static/src/img"):
-                        os.mkdir("./static/src/img")
-                else:
-                    if not pth.isdir("./static/description"):
-                        os.mkdir("./static/description")
-                if not pth.isdir("./readme"):
-                    os.mkdir("./readme")
-                chnglog = "./readme/CHANGELOG.rst"
-                if not pth.isfile(chnglog):
-                    with open(chnglog, "w") as fd:
-                        # Conventional date on Odoo Days (October, 1st Thursday)
-                        fd.write(
-                            "%s.0.1.0 %s\n" % (
-                                branch,
-                                {
-                                    6: "2012-10-04",
-                                    7: "2013-10-03",
-                                    8: "2014-10-02",
-                                    9: "2015-10-01",
-                                    10: "2016-10-06",
-                                    11: "2017-10-05",
-                                    12: "2018-10-04",
-                                    13: "2019-10-03",
-                                    14: "2020-10-01",
-                                    15: "2021-10-07",
-                                    16: "2022-10-06",
-                                    17: "2023-10-05",
-                                }[odoo_major_version]
-                            )
-                        )
-                        fd.write("~~~~~~~~~~~~~~~~~~~~~\n")
-                        fd.write("\n")
-                        fd.write("* Initial implementation\n")
-                if (
-                    not pth.isfile("./readme/CONTRIBUTORS.rst")
-                    or not pth.isfile("./readme/AUTHORS.rst")
-                ):
-                    please.chain_python_cmd("gen_readme.py", ["-RW"])
                 if please.opt_args.oca:
                     sts = please.run_traced(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
                         % (branch, repo_name),
                         rtime=True)
                 else:
-                    sts = please.chain_python_cmd("gen_readme.py", [])
+                    args = self.get_gen_readme_base_args(branch=branch)
+                    sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
-                        sts = please.chain_python_cmd("gen_readme.py", ["-H"])
+                        args.append("-H")
+                        sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0 and odoo_major_version <= 7:
-                        sts = please.chain_python_cmd("gen_readme.py", ["-R"])
+                        args = self.get_gen_readme_base_args(branch=branch)
+                        args.append("-R")
+                        sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
                     please.merge_test_result()
                     self.do_clean()
@@ -563,21 +700,53 @@ class PleaseCwd(object):
         elif (
                 please.is_repo_odoo()
                 or please.is_repo_ocb()
-                or please.is_pypi_pkg()
         ):
-            please.sh_subcmd = please.pickle_params(
-                rm_obj=True,
-                slist=[("replace", "docs"),
-                       ("commit", "docs"),
-                       ("-F", ""),
-                       ("--from-version", ""),
-                       ("--no-verify", ""),
-                       ("--vme", ""),
-                       ("--odoo-venv", "")])
-            cmd = please.build_sh_me_cmd(
-                cmd=pth.join(pth.dirname(__file__), "please.sh")
-            )
-            sts = please.run_traced(cmd, rtime=True)
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                self.branch = branch
+                sts = self.assure_doc_dirs(pkgtype="odoo", is_repo=True)
+                if sts:
+                    return sts
+                if not please.opt_args.oca:
+                    args = self.get_gen_readme_base_args(branch=branch)
+                    sts = please.chain_python_cmd("gen_readme.py", args)
+            return sts
+        elif please.is_pypi_pkg():
+            branch = please.get_pypi_version()
+            self.branch = branch
+            pkg_name = pth.basename(pth.dirname(os.getcwd()))
+            sts = self.assure_doc_dirs(pkgtype="pypi")
+            if sts:
+                return sts
+            if not pth.isdir(self.docs_dir):
+                print("Document template directory %s not found!" % self.docs_dir)
+                return 33 if not self.please.opt_args.dry_run else 0
+            doc_files = self.extract_fn_from_index("index.rst")
+            for doc in doc_files:
+                self.write_doc(doc, self.build_doc_template(doc))
+            args = []
+            if self.please.opt_args.debug:
+                args.append("-B")
+            if branch:
+                args.append("-b")
+                args.append(branch)
+            if self.please.opt_args.dry_run:
+                args.append("-n")
+            if pkg_name == "tools":
+                args.append("-W")
+            sts = self.please.chain_python_cmd("gen_readme.py", args)
+            if sts == 0:
+                # author = self.get_pypi_author()
+                saved_pwd = os.getcwd()
+                os.chdir(self.docs_dir)
+                # sts = please.run_traced(
+                #     ("sphinx-quickstart -p '%s' -a '%s' -v '%s' -r '%s' -l en"
+                #      " --no-batchfile --makefile --master index --suffix .rst ./")
+                #     % (pkg_name, author, branch, branch),
+                #     rtime=True,
+                # )
+                sts = please.run_traced("make html", rtime=True)
+                os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
             return sts
@@ -629,17 +798,11 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            if os.environ.get("HOME_DEVEL"):
-                tgtdir = pth.join(
-                    pth.dirname(os.environ["HOME_DEVEL"]), "tools"
-                )
-            elif pth.isdir("~/odoo/tools"):
-                tgtdir = pth.expanduser("~/odoo/tools")
-            else:
-                tgtdir = pth.expanduser("~/tools")
+            tgtdir = please.get_tools_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2
+
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             if pkgname != "tools":
@@ -841,6 +1004,7 @@ class PleaseCwd(object):
                 return 2
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
+            sts = 0
             if pkgname != "tools":
                 fn = pth.join(pth.dirname(srcdir), "setup.py")
                 if pth.isfile(fn):
@@ -924,21 +1088,18 @@ class PleaseCwd(object):
                         x = regex.match(ln)
                         if x:
                             # tag_found = True
-                            if sep:
-                                ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
-                            else:
-                                ver_text = ln[x.start(): x.end()].strip()
-                            ver_text = re.sub(
-                                r"[^\d]([\d\.]+)[^\d]",
-                                r"\1",
-                                ver_text
-                            )
+                            # if sep:
+                            #   ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
+                            # else:
+                            #     ver_text = ln[x.start(): x.end()].strip()
+                            ver_text = x.groups()[1]
+                            cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string
                             if pth.basename(fqn) in ("setup.py",
                                                      "__manifest__.py",
                                                      "__openerp__.rst"):
-                                self.ref_version = ver_text
+                                self.ref_version = cmp_text
                                 print(fqn, "->", ver_text)
-                            elif ver_text != self.ref_version:
+                            elif cmp_text != self.ref_version:
                                 print(fqn, "->", ver_text, "***")
                             elif please.opt_args.verbose > 1:
                                 print(fqn)
@@ -969,17 +1130,17 @@ class PleaseCwd(object):
         please = self.please
         if please.opt_args.from_version:
             REGEX_VER = re.compile(
-                "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
+                "^#? *(__version__|version|release) *= *[\"']?(%s)[\"']?"
                 % please.opt_args.from_version)
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"']%s[\"']"
+                "^ *[\"']version[\"']: [\"'](%s)[\"']"
                 % please.opt_args.from_version)
             REGEX_TESTENV_VER = re.compile("^.* v%s" % please.opt_args.from_version)
         else:
             REGEX_VER = re.compile(
-                "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
+                "^#? *(__version__|version|release) *= *[\"']?([0-9.]+)[\"']?")
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"'][0-9.]+[\"']")
+                "^ *[\"']version[\"']: [\"']([0-9.]+)[\"']")
             REGEX_TESTENV_VER = re.compile(
                 r"^.* v\d\.\d\.\d+")
         if please.is_pypi_pkg():

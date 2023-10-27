@@ -111,8 +111,8 @@ Current version via Git
     source $HOME/devel/activate_tools
 
 
-History
--------
+ChangeLog History
+-----------------
 
 z0lib: 2.0.7 (2023-07-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,7 +150,7 @@ wok_code: 2.0.10 (2023-07-10)
 * [IMP] please show docs: new interface
 * [REF] run_odoo_debug: partial refactoring
 * [IMP] run_odoo_debug: new switch --daemon
-* [IMP] arcangelo: new swicth --string-normalization
+* [IMP] arcangelo: new switch --string-normalization
 * [FIX] please test / run_odoo_debug: minor fixes
 
 
@@ -242,6 +242,7 @@ lisa: 2.0.2 (2022-10-20)
 
 
 
+
 Credits
 =======
 
@@ -254,7 +255,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-08-05
+Last Update / Ultimo aggiornamento: 2023-08-07
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

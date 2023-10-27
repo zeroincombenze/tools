@@ -68,6 +68,7 @@ ALIAS = {
     "odooitaliaassociazione": "odoo-italia",
     "powerp": "librerp",
     "powerp.it": "librerp",
+    "Agile Business Group": "agilebg.com",
 }
 
 
@@ -151,15 +152,17 @@ class License:
             x = re.match("[^<]*", line)
             y = re.search("[<][^>]*", line)
             if x and y:
-                name = line[x.start() : x.end()].strip()
-                url = line[y.start() + 1 : y.end()].strip()
+                name = line[x.start(): x.end()].strip()
+                url = line[y.start() + 1: y.end()].strip()
             else:
                 x = re.match("[^(]*", line)
                 y = re.search("[(][^)]*", line)
                 if x and y:
-                    name = line[x.start() : x.end()].strip()
-                    url = line[y.start() + 1 : y.end()].strip()
+                    name = line[x.start(): x.end()].strip()
+                    url = line[y.start() + 1: y.end()].strip()
                     if "http" not in url and "@" not in url:
+                        if line.startswith(".") or "::" in line:
+                            return False, False, False, False, False
                         name = line.strip()
                         url = ""
                 else:
