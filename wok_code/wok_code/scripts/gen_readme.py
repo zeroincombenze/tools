@@ -432,8 +432,8 @@ def create_def___manifest__(ctx):
     fn = "./readme/__manifest__.rst"
     with open(fn, "w") as fd:
         fd.write(".. $set lang %s\n" % ctx["lang"])
-        fd.write(".. $set name_i18n\n")
-        fd.write(".. $set summary_i18n Documentazione non disponibile\n")
+        fd.write(".. $set name.%s %s\n" % (ctx["lang"], ctx["module_name"]))
+        fd.write(".. $set summary.%s Documentazione non disponibile\n" % ctx["lang"])
         fd.write(".. $set no_section_oca_diff 0\n")
 
 
@@ -472,7 +472,7 @@ def create_def_description(ctx):
 
 
 def create_def_description_i18n(ctx):
-    fn = "./readme/DESCRIPTION_i18n.rst"
+    fn = "./readme/DESCRIPTION.%s.rst" % ctx["lang"]
     with open(fn, "w") as fd:
         fd.write("Descrizione non disponibile\n")
 
@@ -484,7 +484,7 @@ def create_def_configuration(ctx):
 
 
 def create_def_configuration_i18n(ctx):
-    fn = "./readme/CONFIGURATION_I18N.rst"
+    fn = "./readme/CONFIGURATION.%s.rst" % ctx["lang"]
     with open(fn, "w") as fd:
         fd.write("")
 
@@ -496,7 +496,7 @@ def create_def_usage(ctx):
 
 
 def create_def_usage_i18n(ctx):
-    fn = "./readme/USAGE_I18N.rst"
+    fn = "./readme/USAGE.%s.rst" % ctx["lang"]
     with open(fn, "w") as fd:
         fd.write("")
 
@@ -1574,9 +1574,15 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                     target += text
                 elif is_preproc_tag(ctx, line, "set"):
                     tokens = get_preproc_tokens(ctx, line, "set", maxsplit=2)
-                    name = tokens[0]
-                    value = tokens[1]
-                    ctx[name] = value
+                    if "." in tokens[0]:
+                        if tokens[0].endswith(".%s" % ctx["lang"]):
+                            name = tokens[0].split(".")[0] + "_i18n"
+                            value = tokens[1] if len(tokens) > 1 else ""
+                            ctx[name] = value
+                    else:
+                        name = tokens[0]
+                        value = tokens[1] if len(tokens) > 1 else ""
+                        ctx[name] = value
                 elif is_preproc_tag(ctx, line, "merge_docs"):
                     for module in ctx["pypi_modules"].split(" "):
                         # Up to global pypi root
@@ -2323,7 +2329,6 @@ def read_purge_readme(ctx, source):
     while ix < len(lines):
         line = lines[ix]
         next_line = lines[ix + 1] if ix < (len(lines) - 1) else ""
-        # if line.startswith(".. contents::"):
         if is_rst_tag(ctx, line, "contents"):
             out_sections = {"description": "", "authors": "", "contributors": ""}
             ix += 1
@@ -2345,6 +2350,11 @@ def read_purge_readme(ctx, source):
             ix += 1
             continue
         elif re.match("^-+$", line) and not next_line:
+            cur_sect = ""
+        elif (
+            re.match(r"|$", line)
+            and re.match("|$", next_line)
+        ):
             cur_sect = ""
         if cur_sect in list(out_sections.keys()):
             out_sections[cur_sect] += (line + "\n")

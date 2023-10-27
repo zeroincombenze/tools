@@ -1088,21 +1088,18 @@ class PleaseCwd(object):
                         x = regex.match(ln)
                         if x:
                             # tag_found = True
-                            if sep:
-                                ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
-                            else:
-                                ver_text = ln[x.start(): x.end()].strip()
-                            ver_text = re.sub(
-                                r"[^\d]([\d\.]+)[^\d]",
-                                r"\1",
-                                ver_text
-                            )
+                            # if sep:
+                            #   ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
+                            # else:
+                            #     ver_text = ln[x.start(): x.end()].strip()
+                            ver_text = x.groups()[1]
+                            cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string
                             if pth.basename(fqn) in ("setup.py",
                                                      "__manifest__.py",
                                                      "__openerp__.rst"):
-                                self.ref_version = ver_text
+                                self.ref_version = cmp_text
                                 print(fqn, "->", ver_text)
-                            elif ver_text != self.ref_version:
+                            elif cmp_text != self.ref_version:
                                 print(fqn, "->", ver_text, "***")
                             elif please.opt_args.verbose > 1:
                                 print(fqn)
@@ -1133,17 +1130,17 @@ class PleaseCwd(object):
         please = self.please
         if please.opt_args.from_version:
             REGEX_VER = re.compile(
-                "^#? *(__version__|version|release) *= *[\"']?%s[\"']?"
+                "^#? *(__version__|version|release) *= *[\"']?(%s)[\"']?"
                 % please.opt_args.from_version)
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"']%s[\"']"
+                "^ *[\"']version[\"']: [\"'](%s)[\"']"
                 % please.opt_args.from_version)
             REGEX_TESTENV_VER = re.compile("^.* v%s" % please.opt_args.from_version)
         else:
             REGEX_VER = re.compile(
-                "^#? *(__version__|version|release) *= *[\"']?[0-9.]+[\"']?")
+                "^#? *(__version__|version|release) *= *[\"']?([0-9.]+)[\"']?")
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"'][0-9.]+[\"']")
+                "^ *[\"']version[\"']: [\"']([0-9.]+)[\"']")
             REGEX_TESTENV_VER = re.compile(
                 r"^.* v\d\.\d\.\d+")
         if please.is_pypi_pkg():

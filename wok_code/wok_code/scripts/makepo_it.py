@@ -125,6 +125,30 @@ def main(cli_args=None):
                         saved_lines.append(line)
                 else:
                     potext = add_po_line(potext, line)
+            elif line == '""':
+                continue
+            elif re.match(r'^(msgid|msgstr) *"(<.+>)?\\n"', line):
+                if line.startswith("msgid "):
+                    potext = add_po_line(potext, 'msgid ""')
+                    potext = add_po_line(potext, line[6:])
+                elif line.startswith("msgstr "):
+                    potext = add_po_line(potext, 'msgstr ""')
+                    potext = add_po_line(potext, line[7:])
+            elif len(line) >= 80 and not re.match(r"^\" +<", line):
+                if line.startswith("msgid "):
+                    potext = add_po_line(potext, 'msgid ""')
+                    line = line[6:]
+                elif line.startswith("msgstr "):
+                    potext = add_po_line(potext, 'msgstr ""')
+                    line = line[7:]
+                spos = -1
+                if not line.startswith("#") and len(line) >= 88:
+                    spos = line.rfind(" ", 0, 80)
+                if spos < 0:
+                    potext = add_po_line(potext, line)
+                else:
+                    potext = add_po_line(potext, line[:spos + 1] + '"')
+                    potext = add_po_line(potext, '"' + line[spos + 1:])
             else:
                 potext = add_po_line(potext, line)
         if saved_lines and not discard_saved_lines:
