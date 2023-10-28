@@ -3764,7 +3764,7 @@ def rebuild_database(ctx):
         for inv in clodoo.browseL8(
             ctx, resource_invoice, clodoo.searchL8(
                 ctx, resource_invoice, [("type", "in", ["in_invoice", "in_refund"])],
-                    order="date,id")):
+                order="date,id")):
             save_attachment(ctx, inv, attachments)
             if inv.rc_self_invoice_id:
                 sinv_id = inv.rc_self_invoice_id.id
@@ -3873,9 +3873,9 @@ def rebuild_database(ctx):
         ctr = 0
         for inv in clodoo.browseL8(
             ctx, resource_invoice, clodoo.searchL8(
-                    ctx, resource_invoice,
-                    [("type", "in", ["in_invoice", "in_refund"])],
-                    order="date,id")):
+                ctx, resource_invoice,
+                [("type", "in", ["in_invoice", "in_refund"])],
+                order="date,id")):
             msg_burst('Validating inv %s ...' % inv.move_name)
 
             if inv.state == "cancel":
@@ -4055,13 +4055,17 @@ def rebuild_database(ctx):
                             ("partner_id", "=", sel_partner_id),
                             ("journal_id.type", "in", journals)],
                         order="date,id")):
-                ln2_ids = clodoo.searchL8(ctx, _ml, [
-                    ("account_id", "=", sel_account_id),
-                    ("partner_id", "=", sel_partner_id),
-                    ("debit" if ln.credit > 0.0 else "credit",
-                     "=", ln.credit if ln.credit > 0.0 else ln.debit),
-                    ("date", ">=", datetime.strftime(ln.date, "%Y-%m-%d"))],
-                                          order="date,id")
+                ln2_ids = clodoo.searchL8(
+                    ctx,
+                    _ml,
+                    [
+                        ("account_id", "=", sel_account_id),
+                        ("partner_id", "=", sel_partner_id),
+                        ("debit" if ln.credit > 0.0 else "credit",
+                         "=", ln.credit if ln.credit > 0.0 else ln.debit),
+                        ("date", ">=", datetime.strftime(ln.date, "%Y-%m-%d"))
+                    ],
+                    order="date,id")
                 if not ln2_ids:
                     continue
                 if ln.full_reconcile_id:
@@ -4240,6 +4244,59 @@ def rebuild_database(ctx):
     ctr += validate_moves(ctx)
 
     print("%d records update!" % ctr)
+
+
+def migrate_project_timesheet(ctx):
+    print('Migrate timesheet of a project. Require a 2nd DB')
+    if ctx['param_1'] == 'help':
+        print('migrate_project_timesheet src-prjtsk_id')
+        return
+    if not ctx['from_dbname']:
+        print("Missed DB name! Use -z")
+        return
+    if not ctx['from_confn']:
+        print("Missed confn! Use -w")
+        return
+    if not ctx['param_1']:
+        print("Missed source task_id! Use -1")
+        return
+    if not ctx['param_2']:
+        print("Missed target project task_id! Use -2")
+        return
+
+    src_ctx = ctx.copy()
+    src_ctx["confn"] = src_ctx['from_confn']
+    src_ctx["db_name"] = src_ctx['from_dbname']
+    del src_ctx["odoo_vid"]
+    # src_ctx["svc_protocol"] = "xmlrpc"
+    # src_ctx["oe_version"] = "xmlrpc"
+    uid, src_ctx = clodoo.oerp_set_env(confn=src_ctx['confn'],
+                                       db=src_ctx['db_name'],
+                                       ctx=src_ctx)
+
+    _prj_task_work = "project.task.work"
+    _prj_task = "project.task"
+    _acc_anline = "account.analytic.line"
+    prj_task = clodoo.browseL8(ctx, _prj_task, int(ctx['param_2']))
+
+    for ln in clodoo.browseL8(
+            src_ctx, _prj_task_work, clodoo.searchL8(
+                src_ctx, _prj_task_work, [
+                    ("task_id", "=", int(ctx['param_1']))])):
+        print("%-60.60s %6s %s" % (ln.name, ln.hours, ln.date))
+        vals = {
+            "account_id": False,
+            "amount": 0.0,
+            "company_id": prj_task.company_id.id,
+            "date": datetime.strftime(ln.date, "%Y-%m-%d"),
+            "name": ln.name,
+            "partner_id": False,
+            "project_id": prj_task.project_id.id,
+            "task_id": prj_task.id,
+            "unit_amount": ln.hours,
+            "user_id": prj_task.project_id.user_id.id,
+        }
+        clodoo.createL8(ctx, _acc_anline, vals)
 
 
 RND_NAME_IT = [
