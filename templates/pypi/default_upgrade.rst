@@ -1,6 +1,3 @@
-Upgrade
--------
-
 .. $if not no_pypi
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,7 +6,6 @@ Stable version via Python Package
 
     pip install {{name}} -U
 
-|
 
 .. $fi
 Current version via Git
@@ -18,5 +14,5 @@ Current version via Git
 ::
 
     cd $HOME
-    ./install_tools.sh -U
+    ./install_tools.sh -UT
     source $HOME/devel/activate_tools

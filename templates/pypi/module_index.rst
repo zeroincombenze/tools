@@ -19,7 +19,7 @@ Welcome to {{name}} {{branch}} documentation!
 {{description}}
 .. $fi
 .. $if isfile rtd_features.rst
-    rtd_features
+   rtd_features
 .. $fi
 .. $if isfile rtd_installation.rst
    rtd_installation
