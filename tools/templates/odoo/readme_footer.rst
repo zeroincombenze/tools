@@ -1,5 +1,6 @@
 
 |
+|
 
 .. $if odoo_layer == 'module'
 This module is part of {{repos_name}} project.
