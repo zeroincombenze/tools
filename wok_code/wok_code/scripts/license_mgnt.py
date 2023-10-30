@@ -36,16 +36,16 @@ COPY = {
         "website": "https://www.odoo-italia.org",
         "github-user": "OCA",
     },
-    "powerp": {
-        "author": "powERP enterprise network",
-        "website": "https://www.powerp.it",
-        "devman": "powERP enterprise network",
-        "github-user": "PowERP-cloud",
-    },
+    # "powerp": {
+    #     "author": "powERP enterprise network",
+    #     "website": "https://www.powerp.it",
+    #     "devman": "powERP enterprise network",
+    #     "github-user": "PowERP-cloud",
+    # },
     "librerp": {
         "author": "LibrERP enterprise network",
         "website": "https://www.librerp.it",
-        "devman": "LibrERP enterprise network",
+        # "devman": "LibrERP enterprise network",
         "github-user": "LibrERP-network",
     },
     "didotech": {
@@ -69,6 +69,10 @@ ALIAS = {
     "powerp": "librerp",
     "powerp.it": "librerp",
     "Agile Business Group": "agilebg.com",
+}
+ALIAS_NAME = {
+    "Antonio Maria Vigliotti":
+        "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
 }
 
 
@@ -123,7 +127,8 @@ class License:
     def parse_file(self, author_file):
         with open(author_file, "r") as fd:
             for line in _u(fd.read().split("\n")):
-                self.add_copyright(*self.extract_info_from_line(line))
+                self.add_copyright(
+                    *self.extract_info_from_line(line, add_copy=False))
 
     def purge_duplicate(self):
         for name in self.authors.copy().keys():
@@ -142,13 +147,10 @@ class License:
                     del self.contributors[name]
                     break
 
-    def extract_info_from_line(self, line, force=False):
+    def extract_info_from_line(self, line, force=False, add_copy=True):
         """ "Return org_id, name, website, email, years from line"""
 
-        def from_rst_line(line):
-            org_id = False
-            website = False
-            email = False
+        def split_name_url(line):
             x = re.match("[^<]*", line)
             y = re.search("[<][^>]*", line)
             if x and y:
@@ -173,6 +175,16 @@ class License:
             url = url.replace("http:", "https:").replace("http//", "https://")
             if url.endswith("/"):
                 url = url[0:-1]
+            new_name = ALIAS_NAME.get(name, name)
+            if name and new_name != name and not url:
+                return split_name_url(new_name)
+            return name, url
+
+        def from_rst_line(line):
+            org_id = False
+            website = False
+            email = False
+            name, url = split_name_url(line)
             if "@" in url or url.startswith("https://github.com/"):
                 email = url
                 if not name:
@@ -219,7 +231,7 @@ class License:
                         name = item["author"]
                         found = True
                         break
-                if not found:
+                if not found and website:
                     org_id = ALIAS.get(org_id, org_id)
                     COPY[org_id] = {
                         "website": website,
@@ -267,12 +279,19 @@ class License:
 
         line = line.replace("`__", "").replace("`", "")
         if line.startswith("*"):
-            return from_rst_line(line[1:].strip())
+            res = from_rst_line(line[1:].strip())
         elif line.startswith("#"):
-            return from_comment_line(line[1:].strip())
+            res = from_comment_line(line[1:].strip())
         elif force:
-            return from_rst_line(line.strip())
-        return False, False, False, False, False
+            res = from_rst_line(line.strip())
+        else:
+            res = [False, False, False, False, False]
+        if add_copy and res[1]:
+            self.add_copyright(*res)
+            if res[0] and res[0] not in self.org_ids:
+                # Entry purged
+                res = [False, False, False, False, False]
+        return res
 
     def summary_authors(self, summarize=False):
         author = ""

@@ -20,7 +20,10 @@ except ImportError:
     from clodoo import build_odoo_param
 
 __version__ = "2.0.11"
+
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
+RED = "\033[1;31m"
+CLEAR = "\033[0;m"
 
 
 class PleaseCwd(object):
@@ -110,13 +113,13 @@ class PleaseCwd(object):
             self.config = self.please.opt_args.odoo_config or build_odoo_param(
                 "CONFN", odoo_vid=".", multi=True)
         if not pth.isfile(self.config):
-            print("No configuration file %s found!" % self.config)
+            print("%sNo configuration file %s found!%s" % (RED, self.config, CLEAR))
             return 126
         Config = ConfigParser.RawConfigParser()
         Config.read(self.config)
         if not Config.has_section("options"):
-            print("Invalid Configuration file %s: missed [options] section!"
-                  % self.opt_args.config)
+            print("%sInvalid Configuration file %s: missed [options] section!%s"
+                  % (RED, self.opt_args.config, CLEAR))
             return 33
         else:
             for k in (
@@ -216,7 +219,7 @@ class PleaseCwd(object):
 
     def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
         if pkgtype not in ("odoo", "pypi"):
-            print("Invalid package type: use 'odoo' or 'pypi'!")
+            print("%sInvalid package type: use 'odoo' or 'pypi'!%s" % (RED, CLEAR))
             return 33
         please = self.please
         if pkgtype == "pypi":
@@ -285,12 +288,38 @@ class PleaseCwd(object):
             index_fn = pth.join(".", "docs", index_fn)
         doc_files = []
         if not pth.isfile(index_fn):
-            print("Index file %s not found!" % index_fn)
+            print("%sIndex file %s not found!%s" % (RED, index_fn, CLEAR))
         else:
             with open(index_fn, "r") as fd:
                 for ln in fd.read().split("\n"):
                     if re.match("^ *(rtd_|pypi_)", ln):
                         doc_files.append(ln.strip())
+            if not doc_files:
+                print("%sIndex file %s without document list!%s"
+                      % (RED, index_fn, CLEAR))
+        if not doc_files:
+            contents = """
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+%s
+
+.. include: readme_footer
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+""" % "\n".join(["   rtd_" + x[: -4].lower() for x in os.listdir("egg-info")])
+            if self.please.opt_args.force:
+                with open(index_fn, "w") as fd:
+                    fd.write(contents)
+                return self.extract_fn_from_index(index_fn)
+            else:
+                print(contents)
         return doc_files
 
     def extract_imported_names(self, py_file):
@@ -302,7 +331,7 @@ class PleaseCwd(object):
             py_file = pth.join(".", py_file)
         imported_names = []
         if not pth.isfile(py_file):
-            print("Python file %s not found!" % py_file)
+            print("%sPython file %s not found!%s" % (RED, py_file, CLEAR))
         else:
             with open(py_file, "r") as fd:
                 for ln in fd.read().split("\n"):
@@ -327,13 +356,27 @@ class PleaseCwd(object):
             if pth.isfile("./testenv.py"):
                 doctext += ".. automodule:: %s.testenv.testenv\n" % pkg_name
         elif doc.startswith("rtd_"):
+            def_header = {
+                "features": "Features",
+                "usage": "Usage",
+                "prerequisites": "Prerequisites",
+                "configuration": "Configuration",
+                "changelog": "ChangeLog History",
+                "contributors": "Contributors",
+            }
             name = doc[4:]
-            if name == "features":
-                doctext += "Features\n"
-                doctext += "--------\n"
-            elif name == "usage":
-                doctext += "Usage\n"
-                doctext += "-----\n"
+            doctext += (".. $if defined %s\n" % name)
+            doctext += (".. $if isfile rtd_%s.rst\n" % name)
+            header = def_header.get(name)
+            if header:
+                doctext += (header + "\n")
+                doctext += (("-" * len(header)) + "\n")
+                doctext += "\n"
+            doctext += ("   rtd_%s\n" % name)
+            doctext += ".. $else\n"
+            doctext += ("{{%s}}\n" % name)
+            doctext += ".. $fi\n"
+            doctext += ".. $fi\n"
             doctext += "\n"
             doctext += ".. $include readme_footer.rst\n"
         elif doc.startswith("pypi_"):
@@ -724,7 +767,7 @@ class PleaseCwd(object):
             doc_files = self.extract_fn_from_index("index.rst")
             for doc in doc_files:
                 self.write_doc(doc, self.build_doc_template(doc))
-            args = []
+            args = ["-w"]
             if self.please.opt_args.debug:
                 args.append("-B")
             if branch:

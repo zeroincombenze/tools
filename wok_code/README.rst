@@ -29,19 +29,25 @@ The available tools are:
 * wget_odoo_repositories.py: get repository names from github.com
 
 
-|
-|
 
 Getting started
 ===============
 
 
+Prerequisites
+-------------
 
 Zeroincombenze tools require:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
 * python 2.7+, some tools require python 3.6+
 * bash 5.0+
+
+
+
+Installation
+------------
+
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,19 +56,21 @@ Stable version via Python Package
 
     pip install wok_code
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
+
+
+Upgrade
+-------
 
 
 Stable version via Python Package
@@ -72,7 +80,6 @@ Stable version via Python Package
 
     pip install wok_code -U
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,8 +87,9 @@ Current version via Git
 ::
 
     cd $HOME
-    ./install_tools.sh -U
+    ./install_tools.sh -UT
     source $HOME/devel/activate_tools
+
 
 
 ChangeLog History
@@ -188,8 +196,6 @@ ChangeLog History
 * [REF] odoo_translation
 
 
-|
-|
 
 Credits
 =======
@@ -200,24 +206,25 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
 Authors
 -------
 
 * `Antonio Maria Vigliotti <False>`__
 * `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
 
+
 Contributors
 ------------
 
 Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 
+
+|
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-10-28
+Last Update / Ultimo aggiornamento: 2023-10-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

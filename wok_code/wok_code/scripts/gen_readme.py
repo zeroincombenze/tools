@@ -630,7 +630,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
     body = False if (template.startswith("header_")
                      or template.startswith("footer_")) else True
     found, fqn = search_tmpl(ctx, template, body)
-    if not found and body and (ctx["force"] or ctx["write_authinfo"]):
+    if ctx["product_doc"] == "odoo" and not found and body and (
+            ctx["force"] or ctx["write_authinfo"]):
         fct = "create_def_" + pth.splitext(template)[0].lower()
         if fct in globals():
             globals()[fct](ctx)
@@ -1494,7 +1495,7 @@ def append_line(state, line, nl_bef=None):
 def tail(source, max_ctr=None, max_days=None, module=None):
     target = ""
     min_ctr = 2
-    max_ctr = max_ctr or 12
+    max_ctr = max(max_ctr or 12, min_ctr)
     max_days = max_days or 360
     left = ""
     ctr = 0
@@ -1629,6 +1630,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                     target += text
             elif (
                     section == "changelog"
+                    and ctx["product_doc"] == "odoo"
                     and ctx["branch"]
                     and re.search(RE_PAT_DATE, line)
             ):
@@ -1721,7 +1723,7 @@ def parse_local_file(
     if len(source) and section == "changelog":
         source = tail(source)
         if ctx["odoo_layer"] == "module":
-            ctx["history-summary"] = tail(source, max_ctr=1, max_days=30)
+            ctx["history-summary"] = source
     if len(source):
         if ctx["trace_file"]:
             mark = '.. !! from "%s"\n\n' % filename
@@ -2339,8 +2341,12 @@ def read_purge_readme(ctx, source):
         ):
             cur_sect = line.split("/")[0].strip().lower()
             ix += 2
-            if cur_sect == "overview":
+            if (
+                    cur_sect == "overview"
+                    or cur_sect.startswith(ctx["module_name"] + " ")
+            ):
                 cur_sect = "description"
+                out_sections[cur_sect] = ""
             continue
         elif (
             re.match(r"^\|icon\| [A-Za-z]\w\w+", line)
@@ -2352,8 +2358,8 @@ def read_purge_readme(ctx, source):
         elif re.match("^-+$", line) and not next_line:
             cur_sect = ""
         elif (
-            re.match(r"|$", line)
-            and re.match("|$", next_line)
+            re.match(r"\|$", line)
+            and re.match(r"\|$", next_line)
         ):
             cur_sect = ""
         if cur_sect in list(out_sections.keys()):
@@ -2540,6 +2546,13 @@ def generate_readme(ctx):
         else:
             ctx[section] = merge_lists(
                 ctx, ctx["rdme_authors"], ctx[section])
+        authors = []
+        for item in ctx[section]:
+            if not item[2] and item[3]:
+                ctx["contributors"].append(item)
+            else:
+                authors.append(item)
+        ctx[section] = authors
         found = False
         for git_org in ctx[section]:
             if ctx["git_orgid"] == git_org[0]:
@@ -2567,6 +2580,8 @@ def generate_readme(ctx):
 
     def set_website(ctx):
         section = "website"
+        if ctx["product_doc"] == "pypi" and ctx["manifest"].get("author_email"):
+            ctx["manifest"][section] = ctx["manifest"]["author_email"]
         if ctx["write_authinfo"]:
             ctx[section] = ctx["license_mgnt"].get_website(
                 org_id=ctx["git_orgid"],
@@ -2663,6 +2678,7 @@ def generate_readme(ctx):
     # === Starting generate ===
     __init__(ctx)
 
+    ctx = read_manifest_setup(ctx)
     if ctx["odoo_layer"] == "module":
         for fn in ("./README.md", "./README.rst", "../README.rst"):
             if not pth.isfile(fn):
@@ -2674,8 +2690,6 @@ def generate_readme(ctx):
                     ctx["rdme_contributors"],
                 ) = read_purge_readme(ctx, _u(fd.read()))
             break
-
-    ctx = read_manifest_setup(ctx)
     set_default_values(ctx)
     ctx["license_mgnt"] = license_mgnt.License()
     ctx["license_mgnt"].add_copyright(ctx["git_orgid"], "", "", "", "")
@@ -2692,7 +2706,10 @@ def generate_readme(ctx):
                     ignore_ntf=True,
                     section="%s_%s" % (section, sub),
                 )[1]
-        load_section_from_file(ctx, section + "_i18n")
+        if ctx["product_doc"] == "odoo":
+            load_section_from_file(ctx, section + "_i18n")
+        else:
+            ctx[section + "_i18n"] = ""
 
     for tag in DEFINED_TAG:
         load_section_from_file(ctx, tag, is_tag=True)
