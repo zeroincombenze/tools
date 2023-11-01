@@ -755,31 +755,20 @@ Indices and tables
                     sts = please.chain_python_cmd("gen_readme.py", args)
             return sts
         elif please.is_pypi_pkg():
-            branch = please.get_pypi_version()
-            self.branch = branch
-            pkg_name = pth.basename(pth.dirname(os.getcwd()))
+            self.branch = please.get_pypi_version()
+            # pkg_name = pth.basename(pth.dirname(os.getcwd()))
             sts = self.assure_doc_dirs(pkgtype="pypi")
             if sts:
                 return sts
             if not pth.isdir(self.docs_dir):
                 print("Document template directory %s not found!" % self.docs_dir)
                 return 33 if not self.please.opt_args.dry_run else 0
-            doc_files = self.extract_fn_from_index("index.rst")
-            for doc in doc_files:
-                self.write_doc(doc, self.build_doc_template(doc))
-            args = ["-w"]
-            if self.please.opt_args.debug:
-                args.append("-B")
-            if branch:
-                args.append("-b")
-                args.append(branch)
-            if self.please.opt_args.dry_run:
-                args.append("-n")
-            if pkg_name == "tools":
-                args.append("-W")
+            args = self.build_gen_readme_base_args(branch=branch)
             sts = self.please.chain_python_cmd("gen_readme.py", args)
             if sts == 0:
-                # author = self.get_pypi_author()
+                args.append("-H")
+                sts = please.chain_python_cmd("gen_readme.py", args)
+            if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
                 # sts = please.run_traced(

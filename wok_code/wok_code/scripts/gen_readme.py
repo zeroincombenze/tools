@@ -183,13 +183,15 @@ MAGIC_SECTIONS = [
     "rdme_authors",
     "rdme_contributors",
 ]
-PYPI_SECTIONS = [
+PYPI_SECTIONS_HDR = [
     "description",
     "features",
     "prerequisites",
     "installation",
     "configuration",
     "upgrade",
+]
+PYPI_SECTIONS_FOO = [
     "faq",
     "changelog",
     "support",
@@ -1576,15 +1578,16 @@ def sort_history(source):
     return target
 
 
-def load_subsection(ctx, fn, section):
+def load_subsection(ctx, fn, section, sub):
     fqn = pth.join("./egg-info", fn)
     with open(fqn, "r") as fd:
         ctx["contents"] = fd.read()
-    return write_rtd_file(ctx, section)
+    return write_rtd_file(
+        ctx, section, header="Digest of " + sub, fn=pth.join("docs", "rtd_" + fn))
 
 
-def write_rtd_file(ctx, section, header=None):
-    rtd_fn = "./docs/rtd_" + section + ".rst"
+def write_rtd_file(ctx, section, header=None, fn=None):
+    rtd_fn = fn or "./docs/rtd_" + section + ".rst"
     ctx["header"] = header or DEF_HEADER.get(section)
     contents = parse_local_file(
         ctx, "rtd_template.rst", section=section)[1]
@@ -1638,20 +1641,39 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                 elif is_preproc_tag(ctx, line, "pypi_pages"):
                     target += "\n"
                     files = os.listdir("./egg-info")
-                    for section in PYPI_SECTIONS:
+                    submodules = {}
+                    for fn in sorted(files):
+                        sub, ext = pth.splitext(fn)
+                        if ext != ".rst":
+                            continue
+                        sub = sub.lower()
+                        for section in PYPI_SECTIONS_HDR:
+                            if not sub.startswith(section + "_") or sub == section:
+                                continue
+                            sub = sub[len(section) + 1:]
+                            if sub not in submodules:
+                                submodules[sub] = [fn]
+                            else:
+                                submodules[sub].append(fn)
+                    for section in PYPI_SECTIONS_HDR:
                         if not ctx[section]:
                             continue
                         write_rtd_file(ctx, section)
                         target += "   rtd_%s\n" % section
-                        # Search for sub-section documents
-                        for fn in sorted(files):
-                            sub = pth.splitext(fn)[0].lower()
-                            if (
-                                fn.lower().startswith(section)
-                                and sub != section
-                            ):
-                                load_subsection(ctx, fn, section)
-                                target += "   rtd_%s\n" % sub
+                    if submodules:
+                        for sub in sorted(list(submodules.keys())):
+                            for section in PYPI_SECTIONS_HDR:
+                                for fn in submodules[sub]:
+                                    if section not in fn.lower():
+                                        continue
+                                    load_subsection(ctx, fn, section, sub)
+                                    target += ("   rtd_%s\n"
+                                               % pth.splitext(fn)[0].lower())
+                    for section in PYPI_SECTIONS_FOO:
+                        if not ctx[section]:
+                            continue
+                        write_rtd_file(ctx, section)
+                        target += "   rtd_%s\n" % section
                     target += "\n"
                 elif is_preproc_tag(ctx, line, "merge_docs"):
                     for module in ctx["pypi_modules"].split(" "):
