@@ -95,8 +95,8 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.10.1 (2023-08-29)
+~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] gen_readme.py: minor fixes
 * [IMP] gen_readme.py: manifest author priority
@@ -114,8 +114,8 @@ ChangeLog History
 * [FIX] odoo_translation: sometime did not translate
 * [IMP] odoo_translation: best performance
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.10 (2023-07-10)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
 * [IMP] please replace now do "please docs" before
@@ -131,8 +131,8 @@ ChangeLog History
 * [IMP] arcangelo: new swicth --string-normalization
 * [FIX] please test / run_odoo_debug: minor fixes
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.9 (2023-06-26)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
 * [FIX] run_odoo_debug: check for dropped DB and abort if still exist
@@ -144,16 +144,16 @@ ChangeLog History
 * [IMP] gen_readme.py: manage CHANGELOG.rst too
 * [IMP] argangelo: refactoring to run inside pre-commit
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.8 (2023-05-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] Install run_odoo_debug
 * [FIX] Install do_git_ignore
 * [IMP] lint_2_compare: ignore odoo/openerp test string and LICENSE files
 * [IMP] lint_2_compare: new switch ---purge do not load identical files (quick diff)
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.7 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] deply_odoo: new action git-push
 * [REF] odoo_translation: new implementation
@@ -162,8 +162,8 @@ ChangeLog History
 * [IMP] install_python3_from_source: improvements
 * [FIX] ssh.py: scp with port not 22
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.6 (2023-02-23)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] ssh.py: -m -s switches accept path with user and host
 * [IMP] deploy_odoo: new property status to display
@@ -175,23 +175,23 @@ ChangeLog History
 * [IMP] run_odoo_debug.sh: simulate server_wide_modules parameter for Odoo 7.0-
 
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.5 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] please: wep now delete old travis-emulator logs
 * [IMP] install_python_3_from_source.sh: now can install python 3.9
 * [IMP] please: action docs, minor improvements
 * [IMP] deploy_odoo: format output list
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.4 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo: update from path
 * [FIX] build_cmd: best recognition of python version
 * [FIX] set_python_version.sh: best recognition of python version
 
-2.0.11.0.11
-~~~~~~~~~~~
+2.0.3 (2022-11-22)
+~~~~~~~~~~~~~~~~~~
 
 * [REF] odoo_translation
 
@@ -209,14 +209,13 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* `Antonio Maria Vigliotti <False>`__
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
 
 
 Contributors
 ------------
 
-Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+* Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 
 |
@@ -224,7 +223,7 @@ Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-10-30
+Last Update / Ultimo aggiornamento: 2023-11-01
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

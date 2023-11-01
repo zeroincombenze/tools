@@ -199,7 +199,7 @@ class PleaseCwd(object):
                 and (not pth.isfile(pth.join(docdir, "CONTRIBUTORS.rst"))
                      or not pth.isfile(pth.join(docdir, "AUTHORS.rst")))
         ):
-            args = self.get_gen_readme_base_args(branch=branch)
+            args = self.build_gen_readme_base_args(branch=branch)
             args.append("-RW")
             return please.chain_python_cmd("gen_readme.py", args)
         return 0
@@ -265,11 +265,11 @@ class PleaseCwd(object):
             return self.assure_doc_dirs_pypi()
         return 33
 
-    def get_gen_readme_base_args(self, branch=None):
+    def build_gen_readme_base_args(self, branch=None):
         branch = branch or self.branch
         args = []
         if self.please.opt_args.debug:
-            args.append("-B")
+            args.append("-" + ("B" * self.please.opt_args.debug))
         if branch:
             args.append("-b")
             args.append(branch)
@@ -400,7 +400,7 @@ Indices and tables
         with open(fn, "w") as fd:
             fd.write(doctext)
         if doc.startswith("rtd_"):
-            args = self.get_gen_readme_base_args(branch=branch)
+            args = self.build_gen_readme_base_args(branch=branch)
             args.append("-t")
             args.append(fn)
             args.append("-o")
@@ -727,13 +727,13 @@ Indices and tables
                         % (branch, repo_name),
                         rtime=True)
                 else:
-                    args = self.get_gen_readme_base_args(branch=branch)
+                    args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
                         args.append("-H")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0 and odoo_major_version <= 7:
-                        args = self.get_gen_readme_base_args(branch=branch)
+                        args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
@@ -751,7 +751,7 @@ Indices and tables
                 if sts:
                     return sts
                 if not please.opt_args.oca:
-                    args = self.get_gen_readme_base_args(branch=branch)
+                    args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
             return sts
         elif please.is_pypi_pkg():

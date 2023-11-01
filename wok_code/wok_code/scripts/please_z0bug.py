@@ -153,6 +153,36 @@ class PleaseZ0bug(object):
         parser.add_argument("args", nargs="*")
         return parser
 
+    def build_run_odoo_base_args(self, branch=None):
+        please = self.please
+        branch = branch or self.branch
+        args = [
+            "-T",
+            "-m", pth.basename(pth.abspath(os.getcwd())),
+        ]
+        if branch:
+            args.append("-b")
+            args.append(branch)
+        if please.opt_args.debug:
+            args.append("-" + ("B" * please.opt_args.debug))
+        if please.opt_args.odoo_config:
+            args.append("-c")
+            args.append(please.opt_args.odoo_config)
+        if please.opt_args.database:
+            args.append("-d")
+            args.append(please.opt_args.database)
+        if please.opt_args.force:
+            args.append("-f")
+        if hasattr(please, "no_ext_test") and please.no_ext_test:
+            args.append("-K")
+        if please.opt_args.keep:
+            args.append("-k")
+        if please.opt_args.verbose:
+            args.append("-" + ("v" * please.opt_args.verbose))
+        if please.opt_args.dry_run:
+            args.append("-n")
+        return args
+
     def do_lint(self):
         please = self.please
         if please.is_odoo_pkg():
@@ -229,25 +259,7 @@ class PleaseZ0bug(object):
                     and pth.isfile(pth.join("tests", "testenv.py"))
             ):
                 sts, branch = please.get_odoo_branch_from_git()
-                if please.opt_args.debug:
-                    if os.environ.get("HOME_DEVEL"):
-                        srcpath = pth.join(os.environ["HOME_DEVEL"], "pypi")
-                    elif pth.isdir("~/odoo/tools"):
-                        srcpath = pth.expanduser("~/odoo/devel/pypi")
-                    else:
-                        srcpath = pth.expanduser("~/devel/pypi")
-                    srcpath = pth.join(
-                        srcpath, "z0bug_odoo", "z0bug_odoo", "testenv")
-                else:
-                    if os.environ.get("HOME_DEVEL"):
-                        srcpath = pth.join(
-                            pth.dirname(os.environ["HOME_DEVEL"]), "tools"
-                        )
-                    elif pth.isdir("~/odoo/tools"):
-                        srcpath = pth.expanduser("~/odoo/tools")
-                    else:
-                        srcpath = pth.expanduser("~/odoo/tools")
-                    srcpath = pth.join(srcpath, "z0bug_odoo", "testenv")
+                srcpath = pth.join(please.get_tools_dir(), "z0bug_odoo", "testenv")
                 if branch and int(branch.split(".")[0]) <= 7:
                     please.run_traced(
                         "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
@@ -273,31 +285,7 @@ class PleaseZ0bug(object):
                         if do_rewrite:
                             with open(pth.join("tests", fn), "w") as fd:
                                 fd.write(new_content)
-            args = [
-                "-T",
-                "-m", pth.basename(pth.abspath(os.getcwd())),
-            ]
-            if branch:
-                args.append("-b")
-                args.append(branch)
-            if please.opt_args.debug:
-                args.append("-" + ("B" * please.opt_args.debug))
-            if please.opt_args.odoo_config:
-                args.append("-c")
-                args.append(please.opt_args.odoo_config)
-            if please.opt_args.database:
-                args.append("-d")
-                args.append(please.opt_args.database)
-            if please.opt_args.force:
-                args.append("-f")
-            if hasattr(please, "no_ext_test") and please.no_ext_test:
-                args.append("-K")
-            if please.opt_args.keep:
-                args.append("-k")
-            if please.opt_args.verbose:
-                args.append("-" + ("v" * please.opt_args.verbose))
-            if please.opt_args.dry_run:
-                args.append("-n")
+            args = self.build_run_odoo_base_args()
             sts = please.chain_python_cmd("run_odoo_debug.py", args)
             if sts:
                 return sts

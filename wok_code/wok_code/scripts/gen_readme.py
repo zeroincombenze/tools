@@ -136,7 +136,6 @@ GIT_USER = {
 DEFINED_SECTIONS = [
     "changelog",
     "description",
-    # "description_i18n",
     "features",
     "oca_diff",
     "certifications",
@@ -184,6 +183,32 @@ MAGIC_SECTIONS = [
     "rdme_authors",
     "rdme_contributors",
 ]
+PYPI_SECTIONS = [
+    "description",
+    "features",
+    "prerequisites",
+    "installation",
+    "configuration",
+    "upgrade",
+    "faq",
+    "changelog",
+    "support",
+    "authors",
+    "contributors",
+]
+DEF_HEADER = {
+    "description": "Overview",
+    "features": "Features",
+    "prerequisites": "Prerequisites",
+    "installation": "Installation",
+    "configuration": "Configuration",
+    "upgrade": "Upgrade",
+    "faq": "FAQ",
+    "changelog": "ChangeLog History",
+    "support": "Support",
+    "authors": "Authors",
+    "contributors": "Contributors",
+}
 # Search for old deprecated name for section
 ALTERNATE_NAMES = {
     "changelog": "history",
@@ -394,8 +419,9 @@ def __init__(ctx):
                 ctx["odoo_layer"] = "repository"
 
     # Read predefined section / tags
-    for section in MAGIC_SECTIONS:
+    for section in MAGIC_SECTIONS + DEFINED_SECTIONS + DEFINED_TAG:
         ctx[section] = ""
+        ctx[section + "_i18n"] = ""
     ctx["pre_pat"] = r"\.\. +\$"
 
     if ctx["product_doc"] == "odoo":
@@ -1400,6 +1426,8 @@ def is_preproc_line(ctx, line, state):
             is_preproc = True
         elif is_preproc_tag(ctx, line, "set"):
             is_preproc = True
+        elif is_preproc_tag(ctx, line, "pypi_pages"):
+            is_preproc = True
         elif is_preproc_tag(ctx, line, "merge_docs"):
             is_preproc = True
     return state, is_preproc
@@ -1548,6 +1576,24 @@ def sort_history(source):
     return target
 
 
+def load_subsection(ctx, fn, section):
+    fqn = pth.join("./egg-info", fn)
+    with open(fqn, "r") as fd:
+        ctx["contents"] = fd.read()
+    return write_rtd_file(ctx, section)
+
+
+def write_rtd_file(ctx, section, header=None):
+    rtd_fn = "./docs/rtd_" + section + ".rst"
+    ctx["header"] = header or DEF_HEADER.get(section)
+    contents = parse_local_file(
+        ctx, "rtd_template.rst", section=section)[1]
+    with open(rtd_fn, "w") as fd:
+        fd.write(contents)
+    if "contents" in ctx:
+        del ctx["contents"]
+
+
 def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=None):
     state = state or _init_state()
     out_fmt = out_fmt or state.get("out_fmt", "rst")
@@ -1569,9 +1615,14 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text + "\n"
                 elif is_preproc_tag(ctx, line, "block"):
-                    filename = get_preproc_tokens(ctx, line, "block")[0]
-                    state, text = parse_local_file(ctx, filename, state=state)
-                    state, text = append_line(state, text, nl_bef=nl_bef)
+                    blockname = get_preproc_tokens(ctx, line, "block")[0]
+                    if ctx.get(blockname):
+                        state, text = append_line(state, ctx[blockname], nl_bef=nl_bef)
+                    elif ctx.get(section):
+                        state, text = append_line(state, ctx[section], nl_bef=nl_bef)
+                    else:
+                        text = "NO BLOCK '%s' FOUND" % blockname
+                        print(RED, text, CLEAR)
                     target += text
                 elif is_preproc_tag(ctx, line, "set"):
                     tokens = get_preproc_tokens(ctx, line, "set", maxsplit=2)
@@ -1584,6 +1635,24 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                         name = tokens[0]
                         value = tokens[1] if len(tokens) > 1 else ""
                         ctx[name] = value
+                elif is_preproc_tag(ctx, line, "pypi_pages"):
+                    target += "\n"
+                    files = os.listdir("./egg-info")
+                    for section in PYPI_SECTIONS:
+                        if not ctx[section]:
+                            continue
+                        write_rtd_file(ctx, section)
+                        target += "   rtd_%s\n" % section
+                        # Search for sub-section documents
+                        for fn in sorted(files):
+                            sub = pth.splitext(fn)[0].lower()
+                            if (
+                                fn.lower().startswith(section)
+                                and sub != section
+                            ):
+                                load_subsection(ctx, fn, section)
+                                target += "   rtd_%s\n" % sub
+                    target += "\n"
                 elif is_preproc_tag(ctx, line, "merge_docs"):
                     for module in ctx["pypi_modules"].split(" "):
                         # Up to global pypi root
@@ -2192,12 +2261,17 @@ def set_default_values(ctx):
             ctx["prior_branch"] = "%d.%d" % (pmv, releases[1])
     if ctx["output_file"]:
         ctx["dst_file"] = ctx["output_file"]
-    elif ctx["write_html"]:
+    elif ctx["write_html"] and ctx["product_doc"] == "odoo":
         if pth.isdir("./static/description"):
             ctx["dst_file"] = "./static/description/index.html"
         else:
             ctx["dst_file"] = "./index.html"
         ctx["trace_file"] = False
+    elif ctx["write_html"] and ctx["product_doc"] == "pypi":
+        if pth.isdir("./docs"):
+            ctx["dst_file"] = "./docs/index.rst"
+        else:
+            ctx["dst_file"] = "./index.rst"
     elif (
         ctx["product_doc"] == "odoo"
         and ctx["odoo_layer"] == "module"
@@ -2230,7 +2304,7 @@ def set_default_values(ctx):
         ctx["manifest"].get("summary", ctx["name"]).strip().replace("\n", " ")
     )
     ctx["zero_tools"] = (
-        "`Zeroincombenze Tools " "<https://zeroincombenze-tools.readthedocs.io/>`__"
+        "`Zeroincombenze Tools <https://zeroincombenze-tools.readthedocs.io/>`__"
     )
     if ctx["odoo_layer"] == "ocb":
         ctx["local_path"] = "%s/%s" % (ctx["ODOO_ROOT"], ctx["branch"])
@@ -2708,8 +2782,6 @@ def generate_readme(ctx):
                 )[1]
         if ctx["product_doc"] == "odoo":
             load_section_from_file(ctx, section + "_i18n")
-        else:
-            ctx[section + "_i18n"] = ""
 
     for tag in DEFINED_TAG:
         load_section_from_file(ctx, tag, is_tag=True)
@@ -2751,7 +2823,7 @@ def generate_readme(ctx):
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
 
-    if ctx["write_html"]:
+    if ctx["write_html"] and ctx["product_doc"] == "odoo":
         icon_fn = pth.join(ctx["img_dir"], ctx["src_icon"])
         if not pth.isfile(icon_fn):
             if ctx["debug_template"]:
@@ -2776,6 +2848,10 @@ def generate_readme(ctx):
         target = index_html_content(
             ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")[1]
         )
+    elif ctx["write_html"] and ctx["product_doc"] == "pypi":
+        if not ctx["template_name"]:
+            ctx["template_name"] = "module_index.rst"
+        target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")[1]
     else:
         if not ctx["template_name"]:
             ctx["template_name"] = "readme_main_%s.rst" % ctx["odoo_layer"]
