@@ -328,7 +328,7 @@ Acknoledges to
                         self.fn_source(os.path.join(moduledir, "README.rst")),
                         msg_info=os.path.join(moduledir,
                                               "README.rst") + "  #" + odoo_version)
-        return sts
+        return self.ret_sts()
 
 
 #
