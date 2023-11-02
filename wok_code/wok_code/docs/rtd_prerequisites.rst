@@ -1,6 +1,9 @@
 .. toctree::
    :maxdepth: 2
 
+Prerequisites
+-------------
+
 Zeroincombenze tools require:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
@@ -14,7 +17,7 @@ Zeroincombenze tools require:
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-11-01
+Last Update / Ultimo aggiornamento: 2023-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

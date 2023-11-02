@@ -1,6 +1,9 @@
 .. toctree::
    :maxdepth: 2
 
+Digest of structure
+-------------------
+
 Odoo structure
 ~~~~~~~~~~~~~~
 
@@ -114,10 +117,12 @@ This is the hierarchical layout):
     {powerp-modules} Italian Accounting modules
 
 
+
+|
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-08-07
+Last Update / Ultimo aggiornamento: 2023-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

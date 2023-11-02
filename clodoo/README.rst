@@ -14,7 +14,7 @@ Overview
 ========
 
 Introduction
-____________
+------------
 
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
 
@@ -245,6 +245,8 @@ where:
 Getting started
 ===============
 
+N/A
+
 Prerequisites
 -------------
 
@@ -257,6 +259,8 @@ Zeroincombenze tools require:
 
 Installation
 ------------
+
+N/A
 
 
 Stable version via Python Package

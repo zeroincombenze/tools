@@ -279,49 +279,6 @@ class PleaseCwd(object):
             args.append("-n")
         return args
 
-    def extract_fn_from_index(self, index_fn):
-        if (
-                not index_fn.startswith("/")
-                and not index_fn.startswith("./")
-                and not index_fn.startswith("~/")
-        ):
-            index_fn = pth.join(".", "docs", index_fn)
-        doc_files = []
-        if not pth.isfile(index_fn):
-            print("%sIndex file %s not found!%s" % (RED, index_fn, CLEAR))
-        else:
-            with open(index_fn, "r") as fd:
-                for ln in fd.read().split("\n"):
-                    if re.match("^ *(rtd_|pypi_)", ln):
-                        doc_files.append(ln.strip())
-            if not doc_files:
-                print("%sIndex file %s without document list!%s"
-                      % (RED, index_fn, CLEAR))
-        if not doc_files:
-            contents = """
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-%s
-
-.. include: readme_footer
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-""" % "\n".join(["   rtd_" + x[: -4].lower() for x in os.listdir("egg-info")])
-            if self.please.opt_args.force:
-                with open(index_fn, "w") as fd:
-                    fd.write(contents)
-                return self.extract_fn_from_index(index_fn)
-            else:
-                print(contents)
-        return doc_files
-
     def extract_imported_names(self, py_file):
         if (
                 not py_file.startswith("/")
@@ -763,7 +720,7 @@ Indices and tables
             if not pth.isdir(self.docs_dir):
                 print("Document template directory %s not found!" % self.docs_dir)
                 return 33 if not self.please.opt_args.dry_run else 0
-            args = self.build_gen_readme_base_args(branch=branch)
+            args = self.build_gen_readme_base_args(branch=self.branch)
             sts = self.please.chain_python_cmd("gen_readme.py", args)
             if sts == 0:
                 args.append("-H")

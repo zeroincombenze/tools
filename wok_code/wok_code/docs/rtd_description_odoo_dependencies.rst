@@ -1,6 +1,14 @@
 .. toctree::
    :maxdepth: 2
 
+Digest of odoo_dependencies
+---------------------------
+
+odoo_dependecies.py: show odoo dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Show information about odoo dependencies and module tree.
+
 
 
 |
@@ -8,7 +16,7 @@
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-11-01
+Last Update / Ultimo aggiornamento: 2023-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

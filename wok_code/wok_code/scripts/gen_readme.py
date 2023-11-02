@@ -1578,6 +1578,47 @@ def sort_history(source):
     return target
 
 
+def extract_imported_names(ctx):
+    py_file = pth.join("./__init__.py")
+    imported_names = []
+    if not pth.isfile(py_file):
+        print("%sPython file %s not found!%s" % (RED, py_file, CLEAR))
+    else:
+        with open(py_file, "r") as fd:
+            for ln in fd.read().split("\n"):
+                if re.match(r"^from \. import", ln):
+                    name = ln.strip().split()[3]
+                    if name not in ("scripts", "travis", "_travis"):
+                        imported_names.append(name)
+    return imported_names
+
+
+def write_automodule(ctx):
+    def write_1_automodule(ctx, name):
+        fqn = "%s.%s" % (ctx["module_name"], name)
+        ctx["contents"] += ("\n" + fqn + "\n")
+        ctx["contents"] += ("~" * len(fqn))
+        ctx["contents"] += "\n\n"
+        ctx["contents"] += ".. automodule:: %s\n" % fqn
+
+    names = extract_imported_names(ctx)
+    if names:
+        rtd_fn = "./docs/rtd_automodule.rst"
+        ctx["header"] = ctx["contents"] = ""
+        for name in names:
+            write_1_automodule(ctx, name)
+        if pth.isfile("./testenv/testenv.py"):
+            write_1_automodule(ctx, "testenv")
+        contents = parse_local_file(
+            ctx, "rtd_template_automodule.rst", section="usage")[1]
+        with open(rtd_fn, "w") as fd:
+            fd.write(contents)
+        if "contents" in ctx:
+            del ctx["contents"]
+        return "   rtd_automodule"
+    return ""
+
+
 def load_subsection(ctx, fn, section, sub):
     fqn = pth.join("./egg-info", fn)
     with open(fqn, "r") as fd:
@@ -1669,6 +1710,8 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                                     load_subsection(ctx, fn, section, sub)
                                     target += ("   rtd_%s\n"
                                                % pth.splitext(fn)[0].lower())
+                    target += write_automodule(ctx)
+                    target += "\n"
                     for section in PYPI_SECTIONS_FOO:
                         if not ctx[section]:
                             continue

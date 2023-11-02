@@ -1,6 +1,9 @@
 .. toctree::
    :maxdepth: 2
 
+Overview
+--------
+
 Sparse python and bash source code
 
 +--------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -35,7 +38,7 @@ Sparse python and bash source code
 |
 
 
-Last Update / Ultimo aggiornamento: 2023-11-01
+Last Update / Ultimo aggiornamento: 2023-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

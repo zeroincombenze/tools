@@ -8,6 +8,3 @@ Simple bash library
 | print_help    | Print help for parse command line arguments               |
 +---------------+-----------------------------------------------------------+
 
-You can find more info here:
-http://wiki.zeroincombenze.org/en/Linux/dev
-http://docs.zeroincombenze.org/z0lib/
