@@ -1,14 +1,27 @@
 .. toctree::
    :maxdepth: 2
 
-Features
---------
+Installation
+------------
 
-* Test execution log
-* Autodiscovery test modules and functions
-* Python 2.7+ and 3.5+
-* coverage integration
-* travis integration
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install zerobug
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
 
 
 

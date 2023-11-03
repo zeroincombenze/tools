@@ -1,14 +1,14 @@
 .. toctree::
    :maxdepth: 2
 
-Features
---------
+Prerequisites
+-------------
 
-* Test execution log
-* Autodiscovery test modules and functions
-* Python 2.7+ and 3.5+
-* coverage integration
-* travis integration
+Zeroincombenze tools require:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+
+* bash 5.0+
 
 
 

@@ -1,14 +1,26 @@
 .. toctree::
    :maxdepth: 2
 
-Features
---------
+Upgrade
+-------
 
-* Test execution log
-* Autodiscovery test modules and functions
-* Python 2.7+ and 3.5+
-* coverage integration
-* travis integration
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install zerobug -U
+
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    ./install_tools.sh -UT
+    source $HOME/devel/activate_tools
 
 
 

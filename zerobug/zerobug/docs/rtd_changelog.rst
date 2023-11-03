@@ -1,14 +1,53 @@
 .. toctree::
    :maxdepth: 2
 
-Features
---------
+ChangeLog History
+-----------------
 
-* Test execution log
-* Autodiscovery test modules and functions
-* Python 2.7+ and 3.5+
-* coverage integration
-* travis integration
+2.0.9.1 (2023-09-08)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring
+* [IMP] New functions: assertEqual, assertTrue and assertFalse
+
+2.0.9 (2023-07-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] zerobug implementation with unittest
+* [FIX] z0testlib.py: build_odoo_env, odoo-bin / openerp-server are executable
+* [FIX] z0testlib.py: minor fixes
+
+2.0.7 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_run_pypi_tests: new switch -p PATTERN
+
+2.0.6 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Now all_tests is ignored
+* [IMP] Build Odoo environment for Odoo 16.0
+
+2.0.5 (2023-03-24)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis_install_env: ensure list_requirements is executable
+* [IMP] flake8 configuration
+* [IMP] coveralls and codecov are not more dependencies
+* [IMP] Test for Odoo 16.0
+
+2.0.4 (2022-12-08)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_pypi_test: best recognition of python version
+* [FIX] build_cmd: best recognition of python version
+* [FIX] travis_install_env: ensure coverage version
+* [IMP] odoo environment to test more precise
+
+2.0.3 (2022-11-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] npm management
 
 
 

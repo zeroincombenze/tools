@@ -204,17 +204,17 @@ class PypiTest(unittest.TestCase):
     # --  Counted assertion functions --
     # ----------------------------------
 
-    def assertFalse(self, expr, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertFalse(expr, msg=msg)
-
     def assertTrue(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         return super(PypiTest, self).assertTrue(expr, msg=msg)
+
+    def assertFalse(self, expr, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertFalse(expr, msg=msg)
 
     def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
         self.assert_counter += 1
@@ -256,29 +256,29 @@ class PypiTest(unittest.TestCase):
             print(("%d. " % self.assert_counter) + msg_info)
         return super(PypiTest, self).assertIsNot(expr1, expr2, msg=msg)
 
-    def assertLess(self, a, b, msg=None, msg_info=None):
+    def assertLess(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertLess(a, b, msg=msg)
+        return super(PypiTest, self).assertLess(first, second, msg=msg)
 
-    def assertLessEqual(self, a, b, msg=None, msg_info=None):
+    def assertLessEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertLessEqual(a, b, msg=msg)
+        return super(PypiTest, self).assertLessEqual(first, second, msg=msg)
 
-    def assertGreater(self, a, b, msg=None, msg_info=None):
+    def assertGreater(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertGreater(a, b, msg=msg)
+        return super(PypiTest, self).assertGreater(first, second, msg=msg)
 
-    def assertGreaterEqual(self, a, b, msg=None, msg_info=None):
+    def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertGreaterEqual(a, b, msg=msg)
+        return super(PypiTest, self).assertGreaterEqual(first, second, msg=msg)
 
     def assertIsNone(self, obj, msg=None, msg_info=None):
         self.assert_counter += 1
@@ -303,6 +303,20 @@ class PypiTest(unittest.TestCase):
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         return super(PypiTest, self).assertNotIsInstance(obj, cls, msg=msg)
+
+    def assertMatch(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        msg = msg or ("Value <<%s>> does not match <<%s>>!" % (first, second))
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsNotNone(re.match(second, first), msg=msg)
+
+    def assertNotMatch(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        msg = msg or ("Value <<%s>> does match <<%s>>!" % (first, second))
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        return super(PypiTest, self).assertIsNone(re.match(second, first), msg=msg)
 
 
 class Macro(Template):
@@ -603,7 +617,9 @@ class Z0test(object):
     def inherit_cls(self, test_cls):
         setattr(test_cls, "Z", self)
         for name in (
-                "assertEqual", "assertTrue", "assertFalse",
+                "assertTrue", "assertFalse", "assertEqual", "assertNotEqual",
+                "assertIn", "assertNotIn",
+                "assertLess", "assertLessEqual", "assertGreater", "assertGreaterEqual",
                 "assertMatch", "assertNotMatch",
                 "ret_sts",
         ):
@@ -1417,8 +1433,9 @@ class Z0test(object):
         return TEST_SUCCESS
 
     def assertTrue(self, expr, msg=None, msg_info=None):
+        self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if not bool(expr):
             print(msg or "Invalid value <<%s>>!" % expr)
             self.successful = False
@@ -1427,8 +1444,9 @@ class Z0test(object):
         return self.ret_sts()
 
     def assertFalse(self, expr, msg=None, msg_info=None):
+        self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if bool(expr):
             print(msg or "Invalid value <<%s>>!" % expr)
             self.successful = False
@@ -1439,9 +1457,20 @@ class Z0test(object):
     def assertEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if first != second:
-            print(msg or "Value <<%s>> is different form <<%s>>!" % (first, second))
+            print(msg or "Value <<%s>> is different from <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertNotEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first == second:
+            print(msg or "Value <<%s>> is equal to <<%s>>!" % (first, second))
             self.successful = False
             if self.failfast:
                 raise AssertionError
@@ -1450,9 +1479,65 @@ class Z0test(object):
     def assertIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if first not in second:
             print(msg or "Value <<%s>> is not in <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertNotIn(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first in second:
+            print(msg or "Value <<%s>> is in <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertLess(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first >= second:
+            print(msg or "Value <<%s>> is greater or equal to <<%s>>!" % (first,
+                                                                          second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertLessEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first > second:
+            print(msg or "Value <<%s>> is greater than <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertGreater(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first <= second:
+            print(msg or "Value <<%s>> is less or equal to <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(("%d. " % self.assert_counter) + msg_info)
+        if first < second:
+            print(msg or "Value <<%s>> is less than <<%s>>!" % (first, second))
             self.successful = False
             if self.failfast:
                 raise AssertionError
@@ -1464,6 +1549,17 @@ class Z0test(object):
             print(msg_info)
         if not re.match(second, first):
             print(msg or "Value <<%s>> does not match <<%s>>!" % (first, second))
+            self.successful = False
+            if self.failfast:
+                raise AssertionError
+        return self.ret_sts()
+
+    def assertNotMatch(self, first, second, msg=None, msg_info=None):
+        self.assert_counter += 1
+        if msg_info:
+            print(msg_info)
+        if re.match(second, first):
+            print(msg or "Value <<%s>> does match <<%s>>!" % (first, second))
             self.successful = False
             if self.failfast:
                 raise AssertionError
