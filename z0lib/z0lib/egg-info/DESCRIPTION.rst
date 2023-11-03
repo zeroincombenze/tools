@@ -1,10 +1,14 @@
-Simple bash library
+z0lib is a simple bash and python library.
 
-+---------------+-----------------------------------------------------------+
-| xuname        | Detect and print more OS informations than uname command  |
-+---------------+-----------------------------------------------------------+
-| parse_optargs | Parse command line arguments in a professional way        |
-+---------------+-----------------------------------------------------------+
-| print_help    | Print help for parse command line arguments               |
-+---------------+-----------------------------------------------------------+
+It was created to give support to bash and python software.
+The package has both bash version and both python version of funcions.
+Since 2023, bash development was abandoned and only python code is stil upgraded.
 
+.. important::
+
+    However, most functions are still available for bash scripts.
+
+The available libraries are:
+
+* z0librc: bash version library
+* z0librun.py: python version library
