@@ -42,6 +42,8 @@ except ImportError:
 
 __version__ = "2.0.11"
 
+DOUBLE_CHARS = _u("✅❌")
+
 msg_time = time.time()
 
 
@@ -63,7 +65,16 @@ def items_2_unicode(src):
     return src
 
 
-def format_line(col_size, row, sep=None, flist=None):
+def format_line(ctx, cols_size, row, sep=None, flist=None):
+    def format_field(sep, sz, field):
+        if sep:
+            line = '-' * (sz + 2)
+            line += '+'
+        else:
+            fmt_line = ' %%-%d.%ds |' % (sz, sz)
+            line = fmt_line % field
+        return line
+
     sep = sep or False
     flist = flist or row
     if sep:
@@ -71,15 +82,21 @@ def format_line(col_size, row, sep=None, flist=None):
     else:
         line = '|'
     for i, p in enumerate(flist):
-        if sep:
-            line += '-' * (col_size[p] + 2)
-            line += '+'
-        elif isinstance(row, list):
-            fmt_line = ' %%-%d.%ds |' % (col_size[p], col_size[p])
-            line += fmt_line % row[i]
-        else:
-            fmt_line = ' %%-%d.%ds |' % (col_size[p], col_size[p])
-            line += fmt_line % row[p]
+        sz = cols_size[p]
+        # if not sep and ctx["wrap"]:
+        #     if isinstance(row, list) and row[i] > cols_size[p]:
+        #         pass
+        if not sep and ctx["sphynx"]:
+            if isinstance(row, list):
+                for ch in DOUBLE_CHARS:
+                    sz -= row[i].count(ch)
+            else:
+                for ch in DOUBLE_CHARS:
+                    sz -= row[p].count(ch)
+        line += format_field(
+            sep,
+            sz,
+            "" if sep else row[i] if isinstance(row, list) else row[p])
     line += '\n'
     return line
 
@@ -90,7 +107,7 @@ def convert_text(ctx, src_string):
         'odoo', delimiter=_c(','), quotechar=_c('\"'), quoting=csv.QUOTE_MINIMAL
     )
     ctr = 0
-    col_size = {}
+    cols_size = {}
     text = ''
     if sys.version_info[0] == 2:
         csv_fd = BytesIO(_b(src_string))
@@ -104,22 +121,22 @@ def convert_text(ctx, src_string):
         if not hdr_read:
             csv_obj.fieldnames = items_2_unicode(row['undef_name'])
             for p in csv_obj.fieldnames:
-                col_size[p] = min(len(p), 8)
+                cols_size[p] = min(len(p), 8)
             hdr_read = True
             continue
         if row[csv_obj.fieldnames[0]][0:4] == '.. $':
             pass
         else:
             for p in csv_obj.fieldnames:
-                col_size[p] = max(col_size[p], min(len(row[p] or ""), max_col_width))
+                cols_size[p] = max(cols_size[p], min(len(row[p] or ""), max_col_width))
     tot_size = 1
     for p in csv_obj.fieldnames:
-        tot_size += col_size[p]
+        tot_size += cols_size[p]
         tot_size += 1
     if tot_size < 88:
         ratio = 88 / tot_size
         for p in csv_obj.fieldnames:
-            col_size[p] = int(col_size[p] * ratio)
+            cols_size[p] = int(cols_size[p] * ratio)
     csv_fd.close()
     if sys.version_info[0] == 2:
         csv_fd = BytesIO(_b(src_string))
@@ -134,9 +151,9 @@ def convert_text(ctx, src_string):
             row['undef_name'] = items_2_unicode(row['undef_name'])
             csv_obj.fieldnames = row['undef_name']
             hdr_read = True
-            text += format_line(col_size, row['undef_name'], sep=True)
-            text += format_line(col_size, row['undef_name'])
-            text += format_line(col_size, row['undef_name'], sep=True)
+            text += format_line(ctx, cols_size, row['undef_name'], sep=True)
+            text += format_line(ctx, cols_size, row['undef_name'])
+            text += format_line(ctx, cols_size, row['undef_name'], sep=True)
             continue
         row = items_2_unicode(row)
         if row[csv_obj.fieldnames[0]][0:4] == '.. $':
@@ -144,8 +161,8 @@ def convert_text(ctx, src_string):
             text += '\n'
         else:
             ctr += 1
-            text += format_line(col_size, row, flist=csv_obj.fieldnames)
-            text += format_line(col_size, row, sep=True, flist=csv_obj.fieldnames)
+            text += format_line(ctx, cols_size, row, flist=csv_obj.fieldnames)
+            text += format_line(ctx, cols_size, row, sep=True, flist=csv_obj.fieldnames)
     csv_fd.close()
     return text
 
@@ -183,8 +200,10 @@ def main(cli_args=None):
     )
     parser.add_argument('-n')
     parser.add_argument('-q')
+    parser.add_argument('-S', '--sphynx', action='store_true')
     parser.add_argument('-V')
     parser.add_argument('-v')
+    # parser.add_argument('-w', '--wrap', action='store')
     parser.add_argument('src_file')
     parser.add_argument('dst_file', nargs='?')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))

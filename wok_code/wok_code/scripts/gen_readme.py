@@ -90,6 +90,7 @@ import re
 import sys
 from datetime import datetime
 from shutil import copyfile
+from subprocess import call
 
 from future import standard_library
 from lxml import etree
@@ -201,14 +202,14 @@ PYPI_SECTIONS_FOO = [
 DEF_HEADER = {
     "description": "Overview",
     "features": "Features",
-    "prerequisites": "Prerequisites",
+    "prerequisites": ["Getting started", "Prerequisites"],
     "installation": "Installation",
     "configuration": "Configuration",
     "upgrade": "Upgrade",
     "faq": "FAQ",
     "changelog": "ChangeLog History",
     "support": "Support",
-    "authors": "Authors",
+    "authors": ["Credits", "Authors"],
     "contributors": "Contributors",
 }
 # Search for old deprecated name for section
@@ -330,11 +331,10 @@ RE_PAT_DATE = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
 def __init__(ctx):
     transodoo.read_stored_dict(ctx)
-    ctx["HOME_DEVEL"] = os.environ.get("HOME_DEVEL") or pth.join(
-        os.environ["HOME"], "devel"
+    ctx["home_devel"] = ctx["home_devel"] or os.environ.get(
+        "home_devel", pth.expanduser("~/devel")
     )
-    ctx["ODOO_ROOT"] = pth.abspath(pth.join(ctx["HOME_DEVEL"], ".."))
-
+    ctx["odoo_root"] = pth.abspath(pth.join(ctx["home_devel"], ".."))
     ctx["path_name"] = pth.abspath(ctx["path_name"])
     if not ctx["product_doc"]:
         if "/pypi/" in ctx["path_name"] or ctx["path_name"].endswith("/tools"):
@@ -439,6 +439,15 @@ def __init__(ctx):
     elif ctx["product_doc"] == "pypi":
         assure_docdir(ctx, "./egg-info")
         assure_docdir(ctx, "./docs")
+
+
+def chain_python_cmd(pyfile, args):
+    cmd = [sys.executable]
+    cmd.append(pth.join(pth.dirname(__file__), pyfile))
+    for arg in args:
+        cmd.append(arg)
+    cmd = " ".join(cmd)
+    return call(cmd, shell=True)
 
 
 def assure_docdir(ctx, path):
@@ -596,12 +605,12 @@ def iter_template_path(ctx, debug_mode=None, body=None):
         "./egg-info",
         "./readme",
         "./docs",
-        "%s/pypi/tools/templates/${p}" % ctx["HOME_DEVEL"],
-        "%s/templates/${p}" % ctx["HOME_DEVEL"],
-        "%s/pypi/tools/templates" % ctx["HOME_DEVEL"],
-        "%s/templates" % ctx["HOME_DEVEL"],
-        "%s/venv/bin/templates/${p}" % ctx["HOME_DEVEL"],
-        "%s/venv/bin/templates" % ctx["HOME_DEVEL"],
+        "%s/pypi/tools/templates/${p}" % ctx["home_devel"],
+        "%s/templates/${p}" % ctx["home_devel"],
+        "%s/pypi/tools/templates" % ctx["home_devel"],
+        "%s/templates" % ctx["home_devel"],
+        "%s/venv/bin/templates/${p}" % ctx["home_devel"],
+        "%s/venv/bin/templates" % ctx["home_devel"],
     ):
         if "/devel/pypi/tools/" in src_path and not debug_mode:
             continue
@@ -1288,8 +1297,8 @@ def expand_macro_in_line(ctx, line, state=None):
 def _init_state():
     return {
         "cache": False,
-        "prior_line": "",
-        "prior_nl": "",
+        "prior_nl": False,
+        "prior_lines": [],
         "action": "write",
         "stack": [],
         "do_else": [],
@@ -1500,33 +1509,49 @@ def line_of_list(ctx, state, line):
     return text
 
 
-def append_line(state, line, nl_bef=None):
-    nl = "\n" if nl_bef else ""
-    if state["in_fmt"] == "raw":
-        text = nl + line
-        state["prior_line"] = line
-        state["prior_nl"] = nl
-    elif state["cache"]:
-        if len(line) and len(state["prior_line"]):
-            text = state["prior_nl"] + state["prior_line"][0] * len(line) + nl
+def compose_line(ctx, state, line):
+    nl = "\n" if state["prior_nl"] else ""
+    lines = line.split("\n")
+    state["prior_lines"] += lines
+    state["prior_nl"] = False
+    if (
+            state["in_fmt"] == "rst"
+            and lines[-1]
+            and re.match(r"^(=+|-+|~+)$", lines[-1])
+    ):
+        # Title level
+        # ***********
+        if (
+                state["cache"]
+                and len(state["prior_lines"]) > 2
+                and re.match(r"^=+$", state["prior_lines"][-1])
+                and re.match(r"^=+$", state["prior_lines"][-3])
+        ):
+            # ===========
+            # Title level
+            # ===========
+            dash_line = state["prior_lines"][-1][0] * len(state["prior_lines"][-2])
+            text = nl + dash_line + "\n" + state["prior_lines"][-2] + "\n" + dash_line
+            state["cache"] = False
+        elif re.match(r"^=+$", lines[-1]):
+            state["cache"] = True
+        elif len(state["prior_lines"]) > 1:
+            dash_line = state["prior_lines"][-1][0] * len(state["prior_lines"][-2])
+            text = nl + dash_line
+            state["cache"] = False
         else:
-            text = state["prior_nl"] + state["prior_line"] + nl
-        state["cache"] = False
-        state["prior_line"] = line
-        state["prior_nl"] = nl
-        text += line
+            text = nl + line
+            state["cache"] = False
     else:
         text = nl + line
-        state["prior_line"] = line
-        state["prior_nl"] = nl
-    return state, text
+    return state, (text + "\n") if not state["cache"] else ""
 
 
-def tail(source, max_ctr=None, max_days=None, module=None):
+def tail(ctx, source, max_ctr=None, max_days=None, module=None):
     target = ""
     min_ctr = 2
-    max_ctr = max(max_ctr or 12, min_ctr)
-    max_days = max_days or 360
+    max_ctr = max(max_ctr or 24 if ctx["product_doc"] == "pypi" else 12, min_ctr)
+    max_days = max_days or (1090 if ctx["product_doc"] == "pypi" else 720)
     left = ""
     ctr = 0
     for _lno, line in enumerate(source.split("\n")):
@@ -1586,9 +1611,12 @@ def extract_imported_names(ctx):
     else:
         with open(py_file, "r") as fd:
             for ln in fd.read().split("\n"):
-                if re.match(r"^from \. import", ln):
-                    name = ln.strip().split()[3]
-                    if name not in ("scripts", "travis", "_travis"):
+                if re.match(r"^ *from \. import", ln):
+                    tokens = ln.strip().split()[3]
+                    name = tokens[3]
+                    if len(tokens) == 4 and name not in ("scripts",
+                                                         "travis",
+                                                         "_travis"):
                         imported_names.append(name)
     return imported_names
 
@@ -1600,7 +1628,6 @@ def write_automodule(ctx):
         ctx["contents"] += ("~" * len(fqn))
         ctx["contents"] += "\n\n"
         ctx["contents"] += ".. automodule:: %s\n" % fqn
-
     names = extract_imported_names(ctx)
     if names:
         rtd_fn = "./docs/rtd_automodule.rst"
@@ -1615,7 +1642,7 @@ def write_automodule(ctx):
             fd.write(contents)
         if "contents" in ctx:
             del ctx["contents"]
-        return "   rtd_automodule"
+        return "   rtd_automodule\n"
     return ""
 
 
@@ -1623,32 +1650,43 @@ def load_subsection(ctx, fn, section, sub):
     fqn = pth.join("./egg-info", fn)
     with open(fqn, "r") as fd:
         ctx["contents"] = fd.read()
-    return write_rtd_file(
-        ctx, section, header="Digest of " + sub, fn=pth.join("docs", "rtd_" + fn))
+    return write_rtd_file(ctx,
+                          section,
+                          header="Digest of " + sub,
+                          fn=pth.join("docs", "rtd_" + fn),
+                          sub=sub)
 
 
-def write_rtd_file(ctx, section, header=None, fn=None):
+def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
     rtd_fn = fn or "./docs/rtd_" + section + ".rst"
-    ctx["header"] = header or DEF_HEADER.get(section)
+    if not ctx.get("contents") and not ctx.get(section):
+        if pth.isfile(rtd_fn):
+            os.unlink(rtd_fn)
+        return ""
+    header = header or DEF_HEADER.get(section)
+    if isinstance(header, (list, tuple)):
+        ctx["header"] = header[0] + "\n" + ("=" * len(header[0])) + "\n\n" + header[1]
+    else:
+        ctx["header"] = header
     contents = parse_local_file(
         ctx, "rtd_template.rst", section=section)[1]
     with open(rtd_fn, "w") as fd:
         fd.write(contents)
     if "contents" in ctx:
         del ctx["contents"]
+    return "   rtd_%s\n" % (sub or section)
 
 
 def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=None):
     state = state or _init_state()
     out_fmt = out_fmt or state.get("out_fmt", "rst")
     in_fmt = in_fmt or state.get("in_fmt", "rst")
-    while source.startswith("\n\n"):
+    while source.startswith("\n"):
         source = source[1:]
     while source.endswith("\n\n"):
         source = source[:-1]
     target = ""
     for lno, line in enumerate(source.split("\n")):
-        nl_bef = False if lno == 0 else True
         state, is_preproc = is_preproc_line(ctx, line, state)
         if state["action"] != "susp":
             if is_preproc:
@@ -1656,14 +1694,16 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                     filename = get_preproc_tokens(ctx, line, "include")[0]
                     state, text = parse_local_file(
                         ctx, filename, state=state, section=section)
-                    state, text = append_line(state, text, nl_bef=nl_bef)
+                    state, text = compose_line(ctx, state, text)
                     target += text + "\n"
                 elif is_preproc_tag(ctx, line, "block"):
                     blockname = get_preproc_tokens(ctx, line, "block")[0]
                     if ctx.get(blockname):
-                        state, text = append_line(state, ctx[blockname], nl_bef=nl_bef)
+                        state, text = compose_line(
+                            ctx, state, ctx[blockname])
                     elif ctx.get(section):
-                        state, text = append_line(state, ctx[section], nl_bef=nl_bef)
+                        state, text = compose_line(
+                            ctx, state, ctx[section])
                     else:
                         text = "NO BLOCK '%s' FOUND" % blockname
                         print(RED, text, CLEAR)
@@ -1697,26 +1737,17 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                             else:
                                 submodules[sub].append(fn)
                     for section in PYPI_SECTIONS_HDR:
-                        if not ctx[section]:
-                            continue
-                        write_rtd_file(ctx, section)
-                        target += "   rtd_%s\n" % section
+                        target += write_rtd_file(ctx, section)
                     if submodules:
                         for sub in sorted(list(submodules.keys())):
                             for section in PYPI_SECTIONS_HDR:
                                 for fn in submodules[sub]:
                                     if section not in fn.lower():
                                         continue
-                                    load_subsection(ctx, fn, section, sub)
-                                    target += ("   rtd_%s\n"
-                                               % pth.splitext(fn)[0].lower())
+                                    target += load_subsection(ctx, fn, section, sub)
                     target += write_automodule(ctx)
-                    target += "\n"
                     for section in PYPI_SECTIONS_FOO:
-                        if not ctx[section]:
-                            continue
-                        write_rtd_file(ctx, section)
-                        target += "   rtd_%s\n" % section
+                        target += write_rtd_file(ctx, section)
                     target += "\n"
                 elif is_preproc_tag(ctx, line, "merge_docs"):
                     for module in ctx["pypi_modules"].split(" "):
@@ -1738,30 +1769,9 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                                     copyfile(src, tgt)
                                     target += "\n   pypi_%s_%s" % (module, name)
                             target += "\n"
-            elif in_fmt == "rst" and (
-                line
-                and (
-                    (line == "=" * len(line))
-                    or (line == "-" * len(line))
-                    or (line == "~" * len(line))
-                )
-            ):
-                if not state["prior_line"]:
-                    # =============
-                    # Title level 1
-                    # =============
-                    state["cache"] = True
-                    state["prior_line"] = line
-                    state["prior_nl"] = "\n" if nl_bef else ""
-                else:
-                    # Title
-                    # =====
-                    if len(state["prior_line"]) > 2:
-                        line = line[0] * len(state["prior_line"])
-                    state["prior_line"] = line
-                    state["prior_nl"] = "\n" if nl_bef else ""
-                    state, text = append_line(state, line, nl_bef=nl_bef)
-                    target += text
+            elif in_fmt == "rst" and line and re.match(r"^(=+|-+|~+)$", line):
+                state, text = compose_line(ctx, state, line)
+                target += text
             elif (
                     section == "changelog"
                     and ctx["product_doc"] == "odoo"
@@ -1770,7 +1780,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
             ):
                 if not line.startswith(ctx["branch"]):
                     line = ctx["branch"] + "." + ctx["branch"].split(".", 1)[1]
-                state, text = append_line(state, line, nl_bef=nl_bef)
+                state, text = compose_line(ctx, state, line)
                 target += text
             else:
                 state, text = expand_macro_in_line(ctx, line, state=state)
@@ -1778,7 +1788,7 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
                     x = re.match(r"^\.\. +.*image::", text)
                     url = url_by_doc(ctx, text[x.end() :].strip())
                     text = text[0: x.end() + 1] + url
-                state, text = append_line(state, text, nl_bef=nl_bef)
+                state, text = compose_line(ctx, state, text)
                 target += text
     if in_fmt == "rst" and out_fmt == "html":
         state, target = tohtml(
@@ -1791,6 +1801,8 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
         state, target = totroff(target, state=state)
     else:
         state, target = torst(target, state=state)
+    while target.endswith("\n\n"):
+        target = target[:-1]
     return state, target
 
 
@@ -1833,9 +1845,14 @@ def parse_local_file(
         fqn_csv = ""
         remove_fqn = False
     if fqn_csv and pth.isfile(fqn_csv):
-        os.system(
-            "cvt_csv_2_rst.py -b %s -q %s %s" % (ctx["branch"], fqn_csv, fqn)
-        )
+        args = [
+            "-b", ctx["branch"],
+            "-S" if ctx["product_doc"] == "pypi" else "",
+            "-q",
+            fqn_csv,
+            fqn
+        ]
+        chain_python_cmd("cvt_csv_2_rst.py", args)
     if ctx["opt_verbose"]:
         print("Reading %s" % fqn)
     if section:
@@ -1855,7 +1872,7 @@ def parse_local_file(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
     if len(source) and section == "changelog":
-        source = tail(source)
+        source = tail(ctx, source)
         if ctx["odoo_layer"] == "module":
             ctx["history-summary"] = source
     if len(source):
@@ -1902,10 +1919,10 @@ def fake_setup(**kwargs):
 def read_history(ctx, fqn, module=None):
     if module:
         with open(fqn, RMODE) as fd:
-            ctx["histories"] += tail(_u(fd.read()), max_days=60, module=module)
+            ctx["histories"] += tail(ctx, _u(fd.read()), max_days=60, module=module)
     with open(fqn, RMODE) as fd:
         ctx["history-summary"] += tail(
-            _u(fd.read()), max_ctr=1, max_days=30, module=module
+            ctx, _u(fd.read()), max_ctr=1, max_days=30, module=module
         )
 
 
@@ -2053,10 +2070,11 @@ def read_all_manifests(ctx, path=None, module2search=None):
                 if pth.isfile(fqn):
                     with open(fqn, RMODE) as fd:
                         ctx["histories"] += tail(
-                            _u(fd.read()), max_days=180, module=module_name
+                            ctx, _u(fd.read()), max_days=180, module=module_name
                         )
                         with open(fqn, RMODE) as fd:
                             ctx["history-summary"] += tail(
+                                ctx,
                                 _u(fd.read()),
                                 max_ctr=1,
                                 max_days=15,
@@ -2064,10 +2082,10 @@ def read_all_manifests(ctx, path=None, module2search=None):
                             )
     if not module2search:
         if ctx["odoo_layer"] == "ocb":
-            oca_root = "%s/oca%d" % (ctx["ODOO_ROOT"], ctx["odoo_majver"])
+            oca_root = "%s/oca%d" % (ctx["odoo_root"], ctx["odoo_majver"])
         else:
             oca_root = "%s/oca%d/%s" % (
-                ctx["ODOO_ROOT"],
+                ctx["odoo_root"],
                 ctx["odoo_majver"],
                 ctx["repos_name"],
             )
@@ -2372,16 +2390,16 @@ def set_default_values(ctx):
         "`Zeroincombenze Tools <https://zeroincombenze-tools.readthedocs.io/>`__"
     )
     if ctx["odoo_layer"] == "ocb":
-        ctx["local_path"] = "%s/%s" % (ctx["ODOO_ROOT"], ctx["branch"])
+        ctx["local_path"] = "%s/%s" % (ctx["odoo_root"], ctx["branch"])
     elif ctx["odoo_layer"] == "repository":
         ctx["local_path"] = "%s/%s/%s/" % (
-            ctx["ODOO_ROOT"],
+            ctx["odoo_root"],
             ctx["branch"],
             ctx["repos_name"],
         )
     else:
         ctx["local_path"] = "%s/%s/%s/" % (
-            ctx["ODOO_ROOT"],
+            ctx["odoo_root"],
             ctx["branch"],
             ctx["repos_name"],
         )
@@ -2801,10 +2819,13 @@ def generate_readme(ctx):
             ctx[section] = parse_local_file(
                 ctx, "%s.rst" % section, ignore_ntf=True, section=section
             )[1]
-        # Remove old header text
-        x = ctx[section].split("\n", 2)
-        if len(x) > 2 and re.match("^-+$", x[1]):
-            ctx[section] = x[2]
+        if "description" in section:
+            # Remove old header text
+            x = ctx[section].split("\n", 2)
+            if len(x) > 2 and re.match(r"^(=+|-+|~+)$", x[1]):
+                ctx[section] = x[2]
+                while ctx[section].startswith("\n"):
+                    ctx[section] = ctx[section][1:]
         if re.match(r"\s*$", ctx[section]):
             ctx[section] = ""
         if pth.isfile(pth.join("static", "description", "%s.png" % section)):
@@ -2892,7 +2913,7 @@ def generate_readme(ctx):
         icon_fn = pth.join(ctx["img_dir"], ctx["src_icon"])
         if not pth.isfile(icon_fn):
             if ctx["debug_template"]:
-                src_icon = pth.join(ctx["HOME_DEVEL"],
+                src_icon = pth.join(ctx["home_devel"],
                                     "pypi",
                                     "tools",
                                     "templates",
@@ -2900,7 +2921,7 @@ def generate_readme(ctx):
                                     "icons",
                                     ctx["src_icon"])
             else:
-                src_icon = pth.join(ctx["ODOO_ROOT"],
+                src_icon = pth.join(ctx["odoo_root"],
                                     "tools",
                                     "templates",
                                     "odoo",
@@ -2964,6 +2985,9 @@ def main(cli_args=None):
         "-b", "--odoo-branch", action="store", default=".", dest="odoo_vid"
     )
     parser.add_argument("-B", "--debug-template", action="store_true")
+    parser.add_argument(
+        "-D", "--home-devel", metavar="PATH", help="Home devel directory"
+    )
     parser.add_argument("-F", "--from-version")
     parser.add_argument(
         "-f", "--force",
@@ -2973,7 +2997,7 @@ def main(cli_args=None):
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument("-g", "--gpl-info", action="store", dest="opt_gpl", default="")
     parser.add_argument(
-        "-H", "--write-index_html", action="store_true", dest="write_html"
+        "-H", "-I", "--write-index_html", action="store_true", dest="write_html"
     )
     parser.add_argument(
         "-l", "--layer", action="store", help="ocb|module|repository", dest="odoo_layer"
