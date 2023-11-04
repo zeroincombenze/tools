@@ -1,9 +1,9 @@
 .. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-04 16:53:35
+   gen_readme.py on 2023-11-04 18:37:48
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-
+=========================================
 Welcome to wok_code 2.0.11 documentation!
 =========================================
 
@@ -24,10 +24,6 @@ Welcome to wok_code 2.0.11 documentation!
 
 |
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

@@ -7,10 +7,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
 
 Installation
@@ -34,6 +34,11 @@ Current version via Git
     ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
+
 Upgrade
 -------
 
@@ -42,7 +47,7 @@ Stable version via Python Package
 
 ::
 
-    pip install wok_code -U
+    pip install --upgrade wok_code
 
 
 Current version via Git
@@ -50,17 +55,13 @@ Current version via Git
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -UT
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
 |
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

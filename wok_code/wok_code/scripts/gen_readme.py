@@ -977,7 +977,6 @@ def rst2html(ctx, text, draw_button=False):
     open_para = 0
     lineno = 0
     while lineno < len(lines):
-        # if not re.match(ctx["pre_pat"], lines[lineno]):
         if not lines[lineno].startswith(".. "):
             if ctx["html_state"].get("tag") in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
@@ -1529,7 +1528,7 @@ def compose_line(ctx, line):
             dash_line = ctx["prior_lines"][-1][0] * len(ctx["prior_lines"][-2])
             text = dash_line + "\n" + ctx["prior_lines"][-2] + "\n" + dash_line
             ctx["in_cache"] = False
-        elif len(ctx["prior_lines"]) > 1:
+        elif len(ctx["prior_lines"]) > 1 and ctx["prior_lines"][-2]:
             dash_line = ctx["prior_lines"][-1][0] * len(ctx["prior_lines"][-2])
             text = dash_line
             ctx["in_cache"] = False
@@ -1708,7 +1707,7 @@ def parse_include(ctx, section, line, in_fmt=None, out_fmt=None):
     text = parse_local_file(
         ctx, filename, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
     text = compose_line(ctx, text)
-    return text + "\n"
+    return text + "\n" if text else ""
 
 
 def parse_block(ctx, section, line):
@@ -1862,7 +1861,7 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
         target = torst(target)
     while target.endswith("\n\n"):
         target = target[:-1]
-    if not target.endswith("\n"):
+    if target and not target.endswith("\n"):
         target += "\n"
     return target
 
@@ -2651,7 +2650,7 @@ def item_2_test(ctx, section):
     else:
         ctx[section] = "\n".join(
             ["* %s <%s>" % ((x[1], x[3] or x[2])) for x in ctx[section]])
-    if not ctx[section].endswith("\n"):
+    if ctx[section] and not ctx[section].endswith("\n"):
         ctx[section] += "\n"
 
 
