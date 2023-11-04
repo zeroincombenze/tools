@@ -151,11 +151,28 @@ DEFINED_SECTIONS = [
     "known_issues",
     "proposals_for_enhancement",
     "faq",
+    "authors",
+    "contributors",
+    "translators",
+    "acknowledges",
+    "maintainer",
     "sponsor",
     "copyright_notes",
     "available_addons",
     "contact_us",
 ]
+GROUPS = {
+    "prerequisites": "getting_started",
+    "installation": "getting_started",
+    "configuration": "getting_started",
+    "upgrade": "getting_started",
+    "authors": "credits",
+    "contributors": "credits",
+    "translators": "credits",
+    "acknowledges": "credits",
+    "maintainer": "credits",
+    "sponsor": "credits",
+}
 DEFINED_TAG = [
     "__manifest__",
     "name",
@@ -166,11 +183,6 @@ DEFINED_TAG = [
     "module_name",
     "repos_name",
     "today",
-    "authors",
-    "contributors",
-    "translators",
-    "acknowledges",
-    "maintainer",
 ]
 DRAW_SECTIONS = [
     "description",
@@ -202,14 +214,16 @@ PYPI_SECTIONS_FOO = [
 DEF_HEADER = {
     "description": "Overview",
     "features": "Features",
-    "prerequisites": ["Getting started", "Prerequisites"],
+    "getting_started": "Getting started",
+    "prerequisites": "Prerequisites",
     "installation": "Installation",
     "configuration": "Configuration",
     "upgrade": "Upgrade",
     "faq": "FAQ",
     "changelog": "ChangeLog History",
     "support": "Support",
-    "authors": ["Credits", "Authors"],
+    "credits": "Credits",
+    "authors": "Authors",
     "contributors": "Contributors",
 }
 # Search for old deprecated name for section
@@ -439,6 +453,13 @@ def __init__(ctx):
     elif ctx["product_doc"] == "pypi":
         assure_docdir(ctx, "./egg-info")
         assure_docdir(ctx, "./docs")
+    ctx["prior_lines"] = []
+    ctx["in_cache"] = False
+    ctx["in_fmt"] = ctx["out_fmt"] = "rst"
+    ctx["pre_action"] = "write"
+    ctx["pre_stack"] = []
+    ctx["pre_do_else"] = []
+    ctx["html_state"] = {}
 
 
 def chain_python_cmd(pyfile, args):
@@ -801,44 +822,42 @@ def url_by_doc(ctx, url):
     return url
 
 
-def torst(text, state=None):
+def torst(text):
     if text:
         text = text.replace("\a", "<").replace("\b", ">")
-    return state, text
+    return text
 
 
-def totroff(text, state=None):
-    return state, text
+def totroff(text):
+    return text
 
 
-def tohtml(ctx, text, state=None, draw_button=False):
-    def get_tag_image(state):
-        html_tag = '<img src="%s"' % state["html_state"]["url"]
+def rst2html(ctx, text, draw_button=False):
+    def get_tag_image(ctx):
+        html_tag = '<img src="%s"' % ctx["html_state"]["url"]
         for tag in ("alt", "target"):
-            if tag in state["html_state"]:
+            if tag in ctx["html_state"]:
                 # style="width:18px;height:16px;"
-                html_tag += (" %s=\"%s\"" % (tag, state["html_state"][tag]))
-                del state["html_state"][tag]
+                html_tag += (" %s=\"%s\"" % (tag, ctx["html_state"][tag]))
+                del ctx["html_state"][tag]
         styled = False
         for tag in ("width", "height"):
-            if tag in state["html_state"]:
+            if tag in ctx["html_state"]:
                 if not styled:
                     # style="width:18px;height:16px;"
                     html_tag += " style=\""
                     styled = True
-                html_tag += ("%s:%s;" % (tag, state["html_state"][tag]))
-                del state["html_state"][tag]
+                html_tag += ("%s:%s;" % (tag, ctx["html_state"][tag]))
+                del ctx["html_state"][tag]
         if styled:
             html_tag += "max-width:1140px"
             html_tag += "\""
-        del state["html_state"]["tag"]
+        del ctx["html_state"]["tag"]
         html_tag += "/>"
         return html_tag
 
     if not text:
-        return state, text
-    state = state or {}
-    state["html_state"] = state.get("html_state", {})
+        return text
     text = text.replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace("\a", "<").replace("\b", ">")
     text = text.replace(" & ", " &amp; ")
@@ -960,23 +979,23 @@ def tohtml(ctx, text, state=None, draw_button=False):
     while lineno < len(lines):
         # if not re.match(ctx["pre_pat"], lines[lineno]):
         if not lines[lineno].startswith(".. "):
-            if state["html_state"].get("tag") in ("image", "figure"):
+            if ctx["html_state"].get("tag") in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
                 if x:
-                    state["html_state"][lines[lineno][x.start():x.end()].strip(
+                    ctx["html_state"][lines[lineno][x.start():x.end()].strip(
                         )[1: -1]] = lines[lineno][x.end():].strip()
                     del lines[lineno]
                     continue
-                lines.insert(lineno, get_tag_image(state))
+                lines.insert(lineno, get_tag_image(ctx))
             elif (
                 lines[lineno]
                 and lines[lineno][0] == " "
-                and state["html_state"].get("tag") == "code"
+                and ctx["html_state"].get("tag") == "code"
             ):
                 pass
-            elif state["html_state"].get("tag") == "code":
+            elif ctx["html_state"].get("tag") == "code":
                 lines.insert(lineno, "</code>")
-                del state["html_state"]["tag"]
+                del ctx["html_state"]["tag"]
             elif re.match(r"^ *\+(-+\+)+ *$", lines[lineno]):
                 if not in_table:
                     lines[lineno] = (
@@ -1009,9 +1028,9 @@ def tohtml(ctx, text, state=None, draw_button=False):
                 in_list = False
                 # continue
             elif lines[lineno] == "":
-                if state["html_state"].get("tag") == "Code":
+                if ctx["html_state"].get("tag") == "Code":
                     lines[lineno] = "<code>"
-                    state["html_state"]["tag"] = "code"
+                    ctx["html_state"]["tag"] = "code"
                 elif open_para:
                     lines[lineno] = '</p><p align="justify">'
                 else:
@@ -1043,7 +1062,7 @@ def tohtml(ctx, text, state=None, draw_button=False):
                 continue
             elif re.match(r"^:: *$", lines[lineno]):
                 lines[lineno] = ""
-                state["html_state"]["tag"] = "Code"
+                ctx["html_state"]["tag"] = "Code"
             elif lines[lineno] == "|":
                 lines[lineno] = "<br/>"
             else:
@@ -1069,37 +1088,35 @@ def tohtml(ctx, text, state=None, draw_button=False):
                 open_para -= 1
             # if lines[lineno].startswith(".. image::"):
             if is_rst_tag(ctx, lines[lineno], "image"):
-                state["html_state"]["tag"] = "image"
-                # state["html_state"]["url"] = lines[lineno][10:].strip()
-                state["html_state"]["url"] = get_rst_tokens(
+                ctx["html_state"]["tag"] = "image"
+                # ctx["html_state"]["url"] = lines[lineno][10:].strip()
+                ctx["html_state"]["url"] = get_rst_tokens(
                     ctx, lines[lineno], "image")[0]
                 del lines[lineno]
                 continue
             # elif lines[lineno].startswith(".. figure::"):
             elif is_rst_tag(ctx, lines[lineno], "figure"):
-                state["html_state"]["tag"] = "figure"
-                # state["html_state"]["url"] = lines[lineno][11:].strip()
-                state["html_state"]["url"] = get_rst_tokens(
+                ctx["html_state"]["tag"] = "figure"
+                # ctx["html_state"]["url"] = lines[lineno][11:].strip()
+                ctx["html_state"]["url"] = get_rst_tokens(
                     ctx, lines[lineno], "figure")[0]
                 del lines[lineno]
                 continue
         lineno += 1
-    if state["html_state"].get("tag") == "image":
-        lines.append(get_tag_image(state))
-        del state["html_state"]
-    elif state["html_state"].get("tag") == "figure":
-        lines.append(get_tag_image(state))
-        del state["html_state"]
+    if ctx["html_state"].get("tag") == "image":
+        lines.append(get_tag_image(ctx))
+        del ctx["html_state"]
+    elif ctx["html_state"].get("tag") == "figure":
+        lines.append(get_tag_image(ctx))
+        del ctx["html_state"]
     elif in_table:
         lines[-1] = "</tr></table>"
-        # in_table = False
     elif in_list:
         lines.append("</ul>")
-        # in_list = False
     if open_para:
         lines.append("</p>")
         open_para -= 1
-    return state, "\n".join(lines)
+    return "\n".join(lines)
 
 
 def expand_macro(ctx, token, default=None):
@@ -1231,29 +1248,26 @@ def expand_macro(ctx, token, default=None):
         value = default
     else:
         value = (
-            parse_local_file(ctx, "%s.csv" % token, ignore_ntf=True)[1]
-            or parse_local_file(ctx, "%s.rst" % token, ignore_ntf=True)[1]
+            parse_local_file(ctx, "%s.csv" % token, ignore_ntf=True)
+            or parse_local_file(ctx, "%s.rst" % token, ignore_ntf=True)
             or "Unknown %s" % token
         )
     return value
 
 
-def expand_macro_in_line(ctx, line, state=None):
+def expand_macro_in_line(ctx, line):
     """Expand content of macro like {{macro}}"""
-    state = state or _init_state()
-    out_fmt = state.get("out_fmt", "rst")
+    out_fmt = ctx["out_fmt"]
     # All internal macros are in rst format
     in_fmt = "rst"
-    srctype = state.get("srctype", "")
+    srctype = ctx.get("srctype", "")
     section = ""
     x = re.search(r"\{\{[^}]+\}\}", line)
     if x:
         tokens = line[x.start() + 2: x.end() - 2].split(":")
         if "{{" in tokens[0]:
-            state, token = expand_macro_in_line(
-                ctx, tokens[0], state=state)
-            return expand_macro_in_line(
-                ctx, line[: x.start()] + token + line[x.end():], state=state)
+            token = expand_macro_in_line(ctx, tokens[0])
+            return expand_macro_in_line(ctx, line[: x.start()] + token + line[x.end():])
         for sect in DEFINED_SECTIONS + DEFINED_TAG:
             if tokens[0].startswith(sect):
                 section = sect
@@ -1265,46 +1279,31 @@ def expand_macro_in_line(ctx, line, state=None):
         else:
             if tokens[0] in LIST_TAG:
                 if len(value.split("\n")) > 1:
-                    state["srctype"] = tokens[0]
+                    ctx["srctype"] = tokens[0]
                 else:
-                    value = line_of_list(ctx, state, value)
+                    value = line_of_list(ctx, value)
 
-        if state["in_fmt"] in ("html", "troff"):
-            state, value = parse_source(
-                ctx, value, state=state, in_fmt=in_fmt, out_fmt=out_fmt, section=section
+        if ctx["in_fmt"] in ("html", "troff"):
+            value = parse_source(
+                ctx, value, in_fmt=in_fmt, out_fmt=out_fmt, section=section
             )
-            if "srctype" in state:
-                del state["srctype"]
-            return expand_macro_in_line(
-                ctx, line[: x.start()] + value + line[x.end():], state=state)
+            if "srctype" in ctx:
+                del ctx["srctype"]
+            return expand_macro_in_line(ctx, line[: x.start()] + value + line[x.end():])
 
         line = line[: x.start()] + value + line[x.end():]
         if len(value.split("\n")) > 1:
-            state, value = parse_source(
-                ctx, line, state=state, in_fmt=in_fmt, out_fmt=out_fmt, section=section
+            value = parse_source(
+                ctx, line, in_fmt=in_fmt, out_fmt=out_fmt, section=section
             )
-            if "srctype" in state:
-                del state["srctype"]
-            return state, value
-
-        return expand_macro_in_line(ctx, line, state=state)
+            if "srctype" in ctx:
+                del ctx["srctype"]
+            return value
+        return expand_macro_in_line(ctx, line)
 
     if srctype in LIST_TAG:
-        line = line_of_list(ctx, state, line)
-    return state, line
-
-
-def _init_state():
-    return {
-        "cache": False,
-        "prior_nl": False,
-        "prior_lines": [],
-        "action": "write",
-        "stack": [],
-        "do_else": [],
-        "out_fmt": "rst",
-        "in_fmt": "rst",
-    }
+        line = line_of_list(ctx, line)
+    return line
 
 
 def validate_condition(ctx, *args):
@@ -1378,59 +1377,59 @@ def get_preproc_tokens(ctx, line, tag, maxsplit=None):
     ]
 
 
-def is_preproc_line(ctx, line, state):
+def is_preproc_line(ctx, line):
     is_preproc = False
     if is_preproc_tag(ctx, line, "if"):
         is_preproc = True
-        if state["action"] != "pass1":
+        if ctx["pre_action"] != "pass1":
             conditions = get_preproc_tokens(ctx, line, "if")
             res = validate_condition(ctx, *conditions)
-            state["stack"].append(res)
-            state["do_else"].append(res)
-            if False in state["stack"]:
-                state["action"] = "susp"
+            ctx["pre_stack"].append(res)
+            ctx["pre_do_else"].append(res)
+            if False in ctx["pre_stack"]:
+                ctx["pre_action"] = "susp"
             else:
-                state["action"] = "write"
+                ctx["pre_action"] = "write"
     elif is_preproc_tag(ctx, line, "elif"):
         is_preproc = True
-        if state["action"] != "pass1":
+        if ctx["pre_action"] != "pass1":
             conditions = get_preproc_tokens(ctx, line, "elif")
-            if len(state["stack"]):
+            if len(ctx["pre_stack"]):
                 res = validate_condition(ctx, *conditions)
-                state["stack"][-1] = res
+                ctx["pre_stack"][-1] = res
                 if res:
-                    state["do_else"][-1] = res
-                if False in state["stack"]:
-                    state["action"] = "susp"
+                    ctx["pre_do_else"][-1] = res
+                if False in ctx["pre_stack"]:
+                    ctx["pre_action"] = "susp"
                 else:
-                    state["action"] = "write"
+                    ctx["pre_action"] = "write"
             else:
-                state["action"] = "susp"
+                ctx["pre_action"] = "susp"
     elif is_preproc_tag(ctx, line, "else"):
         is_preproc = True
-        if state["action"] != "pass1":
-            if len(state["stack"]):
-                state["stack"][-1] = not state["do_else"][-1]
-                if False in state["stack"]:
-                    state["action"] = "susp"
+        if ctx["pre_action"] != "pass1":
+            if len(ctx["pre_stack"]):
+                ctx["pre_stack"][-1] = not ctx["pre_do_else"][-1]
+                if False in ctx["pre_stack"]:
+                    ctx["pre_action"] = "susp"
                 else:
-                    state["action"] = "write"
+                    ctx["pre_action"] = "write"
             else:
-                state["action"] = "susp"
+                ctx["pre_action"] = "susp"
     elif is_preproc_tag(ctx, line, "fi"):
         is_preproc = True
-        if state["action"] != "pass1":
-            if len(state["stack"]):
-                del state["stack"][-1]
-                del state["do_else"][-1]
-            if len(state["stack"]):
-                if False in state["stack"]:
-                    state["action"] = "susp"
+        if ctx["pre_action"] != "pass1":
+            if len(ctx["pre_stack"]):
+                del ctx["pre_stack"][-1]
+                del ctx["pre_do_else"][-1]
+            if len(ctx["pre_stack"]):
+                if False in ctx["pre_stack"]:
+                    ctx["pre_action"] = "susp"
                 else:
-                    state["action"] = "write"
+                    ctx["pre_action"] = "write"
             else:
-                state["action"] = "write"
-    elif state["action"] != "susp":
+                ctx["pre_action"] = "write"
+    elif ctx["pre_action"] != "susp":
         if is_preproc_tag(ctx, line, "include"):
             is_preproc = True
         elif is_preproc_tag(ctx, line, "block"):
@@ -1441,7 +1440,7 @@ def is_preproc_line(ctx, line, state):
             is_preproc = True
         elif is_preproc_tag(ctx, line, "merge_docs"):
             is_preproc = True
-    return state, is_preproc
+    return is_preproc
 
 
 def parse_acknowledge_list(ctx, source):
@@ -1467,9 +1466,9 @@ def parse_acknowledge_list(ctx, source):
     return "\n".join(lines)
 
 
-def line_of_list(ctx, state, line):
+def line_of_list(ctx, line):
     """Manage list of people like authors or contributors"""
-    out_fmt = state.get("out_fmt", "rst")
+    out_fmt = ctx["out_fmt"]
     text = line.strip()
     stop = True
     if line:
@@ -1479,7 +1478,7 @@ def line_of_list(ctx, state, line):
             names = line.split(" ")
             if names[0] and names[0][0] == "*":
                 stop = False
-                if state.get("srctype") == "acknowledges":
+                if ctx.get("srctype") == "acknowledges":
                     ctr = 0
                     for i in range(3):
                         if ctx["contributors"].find(names[i]) >= 0:
@@ -1488,7 +1487,7 @@ def line_of_list(ctx, state, line):
                         stop = True
                         text = ""
     if not stop:
-        if state.get("srctype") == "authors":
+        if ctx.get("srctype") == "authors":
             line = line.replace("<", "\a").replace(">", "\b")
             fmt = "* `%s`__"
         elif (
@@ -1509,42 +1508,48 @@ def line_of_list(ctx, state, line):
     return text
 
 
-def compose_line(ctx, state, line):
-    nl = "\n" if state["prior_nl"] else ""
-    lines = line.split("\n")
-    state["prior_lines"] += lines
-    state["prior_nl"] = False
+def compose_line(ctx, line):
+    ctx["prior_lines"] += line.split("\n")
     if (
-            state["in_fmt"] == "rst"
-            and lines[-1]
-            and re.match(r"^(=+|-+|~+)$", lines[-1])
+            ctx["in_fmt"] == "rst"
+            and ctx["prior_lines"][-1]
+            and re.match(r"^(=+|-+|~+)$", ctx["prior_lines"][-1])
     ):
         # Title level
         # ***********
         if (
-                state["cache"]
-                and len(state["prior_lines"]) > 2
-                and re.match(r"^=+$", state["prior_lines"][-1])
-                and re.match(r"^=+$", state["prior_lines"][-3])
+                ctx["in_cache"]
+                and len(ctx["prior_lines"]) > 2
+                and re.match(r"^=+$", ctx["prior_lines"][-1])
+                and re.match(r"^=+$", ctx["prior_lines"][-3])
         ):
             # ===========
             # Title level
             # ===========
-            dash_line = state["prior_lines"][-1][0] * len(state["prior_lines"][-2])
-            text = nl + dash_line + "\n" + state["prior_lines"][-2] + "\n" + dash_line
-            state["cache"] = False
-        elif re.match(r"^=+$", lines[-1]):
-            state["cache"] = True
-        elif len(state["prior_lines"]) > 1:
-            dash_line = state["prior_lines"][-1][0] * len(state["prior_lines"][-2])
-            text = nl + dash_line
-            state["cache"] = False
+            dash_line = ctx["prior_lines"][-1][0] * len(ctx["prior_lines"][-2])
+            text = dash_line + "\n" + ctx["prior_lines"][-2] + "\n" + dash_line
+            ctx["in_cache"] = False
+        elif len(ctx["prior_lines"]) > 1:
+            dash_line = ctx["prior_lines"][-1][0] * len(ctx["prior_lines"][-2])
+            text = dash_line
+            ctx["in_cache"] = False
+            ctx["prior_lines"] = []
+        elif re.match(r"^=+$", ctx["prior_lines"][-1]):
+            ctx["in_cache"] = True
+            ctx["prior_lines"] = ctx["prior_lines"][-1:]
         else:
-            text = nl + line
-            state["cache"] = False
+            text = line
+            ctx["in_cache"] = False
+    elif ctx["in_cache"] and (not ctx["prior_lines"][-1]
+                              or len(ctx["prior_lines"]) > 2):
+        text = "\n".join(ctx["prior_lines"])
+        ctx["in_cache"] = False
+        ctx["prior_lines"] = []
     else:
-        text = nl + line
-    return state, (text + "\n") if not state["cache"] else ""
+        text = line
+    if len(ctx["prior_lines"]) > 3:
+        ctx["prior_lines"] = ctx["prior_lines"][-3:]
+    return (text + "\n") if not ctx["in_cache"] else ""
 
 
 def tail(ctx, source, max_ctr=None, max_days=None, module=None):
@@ -1637,7 +1642,7 @@ def write_automodule(ctx):
         if pth.isfile("./testenv/testenv.py"):
             write_1_automodule(ctx, "testenv")
         contents = parse_local_file(
-            ctx, "rtd_template_automodule.rst", section="usage")[1]
+            ctx, "rtd_template_automodule.rst", section="usage")
         with open(rtd_fn, "w") as fd:
             fd.write(contents)
         if "contents" in ctx:
@@ -1657,120 +1662,175 @@ def load_subsection(ctx, fn, section, sub):
                           sub=sub)
 
 
-def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
-    rtd_fn = fn or "./docs/rtd_" + section + ".rst"
+def write_rtd_file(ctx, section, header=None, fn=None, sub=None, groups={}):
+    name = GROUPS.get(section, section)
+    rtd_fn = fn or "./docs/rtd_" + name + ".rst"
     if not ctx.get("contents") and not ctx.get(section):
         if pth.isfile(rtd_fn):
             os.unlink(rtd_fn)
         return ""
-    header = header or DEF_HEADER.get(section)
-    if isinstance(header, (list, tuple)):
-        ctx["header"] = header[0] + "\n" + ("=" * len(header[0])) + "\n\n" + header[1]
+    ctx["header1"] = header or DEF_HEADER.get(name, name.title())
+    if name == section:
+        ctx["header2"] = ""
+        with open(rtd_fn, "w") as fd:
+            fd.write(parse_local_file(
+                ctx, "rtd_template.rst", section=section))
     else:
-        ctx["header"] = header
-    contents = parse_local_file(
-        ctx, "rtd_template.rst", section=section)[1]
-    with open(rtd_fn, "w") as fd:
-        fd.write(contents)
+        if not ctx[name]:
+            ctx[name] = (ctx["header1"] + "\n")
+            ctx[name] += ("=" * len(ctx["header1"]))
+            ctx[name] += "\n"
+        ctx["header2"] = DEF_HEADER.get(section, section.title())
+        ctx[name] += ("\n" + ctx["header2"] + "\n")
+        ctx[name] += ("-" * len(ctx["header2"]))
+        ctx[name] += "\n\n"
+        ctx[name] += ctx[section]
     if "contents" in ctx:
         del ctx["contents"]
-    return "   rtd_%s\n" % (sub or section)
+    ctx["header1"] = ""
+    return "   rtd_%s\n" % (sub or section) if name == section else ""
 
 
-def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=None):
-    state = state or _init_state()
-    out_fmt = out_fmt or state.get("out_fmt", "rst")
-    in_fmt = in_fmt or state.get("in_fmt", "rst")
+def write_rtd_group(ctx, name):
+    if not ctx[name]:
+        return ""
+    rtd_fn = "./docs/rtd_" + name + ".rst"
+    ctx["contents"] = ctx[name]
+    ctx["header1"] = ctx["header2"] = ""
+    with open(rtd_fn, "w") as fd:
+        fd.write(parse_local_file(ctx, "rtd_template.rst"))
+    ctx[name] = ""
+    return "   rtd_%s\n" % name
+
+
+def parse_include(ctx, section, line, in_fmt=None, out_fmt=None):
+    filename = get_preproc_tokens(ctx, line, "include")[0]
+    text = parse_local_file(
+        ctx, filename, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
+    text = compose_line(ctx, text)
+    return text + "\n"
+
+
+def parse_block(ctx, section, line):
+    blockname = get_preproc_tokens(ctx, line, "block")[0]
+    if ctx.get(blockname):
+        text = compose_line(ctx, ctx[blockname])
+    elif ctx.get(section):
+        text = compose_line(ctx, ctx[section])
+    else:
+        text = "NO BLOCK '%s' FOUND" % blockname
+        print(RED, text, CLEAR)
+    return text
+
+
+def parse_set(ctx, section, line):
+    tokens = get_preproc_tokens(ctx, line, "set", maxsplit=2)
+    if "." in tokens[0]:
+        if tokens[0].endswith(".%s" % ctx["lang"]):
+            name = tokens[0].split(".")[0] + "_i18n"
+            value = tokens[1] if len(tokens) > 1 else ""
+            ctx[name] = value
+    else:
+        name = tokens[0]
+        value = tokens[1] if len(tokens) > 1 else ""
+        ctx[name] = value
+    return ""
+
+
+def parse_pypi_packges(ctx):
+    target = "\n"
+    files = os.listdir("./egg-info")
+    submodules = {}
+    for fn in sorted(files):
+        sub, ext = pth.splitext(fn)
+        if ext != ".rst":
+            continue
+        sub = sub.lower()
+        for section in PYPI_SECTIONS_HDR:
+            if not sub.startswith(section + "_") or sub == section:
+                continue
+            sub = sub[len(section) + 1:]
+            if sub not in submodules:
+                submodules[sub] = [fn]
+            else:
+                submodules[sub].append(fn)
+    groups = {}
+    for section in DEFINED_SECTIONS:
+        if section in GROUPS:
+            name = GROUPS[section]
+            if name not in groups:
+                groups[name] = []
+                ctx[name] = ""
+            groups[name].append(section)
+    for section in PYPI_SECTIONS_HDR:
+        target += write_rtd_file(ctx, section, groups=groups)
+    for name in groups.keys():
+        target += write_rtd_group(ctx, name)
+    if submodules:
+        for sub in sorted(list(submodules.keys())):
+            for section in PYPI_SECTIONS_HDR:
+                for fn in submodules[sub]:
+                    if section not in fn.lower():
+                        continue
+                    target += load_subsection(ctx, fn, section, sub)
+    target += write_automodule(ctx)
+    for section in PYPI_SECTIONS_FOO:
+        target += write_rtd_file(ctx, section, groups=groups)
+    for name in groups.keys():
+        target += write_rtd_group(ctx, name)
+    target += "\n"
+    return target
+
+
+def parse_merge_docs(ctx):
+    for module in ctx["pypi_modules"].split(" "):
+        target = ""
+        # Up to global pypi root
+        module_dir = pth.abspath(
+            pth.join(os.getcwd(), "..", "..")
+        )
+        while pth.isdir(pth.join(module_dir, module)):
+            # down to module root
+            module_dir = pth.join(module_dir, module)
+        if pth.isdir(pth.join(module_dir, "docs")):
+            for name in ctx["pypi_sects"].split(" "):
+                name = "rtd_%s" % name
+                src = pth.join(module_dir, "docs", "%s.rst" % name)
+                if pth.isfile(src):
+                    tgt = pth.join(
+                        ".", "pypi_%s_%s.rst" % (module, name)
+                    )
+                    copyfile(src, tgt)
+                    target += "\n   pypi_%s_%s" % (module, name)
+            target += "\n"
+    return target
+
+
+def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
+    out_fmt = out_fmt or ctx["out_fmt"]
+    in_fmt = in_fmt or ctx["in_fmt"]
     while source.startswith("\n"):
         source = source[1:]
     while source.endswith("\n\n"):
         source = source[:-1]
     target = ""
     for lno, line in enumerate(source.split("\n")):
-        state, is_preproc = is_preproc_line(ctx, line, state)
-        if state["action"] != "susp":
+        is_preproc = is_preproc_line(ctx, line)
+        if ctx["pre_action"] != "susp":
             if is_preproc:
                 if is_preproc_tag(ctx, line, "include"):
-                    filename = get_preproc_tokens(ctx, line, "include")[0]
-                    state, text = parse_local_file(
-                        ctx, filename, state=state, section=section)
-                    state, text = compose_line(ctx, state, text)
-                    target += text + "\n"
+                    target += parse_include(
+                        ctx, section, line, in_fmt=in_fmt, out_fmt=out_fmt)
                 elif is_preproc_tag(ctx, line, "block"):
-                    blockname = get_preproc_tokens(ctx, line, "block")[0]
-                    if ctx.get(blockname):
-                        state, text = compose_line(
-                            ctx, state, ctx[blockname])
-                    elif ctx.get(section):
-                        state, text = compose_line(
-                            ctx, state, ctx[section])
-                    else:
-                        text = "NO BLOCK '%s' FOUND" % blockname
-                        print(RED, text, CLEAR)
-                    target += text
+                    target += parse_block(ctx, section, line)
                 elif is_preproc_tag(ctx, line, "set"):
-                    tokens = get_preproc_tokens(ctx, line, "set", maxsplit=2)
-                    if "." in tokens[0]:
-                        if tokens[0].endswith(".%s" % ctx["lang"]):
-                            name = tokens[0].split(".")[0] + "_i18n"
-                            value = tokens[1] if len(tokens) > 1 else ""
-                            ctx[name] = value
-                    else:
-                        name = tokens[0]
-                        value = tokens[1] if len(tokens) > 1 else ""
-                        ctx[name] = value
+                    parse_set(ctx, section, line)
                 elif is_preproc_tag(ctx, line, "pypi_pages"):
-                    target += "\n"
-                    files = os.listdir("./egg-info")
-                    submodules = {}
-                    for fn in sorted(files):
-                        sub, ext = pth.splitext(fn)
-                        if ext != ".rst":
-                            continue
-                        sub = sub.lower()
-                        for section in PYPI_SECTIONS_HDR:
-                            if not sub.startswith(section + "_") or sub == section:
-                                continue
-                            sub = sub[len(section) + 1:]
-                            if sub not in submodules:
-                                submodules[sub] = [fn]
-                            else:
-                                submodules[sub].append(fn)
-                    for section in PYPI_SECTIONS_HDR:
-                        target += write_rtd_file(ctx, section)
-                    if submodules:
-                        for sub in sorted(list(submodules.keys())):
-                            for section in PYPI_SECTIONS_HDR:
-                                for fn in submodules[sub]:
-                                    if section not in fn.lower():
-                                        continue
-                                    target += load_subsection(ctx, fn, section, sub)
-                    target += write_automodule(ctx)
-                    for section in PYPI_SECTIONS_FOO:
-                        target += write_rtd_file(ctx, section)
-                    target += "\n"
+                    target += parse_pypi_packges(ctx)
                 elif is_preproc_tag(ctx, line, "merge_docs"):
-                    for module in ctx["pypi_modules"].split(" "):
-                        # Up to global pypi root
-                        module_dir = pth.abspath(
-                            pth.join(os.getcwd(), "..", "..")
-                        )
-                        while pth.isdir(pth.join(module_dir, module)):
-                            # down to module root
-                            module_dir = pth.join(module_dir, module)
-                        if pth.isdir(pth.join(module_dir, "docs")):
-                            for name in ctx["pypi_sects"].split(" "):
-                                name = "rtd_%s" % name
-                                src = pth.join(module_dir, "docs", "%s.rst" % name)
-                                if pth.isfile(src):
-                                    tgt = pth.join(
-                                        ".", "pypi_%s_%s.rst" % (module, name)
-                                    )
-                                    copyfile(src, tgt)
-                                    target += "\n   pypi_%s_%s" % (module, name)
-                            target += "\n"
+                    target += parse_merge_docs(ctx)
             elif in_fmt == "rst" and line and re.match(r"^(=+|-+|~+)$", line):
-                state, text = compose_line(ctx, state, line)
+                text = compose_line(ctx, line)
                 target += text
             elif (
                     section == "changelog"
@@ -1780,59 +1840,67 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None, section=Non
             ):
                 if not line.startswith(ctx["branch"]):
                     line = ctx["branch"] + "." + ctx["branch"].split(".", 1)[1]
-                state, text = compose_line(ctx, state, line)
+                text = compose_line(ctx, line)
                 target += text
             else:
-                state, text = expand_macro_in_line(ctx, line, state=state)
-                if not ctx["write_html"] and re.match(r"^\.\. +.*image::", text):
+                text = expand_macro_in_line(ctx, line)
+                if not ctx["write_index"] and re.match(r"^\.\. +.*image::", text):
                     x = re.match(r"^\.\. +.*image::", text)
                     url = url_by_doc(ctx, text[x.end() :].strip())
                     text = text[0: x.end() + 1] + url
-                state, text = compose_line(ctx, state, text)
+                text = compose_line(ctx, text)
                 target += text
     if in_fmt == "rst" and out_fmt == "html":
-        state, target = tohtml(
+        target = rst2html(
             ctx, target,
-            state=state,
             draw_button=any([x
                              for x in DRAW_SECTIONS
                              if (section and section.startswith(x))]))
     elif in_fmt == "rst" and out_fmt == "troff":
-        state, target = totroff(target, state=state)
+        target = totroff(target)
     else:
-        state, target = torst(target, state=state)
+        target = torst(target)
     while target.endswith("\n\n"):
         target = target[:-1]
-    return state, target
+    if not target.endswith("\n"):
+        target += "\n"
+    return target
+
+
+def load_hdr_foo(ctx, filename):
+    fqn = get_template_fn(ctx, "header_" + filename)
+    hdr_foo = ""
+    if fqn:
+        fd = open(fqn, RMODE)
+        hdr_foo = _u(fd.read())
+        fd.close()
+        if len(hdr_foo) and ctx["trace_file"]:
+            mark = '.. !! from "%s"\n\n' % fqn
+            hdr_foo = mark + hdr_foo
+    return hdr_foo
 
 
 def parse_local_file(
-    ctx, filename, ignore_ntf=None, state=None, in_fmt=None, out_fmt=None, section=None
+    ctx, filename, ignore_ntf=None, in_fmt=None, out_fmt=None, section=None
 ):
-    state = state or _init_state()
-    if out_fmt:
-        state["out_fmt"] = out_fmt
-    elif not state["out_fmt"]:
-        state["out_fmt"] = "raw"
-    if in_fmt:
-        state["in_fmt"] = in_fmt
-    elif filename.endswith(".html"):
-        state["in_fmt"] = "html"
-    elif filename.endswith(".troff"):
-        state["in_fmt"] = "troff"
-    elif not state["in_fmt"]:
-        state["in_fmt"] = "raw"
+    if not in_fmt:
+        if filename.endswith(".html"):
+            in_fmt = "html"
+        elif filename.endswith(".troff"):
+            in_fmt = "troff"
+        else:
+            in_fmt = ctx["in_fmt"]
     fqn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
     if not fqn:
         base, ext = pth.splitext(filename)
         action = "get_default_%s" % base
         if action in list(globals()):
             return parse_source(
-                ctx, globals()[action](ctx), state=state, section=section)
-        elif ext == ".txt":
-            return parse_source(
-                ctx, default_token(ctx, base), state=state, section=section)
-        return state, ""
+                ctx, globals()[action](ctx), out_fmt=out_fmt, section=section)
+        # elif ext == ".txt":
+        #     return parse_source(
+        #         ctx, default_token(ctx, base), section=section)
+        return ""
 
     if fqn.endswith(".csv"):
         fqn_csv = fqn
@@ -1861,44 +1929,28 @@ def parse_local_file(
         source = _u(fd.read())
     if remove_fqn:
         os.unlink(fqn)
-    if len(source) and filename == "ACKNOWLEDGES.rst":
-        state, source1 = parse_source(
-            ctx, source.replace("branch", "prior_branch"), state=state, section=section
+    if not source and section == "acknowledges":
+        source1 = parse_source(
+            ctx, source.replace("branch", "prior_branch"),
+            in_fmt=in_fmt, out_fmt=out_fmt, section=section
         )
-        state, source2 = parse_source(
-            ctx, source.replace("branch", "prior2_branch"), state=state, section=section
+        source2 = parse_source(
+            ctx, source.replace("branch", "prior2_branch"),
+            in_fmt=in_fmt, out_fmt=out_fmt, section=section
         )
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
         )
-    if len(source) and section == "changelog":
+    if source and section == "changelog":
         source = tail(ctx, source)
         if ctx["odoo_layer"] == "module":
             ctx["history-summary"] = source
-    if len(source):
+    if source:
         if ctx["trace_file"]:
             mark = '.. !! from "%s"\n\n' % filename
             source = mark + source
-        full_hfn = get_template_fn(ctx, "header_" + filename)
-        header = ""
-        if full_hfn:
-            fd = open(full_hfn, RMODE)
-            header = _u(fd.read())
-            fd.close()
-            if len(header) and ctx["trace_file"]:
-                mark = '.. !! from "%s"\n\n' % full_hfn
-                header = mark + header
-        fqn = get_template_fn(ctx, "footer_" + filename)
-        footer = ""
-        if fqn:
-            fd = open(fqn, RMODE)
-            footer = _u(fd.read())
-            fd.close()
-            if len(footer) and ctx["trace_file"]:
-                mark = '.. !! from "%s"\n\n' % fqn
-                footer = mark + footer
-        source = header + source + footer
-    return parse_source(ctx, source, state=state, section=section)
+        source = load_hdr_foo(ctx, filename) + source + load_hdr_foo(ctx, filename)
+    return parse_source(ctx, source, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
 
 
 def read_manifest_file(ctx, manifest_path, force_version=None):
@@ -2275,7 +2327,7 @@ def manifest_contents(ctx):
         if item != "description" and item not in MANIFEST_ITEMS:
             target += manifest_item(ctx, item)
     if ctx["odoo_majver"] < 8:
-        text = parse_local_file(ctx, "readme_manifest.rst")[1]
+        text = parse_local_file(ctx, "readme_manifest.rst")
         target += "    'description': r'''%s''',\n" % text
     target += "}\n"
     return target
@@ -2344,13 +2396,13 @@ def set_default_values(ctx):
             ctx["prior_branch"] = "%d.%d" % (pmv, releases[1])
     if ctx["output_file"]:
         ctx["dst_file"] = ctx["output_file"]
-    elif ctx["write_html"] and ctx["product_doc"] == "odoo":
+    elif ctx["write_index"] and ctx["product_doc"] == "odoo":
         if pth.isdir("./static/description"):
             ctx["dst_file"] = "./static/description/index.html"
         else:
             ctx["dst_file"] = "./index.html"
         ctx["trace_file"] = False
-    elif ctx["write_html"] and ctx["product_doc"] == "pypi":
+    elif ctx["write_index"] and ctx["product_doc"] == "pypi":
         if pth.isdir("./docs"):
             ctx["dst_file"] = "./docs/index.rst"
         else:
@@ -2599,6 +2651,8 @@ def item_2_test(ctx, section):
     else:
         ctx[section] = "\n".join(
             ["* %s <%s>" % ((x[1], x[3] or x[2])) for x in ctx[section]])
+    if not ctx[section].endswith("\n"):
+        ctx[section] += "\n"
 
 
 def write_rst_file(ctx, path, section):
@@ -2647,7 +2701,6 @@ def generate_readme(ctx):
             ctx["pypi_modules"] = "%s" % ZERO_PYPI_PKGS
         if not ctx.get("pypi_sects"):
             ctx["pypi_sects"] = "%s" % ZERO_PYPI_SECTS
-        return ctx
 
     def read_manifest_setup(ctx):
         if ctx["product_doc"] == "pypi":
@@ -2681,7 +2734,6 @@ def generate_readme(ctx):
                         "REPOS", odoo_vid=".", multi=True
                     )
             read_manifest(ctx)
-        return ctx
 
     def set_description(ctx):
         section = "description"
@@ -2818,7 +2870,7 @@ def generate_readme(ctx):
         if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
             ctx[section] = parse_local_file(
                 ctx, "%s.rst" % section, ignore_ntf=True, section=section
-            )[1]
+            )
         if "description" in section:
             # Remove old header text
             x = ctx[section].split("\n", 2)
@@ -2837,8 +2889,7 @@ def generate_readme(ctx):
 
     # === Starting generate ===
     __init__(ctx)
-
-    ctx = read_manifest_setup(ctx)
+    read_manifest_setup(ctx)
     if ctx["odoo_layer"] == "module":
         for fn in ("./README.md", "./README.rst", "../README.rst"):
             if not pth.isfile(fn):
@@ -2857,23 +2908,13 @@ def generate_readme(ctx):
     # Contents of sections are in rst format
     for section in DEFINED_SECTIONS:
         load_section_from_file(ctx, section)
-        if section in ZERO_PYPI_SECTS and ctx.get("submodules"):
-            for sub in ctx.get("submodules").split(" "):
-                ctx[section] += "\n\n"
-                ctx[section] += parse_local_file(
-                    ctx,
-                    "%s_%s.rst" % (section, sub),
-                    ignore_ntf=True,
-                    section="%s_%s" % (section, sub),
-                )[1]
-        if ctx["product_doc"] == "odoo":
-            load_section_from_file(ctx, section + "_i18n")
+        load_section_from_file(ctx, section + "_i18n")
 
     for tag in DEFINED_TAG:
         load_section_from_file(ctx, tag, is_tag=True)
         load_section_from_file(ctx, tag + "_i18n", is_tag=True)
 
-    # List tags (i.e authors) are python list of license data
+    # List tags (i.e. authors) are python list of license data
     for section in LIST_TAG:
         tag_items = (
             ctx[section].split(",")
@@ -2887,19 +2928,18 @@ def generate_readme(ctx):
                 if res[1]:
                     ctx[section].append(res)
 
-    if ctx["odoo_layer"]:
-        set_description(ctx)
-        set_description_i18n(ctx)
+    set_description(ctx)
+    set_description_i18n(ctx)
+    set_name_i18n(ctx)
+    set_summary(ctx)
+    set_summary_i18n(ctx)
+    if ctx["odoo_layer"] == "module":
         set_authors(ctx)
         set_contributors(ctx)
         set_website(ctx)
         set_maintainer(ctx)
         set_license(ctx)
-
-    set_name_i18n(ctx)
-    set_summary(ctx)
-    set_summary_i18n(ctx)
-    ctx = set_values_of_manifest(ctx)
+    set_values_of_manifest(ctx)
     if ctx["module_name"]:
         read_dependecies_license(ctx)
     for section in LIST_TAG:
@@ -2909,7 +2949,7 @@ def generate_readme(ctx):
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
 
-    if ctx["write_html"] and ctx["product_doc"] == "odoo":
+    if ctx["write_index"] and ctx["product_doc"] == "odoo":
         icon_fn = pth.join(ctx["img_dir"], ctx["src_icon"])
         if not pth.isfile(icon_fn):
             if ctx["debug_template"]:
@@ -2932,16 +2972,16 @@ def generate_readme(ctx):
         if not ctx["template_name"]:
             ctx["template_name"] = "readme_index.html"
         target = index_html_content(
-            ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")[1]
+            ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")
         )
-    elif ctx["write_html"] and ctx["product_doc"] == "pypi":
+    elif ctx["write_index"] and ctx["product_doc"] == "pypi":
         if not ctx["template_name"]:
             ctx["template_name"] = "module_index.rst"
-        target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")[1]
+        target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
     else:
         if not ctx["template_name"]:
             ctx["template_name"] = "readme_main_%s.rst" % ctx["odoo_layer"]
-        target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")[1]
+        target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
     if ctx["rewrite_manifest"] and ctx["odoo_layer"] == "module":
         if ctx["product_doc"] != "odoo":
             return
@@ -2997,7 +3037,7 @@ def main(cli_args=None):
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument("-g", "--gpl-info", action="store", dest="opt_gpl", default="")
     parser.add_argument(
-        "-H", "-I", "--write-index_html", action="store_true", dest="write_html"
+        "-H", "-I", "--write-index", action="store_true", dest="write_index"
     )
     parser.add_argument(
         "-l", "--layer", action="store", help="ocb|module|repository", dest="odoo_layer"

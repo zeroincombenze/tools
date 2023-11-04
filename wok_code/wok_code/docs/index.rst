@@ -1,9 +1,9 @@
 .. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-03 17:19:04
+   gen_readme.py on 2023-11-04 16:53:35
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=========================================
+
 Welcome to wok_code 2.0.11 documentation!
 =========================================
 
@@ -13,16 +13,13 @@ Welcome to wok_code 2.0.11 documentation!
 
 
    rtd_description
-   rtd_prerequisites
-   rtd_installation
-   rtd_upgrade
+   rtd_getting_started
    rtd_gen_readme
    rtd_odoo_dependencies
    rtd_please
    rtd_topep8
    rtd_changelog
-   rtd_authors
-   rtd_contributors
+   rtd_credits
 
 
 |
@@ -30,7 +27,7 @@ Welcome to wok_code 2.0.11 documentation!
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-11-03
+Last Update / Ultimo aggiornamento: 2023-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -79,3 +76,8 @@ Last Update / Ultimo aggiornamento: 2023-11-03
 
 
 Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

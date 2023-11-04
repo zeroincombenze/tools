@@ -1,9 +1,6 @@
 .. toctree::
    :maxdepth: 2
 
-Digest of topep8
-----------------
-
 pep8: python edit utility
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -19,7 +16,7 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-11-03
+Last Update / Ultimo aggiornamento: 2023-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status

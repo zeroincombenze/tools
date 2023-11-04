@@ -1,4 +1,4 @@
-===============
+
 wok_code 2.0.11
 ===============
 
@@ -9,11 +9,37 @@ wok_code 2.0.11
 
 
 Overview
+========
+
+Various tools at your fingertips.
+
+The available tools are:
+
+* cvt_csv_2_rst.py: convert csv file into rst file
+* cvt_csv_2_xml.py: convert csv file into xml file
+* cvt_script: parse bash script and convert to meet company standard
+* gen_readme.py: generate documentation files, mainly README.rst
+* odoo_dependency.py: show odoo dependencies and/or Odoo module tree
+* odoo_translation.py: manage Odoo translation
+* pep8: parse source .py file to meet pep8 and convert across Odoo versions
+* please: developer shell
+* wget_odoo_repositories.py: get repository names from github.com
+
+
+
+Usage
+=====
+
+Module usage
 ------------
 
 
 
 Getting started
+===============
+
+
+Prerequisites
 -------------
 
 Zeroincombenze tools require:
@@ -229,6 +255,9 @@ ChangeLog History
 
 
 Credits
+=======
+
+Copyright
 ---------
 
 SHS-AV s.r.l. <https://www.shs-av.com/>
@@ -237,7 +266,8 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
 
 
 Contributors
@@ -245,12 +275,27 @@ Contributors
 
 * Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 
+
+
+Acknowledges
+------------
+
+
+
+
+
+Translations by
+---------------
+
+
+
+
 |
 |
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2023-11-03
+Last Update / Ultimo aggiornamento: 2023-11-04
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
