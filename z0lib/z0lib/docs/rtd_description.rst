@@ -1,23 +1,24 @@
-.. z0lib documentation master file, created by
-   gen_readme.py on 2023-11-04 17:48:34
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-=====================================
-Welcome to z0lib 2.0.7 documentation!
-=====================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Overview
+========
 
 
-   rtd_description
-   rtd_features
-   rtd_getting_started
-   rtd_faq
-   rtd_changelog
-   rtd_credits
+z0lib is a simple bash and python library.
+
+It was created to give support to bash and python software.
+The package has both bash version and both python version of functions.
+Since 2022, bash development was abandoned and only python code is stil upgraded.
+
+.. important::
+
+    However, most functions are still available for bash scripts.
+
+The available libraries are:
+
+* z0librc: bash version library
+* z0librun.py: python version library
 
 
 |
@@ -66,12 +67,3 @@ Welcome to z0lib 2.0.7 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
