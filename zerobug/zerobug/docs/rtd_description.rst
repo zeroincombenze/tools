@@ -2,7 +2,7 @@
    :maxdepth: 2
 
 Overview
---------
+========
 
 
 This library can run unit test of target package software.
@@ -39,13 +39,8 @@ in 2 passes. In the first pass it counts the number of test, in second pass exec
 it. This behavior can be overridden by -0 switch.
 
 
-
 |
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-11-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -90,5 +85,3 @@ Last Update / Ultimo aggiornamento: 2023-11-03
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

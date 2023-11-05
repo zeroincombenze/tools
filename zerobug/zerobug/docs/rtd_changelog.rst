@@ -2,7 +2,8 @@
    :maxdepth: 2
 
 ChangeLog History
------------------
+=================
+
 
 2.0.9.1 (2023-09-08)
 ~~~~~~~~~~~~~~~~~~~~
@@ -49,14 +50,47 @@ ChangeLog History
 
 * [IMP] npm management
 
+2.0.2.1 (2022-10-31)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Odoo 11.0+
+* [FIX] Ensure coverage 5.0+
+
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+2.0.1.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] minor improvements
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.2 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] travis_install_env: python2 tests
+
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis_install_env: minor fixes
+* [IMP] z0testlib: show coverage result
+
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring for shell scripts
 
 
 |
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-11-03
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -101,5 +135,3 @@ Last Update / Ultimo aggiornamento: 2023-11-03
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

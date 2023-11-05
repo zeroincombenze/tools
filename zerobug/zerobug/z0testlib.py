@@ -349,43 +349,26 @@ class SanityTest:
         """Sanity autotest #1"""
         opts = ['-n']
         ctx = self.Z.parseoptest(opts)
-        # sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
         self.assertTrue(ctx['dry_run'], msg_info="Opt -n")
         if os.isatty(0):
-            # sts = self.Z.test_result(z0ctx, "Opt -n (tty)", True, ctx['run_tty'])
             self.assertTrue(ctx['run_tty'], msg_info="Opt -n (tty)")
         else:  # pragma: no cover
-            # sts = self.Z.test_result(z0ctx, "Opt -n (tty)", False, ctx['run_tty'])
             self.assertFalse(ctx['run_tty'], msg_info="Opt -n (tty)")
         if os.isatty(0):
-            # sts = self.Z.test_result(z0ctx,"Opt -n (daemon)",False,ctx['run_daemon'])
             self.assertFalse(ctx['run_daemon'], msg_info="Opt -n (daemon)")
         else:  # pragma: no cover
-            # sts = self.Z.test_result(z0ctx,"Opt -n (daemon)",True,ctx['run_daemon'])
             self.assertTrue(ctx['run_daemon'], msg_info="Opt -n (daemon)")
         if os.isatty(0):
-            # sts = self.Z.test_result(z0ctx, "Opt -n (-e)", True, ctx['opt_echo'])
             self.assertTrue(ctx['opt_echo'], msg_info="Opt -n (-e)")
         else:  # pragma: no cover
-            # sts = self.Z.test_result(z0ctx, "Opt -n (-e)", False, ctx['opt_echo'])
             self.assertFalse(ctx['opt_echo'], msg_info="Opt -n (-e)")
-        # sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
         self.assertFalse(ctx['opt_new'], msg_info="Opt -n (-k)")
-        # sts = self.Z.test_result(z0ctx, "Opt -n (-l)", '~/z0bug.log', ctx['logfn'])
-        # self.assertEqual(ctx['logfn'], '~/z0bug.log', msg_info="Opt -n (-l)")
         ctx = self.Z._ready_opts(ctx)
-        # sts = self.Z.test_result(z0ctx, "Counter", 0, ctx['ctr'])
         self.assertEqual(ctx['ctr'], 0, msg_info="Counter")
-        # sts = self.Z.test_result(z0ctx, "Opt -n (-r)", 0, ctx['min_test'])
         self.assertEqual(ctx['min_test'], 0, msg_info="Opt -n (-r)")
-        # sts = self.Z.test_result(z0ctx, "Opt -n (-z)", 0, ctx['max_test'])
         self.assertEqual(ctx['max_test'], 0, msg_info="Opt -n (-z)")
-        # tres = True
-        # sts = self.Z.test_result(z0ctx, "Opt -n (-Q)", tres, ctx['opt_noctr'])
         self.assertTrue(ctx['opt_noctr'], msg_info="Opt -n (-Q)")
-        # sts = self.Z.test_result(z0ctx, "Opt -B", 0, ctx['opt_debug'])
         self.assertEqual(ctx['opt_debug'], 0, msg_info="Opt -B")
-        # sts = self.Z.test_result(z0ctx, "Run on Top", True, ctx['run_on_top'])
         self.assertTrue(ctx['run_on_top'], msg_info="Run on Top")
         return self.ret_sts()
 
@@ -938,11 +921,6 @@ class Z0test(object):
         else:  # pragma: no cover
             ctx['run_daemon'] = True
         ctx['run_tty'] = os.isatty(0)
-        # if tlog:
-        #     ctx['tlog'] = tlog
-        # else:
-        #     ctx['tlog'] = self.def_tlog_fn
-        # running autotest
         if version is None:
             ctx['_run_autotest'] = True
         parser = self._create_parser(version, ctx)
@@ -1314,7 +1292,11 @@ class Z0test(object):
             and ctx.get('run_on_top', False)
             and not ctx.get('_run_autotest', False)
         ):
-            if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
+            if (
+                    ctx.get("run_on_top", True)
+                    and ctx.get('run4cover', False)
+                    and not ctx.get('dry_run', False)
+            ):
                 sts, stdout, stderr = z0lib.run_traced('coverage erase', verbose=0)
                 if sts:
                     print('Coverage not found!')
@@ -1360,16 +1342,17 @@ class Z0test(object):
             #     self.set_tlog_file(ctx)
             sts = self._exec_all_tests(test_list, ctx, Cls2Test)
             if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
-                if sts == TEST_SUCCESS:
+                if sts == 0:
                     print(success_msg)
+                    if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
+                        sts, stdout, stderr = z0lib.run_traced(
+                            'coverage report --show-missing', verbose=0)
+                        if sts:
+                            print('Coverage not found!')
+                            ctx['run4cover'] = False
+                        sts = 0
                 else:
                     print(fail_msg)
-                if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
-                    sts, stdout, stderr = z0lib.run_traced(
-                        'coverage report --show-missing', verbose=0)
-                    if sts:
-                        print('Coverage not found!')
-                        ctx['run4cover'] = False
         return sts
 
     def msg_test(self, ctx, msg):

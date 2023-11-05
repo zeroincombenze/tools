@@ -39,7 +39,6 @@ class RegressionTest:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            # sts += self.Z.test_result(z0ctx, 'mkdir %s' % path, True, res)
             self.assertTrue(res, msg_info='mkdir %s')
         return self.ret_sts()
 
@@ -52,7 +51,6 @@ class RegressionTest:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
                 res = os.path.isdir(path)
-            # sts += self.Z.test_result(z0ctx, 'rmdir %s' % path, False, res)
             self.assertFalse(res, msg_info='rmdir %s')
         return self.ret_sts()
 
