@@ -6,8 +6,9 @@
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 import sys
-from . import z0test
+import z0testlib
 
+z0test = z0testlib.Z0test()
 __version__ = "2.0.9"
 
 
@@ -22,4 +23,4 @@ def main(cli_args=None):
 
 
 if __name__ == "__main__":
-    exit(main(sys.argv))
+    exit(main(sys.argv[1:]))

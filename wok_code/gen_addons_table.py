@@ -8,7 +8,9 @@ The script must be run from the root of the repository,
 where the README.md file can be found.
 Based on OCA code it is changed for Odoo Italia Associazione.
 Cmdline parameters:
+
     gen_addons_table.py [{addons|}] [OCA_original_dir]
+
 Markers in README.md must have the form:
 [//]: # (addons)
 Insert list of modules with version and description; if path supplied, insert

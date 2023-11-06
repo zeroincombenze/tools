@@ -55,6 +55,7 @@ Unknown Odoo version
 | Feature C | ©SHS    |
 +-----------+---------+
 """
+
 AUTHORS_FN = """Lorem ipsum
 .. $if branch in '%s'
 * SHS-AV s.r.l. <https://www.shs-av.com>
@@ -68,6 +69,7 @@ AUTHORS_FN = """Lorem ipsum
 Unknown Odoo version
 .. $fi
 """
+
 CONTRIBUTORS_FN = """Lorem ipsum
 .. $if branch in '%s'
 * antonio <antoniov@libero.it>
@@ -82,9 +84,11 @@ Unknown Odoo version
 .. $fi
 """
 
-README_7 = """
+README_MAIN_MODULE = """
+{{description}}
+"""
 
-Lorem ipsum **dolor** sit amet
+README_7 = """Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
 Unknown Odoo version
 
@@ -106,11 +110,9 @@ Unknown Odoo version
 +-----------+---------+
 | Feature C | ©SHS    |
 +-----------+---------+
-
 """
-README_10 = """
 
-Lorem ipsum **dolor** sit amet
+README_10 = """Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
 odoo 10.0
 
@@ -132,11 +134,9 @@ odoo 10.0
 +-----------+---------+
 | Feature C | ©SHS    |
 +-----------+---------+
-
 """
-README_12 = """
 
-Lorem ipsum **dolor** sit amet
+README_12 = """Lorem ipsum **dolor** sit amet
 consectetur *adipiscing* elit
 odoo 12.0
 
@@ -158,7 +158,6 @@ odoo 12.0
 +-----------+---------+
 | Feature C | ©SHS    |
 +-----------+---------+
-
 """
 
 
@@ -217,14 +216,10 @@ Acknoledges to
 """
                 )
             )
-        with open(os.path.join(self.templatedir, "readme_main_module.rst"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-{{description}}
-"""
-                )
-            )
+
+        self.create_readme_main_module_file()
+
+
         with open(
                 os.path.join(self.templatedir, "readme_main_repository.rst"), "w"
         ) as fd:
@@ -271,6 +266,11 @@ Acknoledges to
         descr_fn = os.path.join(egg_info_path, "CONTRIBUTORS.rst")
         with open(descr_fn, "w") as fd:
             fd.write(_c(CONTRIBUTORS_FN % odoo_version))
+
+    def create_readme_main_module_file(self):
+        tmpl_fn = os.path.join(self.templatedir, "readme_main_module.rst")
+        with open(tmpl_fn, "w") as fd:
+            fd.write(_c(README_MAIN_MODULE))
 
     def fn_source(self, fn):
         with open(fn) as fd:
@@ -328,7 +328,7 @@ Acknoledges to
                         self.fn_source(os.path.join(moduledir, "README.rst")),
                         msg_info=os.path.join(moduledir,
                                               "README.rst") + "  #" + odoo_version)
-        return sts
+        return self.ret_sts()
 
 
 #

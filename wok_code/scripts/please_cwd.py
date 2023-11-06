@@ -20,7 +20,10 @@ except ImportError:
     from clodoo import build_odoo_param
 
 __version__ = "2.0.11"
+
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
+RED = "\033[1;31m"
+CLEAR = "\033[0;m"
 
 
 class PleaseCwd(object):
@@ -110,13 +113,13 @@ class PleaseCwd(object):
             self.config = self.please.opt_args.odoo_config or build_odoo_param(
                 "CONFN", odoo_vid=".", multi=True)
         if not pth.isfile(self.config):
-            print("No configuration file %s found!" % self.config)
+            print("%sNo configuration file %s found!%s" % (RED, self.config, CLEAR))
             return 126
         Config = ConfigParser.RawConfigParser()
         Config.read(self.config)
         if not Config.has_section("options"):
-            print("Invalid Configuration file %s: missed [options] section!"
-                  % self.opt_args.config)
+            print("%sInvalid Configuration file %s: missed [options] section!%s"
+                  % (RED, self.opt_args.config, CLEAR))
             return 33
         else:
             for k in (
@@ -196,7 +199,7 @@ class PleaseCwd(object):
                 and (not pth.isfile(pth.join(docdir, "CONTRIBUTORS.rst"))
                      or not pth.isfile(pth.join(docdir, "AUTHORS.rst")))
         ):
-            args = self.get_gen_readme_base_args(branch=branch)
+            args = self.build_gen_readme_base_args(branch=branch)
             args.append("-RW")
             return please.chain_python_cmd("gen_readme.py", args)
         return 0
@@ -216,7 +219,7 @@ class PleaseCwd(object):
 
     def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
         if pkgtype not in ("odoo", "pypi"):
-            print("Invalid package type: use 'odoo' or 'pypi'!")
+            print("%sInvalid package type: use 'odoo' or 'pypi'!%s" % (RED, CLEAR))
             return 33
         please = self.please
         if pkgtype == "pypi":
@@ -262,11 +265,11 @@ class PleaseCwd(object):
             return self.assure_doc_dirs_pypi()
         return 33
 
-    def get_gen_readme_base_args(self, branch=None):
+    def build_gen_readme_base_args(self, branch=None):
         branch = branch or self.branch
         args = []
         if self.please.opt_args.debug:
-            args.append("-B")
+            args.append("-" + ("B" * self.please.opt_args.debug))
         if branch:
             args.append("-b")
             args.append(branch)
@@ -275,23 +278,6 @@ class PleaseCwd(object):
         if self.please.opt_args.dry_run:
             args.append("-n")
         return args
-
-    def extract_fn_from_index(self, index_fn):
-        if (
-                not index_fn.startswith("/")
-                and not index_fn.startswith("./")
-                and not index_fn.startswith("~/")
-        ):
-            index_fn = pth.join(".", "docs", index_fn)
-        doc_files = []
-        if not pth.isfile(index_fn):
-            print("Index file %s not found!" % index_fn)
-        else:
-            with open(index_fn, "r") as fd:
-                for ln in fd.read().split("\n"):
-                    if re.match("^ *(rtd_|pypi_)", ln):
-                        doc_files.append(ln.strip())
-        return doc_files
 
     def extract_imported_names(self, py_file):
         if (
@@ -302,7 +288,7 @@ class PleaseCwd(object):
             py_file = pth.join(".", py_file)
         imported_names = []
         if not pth.isfile(py_file):
-            print("Python file %s not found!" % py_file)
+            print("%sPython file %s not found!%s" % (RED, py_file, CLEAR))
         else:
             with open(py_file, "r") as fd:
                 for ln in fd.read().split("\n"):
@@ -327,13 +313,27 @@ class PleaseCwd(object):
             if pth.isfile("./testenv.py"):
                 doctext += ".. automodule:: %s.testenv.testenv\n" % pkg_name
         elif doc.startswith("rtd_"):
+            def_header = {
+                "features": "Features",
+                "usage": "Usage",
+                "prerequisites": "Prerequisites",
+                "configuration": "Configuration",
+                "changelog": "ChangeLog History",
+                "contributors": "Contributors",
+            }
             name = doc[4:]
-            if name == "features":
-                doctext += "Features\n"
-                doctext += "--------\n"
-            elif name == "usage":
-                doctext += "Usage\n"
-                doctext += "-----\n"
+            doctext += (".. $if defined %s\n" % name)
+            doctext += (".. $if isfile rtd_%s.rst\n" % name)
+            header = def_header.get(name)
+            if header:
+                doctext += (header + "\n")
+                doctext += (("-" * len(header)) + "\n")
+                doctext += "\n"
+            doctext += ("   rtd_%s\n" % name)
+            doctext += ".. $else\n"
+            doctext += ("{{%s}}\n" % name)
+            doctext += ".. $fi\n"
+            doctext += ".. $fi\n"
             doctext += "\n"
             doctext += ".. $include readme_footer.rst\n"
         elif doc.startswith("pypi_"):
@@ -357,7 +357,7 @@ class PleaseCwd(object):
         with open(fn, "w") as fd:
             fd.write(doctext)
         if doc.startswith("rtd_"):
-            args = self.get_gen_readme_base_args(branch=branch)
+            args = self.build_gen_readme_base_args(branch=branch)
             args.append("-t")
             args.append(fn)
             args.append("-o")
@@ -684,13 +684,13 @@ class PleaseCwd(object):
                         % (branch, repo_name),
                         rtime=True)
                 else:
-                    args = self.get_gen_readme_base_args(branch=branch)
+                    args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
                         args.append("-H")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0 and odoo_major_version <= 7:
-                        args = self.get_gen_readme_base_args(branch=branch)
+                        args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
@@ -708,35 +708,24 @@ class PleaseCwd(object):
                 if sts:
                     return sts
                 if not please.opt_args.oca:
-                    args = self.get_gen_readme_base_args(branch=branch)
+                    args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
             return sts
         elif please.is_pypi_pkg():
-            branch = please.get_pypi_version()
-            self.branch = branch
-            pkg_name = pth.basename(pth.dirname(os.getcwd()))
+            self.branch = please.get_pypi_version()
+            # pkg_name = pth.basename(pth.dirname(os.getcwd()))
             sts = self.assure_doc_dirs(pkgtype="pypi")
             if sts:
                 return sts
             if not pth.isdir(self.docs_dir):
                 print("Document template directory %s not found!" % self.docs_dir)
                 return 33 if not self.please.opt_args.dry_run else 0
-            doc_files = self.extract_fn_from_index("index.rst")
-            for doc in doc_files:
-                self.write_doc(doc, self.build_doc_template(doc))
-            args = []
-            if self.please.opt_args.debug:
-                args.append("-B")
-            if branch:
-                args.append("-b")
-                args.append(branch)
-            if self.please.opt_args.dry_run:
-                args.append("-n")
-            if pkg_name == "tools":
-                args.append("-W")
+            args = self.build_gen_readme_base_args(branch=self.branch)
             sts = self.please.chain_python_cmd("gen_readme.py", args)
             if sts == 0:
-                # author = self.get_pypi_author()
+                args.append("-H")
+                sts = please.chain_python_cmd("gen_readme.py", args)
+            if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
                 # sts = please.run_traced(

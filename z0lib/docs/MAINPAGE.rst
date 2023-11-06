@@ -5,9 +5,6 @@ z0lib 2.0.3
 
 
 
-|Maturity| |Build Status| |Coverage Status| |license gpl|
-
-
 
 
 Overview

@@ -17,3 +17,10 @@ Current version via Git
     cd ./tools
     ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+.. $if write_index
+
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
+.. $fi

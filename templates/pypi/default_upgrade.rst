@@ -4,7 +4,7 @@ Stable version via Python Package
 
 ::
 
-    pip install {{name}} -U
+    pip install --upgrade {{name}}
 
 
 .. $fi
@@ -13,6 +13,6 @@ Current version via Git
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -UT
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools

@@ -1,4 +1,3 @@
-
 ===========
 z0lib 2.0.7
 ===========
@@ -9,38 +8,60 @@ z0lib 2.0.7
 
 
 
-
 Overview
 ========
 
-Simple bash library
+z0lib is a simple bash and python library.
 
-+---------------+-----------------------------------------------------------+
-| xuname        | Detect and print more OS informations than uname command  |
-+---------------+-----------------------------------------------------------+
-| parse_optargs | Parse command line arguments in a professional way        |
-+---------------+-----------------------------------------------------------+
-| print_help    | Print help for parse command line arguments               |
-+---------------+-----------------------------------------------------------+
+It was created to give support to bash and python software.
+The package has both bash version and both python version of functions.
+Since 2022, bash development was abandoned and only python code is stil upgraded.
 
-You can find more info here:
-http://wiki.zeroincombenze.org/en/Linux/dev
-http://docs.zeroincombenze.org/z0lib/
+.. important::
+
+    However, most functions are still available for bash scripts.
+
+The available libraries are:
+
+* z0librc: bash version library
+* z0librun.py: python version library
 
 
-|
-|
+
+Features
+--------
+
++--------------+------+--------+-----------------------------------------------------------------+
+| Description  | bash | python | Note(s)                                                         |
++--------------+------+--------+-----------------------------------------------------------------+
+| run_traced   | ✅   | ✅     | Run os command with trace                                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| xuname       | ✅   | ❌     | OS indentity (python has native function)                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| parseoptargs | ✅   | ❌     | Command line parser (python has native function)                |
++--------------+------+--------+-----------------------------------------------------------------+
+| link_cfg     | ✅   | ❌     | Get values from configuration file (python has native function) |
++--------------+------+--------+-----------------------------------------------------------------+
+
+
 
 Getting started
 ===============
 
 
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,45 +70,46 @@ Stable version via Python Package
 
     pip install z0lib
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
+
+Upgrade
+-------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install z0lib -U
+    pip install --upgrade z0lib
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 ChangeLog History
 -----------------
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.8 (2023-10-16)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] parseopt
 
@@ -98,34 +120,69 @@ ChangeLog History
 * [IMP] run_traced: new rtime parameter to show rtime output
 * [IMP] New main
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.5 (2023-05-14)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] Sometime configuration init fails
 * [IMP] Configuration name LOCAL_PKGS read real packages
 * [IMP] is_pypi function more precise
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.4 (2023-04-10)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced: cd does not work w/o alias
 * [IMP] coveralls and codecov are not more dependencies
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.3 (2022-12-22)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] run_traced: --switch sometime crashes
 * [FIX] run_traced: alias function
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.2 (2022-12-07)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] best recognition of python version
 * [FIX] run_traced: fail with python 2
 
+2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
 
-|
-|
+* [IMP] Stable version
+
+2.0.0.4.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced: wrong execution for "cd <path>; ..."
+* [IMP] CFG_init 'ALL': set ODOO_ROOT
+
+2.0.0.4 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python2 tests
+
+2.0.0.3 (2022-09-30)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced return code
+
+2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_traced for python apps
+
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_pybin accept filename
+* [IMP] check_pythonpath removed
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring for shell scripts
+
+
 
 Credits
 =======
@@ -136,163 +193,21 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
 Authors
 -------
 
-* `Antonio Maria Vigliotti <False>`__
 * `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
 
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-* Antonio Maria Vigliotti <info@shs-av.com>
-* | <False>
-* This module is part of tools project. <False>
-* Last Update / Ultimo aggiornamento: 2023-08-12 <False>
-* .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png <False>
-* :target: https://odoo-community.org/page/development-status <False>
-* :alt: <False>
-* .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg <False>
-* :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html <False>
-* :alt: License: AGPL-3 <False>
-* .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg <False>
-* :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html <False>
-* :alt: License: OPL <False>
-* .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev <False>
-* :alt: Technical Documentation <False>
-* .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man <False>
-* :alt: Technical Documentation <False>
-* .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg <False>
-* :target: https://erp2.zeroincombenze.it <False>
-* :alt: Try Me <False>
-* .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4 <False>
-* :target: https://www.zeroincombenze.it/ <False>
-* :alt: Zeroincombenze <False>
-* .. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png <False>
-* .. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png <False>
-* .. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png <False>
-* .. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png <False>
-* .. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png <False>
-* .. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png <False>
-* .. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png <False>
-* .. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png <False>
-* .. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png <False>
-* .. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png <False>
-* .. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md <False>
-* .. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md <False>
-* .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md <False>
-* .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif <False>
-* :target: https://t.me/Assitenza_clienti_powERP <False>
-* | <False>
-* This module is part of tools project. <False>
-* Last Update / Ultimo aggiornamento: 2023-10-16 <False>
-* .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png <False>
-* :target: https://odoo-community.org/page/development-status <False>
-* :alt: <False>
-* .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg <False>
-* :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html <False>
-* :alt: License: AGPL-3 <False>
-* .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg <False>
-* :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html <False>
-* :alt: License: OPL <False>
-* .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev <False>
-* :alt: Technical Documentation <False>
-* .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man <False>
-* :alt: Technical Documentation <False>
-* .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg <False>
-* :target: https://erp2.zeroincombenze.it <False>
-* :alt: Try Me <False>
-* .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4 <False>
-* :target: https://www.zeroincombenze.it/ <False>
-* :alt: Zeroincombenze <False>
-* .. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png <False>
-* .. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png <False>
-* .. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png <False>
-* .. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png <False>
-* .. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png <False>
-* .. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png <False>
-* .. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png <False>
-* .. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png <False>
-* .. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png <False>
-* .. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png <False>
-* .. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md <False>
-* .. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md <False>
-* .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md <False>
-* .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif <False>
-* :target: https://t.me/Assitenza_clienti_powERP <False>
-* | <False>
-* This module is part of tools project. <False>
-* Last Update / Ultimo aggiornamento: 2023-10-16 <False>
-* .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png <False>
-* :target: https://odoo-community.org/page/development-status <False>
-* :alt: <False>
-* .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg <False>
-* :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html <False>
-* :alt: License: AGPL-3 <False>
-* .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg <False>
-* :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html <False>
-* :alt: License: OPL <False>
-* .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev <False>
-* :alt: Technical Documentation <False>
-* .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg <False>
-* :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man <False>
-* :alt: Technical Documentation <False>
-* .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg <False>
-* :target: https://erp2.zeroincombenze.it <False>
-* :alt: Try Me <False>
-* .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4 <False>
-* :target: https://www.zeroincombenze.it/ <False>
-* :alt: Zeroincombenze <False>
-* .. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png <False>
-* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
-* .. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png <False>
-* .. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png <False>
-* .. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png <False>
-* .. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png <False>
-* .. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png <False>
-* .. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png <False>
-* .. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png <False>
-* .. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png <False>
-* .. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png <False>
-* .. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png <False>
-* .. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md <False>
-* .. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md <False>
-* .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png <False>
-* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md <False>
-* .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif <False>
-* :target: https://t.me/Assitenza_clienti_powERP <False>
+* Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-10-25
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -337,5 +252,3 @@ Last Update / Ultimo aggiornamento: 2023-10-25
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

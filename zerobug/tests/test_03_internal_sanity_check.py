@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/odoo/devel/venv/bin/python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
@@ -30,7 +30,6 @@ def version():
 
 class RegressionTest:
     def __init__(self, z0bug):
-        # self.Z = z0bug
         z0bug.inherit_cls(self)
 
     def test_01(self, z0ctx):
@@ -40,12 +39,6 @@ class RegressionTest:
         else:
             sts = self.Z.sanity_check('-e', full=z0ctx)
         self.assertEqual(sts, 0, msg_info="sanity_check()")
-        # sts += self.Z.test_result(
-        #     z0ctx,
-        #     'python version',
-        #     os.getenv("TRAVIS_PYTHON_VERSION"),
-        #     "%d.%d" % (sys.version_info[0], sys.version_info[1]),
-        # )
         self.assertEqual(
             "%d.%d" % (sys.version_info[0], sys.version_info[1]),
             os.getenv("TRAVIS_PYTHON_VERSION"),
@@ -62,3 +55,5 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+
+

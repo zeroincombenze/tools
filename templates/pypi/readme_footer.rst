@@ -2,12 +2,6 @@
 |
 |
 
-.. $if odoo_layer == 'module'
-This module is part of {{repos_name}} project.
-.. $fi
-
-Last Update / Ultimo aggiornamento: {{today}}
-
 .. |Maturity| image:: {{badge-maturity}}
     :target: {{maturity-URL}}
     :alt: {{maturity}}

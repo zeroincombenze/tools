@@ -11,31 +11,9 @@ Welcome to {{name}} {{branch}} documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. $merge_docs
+.. $pypi_pages
 
-.. $if isfile rtd_description.rst
-   rtd_description
-.. $else
-{{description}}
-.. $fi
-.. $if isfile rtd_features.rst
-   rtd_features
-.. $fi
-.. $if isfile rtd_installation.rst
-   rtd_installation
-.. $fi
-.. $if isfile rtd_usage.rst
-   rtd_usage
-.. $fi
-.. $if isfile rtd_faq
-   rtd_faq
-.. $fi
-.. $if isfile rtd_macro.rst
-   rtd_macro
-.. $fi
-
-
-.. include: readme_footer
+.. $include readme_footer.rst
 
 Indices and tables
 ==================
