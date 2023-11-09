@@ -1,25 +1,62 @@
-.. python_plus documentation master file, created by
-   gen_readme.py on 2023-11-09 17:52:31
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-============================================
-Welcome to python_plus 2.0.10 documentation!
-============================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Digest of code_example
+======================
 
 
-   rtd_description
-   rtd_usage
-   rtd_getting_started
-   rtd_usage_code_example
-   rtd_usage_code_reference
-   rtd_usage_vem
-   rtd_changelog
-   rtd_credits
+Code example
+------------
+
+class / type test
+~~~~~~~~~~~~~~~~~
+
+Test if a string is unicode.
+
+On Py2, this gives us:
+
+    >>> s = 'Hello World'
+    >>> isinstance(object, str)
+    True
+
+On Py3, this gives us:
+
+    >>> s = b'Hello World'
+    >>> isinstance(object, bytes)
+    True
+
+
+Then, for example, the following code has the same effect on Py2 as on Py3:
+
+    >>> from python_plus import isbytestr
+    >>> s = b'Hello World'
+    >>> isbytestr(s)
+    True
+
+
+quoted string
+~~~~~~~~~~~~~
+
+Using class __:
+
+    >>> from python_plus import __
+
+    >>> my_str_list = __('abc,"d,e",fgh')
+    >>> my_list = my_str_list.qsplit(my_str_list)
+    >>> print my_list
+    ['abc', 'd,e', 'fgh']
+
+|
+
+General function:
+
+    >>> from python_plus import qsplit
+
+    >>> my_str_list = 'abc,"d,e",fgh'
+    >>> my_list = qsplit(my_str_list)
+    >>> print my_list
+    ['abc', 'd,e', 'fgh']
+
 
 
 |
@@ -68,12 +105,3 @@ Welcome to python_plus 2.0.10 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

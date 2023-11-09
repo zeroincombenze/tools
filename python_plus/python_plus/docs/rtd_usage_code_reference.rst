@@ -1,25 +1,33 @@
-.. python_plus documentation master file, created by
-   gen_readme.py on 2023-11-09 17:52:31
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-============================================
-Welcome to python_plus 2.0.10 documentation!
-============================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Digest of code_reference
+========================
 
 
-   rtd_description
-   rtd_usage
-   rtd_getting_started
-   rtd_usage_code_example
-   rtd_usage_code_reference
-   rtd_usage_vem
-   rtd_changelog
-   rtd_credits
+Code reference
+~~~~~~~~~~~~~~
+
+`` str.qslit(sep=None, maxsplit=-1, quotes=['"', '"'], escape=None, enquote=None, strip=None)``
+
+Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).
+
+If sep is given, consecutive delimiters are not grouped together and are deemed to delimit empty strings (for example, '1,,2'.split(',') returns ['1', '', '2']). The sep argument may consist of multiple characters (for example, '1<>2<>3'.split('<>') returns ['1', '2', '3']). Splitting an empty string with a specified separator returns [''].
+
+If quotes is given, it is used to recognize quoted string: the sep tokens inside quoted string are ignored. The paramters quotes may be a string or a list. If it is a string trailing and ending delimiters are the same, like usual python string; if list is given, the first element is initial delimiter and the second element is the final delimiter like in html tag.
+
+If escape is given, it is used to escape delimiters.
+
+If enquote is True, returned list elements are enquoted by delimiters.
+
+If strip is Tru, trailing and tailing spaces in returned list elements are removed.
+
+
+For example:
+
+    >>> my_str_list = __('abc,"d,e",fgh')
+    >>> print my_str_list.qsplit(my_str_list)
+    ['abc', 'd,e', 'fgh']
 
 
 |
@@ -68,12 +76,3 @@ Welcome to python_plus 2.0.10 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

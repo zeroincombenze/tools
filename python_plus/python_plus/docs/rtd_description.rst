@@ -1,67 +1,54 @@
 .. toctree::
    :maxdepth: 2
 
-Python supplemental features
-----------------------------
+Overview
+========
+
 
 python-plus adds various features to python 2 and python 3 programs.
-It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
+It is designed to be used as integration of pypi future to help to port your code from
+Python 2 to Python 3 and still have it run on Python 2.
 
 
 list_requirements.py: list environment requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This command is an internal command of python-plus but may be used as own command.
-list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+list_requirements.py displays the pypi and binaries packages needed to create a virtual
+environment.
 It is specially designed to show Odoo requirements.
-Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
+Passing Odoo path it reads requirements.txt files in path and setup directories of OCA
+repositories.
 
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This command is an interactive tool with some nice features to manage standard virtual environment.
+This command is an interactive tool with some nice features to manage standard virtual
+environment.
 Mainly it works ad standard pip but inside a specific virtual environment.
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-04-14
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-    :target: https://travis-ci.com/zeroincombenze/tools
-    :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
-    :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
-    :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/2.0
-    :alt: Codecov
-.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
-   :target: https://odoo-italia.org
-   :alt: Odoo Italia Associazione
 .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
    :target: https://www.zeroincombenze.it/
    :alt: Zeroincombenze
@@ -87,5 +74,3 @@ Last Update / Ultimo aggiornamento: 2023-04-14
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

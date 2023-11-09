@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -7,15 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Usage &#8212; python_plus 2.0.10 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
-    <script src="_static/jquery.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=35ed7e2b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="rtd_getting_started.html" />
+    <link rel="prev" title="Overview" href="rtd_description.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -23,6 +24,12 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.10 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
@@ -37,11 +44,10 @@
 </div>
 <section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
-</section>
 <section id="code-example">
-<h1>Code example<a class="headerlink" href="#code-example" title="Permalink to this heading"></a></h1>
+<h2>Code example<a class="headerlink" href="#code-example" title="Permalink to this heading"></a></h2>
 <section id="class-type-test">
-<h2>class / type test<a class="headerlink" href="#class-type-test" title="Permalink to this heading"></a></h2>
+<h3>class / type test<a class="headerlink" href="#class-type-test" title="Permalink to this heading"></a></h3>
 <p>Test if a string is unicode.</p>
 <p>On Py2, this gives us:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;Hello World&#39;</span>
@@ -64,7 +70,7 @@
 </div>
 </section>
 <section id="quoted-string">
-<h2>quoted string<a class="headerlink" href="#quoted-string" title="Permalink to this heading"></a></h2>
+<h3>quoted string<a class="headerlink" href="#quoted-string" title="Permalink to this heading"></a></h3>
 <p>Using class __:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">__</span>
 </pre></div>
@@ -90,7 +96,7 @@
 </div>
 </section>
 <section id="code-reference">
-<h2>Code reference<a class="headerlink" href="#code-reference" title="Permalink to this heading"></a></h2>
+<h3>Code reference<a class="headerlink" href="#code-reference" title="Permalink to this heading"></a></h3>
 <p>`` str.qslit(sep=None, maxsplit=-1, quotes=[‘”’, ‘”’], escape=None, enquote=None, strip=None)``</p>
 <p>Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).</p>
 <p>If sep is given, consecutive delimiters are not grouped together and are deemed to delimit empty strings (for example, ‘1,,2’.split(‘,’) returns [‘1’, ‘’, ‘2’]). The sep argument may consist of multiple characters (for example, ‘1&lt;&gt;2&lt;&gt;3’.split(‘&lt;&gt;’) returns [‘1’, ‘2’, ‘3’]). Splitting an empty string with a specified separator returns [‘’].</p>
@@ -106,7 +112,7 @@
 </div>
 </section>
 <section id="vem-virtual-environment-manager">
-<h2>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Permalink to this heading"></a></h2>
+<h3>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Permalink to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">vem</span><span class="o">.</span><span class="n">sh</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">a</span> <span class="nb">list</span><span class="p">][</span><span class="o">-</span><span class="n">BCD</span><span class="p">][</span><span class="o">-</span><span class="n">d</span> <span class="n">paths</span><span class="p">][</span><span class="o">-</span><span class="n">E</span> <span class="n">distro</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">name</span><span class="p">][</span><span class="o">-</span><span class="n">gkIi</span><span class="p">][</span><span class="o">-</span><span class="n">l</span> <span class="n">iso</span><span class="p">][</span><span class="o">-</span><span class="n">n</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="nb">dir</span><span class="p">][</span><span class="o">-</span><span class="n">p</span> <span class="n">pyver</span><span class="p">][</span><span class="o">-</span><span class="n">q</span><span class="p">][</span><span class="o">-</span><span class="n">r</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">stVvy</span><span class="p">]</span> <span class="n">p3</span> <span class="n">p4</span> <span class="n">p5</span> <span class="n">p6</span> <span class="n">p7</span> <span class="n">p8</span> <span class="n">p9</span>
 <span class="n">Manage</span> <span class="n">virtual</span> <span class="n">environment</span>
 <span class="n">action</span> <span class="n">may</span> <span class="n">be</span><span class="p">:</span> <span class="n">help</span> <span class="n">amend</span> <span class="n">cp</span> <span class="n">check</span> <span class="n">create</span> <span class="n">exec</span> <span class="n">info</span> <span class="n">inspect</span> <span class="n">install</span> <span class="n">merge</span> <span class="n">mv</span> <span class="n">python</span> <span class="n">shell</span> <span class="n">rm</span> <span class="n">show</span> <span class="n">uninstall</span> <span class="n">update</span> <span class="n">test</span>
@@ -197,9 +203,9 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
 </dl>
 <div class="line-block">
 <div class="line"><br /></div>
+<div class="line"><br /></div>
 </div>
-<p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-04-14</p>
+</section>
 </section>
 </section>
 
@@ -216,7 +222,7 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
   <div>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
-<li><a class="reference internal" href="#">Usage</a></li>
+<li><a class="reference internal" href="#">Usage</a><ul>
 <li><a class="reference internal" href="#code-example">Code example</a><ul>
 <li><a class="reference internal" href="#class-type-test">class / type test</a></li>
 <li><a class="reference internal" href="#quoted-string">quoted string</a></li>
@@ -225,7 +231,19 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
 </ul>
 </li>
 </ul>
+</li>
+</ul>
 
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description.html"
+                          title="previous chapter">Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_getting_started.html"
+                          title="next chapter">Getting started</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -254,13 +272,19 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.10 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2019-21, SHS-AV s.r.l..
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    &#169; Copyright 2019-23, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
     </div>
   </body>
 </html>
