@@ -1,6 +1,3 @@
-Zeroincombenze® continuous testing framework for python and bash programs
--------------------------------------------------------------------------
-
 This library can run unit test of target package software.
 Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
 

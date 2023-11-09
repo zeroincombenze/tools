@@ -1,5 +1,5 @@
 .. zerobug documentation master file, created by
-   gen_readme.py on 2023-11-05 07:24:06
+   gen_readme.py on 2023-11-09 09:30:59
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -14,8 +14,11 @@ Welcome to zerobug 2.0.9 documentation!
 
    rtd_description
    rtd_features
+   rtd_usage
    rtd_getting_started
-   rtd_faq
+   rtd_usage_code_example
+   rtd_usage_code_reference
+   rtd_automodule
    rtd_changelog
    rtd_credits
 

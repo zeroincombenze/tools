@@ -34,11 +34,6 @@ Current version via Git
     ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
-Source code
-~~~~~~~~~~~
-
-You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
-
 Upgrade
 -------
 
@@ -58,6 +53,11 @@ Current version via Git
     cd ./tools
     ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
 
 
 |

@@ -5,20 +5,22 @@
 from __future__ import print_function, unicode_literals
 from builtins import str as text
 from io import open
+import os
+import sys
 
 import argparse
 import glob
-import os
 import shutil
 import stat
 import subprocess
 import re
 
-# import os.path
-import sys
 from string import Template
 from subprocess import PIPE, Popen
-
+if sys.version_info[0] == 2:
+    from inspect import getargspec
+else:
+    from inspect import signature
 import unittest
 
 import magic
@@ -54,9 +56,9 @@ ODOO_CONF = False
 OE_CONF = False
 # Warning: set all LXs with no values -> LX=(), with 1 value -> LX=(value,)
 # List of string parameters in [options] of config file
-LX_CFG_S = ('opt_debug', 'opt_verbose', 'opt_noctr')
+LX_CFG_S = ('failfast', 'opt_debug', 'opt_verbose', 'opt_noctr')
 # List of pure boolean parameters in [options] of config file
-LX_CFG_B = ('opt_debug', 'python2', 'python3')
+LX_CFG_B = ('failfast', 'opt_debug', 'python2', 'python3')
 # List of string parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_S = (
     'opt_echo',
@@ -66,6 +68,7 @@ LX_OPT_CFG_S = (
     'dry_run',
     'opt_new',
     'opt_verbose',
+    'failfast',
     'opt_debug',
     'opt_noctr',
     'run4cover',
@@ -79,14 +82,15 @@ LX_OPT_CFG_S = (
     'python3',
 )
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug', 'opt_tjlib', 'opt_oelib')
+LX_OPT_CFG_B = ('qsanity', 'esanity', 'failfast', 'opt_debug',
+                'opt_tjlib', 'opt_oelib')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_N = ('ctr', 'max_test', 'min_test')
 # List of string/boolean parameters; may be string or boolean value;
 # must be declared in LX_CFG_S or LX_OPT_CFG_S
-LX_SB = ('dry_run',)
+LX_SB = ('failfast', 'dry_run')
 #
-DEFDCT = {'run4cover': False, 'opt_debug': False, 'opt_new': False}
+DEFDCT = {'run4cover': False, 'failfast': False, 'opt_debug': False, 'opt_new': False}
 #
 LX_OPT_ARGS = {
     'opt_debug': '-B',
@@ -639,6 +643,12 @@ class Z0test(object):
             default=False,
         )
         parser.add_argument(
+            "-f",
+            "--failfast",
+            help="Stop on first fail or error",
+            action="store_true",
+        )
+        parser.add_argument(
             "-J",
             help="load travisrc (deprecated)",
             action="store_true",
@@ -685,7 +695,7 @@ class Z0test(object):
         parser.add_argument(
             "-p",
             "--search-pattern",
-            help="pattern to apply for test files (comma separated)",
+            help="Pattern to match tests, comma separated ('test*.py' default)",
             dest="opt_pattern",
             metavar="file_list",
             default='',
@@ -1100,6 +1110,10 @@ class Z0test(object):
         )
         return self.test_result(ctx, msg, TEST_SUCCESS, res)
 
+    def has_args(self, method):
+        return (getargspec(method) if sys.version_info[0] == 2
+                else list(signature(method).parameters))
+
     def _exec_tests_4_count(self, test_list, ctx, Cls2Test=None):
         # Deprecated
         opt4childs = ['-n', '-R']
@@ -1122,7 +1136,10 @@ class Z0test(object):
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
             elif Cls2Test and hasattr(Cls2Test, testname):
-                getattr(T, testname)(ctx)
+                if self.has_args(getattr(T, testname))[0]:
+                    getattr(T, testname)(ctx)
+                else:
+                    getattr(T, testname)()
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1182,7 +1199,10 @@ class Z0test(object):
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
             elif Cls2Test and hasattr(Cls2Test, testname):
-                sts = getattr(T, testname)(ctx)
+                if self.has_args(getattr(T, testname))[0]:
+                    getattr(T, testname)(ctx)
+                else:
+                    getattr(T, testname)()
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1247,10 +1267,10 @@ class Z0test(object):
                 if not ctx.get('opt_noctr', False):
                     ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
+            self.res_test_env(ctx)
             if sts or not ctx.get('successful'):  # pragma: no cover
                 sts = TEST_FAILED
                 break
-            self.res_test_env(ctx)
         ctx['min_test'] = ctx['ctr']
         if Cls2Test and hasattr(Cls2Test, 'teardown'):
             T.teardown(ctx)
@@ -1415,149 +1435,118 @@ class Z0test(object):
                     return TEST_FAILED
         return TEST_SUCCESS
 
+    def test_failed(self, msg, first, second=None):
+        print(msg)
+        print("Value1='" + first + "'")
+        if second:
+            print("Value2='" + second + "'")
+        self.successful = False
+        if self.failfast:
+            raise AssertionError
+
     def assertTrue(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if not bool(expr):
-            print(msg or "Invalid value <<%s>>!" % expr)
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertFalse(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if bool(expr):
-            print(msg or "Invalid value <<%s>>!" % expr)
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first != second:
-            print(msg or "Value <<%s>> is different from <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is different from <<%s>>!" % (first, second),
+                first, second)
 
     def assertNotEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first == second:
-            print(msg or "Value <<%s>> is equal to <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is equal to <<%s>>!" % (first, second),
+                first, second)
 
     def assertIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first not in second:
-            print(msg or "Value <<%s>> is not in <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is not in <<%s>>!" % (first, second),
+                first, second)
 
     def assertNotIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first in second:
-            print(msg or "Value <<%s>> is in <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is in <<%s>>!" % (first, second),
+                first, second)
 
     def assertLess(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first >= second:
-            print(msg or "Value <<%s>> is greater or equal to <<%s>>!" % (first,
-                                                                          second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is greater or equal to <<%s>>!" % (first, second),
+                first, second)
 
     def assertLessEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first > second:
-            print(msg or "Value <<%s>> is greater than <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is greater than <<%s>>!" % (first, second),
+                first, second)
 
     def assertGreater(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first <= second:
-            print(msg or "Value <<%s>> is less or equal to <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is less or equal to <<%s>>!" % (first, second),
+                first, second)
 
     def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(("%d. " % self.assert_counter) + msg_info)
         if first < second:
-            print(msg or "Value <<%s>> is less than <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> is less than <<%s>>!" % (first, second),
+                first, second)
 
     def assertMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(msg_info)
         if not re.match(second, first):
-            print(msg or "Value <<%s>> does not match <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> does not match <<%s>>!" % (first, second),
+                first, second)
 
     def assertNotMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
             print(msg_info)
         if re.match(second, first):
-            print(msg or "Value <<%s>> does match <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
-
-    def assertNotMatch(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(msg_info)
-        if re.match(second, first):
-            print(msg or "Value <<%s>> does match <<%s>>!" % (first, second))
-            self.successful = False
-            if self.failfast:
-                raise AssertionError
-        return self.ret_sts()
+            self.test_failed(
+                msg or "Value <<%s>> matches <<%s>>!" % (first, second),
+                first, second)
 
     def _init_test_ctx(self, opt_echo, full={}):
         """Set context value for autotest"""

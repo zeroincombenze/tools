@@ -1,12 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2018-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-
-# import pdb
+from __future__ import print_function, unicode_literals
 # import os
 import sys
 
@@ -26,10 +24,11 @@ def version():
 class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
+        self.Z.inherit_cls(self)
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
-        return sts
+        self.assertTrue(True, msg_info="Test")
+        return self.ret_sts()
 
 
 # Run main if executed as a script
