@@ -30,12 +30,17 @@ MANIFEST_1 = """{
     'name': 'module_test',
     'version': '12.0.1.0',
 }"""
+AUTHOR_1 = """
+* SHS-AV s.r.l. <http://zeroincombenze.it>
+"""
+CONTRIBUTORS_1 = """
+* Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+"""
 AUTHOR_2 = """
-* Librerp <http://librerp.it>
 * Shs-av <http://zeroincombenze.it>
 """
 CONTRIBUTORS_2 = """
-* Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+* Antonio Vigliotti <antonio.vigliotti@libero.it>
 """
 MANIFEST_2 = """{
     'name': 'module_test',
@@ -46,16 +51,17 @@ MANIFEST_2 = """{
 class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
+        self.Z.inherit_cls(self)
 
     def create_file_author_1(self, path):
-        fn = os.path.join(path, "authors.txt")
+        fn = os.path.join(path, "AUTHORS.rst")
         with open(fn, "w") as fd:
-            fd.write("""* Librerp <http://www.librerp.it/>""")
+            fd.write(AUTHOR_1)
 
     def create_file_contributor_1(self, path):
-        fn = os.path.join(path, "contributors.txt")
+        fn = os.path.join(path, "CONTRIBUTORS.rst")
         with open(fn, "w") as fd:
-            fd.write("""* <antonio.vigliotti@libero.it>""")
+            fd.write(CONTRIBUTORS_1)
 
     def create_file_manifest_1(self, path):
         fn = os.path.join(path, "__manifest__.py")
@@ -63,12 +69,12 @@ class RegressionTest:
             fd.write(MANIFEST_1)
 
     def create_file_author_2(self, path):
-        fn = os.path.join(path, "authors.txt")
+        fn = os.path.join(path, "AUTHORS.rst")
         with open(fn, "w") as fd:
             fd.write(AUTHOR_2)
 
     def create_file_contributor_2(self, path):
-        fn = os.path.join(path, "contributors.txt")
+        fn = os.path.join(path, "CONTRIBUTORS.rst")
         with open(fn, "w") as fd:
             fd.write(CONTRIBUTORS_2)
 
@@ -84,16 +90,16 @@ class RegressionTest:
         odoo_root = z0testodoo.build_odoo_env(z0ctx, odoo_ver)
         odoo_root = os.path.join(odoo_root, odoo_ver)
         for ldir in (
-            ["egg-info"],
+            ["readme"],
             ["test_repository"],
-            ["test_repository", "egg-info"],
+            ["test_repository", "readme"],
             ["test_repository", "test_module"],
-            ["test_repository", "test_module", "egg-info"],
+            ["test_repository", "test_module", "readme"],
         ):
             path = os.path.join(odoo_root, *ldir)
             if not os.path.isdir(path):
                 os.mkdir(path)
-        path = os.path.join(odoo_root, "test_repository", "test_module", "egg-info")
+        path = os.path.join(odoo_root, "test_repository", "test_module", "readme")
         if step == 1:
             self.create_file_author_1(path)
             self.create_file_contributor_1(path)
@@ -108,48 +114,46 @@ class RegressionTest:
         return path
 
     def test_01(self, z0ctx):
-        sts = TEST_SUCCESS
         author = False
         website = False
-        devman = False
+        # devman = False
         if not z0ctx["dry_run"]:
             module_path = self.prepare_env(z0ctx, odoo_ver="12.0")
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
-            devman = license.get_maintainer()
-        sts += self.Z.test_result(
-            z0ctx, "License author", "LibrERP enterprise network", author
+            # devman = license.get_maintainer()
+        self.assertEqual(
+            author,
+            "SHS-AV s.r.l.",
+            msg_info="License author"
         )
-        sts += self.Z.test_result(
-            z0ctx, "License website", "https://www.librerp.it", website
+        self.assertEqual(
+            website,
+            "https://www.zeroincombenze.it"
         )
-        sts += self.Z.test_result(
-            z0ctx, "License maintainer", "LibrERP enterprise network", devman
-        )
-        return sts
+        return self.ret_sts()
 
     def test_02(self, z0ctx):
-        sts = TEST_SUCCESS
         author = False
         website = False
-        devman = False
+        # devman = False
         if not z0ctx["dry_run"]:
             module_path = self.prepare_env(z0ctx, odoo_ver="12.0", step=2)
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
-            devman = license.get_maintainer()
-        sts += self.Z.test_result(
-            z0ctx, "License author", "LibrERP enterprise network,SHS-AV s.r.l.", author
+            # devman = license.get_maintainer()
+        self.assertEqual(
+            author,
+            "SHS-AV s.r.l.",
+            msg_info="License author"
         )
-        sts += self.Z.test_result(
-            z0ctx, "License website", "https://www.librerp.it", website
+        self.assertEqual(
+            website,
+            "https://www.zeroincombenze.it"
         )
-        sts += self.Z.test_result(
-            z0ctx, "License maintainer", "LibrERP enterprise network", devman
-        )
-        return sts
+        return self.ret_sts()
 
 
 #

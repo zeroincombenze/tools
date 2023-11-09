@@ -687,7 +687,7 @@ class PleaseCwd(object):
                     args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
-                        args.append("-H")
+                        args.append("-I")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0 and odoo_major_version <= 7:
                         args = self.build_gen_readme_base_args(branch=branch)
@@ -723,7 +723,7 @@ class PleaseCwd(object):
             args = self.build_gen_readme_base_args(branch=self.branch)
             sts = self.please.chain_python_cmd("gen_readme.py", args)
             if sts == 0:
-                args.append("-H")
+                args.append("-I")
                 sts = please.chain_python_cmd("gen_readme.py", args)
             if sts == 0:
                 saved_pwd = os.getcwd()

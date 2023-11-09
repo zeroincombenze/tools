@@ -266,7 +266,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
 
 
 

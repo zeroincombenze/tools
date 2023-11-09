@@ -610,9 +610,7 @@ class Please(object):
                     for line in fd.read().split("\n"):
                         x = re.match(r"version_info *= *\([0-9]+ *, *[0-9]+", line)
                         if x:
-                            version_info = eval(
-                                line[x.start(): x.end()].split("=")[1] + ")")
-                            version = "%s.%s" % (version_info[0], version_info[1])
+                            version = "%d.%d" % eval(x.string.split("=")[1])[0:2]
                             break
         return version
 
