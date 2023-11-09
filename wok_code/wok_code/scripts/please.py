@@ -53,7 +53,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 KNOWN_ACTIONS = [
     "help",
@@ -906,3 +906,4 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+

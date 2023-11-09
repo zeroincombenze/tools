@@ -14,7 +14,7 @@ except ImportError:
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
@@ -384,3 +384,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

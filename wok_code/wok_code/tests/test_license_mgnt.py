@@ -15,7 +15,7 @@ from scripts import license_mgnt                                           # noq
 
 from zerobug import z0test, z0testodoo                                     # noqa: E402
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 MODULE_ID = "devel_tool"
 TEST_FAILED = 1
@@ -164,3 +164,4 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+

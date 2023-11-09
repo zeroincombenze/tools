@@ -34,7 +34,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.11
+__version__=2.0.12
 
 set +x
 
@@ -123,3 +123,4 @@ for home_dev in devel venv_tools; do
 done
 [[ -f ~/devel/venv/bin/z0librc~ ]] && mv ~/devel/venv/bin/z0librc~ ~/devel/venv/bin/z0librc
 rm -f $test_script
+

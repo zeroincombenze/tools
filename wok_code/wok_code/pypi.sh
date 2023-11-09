@@ -1,5 +1,5 @@
 # set -x
-__version__=2.0.11
+__version__=2.0.12
 if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -198,3 +198,4 @@ elif [[ $act == "git-add" ]]; then
     [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
     run_traced "git status"
 fi
+

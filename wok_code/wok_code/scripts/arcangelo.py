@@ -14,7 +14,7 @@ import yaml
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 # RULES: every rule is list has the following format:
 # EREGEX, (ACTION, PARAMETERS), ...
@@ -780,3 +780,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

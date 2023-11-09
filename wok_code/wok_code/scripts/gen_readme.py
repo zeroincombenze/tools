@@ -120,7 +120,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -459,7 +459,7 @@ def __init__(ctx):
     ctx["pre_action"] = "write"
     ctx["pre_stack"] = []
     ctx["pre_do_else"] = []
-    ctx["html_state"] = {}
+    ctx["html_state"] = {"tag": ""}
     ctx["rst_state"] = ""
 
 
@@ -812,7 +812,7 @@ def rst2html(ctx, text, draw_button=False):
             if tag in ctx["html_state"]:
                 # style="width:18px;height:16px;"
                 html_tag += (" %s=\"%s\"" % (tag, ctx["html_state"][tag]))
-                del ctx["html_state"][tag]
+                ctx["html_state"] = {"tag": ""}
         styled = False
         for tag in ("width", "height"):
             if tag in ctx["html_state"]:
@@ -821,11 +821,11 @@ def rst2html(ctx, text, draw_button=False):
                     html_tag += " style=\""
                     styled = True
                 html_tag += ("%s:%s;" % (tag, ctx["html_state"][tag]))
-                del ctx["html_state"][tag]
+                ctx["html_state"] = {"tag": ""}
         if styled:
             html_tag += "max-width:1140px"
             html_tag += "\""
-        del ctx["html_state"]["tag"]
+        ctx["html_state"] = {"tag": ""}
         html_tag += "/>"
         return html_tag
 
@@ -949,6 +949,55 @@ def rst2html(ctx, text, draw_button=False):
                        text[x.end():]))
             x = re.search(r"\[`[\w ]+`\]", text)
 
+    def close_opened_tag(ctx, lines, lineno):
+        force = lineno >= len(lines)
+        if (
+                not force
+                and lines[lineno].startswith(" ")
+                and ctx["html_state"]["tag"] in ("ul", "ol")
+        ):
+            endtag = "</li>"
+            if lines[lineno - 1].endswith(endtag):
+                lines[lineno - 1] = lines[lineno - 1][:-5]
+            lines[lineno] += endtag
+        elif force and ctx["html_state"]["tag"] == "ul":
+            lines.append("</ul>")
+            ctx["html_state"]["tag"] = ""
+        elif not force and ctx["html_state"]["tag"] == "ul":
+            lines.insert(lineno, "</ul>")
+            lineno += 1
+            ctx["html_state"]["tag"] = ""
+        elif force and ctx["html_state"]["tag"] == "ol":
+            lines.append("</ol>")
+            ctx["html_state"]["tag"] = ""
+        elif not force and ctx["html_state"]["tag"] == "ol":
+            lines.insert(lineno, "</ol>")
+            lineno += 1
+            ctx["html_state"]["tag"] = ""
+        elif force and ctx["html_state"]["tag"] == "code":
+            lines.append("</code>")
+            ctx["html_state"]["tag"] = ""
+        elif (
+                not force
+                and not lines[lineno].startswith(" ")
+                and ctx["html_state"]["tag"] == "code"
+        ):
+            lines.insert(lineno, "</code>")
+            lineno += 1
+            ctx["html_state"]["tag"] = ""
+        return lineno
+
+    def open_tag(ctx, lines, lineno, tag):
+        if ctx["html_state"]["tag"] != tag:
+            if tag == "ul":
+                lines.insert(lineno, "<ul>")
+                lineno += 1
+            elif tag == "ol":
+                lines.insert(lineno, "<ol>")
+                lineno += 1
+        ctx["html_state"]["tag"] = tag
+        return lineno
+
     # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
     text = get_anchor(ctx, text)
 
@@ -965,13 +1014,13 @@ def rst2html(ctx, text, draw_button=False):
     while len(lines) and not lines[0]:
         del lines[0]
 
-    in_list = False
-    in_table = False
-    open_para = 0
+    ctx["html_state"] = {"tag": ""}
+    ctx["html_state"]["open_para"] = 0
     lineno = 0
     while lineno < len(lines):
+        lineno = close_opened_tag(ctx, lines, lineno)
         if not lines[lineno].startswith(".. "):
-            if ctx["html_state"].get("tag") in ("image", "figure"):
+            if ctx["html_state"]["tag"] in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
                 if x:
                     ctx["html_state"][lines[lineno][x.start():x.end()].strip(
@@ -979,21 +1028,19 @@ def rst2html(ctx, text, draw_button=False):
                     del lines[lineno]
                     continue
                 lines.insert(lineno, get_tag_image(ctx))
-            elif ctx["html_state"].get("tag") == "code":
-                if lines[lineno].startswith(" "):
-                    pass
-                lines.insert(lineno, "</code>")
-                del ctx["html_state"]["tag"]
             elif re.match(r"^ *\+(-+\+)+ *$", lines[lineno]):
-                if not in_table:
+                if ctx["html_state"]["tag"] != "table":
                     lines[lineno] = (
                         '<table style="width:100%; padding:2px; '
                         'border-spacing:2px; text-align:left;"><tr>'
                     )
-                    in_table = True
+                    ctx["html_state"]["tag"] = "table"
                 else:
                     lines[lineno] = "</tr><tr>"
-            elif in_table and re.match(r" *\|.*\| *$", lines[lineno]):
+            elif (
+                    ctx["html_state"]["tag"] == "table"
+                    and re.match(r" *\|.*\| *$", lines[lineno])
+            ):
                 cols = lines[lineno].split("|")
                 del cols[0]
                 row = ""
@@ -1001,32 +1048,33 @@ def rst2html(ctx, text, draw_button=False):
                     row += "</td><td>" + col.strip()
                 row = row[5:-4]
                 lines[lineno] = row
-            elif in_table:
+            elif ctx["html_state"]["tag"] == "table":
                 lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
-                in_table = False
+                ctx["html_state"]["tag"] = ""
                 continue
             elif lines[lineno].startswith("* "):
-                if not in_list:
-                    lines.insert(lineno, "<ul>")
-                    in_list = True
-                    lineno += 1
+                lineno = open_tag(ctx, lines, lineno, "ul")
                 if re.match(".*&lt;http[^&]+&gt;$",  lines[lineno]):
                     lines[lineno] = "<li>%s</li>" % get_anchor(
                         ctx, "`%s`__" % lines[lineno][2:])
                 else:
                     lines[lineno] = "<li>%s</li>" % lines[lineno][2:]
-            elif not lines[lineno].startswith("* ") and in_list:
-                lines.insert(lineno, "</ul>")
-                in_list = False
+            elif lines[lineno].startswith("#. "):
+                lineno = open_tag(ctx, lines, lineno, "ol")
+                if re.match(".*&lt;http[^&]+&gt;$",  lines[lineno]):
+                    lines[lineno] = "<li>%s</li>" % get_anchor(
+                        ctx, "`%s`__" % lines[lineno][2:])
+                else:
+                    lines[lineno] = "<li>%s</li>" % lines[lineno][2:]
             elif not lines[lineno]:
-                if ctx["html_state"].get("tag") == "Code":
+                if ctx["html_state"]["tag"] == "Code":
                     lines[lineno] = "<code>"
                     ctx["html_state"]["tag"] = "code"
-                elif open_para:
-                    lines[lineno] = '</p><p align="justify">'
+                elif ctx["html_state"]["open_para"]:
+                    lines[lineno] = "</p><p align='justify'>"
                 else:
-                    lines[lineno] = '<p align="justify">'
-                    open_para += 1
+                    lines[lineno] = "<p align='justify'>"
+                    ctx["html_state"]["open_para"] += 1
             elif (
                 re.match(r"^=+$", lines[lineno])
                 and lineno > 0
@@ -1056,27 +1104,13 @@ def rst2html(ctx, text, draw_button=False):
                 ctx["html_state"]["tag"] = "Code"
             elif lines[lineno] == "|":
                 lines[lineno] = "<br/>"
-            else:
-                start = lines[lineno].find("*")
-                stop = lines[lineno].find("*", start + 1)
-                while start > 0 and stop > start:
-                    lines[lineno] = "%s<i>%s</i>%s" % (
-                        lines[lineno][0:start],
-                        lines[lineno][start + 1 : stop],
-                        lines[lineno][stop + 1 :],
-                    )
-                    start = lines[lineno].find("*")
-                    stop = lines[lineno].find("*", start + 1)
         else:
-            if in_table:
-                lines[lineno - 1] = "</tr></table>"
-                in_table = False
-            elif in_list:
-                lines.insert(lineno, "</ul>")
-                in_list = False
-            elif open_para:
+            if ctx["html_state"]["tag"] == "table":
+                lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
+                ctx["html_state"]["tag"] = ""
+            elif ctx["html_state"]["open_para"]:
                 lines.insert(lineno, "</p>")
-                open_para -= 1
+                ctx["html_state"]["open_para"] -= 1
             if is_rst_tag(ctx, lines[lineno], "image"):
                 ctx["html_state"]["tag"] = "image"
                 ctx["html_state"]["url"] = get_rst_tokens(
@@ -1090,19 +1124,18 @@ def rst2html(ctx, text, draw_button=False):
                 del lines[lineno]
                 continue
         lineno += 1
-    if ctx["html_state"].get("tag") == "image":
+    close_opened_tag(ctx, lines, lineno)
+    if ctx["html_state"]["tag"] == "image":
         lines.append(get_tag_image(ctx))
         ctx["html_state"] = {}
-    elif ctx["html_state"].get("tag") == "figure":
+    elif ctx["html_state"]["tag"] == "figure":
         lines.append(get_tag_image(ctx))
         ctx["html_state"] = {}
-    elif in_table:
+    elif ctx["html_state"]["tag"] == "table":
         lines[-1] = "</tr></table>"
-    elif in_list:
-        lines.append("</ul>")
-    if open_para:
+    if ctx["html_state"]["open_para"]:
         lines.append("</p>")
-        open_para -= 1
+        ctx["html_state"]["open_para"] -= 1
     return "\n".join(lines)
 
 
@@ -1446,13 +1479,15 @@ def parse_acknowledge_list(ctx, source):
 def compose_line_rst(ctx, line):
     ctx["prior_lines"] += line.split("\n")
     if re.match(ctx["pre_pat"] + "[^$]", line):
-        if ctx["rst_state"]:
+        # Start directive ".. DIRECTIVE"
+        if ctx["rst_state"] == "cache":
             print_red_message("Wrong rst command: %s" % line)
         ctx["rst_state"] = "directive"
         if is_rst_tag(ctx, line, "image"):
             url = get_rst_tokens(ctx, line, "image")[0]
             line = line.replace(url, url_by_doc(ctx, url))
     elif ctx["rst_state"] == "directive":
+        # End directive
         if not line.startswith(" "):
             ctx["rst_state"] = ""
     elif (
@@ -1796,10 +1831,6 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
             line = compose_line_rst(ctx, line)
         else:
             line += "\n"
-        # if not ctx["write_index"] and re.match(r"^\.\. +.*image::", line):
-        #     x = re.match(r"^\.\. +.*image::", line)
-        #     url = url_by_doc(ctx, line[x.end():].strip())
-        #     line = line[0: x.end() + 1] + url
     return line
 
 
@@ -1836,10 +1867,10 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
         if ctx["rst_state"] == "cache":
             print_red_message("Wrong block formatting: some date will be lost!")
         ctx["rst_state"] = ""
-    if ctx["html_state"]:
+    if ctx["html_state"]["tag"]:
         print_red_message("HTML formatting error!")
         print_red_message("Wrong block formatting: some date will be lost!")
-        ctx["html_state"] = {}
+        ctx["html_state"] = {"tag": ""}
 
     return target
 
@@ -3070,4 +3101,5 @@ def main(cli_args=None):
 if __name__ == "__main__":
     exit(main())
     exit(main())
+
 
