@@ -25,9 +25,9 @@ copyright = "2019-23, SHS-AV s.r.l."
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version
-version = "2.0.9"
+version = "2.0.10"
 # The full version, including alpha/beta/rc tags
-release = "2.0.9"
+release = "2.0.10"
 
 
 # -- General configuration ---------------------------------------------------
@@ -150,7 +150,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named 'default.css' will overwrite the builtin 'default.css'.
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

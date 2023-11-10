@@ -1,11 +1,11 @@
 .. zerobug documentation master file, created by
-   gen_readme.py on 2023-11-05 07:24:06
+   gen_readme.py on 2023-11-10 16:01:16
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=======================================
-Welcome to zerobug 2.0.9 documentation!
-=======================================
+========================================
+Welcome to zerobug 2.0.10 documentation!
+========================================
 
 .. toctree::
    :maxdepth: 2
@@ -14,8 +14,11 @@ Welcome to zerobug 2.0.9 documentation!
 
    rtd_description
    rtd_features
+   rtd_usage
    rtd_getting_started
-   rtd_faq
+   rtd_usage_code_example
+   rtd_usage_code_reference
+   rtd_automodule
    rtd_changelog
    rtd_credits
 
@@ -33,10 +36,10 @@ Welcome to zerobug 2.0.9 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

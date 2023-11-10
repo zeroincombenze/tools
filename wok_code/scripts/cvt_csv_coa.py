@@ -33,7 +33,7 @@ from os0 import os0
 from python_plus import unicodes
 from clodoo import transodoo
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 msg_time = time.time()
 VALID_ACTIONS = ("export-comparable", "export-full", "export-z0bug", "export-group")
@@ -566,3 +566,4 @@ def main(cli_args=None):
         CsvMerge.read_csv_file(opt_args.merge_csvfile)
         CsvFile.merge(CsvMerge)
     CsvFile.close()
+

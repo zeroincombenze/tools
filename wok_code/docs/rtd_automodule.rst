@@ -11,13 +11,8 @@ wok_code.gen_addons_table
 .. automodule:: wok_code.gen_addons_table
 
 
-
 |
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-11-02
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -29,10 +24,10 @@ Last Update / Ultimo aggiornamento: 2023-11-02
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.11/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.11/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -62,5 +57,3 @@ Last Update / Ultimo aggiornamento: 2023-11-02
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

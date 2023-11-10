@@ -80,7 +80,7 @@ TEMPLATE_HTTPS = """#############################################
 </IfModule>
 """
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 class CreateConfig(object):
@@ -176,3 +176,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

@@ -1,8 +1,11 @@
-2.0.9.1 (2023-09-08)
+2.0.10 (2023-11-10)
 ~~~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring
-* [IMP] New functions: assertEqual, assertTrue and assertFalse
+* [IMP] New functions assert* like unittest2
+* [IMP] New switch -f failfast
+* [IMP] Test signature like unittest2 and old zerobug signature
+* [IMP] Test flow without return status (like unitest2)
 
 2.0.9 (2023-07-12)
 ~~~~~~~~~~~~~~~~~~

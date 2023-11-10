@@ -53,7 +53,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 KNOWN_ACTIONS = [
     "help",
@@ -610,9 +610,7 @@ class Please(object):
                     for line in fd.read().split("\n"):
                         x = re.match(r"version_info *= *\([0-9]+ *, *[0-9]+", line)
                         if x:
-                            version_info = eval(
-                                line[x.start(): x.end()].split("=")[1] + ")")
-                            version = "%s.%s" % (version_info[0], version_info[1])
+                            version = "%d.%d" % eval(x.string.split("=")[1])[0:2]
                             break
         return version
 
@@ -908,3 +906,4 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+

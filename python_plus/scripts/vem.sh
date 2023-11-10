@@ -5,16 +5,16 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
-# option                        |  18- | 18.0 | 19.0 | 20.0 | 21.0 | 22.0
-# --disable-pip-version-check   |  OK  |  OK  |  OK  |  OK  |  OK  |  OK
-# --no-python-version-warning   |  OK  |  OK  |  OK  |  OK  |  OK  |  OK
-# --no-warn-conflicts           |   X  |  OK  |  OK  |  OK  |  OK  |  OK
-# --use-features=2020-resolver  |   X  |  OK  |  OK  |  no  |   X  |   X
-# --use-features=fast-deps      |   X  |  OK  |  OK  |  no  |   X  |   X
-# --use-features=in-tree-build  |   X  |   X  |   X  |   X  |  OK  |   X
-# -----------------------------------------------------------------------------
+# option                        |  18- | 18.0 | 19.0 | 20.0 | 21.0 | 22.0 | 23.0
+# --disable-pip-version-check   |  OK  |  OK  |  OK  |  OK  |  OK  |  OK  | OK
+# --no-python-version-warning   |   X  |   X  |   X  |  OK  |  OK  |  OK  | OK
+# --no-warn-conflicts           |   X  |  OK  |  OK  |  OK  |  OK  |  OK  |
+# --use-features=2020-resolver  |   X  |  OK  |  OK  |  no  |   X  |   X  |
+# --use-features=fast-deps      |   X  |  OK  |  OK  |  no  |   X  |   X  |
+# --use-features=in-tree-build  |   X  |   X  |   X  |   X  |  OK  |   X  |
+# -------------------------------------------------------------------------------
 # OK -> Use feature / X -> Feature unavailable / no -> Do use use
 # READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 # export READLINK
@@ -59,6 +59,7 @@ BZR_PKGS="(aeroolib)"
 WGET_PKGS="(_FAULT_)"
 GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
+USE2TO3_PKGS="(vatnumber)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 UNISOLATED_PKGS="(.?-|lxml)"
@@ -373,6 +374,8 @@ pip_install() {
   tmpdir=$VIRTUAL_ENV/tmp
   pkg=$(get_actual_pkg "$pkg")
   pfn=$(get_pkg_wo_version "$pkg")
+  PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+  [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   x="-qP"
   [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
   [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
@@ -380,9 +383,10 @@ pip_install() {
   [[ $vpkg =~ ^[\'\"] ]] && vpkg="${vpkg:1: -1}"
   [[ $pfn =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_}
   [[ $pkg =~ "-e " ]] && pkg="${pkg//-e /--editable=}"
-  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -gt 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --no-python-version-warning"
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build"
   [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
@@ -885,6 +889,10 @@ find_cur_py() {
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
+    if [[ -n $opt_oever || -n $opt_oepath ]]; then
+      PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+      [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
+    fi
 }
 
 find_odoo_path() {
@@ -937,18 +945,18 @@ check_installed_pkgs() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> check_installed_pkgs()"
   local mime p p2 popts x
   check_4_needing_pkgs
-  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+  [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+  [[ $PIPVER -gt 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --no-python-version-warning"
   [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
   [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   for p in $NEEDING_PKGS; do
     x=${p^^}
-    # [[ $opt_debug -ne 0 && $p =~ $LOCAL_PKGS ]] && p2=" --extra-index-url https://testpypi.python.org/pypi" || p2=""
     p2=""
     if [[ -z "${!x}" ]]; then
-      [[ $opt_verbose -lt 2 ]] && run_traced "$PIP install $popts$p2 \"$p\"" -1 || run_traced "$PIP install $popts$p2 \"$p\""
+      [[ $opt_verbose -lt 2 ]] && run_traced "$PIP install $popts$p2 \"$p\"" || run_traced "$PIP install $popts$p2 \"$p\""
     fi
   done
   check_4_needing_pkgs
@@ -1092,7 +1100,15 @@ do_venv_mgr() {
     [[ ! $cmd =~ (amend|check|cp) ]] && bin_install_1 $VENV
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
     x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
-    [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -U" || run_traced "$PIP install pip -U"
+    if [[ $x == "2" ]]; then
+      run_traced "$PIP install \"pip<21.0\" -U"
+    else
+      PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+      [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
+      [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
+      x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+      [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+    fi
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
@@ -1216,6 +1232,7 @@ do_venv_create() {
       fi
     fi
   fi
+  validate_py_oe_vers
   PYTHON=""
   if [[ -x $opt_pyver ]]; then
     PYTHON=$opt_pyver
@@ -1226,8 +1243,6 @@ do_venv_create() {
   else
     set_pybin $opt_pyver "opt_pyver"
   fi
-
-  validate_py_oe_vers
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 
   $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
@@ -1238,7 +1253,7 @@ do_venv_create() {
   else
     venvexe=$(which virtualenv 2>/dev/null)
     if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != $(echo $PYTHON | grep --color=never -Eo "python[23]") ]]; then
-      $PYTHON -m pip install virtualenv -I --user
+      run_traced "$PYTHON -m pip install virtualenv -I --user"
       venvexe=$(which virtualenv 2>/dev/null)
     fi
     if [[ -z "$venvexe" ]]; then
@@ -1258,7 +1273,9 @@ do_venv_create() {
   fi
   run_traced "$venvexe $p $VENV"
   sts=$?
-  [[ -x $HOME/.local/bin/virtualenv ]] && run_traced "rm -f $HOME/.local/bin/virtualenv"
+  for f in pip pip3 python python3 virtualenv; do
+    [[ -x $HOME/.local/bin/$f ]] && run_traced "rm -f $HOME/.local/bin/$f"
+  done
   [[ $sts -ne 0 ]] && return $sts
   if [[ -d ${VENV}~ ]]; then
       if [[ -z $(find ${VENV}~ -maxdepth 0 -empty) ]]; then
@@ -1272,11 +1289,19 @@ do_venv_create() {
 
   do_activate "$VENV"
   venv_mgr_check_src_path "$VENV"
-  x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]")
-  [[ $x == "2" ]] && run_traced "$PIP install \"pip<21.0\" -Uq" || run_traced "$PIP install pip -Uq"
+  x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
+  if [[ $x == "2" ]]; then
+    run_traced "$PIP install \"pip<21.0\" -U"
+  else
+    PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+    [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
+    [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
+    x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+    [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+  fi
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-  run_traced "$PIP install \"setuptools<58.0\" -Uq"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
+  run_traced "$PIP install wheel"
   check_installed_pkgs
   pypi_requrements
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
@@ -1323,9 +1348,10 @@ do_venv_pip() {
     pip_uninstall "$pkg"
     sts=$?
   else
-    [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-python-version-warning --no-cache-dir" || popts="--disable-pip-version-check --no-python-version-warning"
+    [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
     [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
     [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
+    [[ $PIPVER -gt 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --no-python-version-warning"
     [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build $popts"
     [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
     [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
@@ -1359,7 +1385,7 @@ validate_py_oe_vers() {
   local odoo_majver
   if [[ -n $opt_oever && -z $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
-    [[ $odoo_majver -le 10 ]] && opt_pyver=2 || opt_pyver=3
+    [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-10)/2+6))"
   elif [[ -n $opt_oever && -n $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
     if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then

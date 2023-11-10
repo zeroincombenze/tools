@@ -15,7 +15,7 @@ sys.path.insert(0,
 from zerobug import z0test, z0testodoo                                     # noqa: E402
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -226,3 +226,4 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+

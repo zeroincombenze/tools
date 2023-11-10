@@ -7,9 +7,9 @@ from setuptools import find_packages, setup
 name = "zerobug"
 github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
-author_email = "<info@shs-av.com>"
+author_email = "antoniomaria.vigliotti@gmail.com"
 source_url = "%s/tree/master/%s" % (github_url, name)
-doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug"
+doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/#zerobug"
 changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
 try:
     long_description = open(pth.join(pth.dirname(__file__), "README.rst")).read()
@@ -44,7 +44,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.9",
+    version="2.0.10",
     description="Zeroincombenze continuous testing framework"
     " and tools for python and bash programs",
     long_description=long_description,
@@ -73,7 +73,7 @@ setup(
     author_email=author_email,
     license="Affero GPL",
     install_requires=install_requires,
-    packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
+    packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={
         "": [
             "scripts/setup.info",

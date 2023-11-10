@@ -1,4 +1,3 @@
-
 ==================
 python_plus 2.0.10
 ==================
@@ -9,34 +8,32 @@ python_plus 2.0.10
 
 
 
-
 Overview
 ========
 
-Python supplemental features
-----------------------------
-
 python-plus adds various features to python 2 and python 3 programs.
-It is designed to be used as integration of pypi future to help to port your code from Python 2 to Python 3 and still have it run on Python 2.
+It is designed to be used as integration of pypi future to help to port your code from
+Python 2 to Python 3 and still have it run on Python 2.
 
 
 list_requirements.py: list environment requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This command is an internal command of python-plus but may be used as own command.
-list_requirements.py dispays the pypi and binaries packages needed to create a virtual environment.
+list_requirements.py displays the pypi and binaries packages needed to create a virtual
+environment.
 It is specially designed to show Odoo requirements.
-Passing Odoo path it reads requirements.txt files in path and setup directories of OCA repositories.
+Passing Odoo path it reads requirements.txt files in path and setup directories of OCA
+repositories.
 
 vem: virtual environment manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This command is an interactive tool with some nice features to manage standard virtual environment.
+This command is an interactive tool with some nice features to manage standard virtual
+environment.
 Mainly it works ad standard pip but inside a specific virtual environment.
 
 
-
-|
 
 Usage
 =====
@@ -92,7 +89,6 @@ General function:
     >>> my_list = qsplit(my_str_list)
     >>> print my_list
     ['abc', 'd,e', 'fgh']
-
 
 
 Code reference
@@ -223,12 +219,23 @@ update [OPTIONS] [SRC_VENV] PKG
 
 
 
-|
-|
-
 Getting started
 ===============
 
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -252,6 +259,7 @@ Current version via Git
     source /opt/odoo/devel/activate_tools
 
 
+
 Upgrade
 -------
 
@@ -260,28 +268,29 @@ Stable version via Python Package
 
 ::
 
-    pip install python_plus -U
+    pip install --upgrade python_plus
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-History
--------
+
+ChangeLog History
+-----------------
 
 2.0.10 (2023-07-18)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: werkzeug for Odoo 16.0
 * [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
+* [IMP] pip install packages with use2to3 is backupgrdae to < 23
 
 2.0.9 (2023-06-26)
 ~~~~~~~~~~~~~~~~~~
@@ -351,10 +360,20 @@ History
 
 * [FIX] vem: no input inquire
 
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] vem: new switch -d for Odoo dependencies path
+* [FIX] vem: create with best package list
+* [FIX] vem: install odoo/openerp
 
 
-|
-|
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+
 
 Credits
 =======
@@ -365,6 +384,13 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+
+
+
 Contributors
 ------------
 
@@ -373,10 +399,7 @@ Contributors
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-05
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Mature-green.png
     :target: https://odoo-community.org/page/development-status
@@ -421,5 +444,3 @@ Last Update / Ultimo aggiornamento: 2023-08-05
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

@@ -25,18 +25,14 @@ You can use z0bug_odoo that is the odoo integration to test Odoo modules.
 * test suite - it is a collection of test cases
 * test case - it is a smallest unit test
 
-The main file is the command **zerobug** of this package; it searches for test runner files
-named `[id_]test_` where 'id' is the shor name of testing package.
+The main file is the command **zerobug** of this package; it searches for test runner
+files named `[id_]test_` where 'id' is the shor name of testing package.
 
 Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
 executed in sorted order.
 
 Every suit can contains one or more test case, the smallest unit test;
 every unit test terminates with success or with failure.
-
-Because **zerobug** can show total number of unit test to execute, it runs tests
-in 2 passes. In the first pass it counts the number of test, in second pass executes really
-it. This behavior can be overridden by -0 switch.
 
 
 |
@@ -52,10 +48,10 @@ it. This behavior can be overridden by -0 switch.
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

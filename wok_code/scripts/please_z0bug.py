@@ -5,7 +5,7 @@ import os.path as pth
 
 import re
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 class PleaseZ0bug(object):
@@ -155,7 +155,7 @@ class PleaseZ0bug(object):
 
     def build_run_odoo_base_args(self, branch=None):
         please = self.please
-        branch = branch or self.branch
+        branch = branch or please.opt_args.branch
         args = [
             "-T",
             "-m", pth.basename(pth.abspath(os.getcwd())),
@@ -252,7 +252,7 @@ class PleaseZ0bug(object):
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
-            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
             if (
                     not please.opt_args.no_verify
                     and pth.isdir("tests")
@@ -285,7 +285,7 @@ class PleaseZ0bug(object):
                         if do_rewrite:
                             with open(pth.join("tests", fn), "w") as fd:
                                 fd.write(new_content)
-            args = self.build_run_odoo_base_args()
+            args = self.build_run_odoo_base_args(branch=branch)
             sts = please.chain_python_cmd("run_odoo_debug.py", args)
             if sts:
                 return sts
@@ -328,3 +328,4 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
+
