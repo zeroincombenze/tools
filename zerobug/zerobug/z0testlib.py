@@ -1437,9 +1437,9 @@ class Z0test(object):
 
     def test_failed(self, msg, first, second=None):
         print(msg)
-        print("Value1='" + first + "'")
+        print("Value1='" + str(first) + "'")
         if second:
-            print("Value2='" + second + "'")
+            print("Value2='" + str(second) + "'")
         self.successful = False
         if self.failfast:
             raise AssertionError

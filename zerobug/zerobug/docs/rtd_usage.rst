@@ -7,40 +7,45 @@ Usage
 
 ::
 
-    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
-                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
-                   [-z number] [-0] [-1] [-3]
+    usage: zerobug [-h] [-B] [-C] [-e] [-f] [-J] [-k] [-l file] [-N] [-n] [-O] [-p file_list] [-Q] [-q] [-R] [-r number]
+                   [-s number] [-V] [-v] [-x] [-X] [-z number] [-0] [-1] [-2] [-3]
 
-    Regression test on z0bug_odoo
+    Regression test on zerobug
 
     optional arguments:
       -h, --help            show this help message and exit
-      -B, --debug           trace msgs in zerobug.tracehis
+      -B, --debug           run tests in debug mode
       -C, --no-coverage     run tests without coverage
-      -e, --echo            enable echoing even if not interactive tty
-      -J                    load travisrc
-      -k, --keep            keep current logfile
+      -e, --echo            enable echoing even if not interactive tty (deprecated)
+      -f, --failfast        Stop on first fail or error
+      -J                    load travisrc (deprecated)
+      -k, --keep            keep current logfile (deprecated)
       -l file, --logname file
-                            set logfile name
-      -N, --new             create new logfile
-      -n, --dry-run         count and display # unit tests
-      -O                    load odoorc
+                            set logfile name (deprecated)
+      -N, --new             create new logfile (deprecated)
+      -n, --dry-run         count and display # unit tests (deprecated)
+      -O                    load odoorc (deprecated)
       -p file_list, --search-pattern file_list
-                            test file pattern
+                            Pattern to match tests, comma separated ('test*.py' default)
+      -Q, --count           count # unit tests (deprecated)
       -q, --quiet           run tests without output (quiet mode)
+      -R, --run-inner       inner mode w/o final messages
       -r number, --restart number
-                            set to counted tests, 1st one next to this
+                            restart count next to number
       -s number, --start number
                             deprecated
       -V, --version         show program's version number and exit
       -v, --verbose         verbose mode
-      -x, --qsanity         like -X but run silently
-      -X, --esanity         execute test library sanity check and exit
+      -x, --qsanity         like -X but run silently (deprecated)
+      -X, --esanity         execute test library sanity check and exit (deprecated)
       -z number, --end number
                             display total # tests when execute them
-      -0, --no-count        no count # unit tests
-      -1, --coverage        run tests for coverage (obsolete)
-      -3, --python3         use python3
+      -0, --no-count        no count # unit tests (deprecated)
+      -1, --coverage        run tests for coverage (deprecated)
+      -2, --python2         use python2 (deprecated)
+      -3, --python3         use python3 (deprecated)
+
+    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug
 
 
 |
@@ -56,10 +61,10 @@ Usage
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -1,6 +1,6 @@
-=============
-zerobug 2.0.9
-=============
+==============
+zerobug 2.0.10
+==============
 
 
 
@@ -31,18 +31,14 @@ You can use z0bug_odoo that is the odoo integration to test Odoo modules.
 * test suite - it is a collection of test cases
 * test case - it is a smallest unit test
 
-The main file is the command **zerobug** of this package; it searches for test runner files
-named `[id_]test_` where 'id' is the shor name of testing package.
+The main file is the command **zerobug** of this package; it searches for test runner
+files named `[id_]test_` where 'id' is the shor name of testing package.
 
 Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
 executed in sorted order.
 
 Every suit can contains one or more test case, the smallest unit test;
 every unit test terminates with success or with failure.
-
-Because **zerobug** can show total number of unit test to execute, it runs tests
-in 2 passes. In the first pass it counts the number of test, in second pass executes really
-it. This behavior can be overridden by -0 switch.
 
 
 
@@ -62,40 +58,45 @@ Usage
 
 ::
 
-    usage: zerobug [-h] [-B] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O]
-                   [-p file_list] [-q] [-r number] [-s number] [-V] [-v] [-x] [-X]
-                   [-z number] [-0] [-1] [-3]
+    usage: zerobug [-h] [-B] [-C] [-e] [-f] [-J] [-k] [-l file] [-N] [-n] [-O] [-p file_list] [-Q] [-q] [-R] [-r number]
+                   [-s number] [-V] [-v] [-x] [-X] [-z number] [-0] [-1] [-2] [-3]
 
-    Regression test on z0bug_odoo
+    Regression test on zerobug
 
     optional arguments:
       -h, --help            show this help message and exit
-      -B, --debug           trace msgs in zerobug.tracehis
+      -B, --debug           run tests in debug mode
       -C, --no-coverage     run tests without coverage
-      -e, --echo            enable echoing even if not interactive tty
-      -J                    load travisrc
-      -k, --keep            keep current logfile
+      -e, --echo            enable echoing even if not interactive tty (deprecated)
+      -f, --failfast        Stop on first fail or error
+      -J                    load travisrc (deprecated)
+      -k, --keep            keep current logfile (deprecated)
       -l file, --logname file
-                            set logfile name
-      -N, --new             create new logfile
-      -n, --dry-run         count and display # unit tests
-      -O                    load odoorc
+                            set logfile name (deprecated)
+      -N, --new             create new logfile (deprecated)
+      -n, --dry-run         count and display # unit tests (deprecated)
+      -O                    load odoorc (deprecated)
       -p file_list, --search-pattern file_list
-                            test file pattern
+                            Pattern to match tests, comma separated ('test*.py' default)
+      -Q, --count           count # unit tests (deprecated)
       -q, --quiet           run tests without output (quiet mode)
+      -R, --run-inner       inner mode w/o final messages
       -r number, --restart number
-                            set to counted tests, 1st one next to this
+                            restart count next to number
       -s number, --start number
                             deprecated
       -V, --version         show program's version number and exit
       -v, --verbose         verbose mode
-      -x, --qsanity         like -X but run silently
-      -X, --esanity         execute test library sanity check and exit
+      -x, --qsanity         like -X but run silently (deprecated)
+      -X, --esanity         execute test library sanity check and exit (deprecated)
       -z number, --end number
                             display total # tests when execute them
-      -0, --no-count        no count # unit tests
-      -1, --coverage        run tests for coverage (obsolete)
-      -3, --python3         use python3
+      -0, --no-count        no count # unit tests (deprecated)
+      -1, --coverage        run tests for coverage (deprecated)
+      -2, --python2         use python2 (deprecated)
+      -3, --python3         use python3 (deprecated)
+
+    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug
 
 
 
@@ -162,11 +163,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.9.1 (2023-09-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.10 (2023-11-10)
+~~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring
-* [IMP] New functions: assertEqual, assertTrue and assertFalse
+* [IMP] New functions assert* like unittest2
+* [IMP] New switch -f failfast
+* [IMP] Test signature like unittest2 and old zerobug signature
+* [IMP] Test flow without return status (like unitest2)
 
 2.0.9 (2023-07-12)
 ~~~~~~~~~~~~~~~~~~
@@ -283,10 +287,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

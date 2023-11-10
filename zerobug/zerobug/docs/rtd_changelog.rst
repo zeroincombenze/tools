@@ -5,11 +5,14 @@ ChangeLog History
 =================
 
 
-2.0.9.1 (2023-09-08)
-~~~~~~~~~~~~~~~~~~~~
+2.0.10 (2023-11-10)
+~~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring
-* [IMP] New functions: assertEqual, assertTrue and assertFalse
+* [IMP] New functions assert* like unittest2
+* [IMP] New switch -f failfast
+* [IMP] Test signature like unittest2 and old zerobug signature
+* [IMP] Test flow without return status (like unitest2)
 
 2.0.9 (2023-07-12)
 ~~~~~~~~~~~~~~~~~~
@@ -102,10 +105,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
