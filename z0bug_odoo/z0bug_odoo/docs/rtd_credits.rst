@@ -1,28 +1,19 @@
 .. toctree::
    :maxdepth: 2
 
-Code documentation
-------------------
+Credits
+=======
 
-z0bug_odoo.z0bug_odoo_lib
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Authors
+-------
 
-.. automodule:: z0bug_odoo.z0bug_odoo_lib
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
 
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
+Contributors
+------------
 
-.. automodule:: z0bug_odoo.test_common
-
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.test_common
-
-z0bug_odoo.testenv
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.testenv
+* `Antonio M. Vigliotti <info@shs-av.com>`__
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 |
 |

@@ -1,28 +1,22 @@
 .. toctree::
    :maxdepth: 2
 
-Code documentation
-------------------
+Features
+========
 
-z0bug_odoo.z0bug_odoo_lib
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: z0bug_odoo.z0bug_odoo_lib
+Data to use in tests are store in csv files in data directory.
+File names are tha name of the models (table) with characters '.' (dot) replaced by '_' (underscore)
 
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
+Header of file must be the names of table fields.
 
-.. automodule:: z0bug_odoo.test_common
+Rows can contains value to store or Odoo external reference or macro.
 
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
+For type char, text, html, int, float, monetary: value are constants inserted as is.
 
-.. automodule:: z0bug_odoo.test_common
+For type many2one: value may be an integer (record id) or Odoo external reference (format "module.name").
 
-z0bug_odoo.testenv
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.testenv
+For type data, datetime: value may be a constant or relative date
 
 |
 |

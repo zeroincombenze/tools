@@ -117,7 +117,8 @@ Python version
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
 From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Currently, python 3.8 is not yet supported.
+Warning: currently, some Odoo version cannot support python 3.8.
+Python 3.5 still works but support is ended.
 This is the declaration:
 
 ::
@@ -127,6 +128,7 @@ This is the declaration:
       - "3.6"
       - "3.7"
       - "3.8"
+      - "3.9"
 
 Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
 Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7

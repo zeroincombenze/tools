@@ -1,8 +1,9 @@
 .. toctree::
    :maxdepth: 2
 
-Zeroincombenze® continuous testing for odoo
--------------------------------------------
+Overview
+========
+
 
 This package is an plug-in of **zerobug** package and aim to easily create odoo tests.
 
@@ -120,7 +121,8 @@ Python version
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
 From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Currently, python 3.8 is not yet supported.
+Warning: currently, some Odoo version cannot support python 3.8.
+Python 3.5 still works but support is ended.
 This is the declaration:
 
 ::
@@ -130,6 +132,7 @@ This is the declaration:
       - "3.6"
       - "3.7"
       - "3.8"
+      - "3.9"
 
 Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
 Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
@@ -478,23 +481,23 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 
 Look at follow table to understand which set of tests are enabled or disabled:
 
-+-----------------+-------------+---------------+-------------+---------------------+
-| statement       | application | module l10n_* | odoo/addons | addons + dependenci |
-+-----------------+-------------+---------------+-------------+---------------------+
-| ALL             | |check|     | |check|       | |check|     | |check|             |
-+-----------------+-------------+---------------+-------------+---------------------+
-| APPLICATIONS    | |check|     | |no_check|    | |no_check|  | Only if application |
-+-----------------+-------------+---------------+-------------+---------------------+
-| LOCALIZATION    | |no_check|  | |check|       | |no_check|  | Only module l10n_*  |
-+-----------------+-------------+---------------+-------------+---------------------+
-| CORE            | |no_check|  | |no_check|    | |check|     | |no_check|          |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-APPLICATION  | |no_check|  | |check|       | |check|     | No if application   |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-LOCALIZATION | |check|     | |no_check|    | |check|     | No if module l10n_* |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-CORE         | |check|     | |check|       | |no_check|  | |check|             |
-+-----------------+-------------+---------------+-------------+---------------------+
++--------------------+--------------+--------------+--------------+-------------------------+
+| statement          | application  | module l10n_ | odoo/addons  | addons + dependencies   |
++--------------------+--------------+--------------+--------------+-------------------------+
+| ALL                | |check|      | |check|      | |check|      | |check|                 |
++--------------------+--------------+--------------+--------------+-------------------------+
+| APPLICATIONS       | |check|      | |no_check|   | |no_check|   | Only if application     |
++--------------------+--------------+--------------+--------------+-------------------------+
+| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only module l10n_*      |
++--------------------+--------------+--------------+--------------+-------------------------+
+| CORE               | |no_check|   | |no_check|   | |check|      | |no_check|              |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-APPLICATION     | |no_check|   | |check|      | |check|      | No if application       |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No if module l10n_*     |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-CORE            | |check|      | |check|      | |no_check|   | |check|                 |
++--------------------+--------------+--------------+--------------+-------------------------+
 
 
 
@@ -615,7 +618,7 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | PS_HDR3_COLOR          | 30;45                                                  | N/D                                                                       |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
-| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8)                                  | python versions to run (only PYPI projects)                               |
+| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8|3.9)                              | python versions to run (only PYPI projects)                               |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | SERVER_EXPECTED_ERRORS |                                                        | # of expected errors after tests                                          |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
@@ -651,19 +654,19 @@ If you declare the following directive in <env global> section:
 
 where "n" means:
 
-+------------------------+------------+------------+------------+---------+-------------+
-| Parameter              | 0          | 1          | 2          | 3       | 9           |
-+------------------------+------------+------------+------------+---------+-------------+
-| Informative messages   | |no_check| | |check|    | |check|    | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| Inspect internal data  | |no_check| | |no_check| | |check|    | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| MQT tests              | |no_check| | |no_check| | |no_check| | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| Installation log level | ERROR      | WARN       | INFO       | INFO    | |no_check|  |
-+------------------------+------------+------------+------------+---------+-------------+
-| Execution log level    | INFO       | TEST       | TEST       | TEST    | |no_check|  |
-+------------------------+------------+------------+------------+---------+-------------+
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Parameter                 | 0           | 1           | 2           | 3        | 9            |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Informative messages      | |no_check|  | |check|     | |check|     | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Inspect internal data     | |no_check|  | |no_check|  | |check|     | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| MQT tests                 | |no_check|  | |no_check|  | |no_check|  | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Installation log level    | ERROR       | WARN        | INFO        | INFO     | |no_check|   |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Execution log level       | INFO        | TEST        | TEST        | TEST     | |no_check|   |
++---------------------------+-------------+-------------+-------------+----------+--------------+
 
 
 
@@ -753,46 +756,27 @@ See https://zeroincombenze-tools.readthedocs.io/
 and https://github.com/zeroincombenze/tools.git
 Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
-
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-04-15
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
-.. |Build Status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
-    :target: https://travis-ci.com/zeroincombenze/tools
-    :alt: github.com
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Coverage Status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
-    :target: https://coveralls.io/github/zeroincombenze/tools?branch=2.0
-    :alt: Coverage
-.. |Codecov Status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/2.0/graph/badge.svg
-    :target: https://codecov.io/gh/zeroincombenze/tools/branch/2.0
-    :alt: Codecov
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
     :alt: Try Me
-.. |OCA Codecov| image:: https://codecov.io/gh/OCA/tools/branch/2.0/graph/badge.svg
-    :target: https://codecov.io/gh/OCA/tools/branch/2.0
-    :alt: Codecov
-.. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
-   :target: https://odoo-italia.org
-   :alt: Odoo Italia Associazione
 .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
    :target: https://www.zeroincombenze.it/
    :alt: Zeroincombenze
@@ -818,5 +802,3 @@ Last Update / Ultimo aggiornamento: 2023-04-15
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
