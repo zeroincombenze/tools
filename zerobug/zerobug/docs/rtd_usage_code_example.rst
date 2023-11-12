@@ -142,7 +142,6 @@ Return odoo root directory
             odoo_path = '/opt/odoo/10.0'
             Z0testOdoo.git_clone(remote, reponame, branch, odoo_path)
 
-
 |
 |
 

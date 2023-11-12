@@ -5,8 +5,6 @@ Digest of code_reference
 ========================
 
 
-
-
 Unit test can run in package directory or in ./tests directory of package.
 
 Every test can inquire internal context.
@@ -45,8 +43,6 @@ DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
 
 COVERAGE_PROCESS_START
                 Name of coverage conf file; if set test is running for coverage
-
-
 
 |
 |

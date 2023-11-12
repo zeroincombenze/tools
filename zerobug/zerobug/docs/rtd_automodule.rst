@@ -4,12 +4,10 @@
 Code documentation
 ------------------
 
-
 zerobug.z0testlib
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: zerobug.z0testlib
-
 
 |
 |
