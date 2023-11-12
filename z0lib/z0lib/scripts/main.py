@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 21
+# template 23
 """
 General purpose bash and python library for zeroincombenze(R) tools
 
@@ -17,6 +17,7 @@ Features:
 import os
 import os.path as pth
 import sys
+import pkg_resources
 import gzip
 import shutil
 
@@ -24,65 +25,45 @@ import shutil
 __version__ = "2.0.7"
 
 
-def get_pypi_info(pkgname):
-    pypi_metadata = {
-        "name": pkgname, "version": False, "where": "pylib",
-        "long_description": __doc__,
-    }
-    if sys.version_info[0] == 2:
-        import pkg_resources
-        try:
-            pypi_metadata["version"] = pkg_resources.get_distribution(pkgname).version
-        except BaseException:
-            pass
-    else:
-        if sys.version_info < (3, 8):
-            import importlib_metadata as metadata
-        else:
-            from importlib import metadata
-        try:
-            pypi_metadata["version"] = metadata.version(pkgname)
-            # for ln in metadata.metadata(pkgname).items():
-            #     if ln[0] == "Description":
-            #         pypi_metadata["long_description"] = ln[1]
-            #         break
-        except BaseException:
-            pass
-    return pypi_metadata
-
-
 def fake_setup(**kwargs):
-    globals()["pypi_metadata"] = kwargs
+    globals()["setup_args"] = kwargs
 
 
-def get_metadata():
-    pkgpath = pth.abspath(pth.join(pth.dirname(pth.realpath(__file__)), "..", ".."))
-    setup_info = pth.join(pkgpath, "setup.py")
-    pypi_metadata = {}
+def read_setup():
+    setup_info = pth.abspath(pth.join(pth.dirname(__file__), "setup.info"))
+    if not pth.isfile(setup_info):
+        setup_info = pth.abspath(
+            pth.join(pth.dirname(__file__), "..", "setup.py")
+        )
+    setup_args = {}
     if pth.isfile(setup_info):
         with open(setup_info, "r") as fd:
             exec(fd.read().replace("setup(", "fake_setup("))
-            pypi_metadata = globals()["pypi_metadata"]
-    if not pypi_metadata:
-        return get_pypi_info(__package__.split(".")[0])
-    # readme = pth.join(pkgpath, "README.rst")
-    # with open(readme, "r") as fd:
-    #     pypi_metadata["long_description"] = fd.read()
-    pypi_metadata["where"] = "local"
-    return pypi_metadata
+            setup_args = globals()["setup_args"]
+    else:
+        print("Not internal configuration file found!")
+    setup_args["setup"] = setup_info
+    try:
+        pkg = pkg_resources.get_distribution(__package__.split(".")[0])
+        setup_args["name"] = pkg.key
+        setup_args["version"] = pkg.version
+    except BaseException:
+        pass
+    return setup_args
 
 
 def get_pypi_paths():
     local_venv = "/devel/venv/"
-    pkgpath = pth.abspath(pth.dirname(pth.dirname(__file__)))
+    pkgpath = pth.abspath(pth.join(pth.dirname(__file__), ".."))
     bin_path = lib_path = ""
     path = pkgpath
     while not bin_path and path != "/" and path != os.environ["HOME"]:
         path = pth.dirname(path)
         if pth.isdir(path) and pth.basename(path) in ("bin", "lib"):
-            if pth.isdir(
-                    pth.join(pth.dirname(path), "bin")
-            ) and pth.isdir(pth.join(pth.dirname(path), "lib")):
+            if (
+                    pth.isdir(pth.join(pth.dirname(path), "bin"))
+                    and pth.isdir(pth.join(pth.dirname(path), "lib"))
+            ):
                 bin_path = pth.join(pth.dirname(path), "bin")
                 lib_path = pth.join(pth.dirname(path), "lib")
     if not bin_path and local_venv:
@@ -96,8 +77,8 @@ def get_pypi_paths():
     return pkgpath, bin_path, lib_path
 
 
-def copy_pkg_data(pypi_metadata, verbose):
-    if pypi_metadata.get("package_data"):
+def copy_pkg_data(setup_args, verbose):
+    if setup_args.get("package_data"):
         pkgpath, bin_path, lib_path = get_pypi_paths()
         if bin_path:
             # TODO> compatibility mode
@@ -107,8 +88,8 @@ def copy_pkg_data(pypi_metadata, verbose):
             man_path = pth.join(bin_path, "man", "man8")
             if not pth.isdir(man_path):
                 man_path = ""
-            for pkg in pypi_metadata["package_data"].keys():
-                for fn in pypi_metadata["package_data"][pkg]:
+            for pkg in setup_args["package_data"].keys():
+                for fn in setup_args["package_data"][pkg]:
                     base = pth.basename(fn)
                     if base in ("setup.info", "*"):
                         continue
@@ -174,20 +155,20 @@ def main(cli_args=None):
             action = arg
         elif arg == "-v":
             verbose = True
-    pypi_metadata = get_metadata()
+    setup_args = read_setup()
     if action == "-h":
         print(
             "%s [-h][-H][--help][-V][--version][-C][--copy-pkg-data]"
-            % pypi_metadata["name"]
+            % setup_args["name"]
         )
     elif action in ("-V", "--version"):
-        if pypi_metadata["version"] == __version__:
-            print(pypi_metadata["version"])
+        if setup_args["version"] == __version__:
+            print(setup_args["version"])
         else:
-            print("Version mismatch %s/%s" % (pypi_metadata["version"], __version__))
+            print("Version mismatch %s/%s" % (setup_args["version"], __version__))
     elif action in ("-H", "--help"):
-        for text in pypi_metadata["long_description"].split("\n"):
+        for text in __doc__.split("\n"):
             print(text)
     elif action in ("-C", "--copy-pkg-data"):
-        copy_pkg_data(pypi_metadata, verbose)
+        copy_pkg_data(setup_args, verbose)
     return 0
