@@ -1,32 +1,14 @@
-.. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-12 08:09:25
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-=========================================
-Welcome to wok_code 2.0.12 documentation!
-=========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Digest of odoo_dependencies
+===========================
 
 
-   rtd_description
-   rtd_getting_started
-   rtd_description_gen_readme
-   rtd_usage_gen_readme
-   rtd_usage_gen_readme_sym
-   rtd_description_macro
-   rtd_description_odoo_dependencies
-   rtd_usage_odoo_dependencies
-   rtd_description_please
-   rtd_description_topep8
-   rtd_usage_topep8
-   rtd_automodule
-   rtd_changelog
-   rtd_credits
+odoo_dependecies.py: show odoo dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Show information about odoo dependencies and module tree.
 
 |
 |
@@ -74,12 +56,3 @@ Welcome to wok_code 2.0.12 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

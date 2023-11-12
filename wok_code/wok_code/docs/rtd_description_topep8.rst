@@ -1,32 +1,18 @@
-.. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-12 08:09:25
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-=========================================
-Welcome to wok_code 2.0.12 documentation!
-=========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Digest of topep8
+================
 
 
-   rtd_description
-   rtd_getting_started
-   rtd_description_gen_readme
-   rtd_usage_gen_readme
-   rtd_usage_gen_readme_sym
-   rtd_description_macro
-   rtd_description_odoo_dependencies
-   rtd_usage_odoo_dependencies
-   rtd_description_please
-   rtd_description_topep8
-   rtd_usage_topep8
-   rtd_automodule
-   rtd_changelog
-   rtd_credits
+pep8: python edit utility
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Parse source file to meet pep8 requirements.
+The pep8 utility makes some source transformation based on rules,
+then can execute autoflake8 and/or autopep8 utilities (if installed) to meet full pep8 requirements.
+
+It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
 |
 |
@@ -74,12 +60,3 @@ Welcome to wok_code 2.0.12 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

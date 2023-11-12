@@ -1,32 +1,63 @@
-.. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-12 08:09:25
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-=========================================
-Welcome to wok_code 2.0.12 documentation!
-=========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Getting started
+===============
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+Installation
+------------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install wok_code
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install --upgrade wok_code
 
 
-   rtd_description
-   rtd_getting_started
-   rtd_description_gen_readme
-   rtd_usage_gen_readme
-   rtd_usage_gen_readme_sym
-   rtd_description_macro
-   rtd_description_odoo_dependencies
-   rtd_usage_odoo_dependencies
-   rtd_description_please
-   rtd_description_topep8
-   rtd_usage_topep8
-   rtd_automodule
-   rtd_changelog
-   rtd_credits
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
+::
+
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
 
 |
 |
@@ -74,12 +105,3 @@ Welcome to wok_code 2.0.12 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

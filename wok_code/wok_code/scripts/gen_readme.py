@@ -233,7 +233,7 @@ ALTERNATE_NAMES = {
     "__manifest__": "__init__",
     "description_i18n": "descrizione",
     "configuration": "configure",
-    "summary_i18n": "sommario"
+    "summary_i18n": "sommario",
 }
 ZERO_PYPI_PKGS = "wok_code"
 ZERO_PYPI_SECTS = "description usage"
@@ -459,7 +459,7 @@ def __init__(ctx):
     ctx["pre_action"] = "write"
     ctx["pre_stack"] = []
     ctx["pre_do_else"] = []
-    ctx["html_state"] = {"tag": ""}
+    ctx["html_state"] = {"tag": "", "open_para": 0}
     ctx["rst_state"] = ""
 
 
@@ -806,150 +806,132 @@ def totroff(text):
 
 
 def rst2html(ctx, text, draw_button=False):
+
     def get_tag_image(ctx):
+        # tag = ctx["html_state"]["tag"]
         html_tag = '<img src="%s"' % ctx["html_state"]["url"]
-        for tag in ("alt", "target"):
-            if tag in ctx["html_state"]:
+        for prpty in ("alt", "target"):
+            if prpty in ctx["html_state"]:
                 # style="width:18px;height:16px;"
-                html_tag += (" %s=\"%s\"" % (tag, ctx["html_state"][tag]))
-                ctx["html_state"] = {"tag": ""}
+                html_tag += (" %s=\"%s\"" % (prpty, ctx["html_state"][prpty]))
         styled = False
-        for tag in ("width", "height"):
-            if tag in ctx["html_state"]:
+        for prpty in ("width", "height"):
+            if prpty in ctx["html_state"]:
                 if not styled:
                     # style="width:18px;height:16px;"
                     html_tag += " style=\""
                     styled = True
-                html_tag += ("%s:%s;" % (tag, ctx["html_state"][tag]))
-                ctx["html_state"] = {"tag": ""}
+                html_tag += ("%s:%s;" % (prpty, ctx["html_state"][prpty]))
         if styled:
             html_tag += "max-width:1140px"
             html_tag += "\""
-        ctx["html_state"] = {"tag": ""}
         html_tag += "/>"
+        for prpty in ("alt", "target", "width", "height", "max-width", "url"):
+            ctx["html_state"][prpty] = ""
         return html_tag
 
-    def get_anchor(ctx, text):
+    def get_anchor(ctx, line):
         # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
-        start = text.find("`")
-        stop = text.find("`__")
-        stop2 = text.find("`", start + 1)
-        while start >= 0 and (stop > start or stop2 > start):
-            if stop2 > 0 and (stop2 < stop or stop < 0):
-                text = "%s<code>%s</code>%s" % (text[0:start],
-                                                text[start + 1: stop2],
-                                                text[stop2 + 1:])
-            else:
-                txt = text[start + 1: stop]
-                ii = txt.find("<")
-                jj = txt.find(">")
-                if ii < 0 and jj < 0:
-                    txt = txt.replace("&lt;", "<").replace("&gt;", ">")
-                    ii = txt.find("<")
-                    jj = txt.find(">")
-                if ii >= 0 and jj > ii:
-                    url = txt[ii + 1: jj]
-                    if url.startswith("http") and not url.startswith("https"):
-                        url.replace("http", "https")
-                    if url.startswith("http") and not url.endswith("/"):
-                        url += "/"
-                    if (stop + 3) < len(text):
-                        text = '%s<a href="%s">%s</a>%s' % (
-                            text[0:start],
-                            url,
-                            txt[0: ii - 1].strip(),
-                            text[stop + 3:],
-                        )
-                    else:
-                        text = '%s<a href="%s">%s</a>' % (
-                            text[0:start],
-                            url,
-                            txt[0: ii - 1].strip(),
-                        )
-                elif stop >= 0 and txt.find("&lt;") < 0 and txt.find("&gt;"):
-                    text = text[0:start] + text[start + 1: stop] + text[stop + 3:]
-                else:
-                    break
-            start = text.find("`")
-            stop = text.find("`__")
-            stop2 = text.find("`", start + 1)
-        return text
-
-    def get_bold_italic(ctx, text):
-        # Parse single-line rst tags: <*>BOLD<*> | <**>ITALIC<**>
-        x = re.search(r"\*\*\w+\*\*", text)
+        x = re.search(r"`[^`]+`__", line)
         while x:
-            text = "%s<b>%s</b>%s" % (text[0:x.start()],
-                                      text[x.start() + 2: x.end() - 2],
-                                      text[x.end() + 2:])
-            x = re.search(r"\*\*\w+\*\*", text)
+            txt = line[x.start() + 1: x.end() - 3]
+            txt = txt.replace("&lt;", "<").replace("&gt;", ">")
+            u = re.search(r"<.*>", txt)
+            if u:
+                url = txt[u.start() + 1: u.end() - 1]
+                if "@" in url and not url.startswith("http"):
+                    url = "mailto:" + url
+                elif url.startswith("http") and not url.startswith("https"):
+                    url.replace("http", "https")
+                if url.startswith("http") and not url.endswith("/"):
+                    url += "/"
+                line = '%s<a href="%s">%s</a>%s' % (
+                    line[:x.start()],
+                    url,
+                    txt[:u.start()].strip(),
+                    line[x.end():],
+                )
+            x = re.search(r"`[^`]+`__", line)
+        return line
 
-        x = re.search(r"\*\w+\*", text)
+    def get_inline_tag(ctx, line):
+        # Parse single-line rst tags: <**>BOLD<**>
+        x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
         while x:
-            text = "%s<i>%s</i>%s" % (text[0:x.start()],
-                                      text[x.start() + 1: x.end() - 1],
-                                      text[x.end() + 1:])
-            x = re.search(r"\*\w+\*", text)
+            line = "%s<b>%s</b>%s" % (line[0:x.start()],
+                                      line[x.start() + 2: x.end() - 2],
+                                      line[x.end():])
+            x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
 
-        # Parse multi-line rst tags: <**>BOLD<**> ?
-        start = text.find("**")
-        stop = text.find("**", start + 2)
-        while start > 0 and stop > start:
-            text = "%s<b>%s</b>%s" % (text[0:start],
-                                      text[start + 2: stop],
-                                      text[stop + 2:])
-            start = text.find("**")
-            stop = text.find("**", start + 2)
-        return text
+        # Parse single-line rst tag: <*>ITALIC<*>
+        x = re.search(r"\*\w[\w ]+\w\*", line)
+        while x:
+            line = "%s<i>%s</i>%s" % (line[0:x.start()],
+                                      line[x.start() + 1: x.end() - 1],
+                                      line[x.end():])
+            x = re.search(r"\*\w[\w ]+\w\*", line)
 
-    def get_navicon(ctx, text):
+        # # Parse multi-line rst tags: <**>BOLD<**> ?
+        # start = line.find("**")
+        # stop = line.find("**", start + 2)
+        # while start > 0 and stop > start:
+        #     line = "%s<b>%s</b>%s" % (line[0:start],
+        #                               line[start + 2: stop],
+        #                               line[stop + 2:])
+        #     start = line.find("**")
+        #     stop = line.find("**", start + 2)
+
+        # Parse single-line rst tag: <``>CODE<``>
+        x = re.search(r"``[^`]+``", line)
+        while x:
+            line = "%s<code>%s</code>%s" % (line[:x.start()],
+                                            line[x.start() + 2: x.end() - 2],
+                                            line[x.end():])
+            x = re.search(r"``[^`]+``", line)
+        return line
+
+    def get_navicon(ctx, line):
         stop = 0
-        start = text.find("☰", stop)
+        start = line.find("☰", stop)
+        found = start >= 0
         while start >= 0:
-            text = text[0:start] + '<span class="fa fa-navicon"/>' + text[start + 1:]
+            line = (line[0:start]
+                    + '<span class="fa fa-th-large" style="color:#7C7BAD"/>'
+                    + line[start + 1:])
             stop = start + 29
-            start = text.find("☰", stop)
-        return text
+            start = line.find("☰", stop)
+        if found:
+            line = line.replace("&gt;", "&#187;")
+        return line
 
-    if not text:
-        return text
-    text = text.replace("<", "&lt;").replace(">", "&gt;")
-    text = text.replace("\a", "<").replace("\b", ">")
-    text = text.replace(" & ", " &amp; ")
-    for t in list(RST2HTML_GRYMB.keys()):
-        text = text.replace(t, RST2HTML_GRYMB[t])
-    for token in DEFINED_GRYMB_SYMBOLS:
-        tok = "|" + token + "|"
-        start = text.find(tok)
-        while start >= 0:
-            value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
-            text = text[0:start] + value + text[start + len(tok):]
-            start = text.find(tok)
-
-    if draw_button:
-        x = re.search(r"\[\w[\w ]+\w\]", text)
+    def get_graphical_elements(ctx, line):
+        # Parse single-line tebbed: <[`>TABBED<`]>
+        x = re.search(r"\[`[\w ]+`\]", line)
         while x:
-            button_text = text[x.start() + 1:x.end() - 1]
+            tabbed_text = " " + line[x.start() + 2:x.end() - 2] + " "
+            tabbed_text = tabbed_text.replace(" ", "&#160;")
+            line = ("%s<span style=\"border-style:solid;border-width:1px 1px 0px 1px\">"
+                    "%s</span>%s"
+                    % (line[0:x.start()],
+                       tabbed_text,
+                       line[x.end():]))
+            x = re.search(r"\[`[\w ]+`\]", line)
+
+        # Parse single-line button: <[>BUTTON<]>
+        x = re.search(r"\[\w[\w ]+\w\]", line)
+        while x:
+            button_text = line[x.start() + 1:x.end() - 1]
             if len(button_text) <= 12:
                 button_text = " " + button_text + " "
             button_text = button_text.replace(" ", "&#160;")
-            text = ("%s<span style=\"color:white;background-color:#7C7BAD\">%s</span>%s"
-                    % (text[0:x.start()],
+            line = ("%s<span style=\"color:white;background-color:#7C7BAD\">%s</span>%s"
+                    % (line[0:x.start()],
                        button_text,
-                       text[x.end():]))
-            x = re.search(r"\[\w[\w ]+\w\]", text)
-        x = re.search(r"\[`[\w ]+`\]", text)
-        while x:
-            tabbed_text = " " + text[x.start() + 2:x.end() - 2] + " "
-            tabbed_text = tabbed_text.replace(" ", "&#160;")
-            text = ("%s<span style=\"border-style:solid;border-width:1px 1px 0px 1px\">"
-                    "%s</span>%s"
-                    % (text[0:x.start()],
-                       tabbed_text,
-                       text[x.end():]))
-            x = re.search(r"\[`[\w ]+`\]", text)
+                       line[x.end():]))
+            x = re.search(r"\[\w[\w ]+\w\]", line)
+        return line
 
-    def close_opened_tag(ctx, lines, lineno):
+    def close_opened_tag(ctx, lines, lineno, excl_tag=None):
         force = lineno >= len(lines)
         if (
                 not force
@@ -963,14 +945,14 @@ def rst2html(ctx, text, draw_button=False):
         elif force and ctx["html_state"]["tag"] == "ul":
             lines.append("</ul>")
             ctx["html_state"]["tag"] = ""
-        elif not force and ctx["html_state"]["tag"] == "ul":
+        elif excl_tag != "ul" and ctx["html_state"]["tag"] == "ul":
             lines.insert(lineno, "</ul>")
             lineno += 1
             ctx["html_state"]["tag"] = ""
         elif force and ctx["html_state"]["tag"] == "ol":
             lines.append("</ol>")
             ctx["html_state"]["tag"] = ""
-        elif not force and ctx["html_state"]["tag"] == "ol":
+        elif excl_tag != "ol" and ctx["html_state"]["tag"] == "ol":
             lines.insert(lineno, "</ol>")
             lineno += 1
             ctx["html_state"]["tag"] = ""
@@ -988,6 +970,7 @@ def rst2html(ctx, text, draw_button=False):
         return lineno
 
     def open_tag(ctx, lines, lineno, tag):
+        lineno = close_opened_tag(ctx, lines, lineno, excl_tag=tag)
         if ctx["html_state"]["tag"] != tag:
             if tag == "ul":
                 lines.insert(lineno, "<ul>")
@@ -998,14 +981,28 @@ def rst2html(ctx, text, draw_button=False):
         ctx["html_state"]["tag"] = tag
         return lineno
 
-    # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
-    text = get_anchor(ctx, text)
+    def parse_all_single_line_tags(ctx, line, draw_button):
+        line = get_anchor(ctx, line)
+        line = get_inline_tag(ctx, line)
+        line = get_navicon(ctx, line)
+        if draw_button:
+            line = get_graphical_elements(ctx, line)
+        return line
 
-    # Parse single-line rst tags: <*>BOLD<*> | <**>ITALIC<**>
-    text = get_bold_italic(ctx, text)
-
-    # Parse menu line
-    text = get_navicon(ctx, text)
+    if not text:
+        return text
+    text = text.replace("<", "&lt;").replace(">", "&gt;")
+    text = text.replace("\a", "<").replace("\b", ">")
+    text = text.replace(" & ", " &amp; ")
+    for t in list(RST2HTML_GRYMB.keys()):
+        text = text.replace(t, RST2HTML_GRYMB[t])
+    for token in DEFINED_GRYMB_SYMBOLS:
+        tok = "|" + token + "|"
+        start = text.find(tok)
+        while start >= 0:
+            value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
+            text = text[0:start] + value + text[start + len(tok):]
+            start = text.find(tok)
 
     # Parse single line rst tags; remove trailing and tailing empty lines
     lines = text.split("\n")
@@ -1014,11 +1011,10 @@ def rst2html(ctx, text, draw_button=False):
     while len(lines) and not lines[0]:
         del lines[0]
 
-    ctx["html_state"] = {"tag": ""}
-    ctx["html_state"]["open_para"] = 0
+    ctx["html_state"] = {"tag": "", "open_para": 0}
     lineno = 0
     while lineno < len(lines):
-        lineno = close_opened_tag(ctx, lines, lineno)
+        # lineno = close_opened_tag(ctx, lines, lineno)
         if not lines[lineno].startswith(".. "):
             if ctx["html_state"]["tag"] in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
@@ -1043,29 +1039,22 @@ def rst2html(ctx, text, draw_button=False):
             ):
                 cols = lines[lineno].split("|")
                 del cols[0]
-                row = ""
-                for col in cols:
-                    row += "</td><td>" + col.strip()
-                row = row[5:-4]
-                lines[lineno] = row
+                row = "</td><td>".join(
+                    [parse_all_single_line_tags(ctx, col.strip(), draw_button)
+                     for col in cols])
+                lines[lineno] = "<td>" + row + "</td>"
             elif ctx["html_state"]["tag"] == "table":
                 lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
                 ctx["html_state"]["tag"] = ""
                 continue
             elif lines[lineno].startswith("* "):
                 lineno = open_tag(ctx, lines, lineno, "ul")
-                if re.match(".*&lt;http[^&]+&gt;$",  lines[lineno]):
-                    lines[lineno] = "<li>%s</li>" % get_anchor(
-                        ctx, "`%s`__" % lines[lineno][2:])
-                else:
-                    lines[lineno] = "<li>%s</li>" % lines[lineno][2:]
+                lines[lineno] = "<li>%s</li>" % parse_all_single_line_tags(
+                    ctx, lines[lineno][2:], draw_button)
             elif lines[lineno].startswith("#. "):
                 lineno = open_tag(ctx, lines, lineno, "ol")
-                if re.match(".*&lt;http[^&]+&gt;$",  lines[lineno]):
-                    lines[lineno] = "<li>%s</li>" % get_anchor(
-                        ctx, "`%s`__" % lines[lineno][2:])
-                else:
-                    lines[lineno] = "<li>%s</li>" % lines[lineno][2:]
+                lines[lineno] = "<li>%s</li>" % parse_all_single_line_tags(
+                    ctx, lines[lineno][2:], draw_button)
             elif not lines[lineno]:
                 if ctx["html_state"]["tag"] == "Code":
                     lines[lineno] = "<code>"
@@ -1104,6 +1093,9 @@ def rst2html(ctx, text, draw_button=False):
                 ctx["html_state"]["tag"] = "Code"
             elif lines[lineno] == "|":
                 lines[lineno] = "<br/>"
+            else:
+                lines[lineno] = parse_all_single_line_tags(
+                    ctx, lines[lineno], draw_button)
         else:
             if ctx["html_state"]["tag"] == "table":
                 lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
@@ -1123,19 +1115,25 @@ def rst2html(ctx, text, draw_button=False):
                     ctx, lines[lineno], "figure")[0]
                 del lines[lineno]
                 continue
+            else:
+                lines[lineno] = parse_all_single_line_tags(
+                    ctx, lines[lineno], draw_button)
         lineno += 1
     close_opened_tag(ctx, lines, lineno)
     if ctx["html_state"]["tag"] == "image":
         lines.append(get_tag_image(ctx))
-        ctx["html_state"] = {}
+        ctx["html_state"]["tag"] = ""
     elif ctx["html_state"]["tag"] == "figure":
         lines.append(get_tag_image(ctx))
-        ctx["html_state"] = {}
+        ctx["html_state"]["tag"] = ""
     elif ctx["html_state"]["tag"] == "table":
         lines[-1] = "</tr></table>"
-    if ctx["html_state"]["open_para"]:
+        ctx["html_state"]["tag"] = ""
+    while ctx["html_state"]["open_para"] > 0:
         lines.append("</p>")
         ctx["html_state"]["open_para"] -= 1
+    for prpty in ("alt", "target", "width", "height", "max-width", "url"):
+        ctx["html_state"][prpty] = ""
     return "\n".join(lines)
 
 
@@ -1629,13 +1627,11 @@ def write_automodule(ctx):
 
 
 def load_subsection(ctx, fn, section, sub):
-    fqn = pth.join("./egg-info", fn)
-    with open(fqn, "r") as fd:
-        ctx["contents"] = fd.read()
+    fqn, ctx["contents"] = read_file_rst_or_csv(ctx, pth.join("./egg-info", fn))
     return write_rtd_file(ctx,
                           section,
                           header="Digest of " + sub,
-                          fn=pth.join("docs", "rtd_" + fn),
+                          fn=pth.join("docs", "rtd_" + pth.basename(fqn)),
                           sub=sub)
 
 
@@ -1705,7 +1701,7 @@ def parse_block(ctx, section, line, in_fmt=None):
             text = ctx[section]
     else:
         print_red_message("NO BLOCK '%s' FOUND" % blockname)
-    return text
+    return parse_source(ctx, text, in_fmt=in_fmt)
 
 
 def parse_set(ctx, section, line):
@@ -1725,44 +1721,21 @@ def parse_set(ctx, section, line):
 def parse_pypi_packges(ctx):
     # Input format is RST
     target = "\n"
-    files = os.listdir("./egg-info")
-    submodules = {}
-    for fn in sorted(files):
-        sub, ext = pth.splitext(fn)
-        if ext != ".rst":
-            continue
-        sub = sub.lower()
-        for section in PYPI_SECTIONS_HDR:
-            if not sub.startswith(section + "_") or sub == section:
-                continue
-            sub = sub[len(section) + 1:]
-            if sub not in submodules:
-                submodules[sub] = [fn]
-            else:
-                submodules[sub].append(fn)
-    groups = {}
-    for section in DEFINED_SECTIONS:
-        if section in GROUPS:
-            name = GROUPS[section]
-            if name not in groups:
-                groups[name] = []
-                ctx[name] = ""
-            groups[name].append(section)
     for section in PYPI_SECTIONS_HDR:
         target += write_rtd_file(ctx, section)
-    for name in groups.keys():
+    for name in ctx["submodules_groups"].keys():
         target += write_rtd_group(ctx, name)
-    if submodules:
-        for sub in sorted(list(submodules.keys())):
+    if ctx["submodules"]:
+        for sub in sorted(list(ctx["submodules"].keys())):
             for section in PYPI_SECTIONS_HDR:
-                for fn in submodules[sub]:
+                for fn in ctx["submodules"][sub]:
                     if section not in fn.lower():
                         continue
                     target += load_subsection(ctx, fn, section, sub)
     target += write_automodule(ctx)
     for section in PYPI_SECTIONS_FOO:
         target += write_rtd_file(ctx, section)
-    for name in groups.keys():
+    for name in ctx["submodules_groups"].keys():
         target += write_rtd_group(ctx, name)
     target += "\n"
     return target
@@ -1888,6 +1861,35 @@ def load_hdr_foo(ctx, filename):
     return hdr_foo
 
 
+def read_file_rst_or_csv(ctx, fqn):
+    if fqn.endswith(".csv"):
+        fqn_csv = fqn
+        fqn = fqn_csv.replace(".csv", ".rst")
+        remove_fqn = not pth.isfile(fqn)
+    elif fqn.endswith(".rst"):
+        fqn_csv = fqn.replace(".rst", ".csv")
+        remove_fqn = False
+    else:
+        fqn_csv = ""
+        remove_fqn = False
+    if fqn_csv and pth.isfile(fqn_csv):
+        args = [
+            "-b", ctx["branch"],
+            "-S" if ctx["product_doc"] == "pypi" else "",
+            "-q",
+            fqn_csv,
+            fqn
+        ]
+        chain_python_cmd("cvt_csv_2_rst.py", args)
+    if ctx["opt_verbose"]:
+        print("Reading %s" % fqn)
+    with open(fqn, RMODE) as fd:
+        source = _u(fd.read())
+    if remove_fqn:
+        os.unlink(fqn)
+    return fqn, source
+
+
 def parse_local_file(
     ctx, filename, ignore_ntf=None, in_fmt=None, out_fmt=None, section=None
 ):
@@ -1910,33 +1912,9 @@ def parse_local_file(
                 ctx, globals()[action](ctx), out_fmt=out_fmt, section=section)
         return ""
 
-    if fqn.endswith(".csv"):
-        fqn_csv = fqn
-        fqn = fqn_csv.replace(".csv", ".rst")
-        remove_fqn = not pth.isfile(fqn)
-    elif fqn.endswith(".rst"):
-        fqn_csv = fqn.replace(".rst", ".csv")
-        remove_fqn = False
-    else:
-        fqn_csv = ""
-        remove_fqn = False
-    if fqn_csv and pth.isfile(fqn_csv):
-        args = [
-            "-b", ctx["branch"],
-            "-S" if ctx["product_doc"] == "pypi" else "",
-            "-q",
-            fqn_csv,
-            fqn
-        ]
-        chain_python_cmd("cvt_csv_2_rst.py", args)
-    if ctx["opt_verbose"]:
-        print("Reading %s" % fqn)
+    fqn, source = read_file_rst_or_csv(ctx, fqn)
     if section:
         ctx["%s_filename"] = fqn
-    with open(fqn, RMODE) as fd:
-        source = _u(fd.read())
-    if remove_fqn:
-        os.unlink(fqn)
     if not source and section == "acknowledges":
         source1 = parse_source(
             ctx, source.replace("branch", "prior_branch"),
@@ -2341,16 +2319,6 @@ def manifest_contents(ctx):
     return target
 
 
-def xml_replace_text(ctx, root, item, text, pos=None):
-    pos = pos or [1, 999]
-    ctr = 0
-    for element in root.iter():
-        if element.tag == item:
-            ctr += 1
-            if ctr >= pos[0] and ctr <= pos[1]:
-                element.text = text
-
-
 def index_html_content(ctx, source):
     target = ""
     # title = "%s / %s" % (ctx["summary"], ctx["summary_i18n"])
@@ -2360,7 +2328,6 @@ def index_html_content(ctx, source):
         except SyntaxError as e:
             print_red_message("***** Error %s *****" % e)
             continue
-        # xml_replace_text(ctx, root, "h2", title)
         try:
             target += "\n%s" % _u(etree.tostring(root, pretty_print=True))
         except SyntaxError as e:
@@ -2651,17 +2618,20 @@ def item_2_set(item, field=None):
 
 
 def item_2_test(ctx, section):
+    def get_fmt(x):
+        return "* `%s <%s>`__" if x[2] or x[3] else "* %s <%s>"
+
     if section == "authors":
         ctx["manifest"]["author"] = ",".join([x[1] for x in ctx[section]])
         ctx[section] = "\n".join(
-            ["* %s <%s>" % ((x[1], x[2])) for x in ctx[section]])
+            [(get_fmt(x) % (x[1], x[2])) for x in ctx[section]])
     elif section == "maintainer":
-        ctx[section] = "%s <%s>" % (ctx[section][0][1],
-                                    ctx[section][0][3] or ctx[section][0][2])
-        ctx["manifest"]["author"] = ctx[section]
+        ctx["manifest"]["maintainer"] = ctx[section][0][1]
+        ctx[section] = get_fmt(ctx[section][0]) % (
+            ctx[section][0][1], ctx[section][0][3] or ctx[section][0][2])
     else:
         ctx[section] = "\n".join(
-            ["* %s <%s>" % ((x[1], x[3] or x[2])) for x in ctx[section]])
+            [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]])
     if ctx[section] and not ctx[section].endswith("\n"):
         ctx[section] += "\n"
 
@@ -2898,10 +2868,46 @@ def generate_readme(ctx):
         else:
             ctx["%s_png" % section] = ""
 
+    def get_submodules(ctx):
+        if pth.isdir("./egg-info"):
+            files = os.listdir("./egg-info")
+        elif pth.isdir("./readme"):
+            files = os.listdir("./readme")
+        else:
+            files = []
+        submodules = {}
+        for fn in sorted(files):
+            sub, ext = pth.splitext(fn)
+            if ext != ".rst" and ext != ".csv":
+                continue
+            sub = sub.lower()
+            for section in PYPI_SECTIONS_HDR:
+                if not re.match(section + r"[-_][\w]+$", sub):
+                    continue
+                sub = sub[len(section) + 1:]
+                if re.match("[a-z][a-z]_[A-Z][A-Z]", sub):
+                    # Local I18N language
+                    continue
+                if sub not in submodules:
+                    submodules[sub] = [fn]
+                else:
+                    submodules[sub].append(fn)
+        groups = {}
+        for section in DEFINED_SECTIONS:
+            if section in GROUPS:
+                name = GROUPS[section]
+                if name not in groups:
+                    groups[name] = []
+                    ctx[name] = ""
+                groups[name].append(section)
+        ctx["submodules"] = submodules
+        ctx["submodules_groups"] = groups
+
     # === Starting generate ===
     __init__(ctx)
     read_manifest_setup(ctx)
     if ctx["odoo_layer"] == "module":
+        get_submodules(ctx)
         for fn in ("./README.md", "./README.rst", "../README.rst"):
             if not pth.isfile(fn):
                 continue
@@ -2925,7 +2931,7 @@ def generate_readme(ctx):
         load_section_from_file(ctx, tag, is_tag=True)
         load_section_from_file(ctx, tag + "_i18n", is_tag=True)
 
-    # List tags (i.e. authors) are python list of license data
+    # List tags (i.e. authors) are python list with licensing data
     for section in LIST_TAG:
         tag_items = (
             ctx[section].split(",")

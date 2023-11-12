@@ -1,13 +1,13 @@
 .. toctree::
    :maxdepth: 2
 
-Usage
-=====
+Code documentation
+------------------
 
+wok_code.gen_addons_table
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Module usage
-------------
-
+.. automodule:: wok_code.gen_addons_table
 
 |
 |
