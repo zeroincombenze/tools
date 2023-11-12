@@ -57,8 +57,6 @@ General function:
     >>> print my_list
     ['abc', 'd,e', 'fgh']
 
-
-
 |
 |
 

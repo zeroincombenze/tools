@@ -106,7 +106,6 @@ uninstall [OPTIONS] [SRC_VENV] PKG
 update [OPTIONS] [SRC_VENV] PKG
       Upgrade pypi package in virtual environment.
 
-
 |
 |
 

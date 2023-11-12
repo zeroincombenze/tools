@@ -27,7 +27,6 @@ This command is an interactive tool with some nice features to manage standard v
 environment.
 Mainly it works ad standard pip but inside a specific virtual environment.
 
-
 |
 |
 
