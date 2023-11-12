@@ -1,64 +1,75 @@
 .. toctree::
    :maxdepth: 2
 
-Getting started
-===============
-
-Prerequisites
--------------
-
-Zeroincombenze tools requires:
-
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
-* bash 5.0+
-
-Installation
-------------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install wok_code
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -pUT
-    source $HOME/devel/activate_tools
-
-Upgrade
--------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install --upgrade wok_code
+ChangeLog History
+=================
 
 
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
+2.0.7 (2023-09-26)
+~~~~~~~~~~~~~~~~~~
 
-::
+* [FIX] Some fixes due old wrong code (id -> name)
 
-    cd ./tools
-    ./install_tools.sh -pUT
-    source $HOME/devel/activate_tools
+2.0.6 (2023-07-10)
+~~~~~~~~~~~~~~~~~~
 
-Source code
-~~~~~~~~~~~
+* [IMP] Incorporated new pypi oerlib3
+* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+* [IMP] New param IS_MULTI
 
-You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
+2.0.5 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
 
+* [FIX] clodoo.py: minor fixes
+* [IMP] odoorc: odoo version 16.0
+
+2.0.4 (2023-03-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: minor improvements
+* [IMP] odoorc: test for Odoo 16.0
+* [IMP] transodoo.py: minor improvements
+
+2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GIT_BRANCH sometimes fails
+
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: GITORGID and other value, sometimes are wrong
+
+2.0.1.1 (2022-10-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
+2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: get data from setup.py od Odoo
+
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: new option -S for secure packages
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
 
 |
 |
@@ -73,10 +84,10 @@ You can find source code on `github <https://github.com/zeroincombenze/tools.git
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

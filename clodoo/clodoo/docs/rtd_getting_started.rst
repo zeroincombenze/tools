@@ -1,19 +1,63 @@
 .. toctree::
    :maxdepth: 2
 
-Digest of topep8
-================
+Getting started
+===============
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+Installation
+------------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install clodoo
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install --upgrade clodoo
 
 
-pep8: python edit utility
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Parse source file to meet pep8 requirements.
-The pep8 utility makes some source transformation based on rules,
-then can execute autoflake8 and/or autopep8 utilities (if installed) to meet full pep8 requirements.
+::
 
-It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
 
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
 
 |
 |
@@ -28,10 +72,10 @@ It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

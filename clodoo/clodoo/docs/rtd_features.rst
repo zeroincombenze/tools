@@ -1,24 +1,19 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
+Features
 ========
 
 
-Various tools at your fingertips.
-
-The available tools are:
-
-* cvt_csv_2_rst.py: convert csv file into rst file
-* cvt_csv_2_xml.py: convert csv file into xml file
-* cvt_script: parse bash script and convert to meet company standard
-* gen_readme.py: generate documentation files, mainly README.rst
-* odoo_dependency.py: show odoo dependencies and/or Odoo module tree
-* odoo_translation.py: manage Odoo translation
-* pep8: parse source .py file to meet pep8 and convert across Odoo versions
-* please: developer shell
-* wget_odoo_repositories.py: get repository names from github.com
-
++------------------------------------------------------------+-------------------------+
+| Function                                                   | Note                    |
++------------------------------------------------------------+-------------------------+
+| Manage version depending names                             | transodoo.py            |
++------------------------------------------------------------+-------------------------+
+| General Purpose RPC                                        | clodoo.py               |
++------------------------------------------------------------+-------------------------+
+| Examples                                                   | example*.py             |
++------------------------------------------------------------+-------------------------+
 
 |
 |
@@ -33,10 +28,10 @@ The available tools are:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

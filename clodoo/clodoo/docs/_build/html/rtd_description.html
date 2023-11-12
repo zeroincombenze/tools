@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>&lt;no title&gt; &#8212; clodoo 2.0.7 documentation</title>
+    <title>Overview &#8212; clodoo 2.0.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -15,7 +15,8 @@
     <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Indices and tables" href="index.html" /> 
+    <link rel="next" title="Features" href="rtd_features.html" />
+    <link rel="prev" title="Welcome to clodoo 2.0.7 documentation!" href="index.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -24,10 +25,16 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="index.html" title="Indices and tables"
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to clodoo 2.0.7 documentation!"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">clodoo 2.0.7 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Overview</a></li> 
       </ul>
     </div>  
 
@@ -38,11 +45,194 @@
             
   <div class="toctree-wrapper compound">
 </div>
+<section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<p>Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.</p>
+<p>With clodoo you can do massive operations on 1 or more Odoo databases based on
+different Odoo versions. Main operation are:</p>
+<ul class="simple">
+<li><p>create consistent database to run tests</p></li>
+<li><p>repeat consistent action on many db with same or different Odoo version</p></li>
+<li><p>repeat above actions on every new database</p></li>
+</ul>
+<p>clodoo is also a PYPI package to simplify RPC connection to Odoo.
+The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
+can execute any command to any Odoo version server (from 6.1 to 13.0)</p>
+<section id="clodoo-py-general-purpose-rpc">
+<h3>clodoo.py: general Purpose RPC<a class="headerlink" href="#clodoo-py-general-purpose-rpc" title="Permalink to this heading"></a></h3>
+<p>clodoo.py ia general purpose xmlrpc / json interface.
+It is called by bash console, there is no funcional web/GUI interface.</p>
+<blockquote>
+<div><dl>
+<dt>$ usage: clodoo.py [-h] [-A actions] [-b version] [-c file] [-d regex] [-D]</dt><dd><p>[-l iso_lang] [-n] [-p dir] [-P password] [-q] [-r port]
+[-U username] [-u list] [-v] [-V] [-x]</p>
+</dd>
+<dt>optional arguments:</dt><dd><dl class="option-list">
+<dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt><kbd><span class="option">-A <var>actions</var></span>, <span class="option">--action-to-do <var>actions</var></span></kbd></dt>
+<dd><p>action to do (use help to dir)</p>
+</dd>
+<dt><kbd><span class="option">-b <var>version</var></span>, <span class="option">--odoo-branch <var>version</var></span></kbd></dt>
+<dd><p>talk server Odoo version</p>
+</dd>
+<dt><kbd><span class="option">-c <var>file</var></span>, <span class="option">--config <var>file</var></span></kbd></dt>
+<dd><p>configuration command file</p>
+</dd>
+<dt><kbd><span class="option">-d <var>regex</var></span>, <span class="option">--dbfilter <var>regex</var></span></kbd></dt>
+<dd><p>DB filter</p>
+</dd>
+<dt><kbd><span class="option">-D</span>, <span class="option">--with-demo</span></kbd></dt>
+<dd><p>create db with demo data</p>
+</dd>
+<dt><kbd><span class="option">-l <var>iso_lang</var></span>, <span class="option">--lang <var>iso_lang</var></span></kbd></dt>
+<dd><p>user language</p>
+</dd>
+<dt><kbd><span class="option">-n</span>, <span class="option">--dry-run</span></kbd></dt>
+<dd><p>test execution mode</p>
+</dd>
+<dt><kbd><span class="option">-p <var>dir</var></span>, <span class="option">--data-path <var>dir</var></span></kbd></dt>
+<dd><p>Import file path</p>
+</dd>
+<dt><kbd><span class="option">-P <var>password</var></span>, <span class="option">--pwd <var>password</var></span></kbd></dt>
+<dd><p>login password</p>
+</dd>
+<dt><kbd><span class="option">-q</span>, <span class="option">--quiet</span></kbd></dt>
+<dd><p>run silently</p>
+</dd>
+<dt><kbd><span class="option">-r <var>port</var></span>, <span class="option">--xmlrpc-port <var>port</var></span></kbd></dt>
+<dd><p>xmlrpc port</p>
+</dd>
+<dt><kbd><span class="option">-U <var>username</var></span>, <span class="option">--user <var>username</var></span></kbd></dt>
+<dd><p>login username</p>
+</dd>
+<dt><kbd><span class="option">-u <var>list</var></span>, <span class="option">--upgrade-modules <var>list</var></span></kbd></dt>
+<dd><p>Module list to upgrade</p>
+</dd>
+<dt><kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></dt>
+<dd><p>run with debugging output</p>
+</dd>
+<dt><kbd><span class="option">-V</span>, <span class="option">--version</span></kbd></dt>
+<dd><p>show program’s version number and exit</p>
+</dd>
+<dt><kbd><span class="option">-x</span>, <span class="option">--exit-on-error</span></kbd></dt>
+<dd><p>exit on error</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<section id="import-file">
+<h4>Import_file<a class="headerlink" href="#import-file" title="Permalink to this heading"></a></h4>
+<p>Import file loads data from a csv file into DB. This action works as standard
+Odoo but has some enhanced features.
+Field value may be:</p>
+<ul class="simple">
+<li><p>external identifier, format module.name (as Odoo standard)
+i.e. ‘base.main_company’</p></li>
+<li><p>text with macros, format ${macro} (no Odoo standard), dictionary passed
+i.e. ‘${company_id}’
+text may contains one or more macros</p></li>
+<li><p>text with DB extraction, format ${model:values} (w/o company, no Odoo std)
+i.e. ‘${res.company:your company}’
+data is searched by name</p></li>
+<li><p>text with DB extraction, format ${model::values} (with company, no Odoo std)
+i.e. ‘${res.partner::Odoo SA}’
+data is searched by name, company from ctx[‘company_id’]</p></li>
+<li><p>text with DB extraction, format ${model(params):values} (w/o company)
+i.e. ‘${res.company(zip):1010}’
+data is searched by param(s)</p></li>
+<li><p>text with function, format ${function(params)::values} (add company)
+i.e. ‘${res.partner(zip)::1010}’
+data is searched by param(s), company from ctx[‘company_id’]</p></li>
+<li><p>full text function, format ${function[field](params):values} (w/o company)
+full text function, format ${function[field](params)::values} (add company)
+i.e. ‘${res.partner[name](zip)::1010}’
+data is searched as in above function;
+returned value is not id but <cite>field</cite></p></li>
+<li><p>crypted data, begins with $1$!
+i.e ‘$1$!abc’</p></li>
+<li><p>expression, begin with = (deprecated)</p></li>
+<li><p>odoo multiversion text, format model.constant.0 (in model replace ‘.’ by ‘_’)
+i.e. ‘res_groups.SALES.0’</p></li>
+<li><p>odoo versioned value, format model.value.majversion
+i.e. ‘res_groups.Sales.8’</p></li>
+</ul>
+<p>Predefines macros (in ctx):</p>
+<blockquote>
+<div><p>company_id     default company_id
+company_name   name of default company (if company_id not valid)
+country_code   ISO-3166 default country (see def_country_id)
+customer-supplier if field contains ‘customer’ or ‘client’ set customer=True if it contains ‘supplier’ or ‘vendor’ or ‘fornitore’ set supplier=True
+def_country_id default country id (from company or from user)
+def_email      default mail; format: <a class="reference external" href="mailto:{username}{majversion}&#37;&#52;&#48;example&#46;com">{username}{majversion}<span>&#64;</span>example<span>&#46;</span>com</a>
+full_model     load all field values, even if not in csv
+header_id      id of header when import header/details files
+lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
+name2          if present, is merged with name
+name_first     if present with name last, are merged to compose name
+name_last      if present with name first, are merged to compose name
+street2        if present and just numeric, is merged with street
+zeroadm_mail   default user mail from conf file or &lt;def_mail&gt; if -D switch
+zeroadm_login  default admin username from conf file
+oneadm_mail    default user2 mail from conf file or &lt;def_mail&gt; if -D switch
+oneadm_login   default admin2 username from conf file
+botadm_mail    default bot user mail from conf file or &lt;def_mail&gt; if -D switch
+botadm_login   default bot username from conf file
+_today         date.today()
+_current_year  date.today().year
+_last_year’    date.today().year - 1
+TNL_DICT       dictionary with field translation, format csv_name: field_name; i.e {‘partner_name’: ‘name’} or csv_position: field_name, i.e. {‘0’: ‘name’}
+TNL_VALUE      dictionary with value translation for field; format is field_name: {csv_value: field_value, …} i.e. {‘country’: {‘Inghilterra’: ‘Regno Unito’}} special value ‘$BOOLEAN’ return True or False
+DEFAULT        dictionary with default value, format field_name: value
+EXPR           evaluate value from expression, format csv_name: expression; expression can refer to other fields of csv record in format csv[field_name] or other fields of record in format row[field_name] i.e. {‘is_company’: ‘row[“ref”] != “”’} {‘is_company’: ‘csv[“CustomerRef”] != “”’}
+MANDATORY      dictionary with mandatory field names</p>
+</div></blockquote>
+<p>Import searches for existing data (this behavior differs from Odoo standard)
+Search is based on &lt;o_model&gt; dictionary;
+default field to search is ‘name’ or ‘id’, if passed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="n">csv</span> <span class="n">can</span> <span class="n">contain</span> <span class="n">some</span> <span class="n">special</span> <span class="n">fields</span><span class="p">:</span>
+<span class="n">db_type</span><span class="p">:</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">DB</span> <span class="n">name</span> <span class="n">matches</span> <span class="n">db</span> <span class="nb">type</span><span class="p">;</span> <span class="n">values</span> <span class="n">are</span>
+    <span class="s1">&#39;D&#39;</span> <span class="k">for</span> <span class="n">demo</span><span class="p">,</span>
+    <span class="s1">&#39;T&#39;</span> <span class="k">for</span> <span class="n">test</span><span class="p">,</span>
+    <span class="s1">&#39;Z&#39;</span> <span class="k">for</span> <span class="n">zeroincombenze</span> <span class="n">production</span><span class="p">,</span>
+    <span class="s1">&#39;V&#39;</span> <span class="k">for</span> <span class="n">VG7</span> <span class="n">customers</span>
+    <span class="s1">&#39;C&#39;</span> <span class="n">other</span> <span class="n">customers</span>
+<span class="n">oe_versions</span><span class="p">:</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">matches</span> <span class="n">Odoo</span> <span class="n">version</span>
+    <span class="n">i</span><span class="o">.</span><span class="n">e</span>  <span class="o">+</span><span class="mf">11.0</span><span class="o">+</span><span class="mf">10.0</span> <span class="o">=&gt;</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">Odoo</span> <span class="mf">11.0</span> <span class="ow">or</span> <span class="mf">10.0</span>
+    <span class="n">i</span><span class="o">.</span><span class="n">e</span>  <span class="o">-</span><span class="mf">6.1</span><span class="o">-</span><span class="mf">7.0</span> <span class="o">=&gt;</span> <span class="n">select</span> <span class="n">record</span> <span class="k">if</span> <span class="n">Odoo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="mf">6.1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mf">7.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="odoorc-general-purpose-bash-function">
+<h3>odoorc: general purpose bash function<a class="headerlink" href="#odoorc-general-purpose-bash-function" title="Permalink to this heading"></a></h3>
+<p>The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
+Some values may depends by environment:</p>
+<ul class="simple">
+<li><p>ODOO_DB_USER is the rule to return db username (def odoo%(MAJVER)s)</p></li>
+<li><p>ODOO_GIT_HOSTNAME is the git hostname (def github.com)</p></li>
+<li><p>ODOO_GIT_SHORT -&gt; regex of git organizzations with vid short name (def /(oca)/, see odoo-vid)</p></li>
+</ul>
+<p>Usage:</p>
+<blockquote>
+<div><p>. odoorc
+RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rptname&gt;|&lt;modname&gt;)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])</p>
+</div></blockquote>
+<p>where:</p>
+<blockquote>
+<div><p>PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)</p>
+</div></blockquote>
 <div class="line-block">
 <div class="line"><br /></div>
+<div class="line"><br /></div>
 </div>
-<p>This module is part of tools project.</p>
-<p>Last Update / Ultimo aggiornamento: 2023-10-27</p>
+</section>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -55,9 +245,31 @@
               <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
   <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Overview</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#clodoo-py-general-purpose-rpc">clodoo.py: general Purpose RPC</a><ul>
+<li><a class="reference internal" href="#import-file">Import_file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#odoorc-general-purpose-bash-function">odoorc: general purpose bash function</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="index.html"
-                          title="previous chapter">Indices and tables</a></p>
+                          title="previous chapter">Welcome to clodoo 2.0.7 documentation!</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_features.html"
+                          title="next chapter">Features</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -87,14 +299,20 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="index.html" title="Indices and tables"
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to clodoo 2.0.7 documentation!"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">clodoo 2.0.7 documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">&lt;no title&gt;</a></li> 
+        <li class="nav-item nav-item-this"><a href="">Overview</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2019-20, SHS-AV s.r.l..
+    &#169; Copyright 2019-23, SHS-AV s.r.l..
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
     </div>
   </body>

@@ -1,4 +1,3 @@
-
 ============
 clodoo 2.0.7
 ============
@@ -9,12 +8,11 @@ clodoo 2.0.7
 
 
 
-
 Overview
 ========
 
 Introduction
-------------
+____________
 
 Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.
 
@@ -28,39 +26,6 @@ different Odoo versions. Main operation are:
 clodoo is also a PYPI package to simplify RPC connection to Odoo.
 The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
 can execute any command to any Odoo version server (from 6.1 to 13.0)
-
-Available commands & features are:
-
-+----------------------------------------------+-----------------------------------------+
-| Function                                     | Note                                    |
-+----------------------------------------------+-----------------------------------------+
-| Add new repository                           | odoo_install_repository                 |
-+----------------------------------------------+-----------------------------------------+
-| Update paid invoice                          | inv2draft_n_restore.py                  |
-+----------------------------------------------+-----------------------------------------+
-| List requirement of Odoo                     | list_requirements.py                    |
-+----------------------------------------------+-----------------------------------------+
-| Create full configurated Odoo DB             | manage_db                               |
-+----------------------------------------------+-----------------------------------------+
-| Manage Odoo installation                     | manage_odoo                             |
-+----------------------------------------------+-----------------------------------------+
-| Set Odoo Skin (backoffice)                   | odoo_skin.sh                            |
-+----------------------------------------------+-----------------------------------------+
-| Run Odoo instance to debug                   | run_odoo_debug                          |
-+----------------------------------------------+-----------------------------------------+
-| Manage version depending names               | transodoo.py                            |
-+----------------------------------------------+-----------------------------------------+
-| General Purpose RPC                          | clodoo.py                               |
-+----------------------------------------------+-----------------------------------------+
-| Export Odoo model to test file               | export_db_model.py                      |
-+----------------------------------------------+-----------------------------------------+
-| Migrate Odoo                                 | migrate_odoo.py (deprecated)            |
-+----------------------------------------------+-----------------------------------------+
-| Examples                                     | example*.py                             |
-+----------------------------------------------+-----------------------------------------+
-
-
-
 
 
 clodoo.py: general Purpose RPC
@@ -190,35 +155,6 @@ default field to search is 'name' or 'id', if passed.
         i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
         i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 
-
-odoo_install_repository: manage repositories
---------------------------------------------
-
-::
-
-    Usage: odoo_install_repository [-h][-b branch][-c file][-CDjLmn][-O git-org][-o path][-qrU][-u username][-Vvy1] git_repo odoo_vid new_odoo_vid
-    Add or duplicate odoo repository into local filesystem
-     -h              this help
-     -b branch       default odoo branch
-     -c file         configuration file (def .travis.conf)
-     -C              do not touch configuration file (conflict with -D)
-     -D              update default values in /etc configuration file before creating script (conflict with -C)
-     -j              install only repository owned by git organization
-     -L              create symbolic link rather copy files (if new_odoo_ver supplied)
-     -m              multi-version odoo environment
-     -n              do nothing (dry-run)
-     -O git-org      git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)
-     -o path         odoo directory
-     -q              silent mode
-     -r              do just update remote info (if no new_odoo_ver supplied)
-     -U              do not install, do upgrade
-     -u username     execute as username (def=odoo)
-     -V              show version
-     -v              verbose mode
-     -y              assume yes
-     -1              if clone depth=1
-
-
 odoorc: general purpose bash function
 -------------------------------------
 
@@ -239,29 +175,39 @@ where:
     PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)
 
 
-|
-|
+
+Features
+--------
+
++------------------------------------------------------------+-------------------------+
+| Function                                                   | Note                    |
++------------------------------------------------------------+-------------------------+
+| Manage version depending names                             | transodoo.py            |
++------------------------------------------------------------+-------------------------+
+| General Purpose RPC                                        | clodoo.py               |
++------------------------------------------------------------+-------------------------+
+| Examples                                                   | example*.py             |
++------------------------------------------------------------+-------------------------+
+
+
 
 Getting started
 ===============
 
-N/A
 
 Prerequisites
 -------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
 
 
 Installation
 ------------
-
-N/A
-
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,17 +216,15 @@ Stable version via Python Package
 
     pip install clodoo
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
@@ -288,23 +232,21 @@ Current version via Git
 Upgrade
 -------
 
-
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install clodoo -U
+    pip install --upgrade clodoo
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
@@ -317,34 +259,68 @@ ChangeLog History
 
 * [FIX] Some fixes due old wrong code (id -> name)
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.6 (2023-07-10)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] Incorporated new pypi oerlib3
 * [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
 * [IMP] New param IS_MULTI
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.5 (2023-05-08)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] clodoo.py: minor fixes
 * [IMP] odoorc: odoo version 16.0
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.4 (2023-03-29)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoorc: minor improvements
 * [IMP] odoorc: test for Odoo 16.0
 * [IMP] transodoo.py: minor improvements
 
-2.0.7.0.7
-~~~~~~~~~
+2.0.3 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoorc: GIT_BRANCH sometimes fails
 
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
 
-|
-|
+* [FIX] odoorc: GITORGID and other value, sometimes are wrong
+
+2.0.1.1 (2022-10-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-10-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: best virtual environment recognize
+* [FIX] odoorc: SVCNAME
+
+2.0.0.2 (2022-09-14)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: get data from setup.py od Odoo
+
+2.0.0.1 (2022-09-06)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: new option -S for secure packages
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
+
+
 
 Credits
 =======
@@ -355,26 +331,21 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
 Authors
 -------
 
-* `Antonio Maria Vigliotti <False>`__
 * `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
 
 Contributors
 ------------
 
-Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-
+* `Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-10-27
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -419,5 +390,3 @@ Last Update / Ultimo aggiornamento: 2023-10-27
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
