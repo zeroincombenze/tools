@@ -1,24 +1,49 @@
-.. odoo_score documentation master file, created by
-   gen_readme.py on 2023-11-12 07:56:16
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-==========================================
-Welcome to odoo_score 2.0.6 documentation!
-==========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Digest of odoo_shell
+====================
 
 
-   rtd_description
-   rtd_getting_started
-   rtd_description_odoo_shell
-   rtd_usage_odoo_shell
-   rtd_changelog
-   rtd_credits
+odoo_shell usage
+----------------
 
+::
+
+    usage: odoo_shell.py [-h] [-A python_name] [-c file] [-d file] [-n] [-q] [-V]
+                         [-v] [-w file] [-z name] [-1 PARAM_1] [-2 PARAM_2]
+                         [-3 PARAM_3] [-4 PARAM_4] [-5 PARAM_5] [-6 PARAM_6]
+
+    Odoo test environment
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -A python_name, --action python_name
+                            internal action to execute
+      -c file, --config file
+                            configuration command file
+      -d file, --dbname file
+                            DB name to connect
+      -n, --dry-run         do nothing (dry-run)
+      -q, --quiet           silent mode
+      -V, --version         show program's version number and exit
+      -v, --verbose         verbose mode
+      -w file, --src-config file
+                            Source DB configuration file
+      -z name, --src-db_name name
+                            Source database name
+      -1 PARAM_1, --param-1 PARAM_1
+                            value to pass to called function
+      -2 PARAM_2, --param-2 PARAM_2
+                            value to pass to called function
+      -3 PARAM_3, --param-3 PARAM_3
+                            value to pass to called function
+      -4 PARAM_4, --param-4 PARAM_4
+                            value to pass to called function
+      -5 PARAM_5, --param-5 PARAM_5
+                            value to pass to called function
+      -6 PARAM_6, --param-6 PARAM_6
+                            value to pass to called function
 
 |
 |
@@ -66,12 +91,3 @@ Welcome to odoo_score 2.0.6 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
