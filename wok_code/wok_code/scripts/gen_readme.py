@@ -856,20 +856,22 @@ def rst2html(ctx, text, draw_button=False):
 
     def get_inline_tag(ctx, line):
         # Parse single-line rst tags: <**>BOLD<**>
-        x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
-        while x:
+        while True:
+            x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
+            if not x:
+                break
             line = "%s<b>%s</b>%s" % (line[0:x.start()],
                                       line[x.start() + 2: x.end() - 2],
                                       line[x.end():])
-            x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
 
         # Parse single-line rst tag: <*>ITALIC<*>
-        x = re.search(r"\*\w[\w ]+\w\*", line)
-        while x:
+        while True:
+            x = re.search(r"\*\w[\w ]+\w\*", line)
+            if not x:
+                break
             line = "%s<i>%s</i>%s" % (line[0:x.start()],
                                       line[x.start() + 1: x.end() - 1],
                                       line[x.end():])
-            x = re.search(r"\*\w[\w ]+\w\*", line)
 
         # # Parse multi-line rst tags: <**>BOLD<**> ?
         # start = line.find("**")
@@ -882,12 +884,13 @@ def rst2html(ctx, text, draw_button=False):
         #     stop = line.find("**", start + 2)
 
         # Parse single-line rst tag: <``>CODE<``>
-        x = re.search(r"``[^`]+``", line)
-        while x:
+        while True:
+            x = re.search(r"``[^`]+``", line)
+            if not x:
+                break
             line = "%s<code>%s</code>%s" % (line[:x.start()],
                                             line[x.start() + 2: x.end() - 2],
                                             line[x.end():])
-            x = re.search(r"``[^`]+``", line)
         return line
 
     def get_navicon(ctx, line):
@@ -1274,13 +1277,12 @@ def expand_macro(ctx, token, default=None):
 
 
 def expand_macro_in_line(ctx, line, out_fmt=None):
-    """Expand content of macro like {{macro}}
+    """Expand content of macro like {{macro}} and capture command output $(cmd)
     Function can return more than one line
     """
     out_fmt = out_fmt or ctx["out_fmt"]
     # All internal macros are in rst format
     in_fmt = "rst"
-    # srctype = ctx.get("srctype", "")
     section = ""
     x = re.search(r"\{\{[^}]+\}\}", line)
     if x:
@@ -1315,6 +1317,23 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
                 del ctx["srctype"]
             return value
         return expand_macro_in_line(ctx, line, out_fmt=out_fmt)
+
+    # Parse capture command outpur: <$(>CMD<)>
+    while True:
+        x = re.search(r"\$\([^)]+\)", line)
+        if not x:
+            break
+        cmdline = line[x.start() + 2: x.end() - 1]
+        cmd, args = cmdline.split(" ", 1)
+        pycmd = pth.join(pth.dirname(__file__), cmd + ".py")
+        if pth.isfile(pycmd):
+            cmdline = sys.executable + " " + pycmd + " " + args
+        sts, stdout, stderr = z0lib.run_traced(cmdline, verbose=False)
+        # Keep lef margin for multiline output
+        left_margin = line[: x.start()]
+        line = ""
+        for ln in stdout.split("\n"):
+            line += (left_margin + ln + "\n")
 
     return line
 

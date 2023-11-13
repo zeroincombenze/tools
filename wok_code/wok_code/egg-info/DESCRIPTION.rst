@@ -11,6 +11,6 @@ The available tools are:
 * gen_readme.py: generate documentation files, mainly README.rst
 * odoo_dependency.py: show odoo dependencies and/or Odoo module tree
 * odoo_translation.py: manage Odoo translation
-* pep8: parse source .py file to meet pep8 and convert across Odoo versions
+* arcangelo: parse source .py file to meet pep8 and convert across Odoo versions
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com

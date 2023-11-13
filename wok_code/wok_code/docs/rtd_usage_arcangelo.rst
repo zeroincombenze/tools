@@ -1,47 +1,52 @@
 .. toctree::
    :maxdepth: 2
 
-Digest of topep8
-================
+Digest of arcangelo
+===================
 
 
-topep8 usage
-~~~~~~~~~~~~
+arcangelo usage
+~~~~~~~~~~~~~~~
 
 ::
 
-    Usage: topep8 [-haAB][-b version][-c][-C org][-Dde][-F ver][-f][-G gpl][-iLnN][-o file][-O][-R file][-quVvXx01] fullname
-    PEP8 source python file
-    full path name maybe supplied or a single file
-
-     -h                   this help
-     -a                   enable non-whitespace changes (may issue multiple -a)
-     -A                   do not execute autoflake (-A) neither autopep8 (-AA)
-     -B                   activate debug statements
-     -b version           odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or 13.0
-     -c                   change class name to CamelCase
-     -C org               add developers Copyright (comma separated, def zero)
-     -D                   show debug informations
-     -d                   show diff
-     -e                   do not apply enhance update
-     -F ver               from odoo branch, value like -b switch
-     -f                   futurize
-     -G gpl               Write GPL info into header (agpl,lgpl,gpl,opl,oee)
-     -i                   sort import statements
-     -L                   set file excluded by lint parse
-     -n                   do nothing (dry-run)
-     -N                   do not add newline at the EOF
-     -o file              output filename, leave source unchanged rather than source becomes .bak
-     -O                   change copyright from openerp to odoo
-     -R file              use specific rule file
-     -q                   silent mode
-     -u                   use old api odoo<8.0 or create yaml old style
-     -V                   show version
-     -v                   verbose mode
-     -X                   make file.py executable
-     -x                   format lines
-     -0                   create yaml file from zero
-     -1                   do not recurse travese directories
+    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-F FROM_VERSION] [-f]
+                        [-G GIT_ORGID] [--git-merge-conflict left|right]
+                        [--ignore-pragma] [-i] [-j PYTHON] [-n] [-o OUTPUT] [-P]
+                        [--string-normalization] [--test-res-msg TEST_RES_MSG]
+                        [-v] [-V] [-w]
+                        [path [path ...]]
+    
+    Beautiful source file
+    
+    positional arguments:
+      path
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -a, --lint-anyway
+      -b TO_VERSION, --to-version TO_VERSION
+      -F FROM_VERSION, --from-version FROM_VERSION
+      -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
+                            skip-file'
+      -G GIT_ORGID, --git-org GIT_ORGID
+      --git-merge-conflict left|right
+                            Keep left or right side code after git merge conflict
+      --ignore-pragma
+      -i, --in-place
+      -j PYTHON, --python PYTHON
+      -n, --dry-run         do nothing (dry-run)
+      -o OUTPUT, --output OUTPUT
+      -P, --pypi-package
+      --string-normalization
+      --test-res-msg TEST_RES_MSG
+      -v, --verbose
+      -V, --version         show program's version number and exit
+      -w, --no-parse-with-formatter
+                            do nor execute black or prettier on modified files
+    
+    © 2021-2023 by SHS-AV s.r.l.
+    
 
 |
 |

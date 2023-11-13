@@ -321,3 +321,31 @@ gen_readme.py, macro is enclosed by double braces.
 .. raw:: html
 
     For current version &lbrace;&lbrace;branch}} of gen_readme.py
+
+Capture command output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add command output of a chell command in your documentation.
+The syntax is the same of bash:
+
+.. raw:: html
+
+    &dollar;(COMMAND ARGUMENTS)
+
+Example:
+
+.. raw:: html
+
+    Here the output of the help of bash Linux command <b>true</b>:<br/><br/>
+    &dollar;(man true)
+
+::
+
+    $(man true)
+
+gen_readme.py command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $(gen_readme -h)

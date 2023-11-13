@@ -1,0 +1,6 @@
+arcangelo usage
+~~~~~~~~~~~~~~~
+
+::
+
+    $(arcangelo -h)

@@ -361,6 +361,124 @@ gen_readme.py, macro is enclosed by double braces.
 
     For current version &lbrace;&lbrace;branch}} of gen_readme.py
 
+Capture command output
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can add command output of a chell command in your documentation.
+The syntax is the same of bash:
+
+.. raw:: html
+
+    &dollar;(COMMAND ARGUMENTS)
+
+Example:
+
+.. raw:: html
+
+    Here the output of the help of bash Linux command <b>true</b>:<br/><br/>
+    &dollar;(man true)
+
+::
+
+    TRUE(1)                                             User Commands                                             TRUE(1)
+    
+    NAME
+           true - do nothing, successfully
+    
+    SYNOPSIS
+           true [ignored command line arguments]
+           true OPTION
+    
+    DESCRIPTION
+           Exit with a status code indicating success.
+    
+           --help display this help and exit
+    
+           --version
+                  output version information and exit
+    
+           NOTE:  your  shell  may  have  its  own  version of true, which usually supersedes the version described here.
+           Please refer to your shell's documentation for details about the options it supports.
+    
+    AUTHOR
+           Written by Jim Meyering.
+    
+    REPORTING BUGS
+           GNU coreutils online help: <https://www.gnu.org/software/coreutils/>
+           Report true translation bugs to <https://translationproject.org/team/>
+    
+    COPYRIGHT
+           Copyright  ©  2018  Free  Software  Foundation,  Inc.   License  GPLv3+:  GNU   GPL   version   3   or   later
+           <https://gnu.org/licenses/gpl.html>.
+           This  is  free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent per‐
+           mitted by law.
+    
+    SEE ALSO
+           Full documentation at: <https://www.gnu.org/software/coreutils/true>
+           or available locally via: info '(coreutils) true invocation'
+    
+    GNU coreutils 8.30                                  September 2019                                            TRUE(1)
+    
+
+
+gen_readme.py command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-D PATH] [-F FROM_VERSION] [-f]
+                         [-G GIT_ORGID] [-g OPT_GPL] [-H] [-l ODOO_LAYER]
+                         [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n]
+                         [-o OUTPUT_FILE] [-P PRODUCT_DOC] [-p PATH_NAME] [-q]
+                         [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME]
+                         [-T] [-V] [-v] [-W] [-w] [-Y]
+    
+    Generate README
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -b ODOO_VID, --odoo-branch ODOO_VID
+      -B, --debug-template
+      -D PATH, --home-devel PATH
+                            Home devel directory
+      -F FROM_VERSION, --from-version FROM_VERSION
+      -f, --force           force creating documentation even if doc dirs do not
+                            exit
+      -G GIT_ORGID, --git-org GIT_ORGID
+      -g OPT_GPL, --gpl-info OPT_GPL
+      -H, -I, --write-index
+      -l ODOO_LAYER, --layer ODOO_LAYER
+                            ocb|module|repository
+      -L LANG, --lang LANG  iso code
+      -m MODULE_NAME, --module-name MODULE_NAME
+                            filename
+      -M FORCE_MATURITY, --force-maturity FORCE_MATURITY
+                            Alfa,Beta,Mature,Production/stable
+      -n, --dry-run         do nothing (dry-run)
+      -o OUTPUT_FILE, --output-file OUTPUT_FILE
+                            filename
+      -P PRODUCT_DOC, --product-doc PRODUCT_DOC
+                            may be odoo or pypi
+      -p PATH_NAME, --path-name PATH_NAME
+                            pathname
+      -q, --quiet           silent mode
+      -R, --rewrite-manifest
+      -r REPOS_NAME, --repos_name REPOS_NAME
+                            dirname
+      -Q QUOTE_WITH, --quote-with QUOTE_WITH
+                            CHAR
+      -t TEMPLATE_NAME, --template_name TEMPLATE_NAME
+                            filename
+      -T, --trace-file
+      -V, --version         show program's version number and exit
+      -v, --verbose         verbose mode
+      -W, --write-authinfo
+      -w, --suppress-warning
+      -Y, --write-man-page
+    
+    © 2018-2023 by SHS-AV s.r.l.
+    
+
 |
 |
 
