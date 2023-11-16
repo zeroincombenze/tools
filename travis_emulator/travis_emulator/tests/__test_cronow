@@ -96,7 +96,7 @@ Run now a selected cron statement from crontab
  -v             verbose mode
  -w             wait for job activation
 
-(C) 2015-2016 by zeroincombenze(R)
+(C) 2015-2016 by zeroincombenze®
 http://wiki.zeroincombenze.org/en/Linux/dev
 Author: antoniomaria.vigliotti@gmail.com
 EOF

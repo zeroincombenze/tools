@@ -290,7 +290,7 @@ create_virtual_env() {
   unset TOOLS_PATH
   init_travis
   export TRAVIS_BRANCH=$(git branch --list|grep "^\* "|cut -d" " -f2|head -n1|tr -d "\n")
-  [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze(R) tools not found!" && exit 1
+  [[ -z "$HOME_DEVEL" ]] && echo "Zeroincombenze® tools not found!" && exit 1
   drop_test_db
   export TRAVIS_SAVED_HOME=$HOME
   export TRAVIS_SAVED_HOME_DEVEL=$HOME_DEVEL

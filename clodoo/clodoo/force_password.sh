@@ -98,7 +98,7 @@ fi
 [ -z "$opt_user" ] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Install odoo theme" \
-    "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2015-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

@@ -17,18 +17,6 @@
 
 ::
 
-    cd $HOME
-    # *** Tools installation & activation ***
-    # Case 1: you have not installed zeroincombenze tools
-    git clone https://github.com/zeroincombenze/tools.git
-    cd $HOME/tools
-    ./install_tools.sh -pT
-    source $HOME/devel/activate_tools
-    # Case 2: you have already installed zeroincombenze tools
-    cd $HOME/tools
-    ./install_tools.sh -UT
-    source $HOME/devel/activate_tools
-    # *** End of tools installation or upgrade ***
 .. $if repos_name == 'OCB'
     # Odoo module installation
 .. $else
@@ -41,23 +29,4 @@
 .. $else
     # Upgrade virtual environment
     vem amend $HOME/{{branch}}/venv_odoo
-.. $fi
-
-.. $if odoo_layer == 'module'
-From UI: go to:
-.. $if branch in '16.0' '15.0' '14.0' '13.0' '12.0' '11.0' '10.0'
-
-* |menu| Setting > Activate Developer mode
-* |menu| Apps > Update Apps List
-* |menu| Setting > Apps |right_do| Select **{{module_name}}** > Install
-.. $elif branch in '9.0'
-
-* |menu| admin > About > Activate Developer mode
-* |menu| Setting > Modules > Update Modules List
-* |menu| Setting > Local Modules |right_do| Select **{{module_name}}** > Install
-.. $elif branch in '8.0' '7.0' '6.1'
-
-* |menu| Setting > Modules > Update Modules List
-* |menu| Setting > Local Modules |right_do| Select **{{module_name}}** > Install
-.. $fi
 .. $fi

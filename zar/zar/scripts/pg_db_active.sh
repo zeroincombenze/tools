@@ -149,7 +149,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Check/kill for postgres DB sessions"\
-  "(C) 2016-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 PSQL=""

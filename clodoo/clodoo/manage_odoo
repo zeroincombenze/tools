@@ -226,7 +226,7 @@ if [[ $opt_verbose -eq -1 ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Check for all odoo repositories\nactions may be: add_repository amend build clean lint list prepare rebuild test travis upgrade"\
-  "(C) 2015-2021 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2021 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [[ "$actions" == "help" ]]; then

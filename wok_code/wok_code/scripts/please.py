@@ -503,12 +503,16 @@ class Please(object):
             return root
         return pth.join(root, pkgname)
 
-    def get_tools_dir(self, pkgtool=False):
+    def get_pkg_tool_dir(self, pkgtool=False, pkgname=None):
         if hasattr(self.opt_args, "debug") and self.opt_args.debug:
             if pkgtool:
                 tools_path = self.get_home_pypi_pkg("tools")
+            elif pkgname:
+                tools_path = self.get_home_pypi_pkg(pkgname)
             else:
                 tools_path = self.get_home_pypi()
+        elif pkgname:
+            tools_path = self.get_home_tools_pkg(pkgname)
         else:
             tools_path = self.get_home_tools()
         return tools_path

@@ -160,7 +160,7 @@ fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 discover_multi

@@ -1490,7 +1490,7 @@ fi
 [[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
 [[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [[ $action =~ (help|create|python) ]]; then

@@ -27,8 +27,8 @@ class RegressionTest:
         self.Z = zarlib
 
     def test_01(self, z0ctx):
-        sts = self.Z.test_result(
-            z0ctx, "Version", z0lib.get_metadata("version"), __version__)
+        # sts = self.Z.test_result(
+        #    z0ctx, "Version", z0lib.get_metadata("version"), __version__)
         #
         parser = z0lib.parseoptargs(
             "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__

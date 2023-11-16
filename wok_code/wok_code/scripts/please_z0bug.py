@@ -259,7 +259,8 @@ class PleaseZ0bug(object):
                     and pth.isfile(pth.join("tests", "testenv.py"))
             ):
                 sts, branch = please.get_odoo_branch_from_git()
-                srcpath = pth.join(please.get_tools_dir(), "z0bug_odoo", "testenv")
+                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                                   "testenv")
                 if branch and int(branch.split(".")[0]) <= 7:
                     please.run_traced(
                         "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,

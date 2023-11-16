@@ -46,7 +46,7 @@ setup(
     license="Affero GPL",
     install_requires=["configparser", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
-    package_data={"": ["scripts/setup.info", "./optargs", "./xuname", "./z0librc"]},
+    package_data={"": ["scripts/setup.info", "./xuname", "./z0librc"]},
     entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
     zip_safe=False,
 )

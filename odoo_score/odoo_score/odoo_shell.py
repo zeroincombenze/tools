@@ -1097,7 +1097,7 @@ def create_RA_config(ctx):
     paycode = clodoo.searchL8(ctx, model_paycode, [('code', '=', 'R')])
     paycode = paycode[0] if paycode else False
     vals = {
-        'name': '1040 - 23% su 100% (R)',
+        'name': '1040 - 23% su 100% ®',
         'account_receivable_id': credit_acc_id,
         'account_payable_id': debit_acc_id,
         'rate_ids': [(5, 0), (0, 0, {'tax': 23, 'base': 1})],
@@ -1114,7 +1114,7 @@ def create_RA_config(ctx):
     ctr_rec += 1
 
     vals = {
-        'name': '1040 - 23% su 50% (R) (ex 1038)',
+        'name': '1040 - 23% su 50% ® (ex 1038)',
         'account_receivable_id': credit_acc_id,
         'account_payable_id': debit_acc_id,
         'rate_ids': [(5, 0), (0, 0, {'tax': 23, 'base': 0.5})],

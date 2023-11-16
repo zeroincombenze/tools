@@ -8,7 +8,7 @@
 #    All Rights Reserved
 #
 """@mainpage
-Massive operations on Zeroincombenze(R) / Odoo databases
+Massive operations on Zeroincombenze® / Odoo databases
 ========================================================
 
 Clodoo is a tool can do massive operation on 1 or more Odoo database base on
@@ -1842,7 +1842,7 @@ def act_install_language(ctx):
 
 def act_install_chart_of_account(ctx):
     """Install chart of account"""
-    coa = ctx.get('chart_of_account', 'Italy - Piano dei conti Zeroincombenze(R)')
+    coa = ctx.get('chart_of_account', 'Italy - Piano dei conti Zeroincombenze®')
     msg = "Install chart of account %s" % coa
     msg_log(ctx, ctx['level'], msg)
     return install_chart_of_account(ctx, coa)

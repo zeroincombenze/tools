@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # template 23
 """
-Odoo super core by Zeroincombenze(R)
+Odoo super core by Zeroincombenze®
 """
 import os
 import os.path as pth

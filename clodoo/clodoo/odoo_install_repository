@@ -289,7 +289,7 @@ if [[ $opt_updconf -eq 0 && $opt_ucfg -ne 0 ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Add or duplicate odoo repository into local filesystem" \
-        "(C) 2015-2022 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2022 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit $STS_SUCCESS
 fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1

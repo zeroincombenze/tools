@@ -19,7 +19,7 @@ SubPkgList=account-closing,account-financial-reporting,account-financial-tools,\
            reporting-engine,report-print-send,server-tools,\
            stock-logistics-barcode,stock-logistics-tracking,stock-logistics-warehouse,stock-logistics-workflow,\
            web,webkit-tools,website
-# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assigned UID/GID
+# Odoo UID and GID set as Zeroincombenze®; comment follow line if you want system assigned UID/GID
 # ODOO_UID=497
 # ODOO_GID=497
 git_LocalRoot=/opt/odoo

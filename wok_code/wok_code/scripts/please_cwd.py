@@ -235,7 +235,9 @@ class PleaseCwd(object):
             logo = pth.join(docs_dir, "logozero_180x46.png")
             if not pth.isfile(logo):
                 srclogo = pth.join(
-                    please.get_tools_dir(pkgtool=True), "docs", "logozero_180x46.png")
+                    please.get_pkg_tool_dir(pkgtool=True),
+                    "docs",
+                    "logozero_180x46.png")
                 if please.opt_args.verbose:
                     print("%s cp %s %s" % (">" if please.opt_args.dry_run else "$",
                                            srclogo,
@@ -486,7 +488,7 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            tgtdir = please.get_tools_dir()
+            tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2
@@ -590,7 +592,7 @@ class PleaseCwd(object):
             if pth.isdir(pth.join(ffn, ".git")):
                 submodules.append("/%s" % fn)
 
-        srcpath = pth.join(please.get_tools_dir(pkgtool=True), "templates")
+        srcpath = pth.join(please.get_pkg_tool_dir(pkgtool=True), "templates")
         if is_odoo_pkg and py23 == 2 and tmpl_fn == "pre-commit-config2.yaml":
             srcpath = pth.join(srcpath, "pre-commit-config2.yaml")
         else:
@@ -728,12 +730,6 @@ class PleaseCwd(object):
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
-                # sts = please.run_traced(
-                #     ("sphinx-quickstart -p '%s' -a '%s' -v '%s' -r '%s' -l en"
-                #      " --no-batchfile --makefile --master index --suffix .rst ./")
-                #     % (pkg_name, author, branch, branch),
-                #     rtime=True,
-                # )
                 sts = please.run_traced("make html", rtime=True)
                 os.chdir(saved_pwd)
             if sts == 0:
@@ -787,7 +783,7 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            tgtdir = please.get_tools_dir()
+            tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2

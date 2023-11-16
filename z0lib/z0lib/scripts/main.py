@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # template 23
 """
-General purpose bash and python library for zeroincombenze(R) tools
+General purpose bash and python library for zeroincombenze® tools
 
 Features:
 

@@ -125,7 +125,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
