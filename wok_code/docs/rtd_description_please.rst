@@ -114,7 +114,6 @@ Action is one of:
     * publish svg      -> publish test result svg file (require system privileges)
     * publish tar      -> write a tarball with package files
 
-
 |
 |
 

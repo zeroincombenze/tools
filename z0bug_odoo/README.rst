@@ -1,6 +1,5 @@
-
 =================
-z0bug_odoo 2.0.11
+z0bug_odoo 2.0.12
 =================
 
 
@@ -9,12 +8,8 @@ z0bug_odoo 2.0.11
 
 
 
-
 Overview
 ========
-
-Zeroincombenze® continuous testing for odoo
--------------------------------------------
 
 This package is an plug-in of **zerobug** package and aim to easily create odoo tests.
 
@@ -132,7 +127,8 @@ Python version
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
 From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Currently, python 3.8 is not yet supported.
+Warning: currently, some Odoo version cannot support python 3.8.
+Python 3.5 still works but support is ended.
 This is the declaration:
 
 ::
@@ -142,6 +138,7 @@ This is the declaration:
       - "3.6"
       - "3.7"
       - "3.8"
+      - "3.9"
 
 Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
 Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
@@ -490,23 +487,23 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 
 Look at follow table to understand which set of tests are enabled or disabled:
 
-+-----------------+-------------+---------------+-------------+---------------------+
-| statement       | application | module l10n_* | odoo/addons | addons + dependenci |
-+-----------------+-------------+---------------+-------------+---------------------+
-| ALL             | |check|     | |check|       | |check|     | |check|             |
-+-----------------+-------------+---------------+-------------+---------------------+
-| APPLICATIONS    | |check|     | |no_check|    | |no_check|  | Only if application |
-+-----------------+-------------+---------------+-------------+---------------------+
-| LOCALIZATION    | |no_check|  | |check|       | |no_check|  | Only module l10n_*  |
-+-----------------+-------------+---------------+-------------+---------------------+
-| CORE            | |no_check|  | |no_check|    | |check|     | |no_check|          |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-APPLICATION  | |no_check|  | |check|       | |check|     | No if application   |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-LOCALIZATION | |check|     | |no_check|    | |check|     | No if module l10n_* |
-+-----------------+-------------+---------------+-------------+---------------------+
-| NO-CORE         | |check|     | |check|       | |no_check|  | |check|             |
-+-----------------+-------------+---------------+-------------+---------------------+
++--------------------+--------------+--------------+--------------+-------------------------+
+| statement          | application  | module l10n_ | odoo/addons  | addons + dependencies   |
++--------------------+--------------+--------------+--------------+-------------------------+
+| ALL                | |check|      | |check|      | |check|      | |check|                 |
++--------------------+--------------+--------------+--------------+-------------------------+
+| APPLICATIONS       | |check|      | |no_check|   | |no_check|   | Only if application     |
++--------------------+--------------+--------------+--------------+-------------------------+
+| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only module l10n_*      |
++--------------------+--------------+--------------+--------------+-------------------------+
+| CORE               | |no_check|   | |no_check|   | |check|      | |no_check|              |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-APPLICATION     | |no_check|   | |check|      | |check|      | No if application       |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No if module l10n_*     |
++--------------------+--------------+--------------+--------------+-------------------------+
+| NO-CORE            | |check|      | |check|      | |no_check|   | |check|                 |
++--------------------+--------------+--------------+--------------+-------------------------+
 
 
 
@@ -627,7 +624,7 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | PS_HDR3_COLOR          | 30;45                                                  | N/D                                                                       |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
-| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8)                                  | python versions to run (only PYPI projects)                               |
+| PYPI_RUN_PYVER         | (2.7|3.5|3.6|3.7|3.8|3.9)                              | python versions to run (only PYPI projects)                               |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | SERVER_EXPECTED_ERRORS |                                                        | # of expected errors after tests                                          |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
@@ -663,19 +660,19 @@ If you declare the following directive in <env global> section:
 
 where "n" means:
 
-+------------------------+------------+------------+------------+---------+-------------+
-| Parameter              | 0          | 1          | 2          | 3       | 9           |
-+------------------------+------------+------------+------------+---------+-------------+
-| Informative messages   | |no_check| | |check|    | |check|    | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| Inspect internal data  | |no_check| | |no_check| | |check|    | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| MQT tests              | |no_check| | |no_check| | |no_check| | |check| | |check|     |
-+------------------------+------------+------------+------------+---------+-------------+
-| Installation log level | ERROR      | WARN       | INFO       | INFO    | |no_check|  |
-+------------------------+------------+------------+------------+---------+-------------+
-| Execution log level    | INFO       | TEST       | TEST       | TEST    | |no_check|  |
-+------------------------+------------+------------+------------+---------+-------------+
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Parameter                 | 0           | 1           | 2           | 3        | 9            |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Informative messages      | |no_check|  | |check|     | |check|     | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Inspect internal data     | |no_check|  | |no_check|  | |check|     | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| MQT tests                 | |no_check|  | |no_check|  | |no_check|  | |check|  | |check|      |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Installation log level    | ERROR       | WARN        | INFO        | INFO     | |no_check|   |
++---------------------------+-------------+-------------+-------------+----------+--------------+
+| Execution log level       | INFO        | TEST        | TEST        | TEST     | |no_check|   |
++---------------------------+-------------+-------------+-------------+----------+--------------+
 
 
 
@@ -767,8 +764,6 @@ Zeroincombenze(R) tools help you to test Odoo module with pycharm.
 
 
 
-|
-
 Features
 --------
 
@@ -786,10 +781,6 @@ For type many2one: value may be an integer (record id) or Odoo external referenc
 For type data, datetime: value may be a constant or relative date
 
 
-
-
-
-|
 
 Usage
 =====
@@ -1784,12 +1775,24 @@ def get_records_from_act_windows(self, act_windows):
         ValueError: if invalid parameters issued
 
 
-|
-|
 
 Getting started
 ===============
 
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+
+
+Installation
+------------
 
 For stable version:
 
@@ -1803,6 +1806,7 @@ For current version:
 `./install_tools.sh`
 
 
+
 Upgrade
 -------
 
@@ -1811,22 +1815,126 @@ Stable version via Python Package
 
 ::
 
-    pip install z0bug_odoo -U
+    pip install --upgrade z0bug_odoo
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-|
-|
+
+ChangeLog History
+-----------------
+
+2.0.12 (2023-09-12)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: validate_records with 2 identical template records
+
+2.0.10 (2023-07-02)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: new feature, external reference with specific field value
+* [REF] TestEnv: tomany casting refactoring
+
+2.0.9 (2023-06-24)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
+* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
+* [FIX] TestEnv: default value in wizard creation, overlap default function
+* [FIX] TestEnv: record not found for xref of other group
+* [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
+
+2.0.8 (2023-04-26)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: multiple action on the same records
+
+2.0.7 (2023-04-08)
+~~~~~~~~~~~~~~~~~~
+
+* [NEW] TestEnv: assertion counter
+* [IMP] TestEnv: is_xref recognizes dot name, i.e "zobug.external.10"
+* [IMP] TestEnv: the field <description> is not mode key (only acount.tax)
+* [IMP] TestEnv: 3th level xref may be a many2one field type
+
+2.0.6 (2023-02-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: _get_xref_id recognize any group
+* [FIX] TestEnv: datetime field more precise (always with time)
+* [FIX] TestEnv: resource_make / resource_write fall in crash if repeated on headr/detail models
+* [NEW] TestEnv: 2many fields accepts more xref values
+* [IMP] TestEnv: debug message with more icons and more readable
+* [IMP] TestEnv: cast_types with formatting for python objects
+* [IMP] TestEnv: validate_record now uses intelligent algorithm to match pattern templates and records
+
+2.0.5 (2023-01-25)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: in some rare cases, wizard crashes
+* [NEW] TestEnv: get_records_from_act_windows()
+* [IMP] TestEnv: resource_make now capture demo record if available
+* [IMP] TestEnv: resource is not required for declared xref
+* [IMP] TestEnv: self.module has all information about current testing module
+* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: fields many2one accept object as value
+* [IMP] TestEnv: function validate_records() improvements
+* [FIX] TestEnv: company_setup, now you can declare bank account
+* [IMP] TesEnv: minor improvements
+
+2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: resource_create does not duplicate record
+* [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
+* [NEW] TestEnv: new function field_download()
+* [NEW] TestEnv: new function validate_records()
+* [IMP] TestEnv: convert_to_write convert binary fields too
+* [IMP] TestEnv: minor improvements
+
+2.0.3 (2022-12-29)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: more debug messages
+* [IMP] TestEnv: more improvements
+* [FIX] TestEnv: sometime crashes if default use context
+* [FIX] TestEnv: bug fixes
+
+2.0.2 (2022-12-09)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Automatic conversion of integer into string for 'char' fields
+* [IMP] TestEnv
+
+2.0.1.1 (2022-11-03)
+~~~~~~~~~~~~~~~~~~~~
+
+* [REF] clone_oca_dependencies.py
+
+2.0.1 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
+
+2.0.0.1 (2022-10-15)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Crash in travis
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
+
+
 
 Credits
 =======
@@ -1837,18 +1945,22 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio M. Vigliotti <info@shs-av.com>
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio M. Vigliotti <info@shs-av.com>`__
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-06
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -1860,10 +1972,10 @@ Last Update / Ultimo aggiornamento: 2023-08-06
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.11/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.11/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -1893,5 +2005,3 @@ Last Update / Ultimo aggiornamento: 2023-08-06
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

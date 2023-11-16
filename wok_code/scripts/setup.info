@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path as pth
 import sys
+
 from setuptools import find_packages, setup
 
 name = "wok_code"
@@ -8,7 +9,7 @@ github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
 author_email = "antoniomaria.vigliotti@gmail.com"
 source_url = "%s/tree/master/%s" % (github_url, name)
-doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug"
+doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/#zerobug"
 changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
 try:
     long_description = open(pth.join(pth.dirname(__file__), "README.rst")).read()
@@ -41,10 +42,11 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Build Tools",
         "Operating System :: OS Independent",
     ],
-    keywords="linux travis development",
+    keywords="linux odoo documentation development",
     url=github_url,
     project_urls={
         "Documentation": doc_url,
@@ -99,4 +101,3 @@ setup(
     },
     zip_safe=False,
 )
-

@@ -4,12 +4,10 @@
 Code documentation
 ------------------
 
-
 wok_code.gen_addons_table
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: wok_code.gen_addons_table
-
 
 |
 |

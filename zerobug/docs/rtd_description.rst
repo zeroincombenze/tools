@@ -34,7 +34,6 @@ executed in sorted order.
 Every suit can contains one or more test case, the smallest unit test;
 every unit test terminates with success or with failure.
 
-
 |
 |
 

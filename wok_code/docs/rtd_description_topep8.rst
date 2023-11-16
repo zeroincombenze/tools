@@ -14,7 +14,6 @@ then can execute autoflake8 and/or autopep8 utilities (if installed) to meet ful
 
 It is an helper to meet z0bug_odoo LINT_LEVEL requirements.
 
-
 |
 |
 

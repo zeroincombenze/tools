@@ -5,8 +5,6 @@ Overview | Panoramica
 
 |en| {{description}}
 
-|
-
 |it| {{description_i18n}}
 
 .. $if defined features
@@ -25,9 +23,15 @@ Certifications | Certificazioni
 {{certifications}}
 
 .. $fi
-.. $if defined usage
+.. $if defined configuration
 
-|
+Configuration | Configurazione
+------------------------------
+
+{{configuration}}
+
+.. $fi
+.. $if defined usage
 
 Usage | Utilizzo
 ----------------
@@ -65,14 +69,6 @@ Installation | Installazione
 ----------------------------
 
 {{installation}}
-
-.. $fi
-.. $if defined configuration
-
-Configuration | Configurazione
-------------------------------
-
-{{configuration}}
 
 .. $fi
 .. $if defined upgrade

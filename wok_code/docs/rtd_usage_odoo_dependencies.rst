@@ -16,12 +16,12 @@ odoo_dependecies.py usage
                                 [-n] [-o] [-P] [-q] [-R] [-S SEP_LIST] [-V] [-v]
                                 [-x] [-1]
                                 [path_list [path_list ...]]
-
+    
     Odoo dependencies management
-
+    
     positional arguments:
       path_list
-
+    
     optional arguments:
       -h, --help            show this help message and exit
       -A {dep,help,jrq,mod,rev,tree}, --action {dep,help,jrq,mod,rev,tree}
@@ -49,7 +49,9 @@ odoo_dependecies.py usage
       -v, --verbose         verbose mode
       -x, --external-bin-dependencies
       -1, --no-depth
-
+    
+    © 2020-21 by SHS-AV s.r.l.
+    
 
 |
 |

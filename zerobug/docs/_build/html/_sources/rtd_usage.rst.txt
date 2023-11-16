@@ -47,7 +47,6 @@ Usage
 
     © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug
 
-
 |
 |
 

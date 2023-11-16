@@ -7,13 +7,12 @@ Credits
 Authors
 -------
 
-* SHS-AV s.r.l. <https://www.zeroincombenze.it>
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
 
 Contributors
 ------------
 
-* Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-
+* `Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 |
 |

@@ -17,7 +17,6 @@ Features
 | link_cfg     | ✅   | ❌     | Get values from configuration file (python has native function) |
 +--------------+------+--------+-----------------------------------------------------------------+
 
-
 |
 |
 

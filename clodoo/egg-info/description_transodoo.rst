@@ -1,1 +1,1 @@
-Translate Odoo entinty name across versions.
+Translate Odoo entity name across versions.

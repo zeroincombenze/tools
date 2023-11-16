@@ -1,6 +1,10 @@
 .. toctree::
    :maxdepth: 2
 
+Overview
+========
+
+
 Introduction
 ____________
 
@@ -16,39 +20,6 @@ different Odoo versions. Main operation are:
 clodoo is also a PYPI package to simplify RPC connection to Odoo.
 The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
 can execute any command to any Odoo version server (from 6.1 to 13.0)
-
-Available commands & features are:
-
-+----------------------------------+------------------------------+
-| Function                         | Note                         |
-+----------------------------------+------------------------------+
-| Add new repository               | odoo_install_repository      |
-+----------------------------------+------------------------------+
-| Update paid invoice              | inv2draft_n_restore.py       |
-+----------------------------------+------------------------------+
-| List requirement of Odoo         | list_requirements.py         |
-+----------------------------------+------------------------------+
-| Create full configurated Odoo DB | manage_db                    |
-+----------------------------------+------------------------------+
-| Manage Odoo installation         | manage_odoo                  |
-+----------------------------------+------------------------------+
-| Set Odoo Skin (backoffice)       | odoo_skin.sh                 |
-+----------------------------------+------------------------------+
-| Run Odoo instance to debug       | run_odoo_debug               |
-+----------------------------------+------------------------------+
-| Manage version depending names   | transodoo.py                 |
-+----------------------------------+------------------------------+
-| General Purpose RPC              | clodoo.py                    |
-+----------------------------------+------------------------------+
-| Export Odoo model to test file   | export_db_model.py           |
-+----------------------------------+------------------------------+
-| Migrate Odoo                     | migrate_odoo.py (deprecated) |
-+----------------------------------+------------------------------+
-| Examples                         | example*.py                  |
-+----------------------------------+------------------------------+
-
-
-
 
 
 clodoo.py: general Purpose RPC
@@ -178,35 +149,6 @@ default field to search is 'name' or 'id', if passed.
         i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
         i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 
-
-odoo_install_repository: manage repositories
---------------------------------------------
-
-::
-
-    Usage: odoo_install_repository [-h][-b branch][-c file][-CDjLmn][-O git-org][-o path][-qrU][-u username][-Vvy1] git_repo odoo_vid new_odoo_vid
-    Add or duplicate odoo repository into local filesystem
-     -h              this help
-     -b branch       default odoo branch
-     -c file         configuration file (def .travis.conf)
-     -C              do not touch configuration file (conflict with -D)
-     -D              update default values in /etc configuration file before creating script (conflict with -C)
-     -j              install only repository owned by git organization
-     -L              create symbolic link rather copy files (if new_odoo_ver supplied)
-     -m              multi-version odoo environment
-     -n              do nothing (dry-run)
-     -O git-org      git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)
-     -o path         odoo directory
-     -q              silent mode
-     -r              do just update remote info (if no new_odoo_ver supplied)
-     -U              do not install, do upgrade
-     -u username     execute as username (def=odoo)
-     -V              show version
-     -v              verbose mode
-     -y              assume yes
-     -1              if clone depth=1
-
-
 odoorc: general purpose bash function
 -------------------------------------
 
@@ -226,12 +168,8 @@ where:
 
     PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)
 
-
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-06
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -276,5 +214,3 @@ Last Update / Ultimo aggiornamento: 2023-08-06
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

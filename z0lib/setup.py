@@ -6,9 +6,9 @@ from setuptools import find_packages, setup
 name = "z0lib"
 github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
-author_email = "<info@shs-av.com>"
+author_email = "antoniomaria.vigliotti@gmail.com"
 source_url = "%s/tree/master/%s" % (github_url, name)
-doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug"
+doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/#z0lib"
 changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
 try:
     long_description = open(pth.join(pth.dirname(__file__), "README.rst")).read()

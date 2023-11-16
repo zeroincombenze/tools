@@ -29,7 +29,6 @@ For example:
     >>> print my_str_list.qsplit(my_str_list)
     ['abc', 'd,e', 'fgh']
 
-
 |
 |
 

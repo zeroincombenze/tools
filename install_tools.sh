@@ -43,7 +43,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo "  -2  create virtual environment with python2"
-    echo -e "\n(C) 2015-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo -e "\n(C) 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -410,7 +410,7 @@ if [[ ! $opts =~ ^-.*t && $opts =~ ^-.*[gG] ]]; then
         run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc"
         run_traced "sed -E \"s|^valid_odoo_versions=.*|valid_odoo_versions=$v|\" -i $d/.pylintrc-mandatory"
         n="$g"
-        [[ $g == "zero" ]] && n="Zeroincombenze(R)"
+        [[ $g == "zero" ]] && n="Zeroincombenze®"
         [[ $g == "librerp" ]] && n="Librerp enterprise network"
         run_traced "sed -E \"s|^org_name:.*|org_name: $n|\" -i $d/.copier-answers.yml"
         n=$(build_odoo_param GIT_ORGNM $d)
@@ -429,7 +429,7 @@ fi
 [[ $opts =~ ^-.*U && ! $opts =~ ^-.*q && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "${GREEN}--------------------------------------------------------------"
-    echo -e "Zeroincombenze(R) tools successfully installed on your system."
+    echo -e "Zeroincombenze® tools successfully installed on your system."
     echo -e "In order to make available the these tools, please type:${CLR}"
     echo -e "source $DSTPATH/activate_tools\n"
     echo -e "${GREEN}If you wish to use  these tools  at the next time,  please add"

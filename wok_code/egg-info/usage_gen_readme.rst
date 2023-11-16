@@ -1,68 +1,51 @@
 gen_readme.py usage
 ~~~~~~~~~~~~~~~~~~~
 
-::
+gen_readme.py makes easy to create high quality documentation, mainly
+README.rst, index.html and index.rst for Odoo modules and python packages.
 
-    usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-G GIT_ORGID] [-g OPT_GPL] [-H]
-                         [-l ODOO_LAYER] [-L LANG] [-m MODULE_NAME]
-                         [-M FORCE_MATURITY] [-n] [-o OUTPUT_FILE]
-                         [-P PRODUCT_DOC] [-p PATH_NAME] [-q] [-R] [-r REPOS_NAME]
-                         [-t TEMPLATE_NAME] [-T] [-V] [-v] [-W] [-w]
+Documentation process is based on templates which include source files with
+documentation fragments: see below "Files and directories" chapter.
 
-    Generate README
+Source files uses the reStructuredText markup language by default, which have
+functionality for complex documentation to make straightforward and powerful to use.
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      -b ODOO_VID, --odoo-branch ODOO_VID
-      -B, --debug-template
-      -G GIT_ORGID, --git-org GIT_ORGID
-      -g OPT_GPL, --gpl-info OPT_GPL
-      -H, --write-index_html
-      -l ODOO_LAYER, --layer ODOO_LAYER
-                            ocb|module|repository
-      -L LANG, --lang LANG  iso code
-      -m MODULE_NAME, --module-name MODULE_NAME
-                            filename
-      -M FORCE_MATURITY, --force-maturity FORCE_MATURITY
-                            Alfa,Beta,Mature,Production/stable
-      -n, --dry-run         do nothing (dry-run)
-      -o OUTPUT_FILE, --output-file OUTPUT_FILE
-                            filename
-      -P PRODUCT_DOC, --product-doc PRODUCT_DOC
-                            may be odoo or pypi
-      -p PATH_NAME, --path-name PATH_NAME
-                            pathname
-      -q, --quiet           silent mode
-      -R, --rewrite-manifest
-      -r REPOS_NAME, --repos_name REPOS_NAME
-                            dirname
-      -t TEMPLATE_NAME, --template_name TEMPLATE_NAME
-                            filename
-      -T, --trace-file
-      -V, --version         show program's version number and exit
-      -v, --verbose         verbose mode
-      -W, --write-authinfo
-      -w, --suppress-warning
+Features:
 
-Examples:
+* Output formats: HTML and RST
+* Cross-references
+* Hierarchical structure
+* Automatic indices
+* Code handling
 
-::
+Predefined sections
+~~~~~~~~~~~~~~~~~~~~~
 
-    # Update Odoo module documentation
-    cd ~/odoo_12/l10n-italy/l10n_it_balance # Odoo project directory
-    dir egg-info
-    >>> authors.txt contributors.txt description.rst __init__.txt known_issues.rst
-    gen_readme.py                           # Generate README.rst of project
-    gen_readme.py -H                        # Generate index.html of project
-
-    # Create index.rst of pypi module
-    cd ~/dev/pypi/devel_tools/devel_tools/docs
-    gen_readme.py -t module_index.rst -o index.rst -B
-
-    # Create README.rst of pypi module
-    cd ~/dev/pypi/devel_tools/devel_tools
-    gen_readme.py
-
+* changelog
+* description
+* features
+* oca_diff
+* certifications
+* prerequisites
+* installation
+* configuration
+* upgrade
+* support
+* usage
+* maintenance
+* troubleshooting
+* known_issues
+* proposals_for_enhancement
+* faq
+* authors
+* contributors
+* translators
+* acknowledges
+* maintainer
+* sponsor
+* copyright_notes
+* available_addons
+* contact_us
 
 Files and directories
 ~~~~~~~~~~~~~~~~~~~~~
@@ -74,47 +57,44 @@ Document structure is:
     docs                              (1)
     ┣━ index rst
     ┣━ logozero_180x46.png
-    ┗━ rtd*  #                        (2)
+    ┗━ rtd*                           (2)
 
     egg-info                          (3)
-    ┣━ __init__.txt
-    ┣━ description.rst
-    ┣━ descrizione.rst
-    ┣━ features.rst
-    ┣━ oca_diff.rst
-    ┣━ certifications.rst
-    ┣━ prerequisites.rst
-    ┣━ installation.rst
-    ┣━ configuration.rst
-    ┣━ upgrade.rst
-    ┣━ support.rst
-    ┣━ usage.rst
-    ┣━ maintenance.rst
-    ┣━ troubleshooting.rst
-    ┣━ known_issues.rst
-    ┣━ proposals_for_enhancement.rst
-    ┣━ history.rst
-    ┣━ faq.rst
-    ┣━ sponsor.rst
-    ┣━ copyright_notes.rst
-    ┣━ available_addons.rst
-    ┣━ contact_us.rst
-    ┣━ authors.txt
-    ┣━ contributors.txt
-    ┣━ translators.txt
-    ┗━ acknowledges.txt
-
     readme                            (4)
+    ┣━ __manifest__.rst
+    ┣━ ACKNOWLEDGES.rst               (7)
+    ┣━ AUTHORS.rst                    (6)
+    ┣━ CERTIFICATIONS.rst             (7)
+    ┣━ CHANGELOG.rst
+    ┣━ CONFIGURATION.rst
+    ┣━ CONTACT_US.rst
     ┣━ CONTRIBUTORS.rst
+    ┣━ COPYRIGHT_NOTES.rst
     ┣━ DESCRIPTION.rst
+    ┣━ FAQ.rst
+    ┣━ FEATURES.rst
+    ┣━ KNOWN_ISSUES.rst
+    ┣━ INSTALLATION.rst
+    ┣━ OCA_DIFF.rst                   (7)
+    ┣━ MAINTENANCE.rst
+    ┣━ PREREQUISITES.rst              (7)
+    ┣━ PROPOSALS_FOR_ENHANCEMENT.rst
+    ┣━ SPONSOR.rst
+    ┣━ SUPPORT.rst
+    ┣━ TRANSLATORS.rst                (7)
+    ┣━ TROUBLESHOOTING.rst
+    ┣━ UPGRADE.rst
+    ┣━ USAGE.rst
     ┗━ *.rst  # (Other OCA docs)      (5)
 
     Notes:
-    (1) Directory for Sphynx (PYPI projects)
+    (1) Directory for Sphynx (only PYPI projects)
     (2) Files generated from egg-info directory
-    (3) Zeroincombenze document root
+    (3) Zeroincombenze root
     (4) Oca document root
     (5) See OCA documentation
+    (6) Matched with __manifest__.py in Odoo projects
+    (7) Not managed by OCA tools
 
 Predefined template structure is:
 
@@ -123,21 +103,21 @@ Predefined template structure is:
     templates
         ┣━ Odoo
         ┃    ┣━ contact_us.rst
-        ┃    ┣━ default_authors.txt
-        ┃    ┣━ default_contributors.txt
+        ┃    ┣━ default_authors.rst
+        ┃    ┣━ default_contributors.rst
         ┃    ┣━ default_copyright_notes.rst
         ┃    ┣━ default_description.rst
         ┃    ┣━ default_descrizione.rst
         ┃    ┣━ default_installation.rst
+        ┃    ┣━ default_maintainer.rst
         ┃    ┣━ default_maintenance.rst
         ┃    ┣━ default_oca_diff.rst
         ┃    ┣━ default_proposals_for_enhancement.rst
-        ┃    ┣━ default_quality
-        ┃    ┣━ endorsement.rst
+        ┃    ┣━ default_quality_endorsement.rst
         ┃    ┣━ default_support.rst
         ┃    ┣━ default_troubleshooting.rst
         ┃    ┣━ default_upgrade.rst
-        ┃    ┣━ header_acknowledges.txt
+        ┃    ┣━ header_acknowledges.rst
         ┃    ┣━ header_troubleshooting.rst
         ┃    ┣━ ocb_description.rst
         ┃    ┣━ ocb_descrizione.rst
@@ -150,23 +130,47 @@ Predefined template structure is:
         ┃    ┗━ readme_manifest.rst
         ┃
         ┗━ pypi
-             ┣━ default_contributors.txt
+             ┣━ default_authors.rst
+             ┣━ default_contributors.rst
              ┣━ default_installation.rst
+             ┣━ default_prerequisites.rst
+             ┣━ default_upgrade.rst
              ┣━ module_index.rst
              ┣━ module_mainpage.rst
+             ┣━ pypi_index.rst
              ┣━ readme_footer.rst
              ┣━ readme_header.rst
              ┣━ readme_main_module.rst
              ┣━ readme_main_repository.rst
-             ┗━ repository_mainpage.rst
+             ┣━ rtd_template.rst
+             ┗━ rtd_template_automodule.rst
 
-
-
-Statements
+RST syntax
 ~~~~~~~~~~
 
-Every document or template can contains some control statement.
-A statement starts with ".. $" (dot dot space and dollar).
+Source file may be in html format or reStructuredText (reST) format, that is the default
+plaintext markup language.
+
+Source document contains documentation text, inline markup and directives.
+
+A directive is a generic block of explicit markup. Directives begin with an explicit
+markup start (two periods and a space), followed by the directive type and two colons.
+Examples:
+
+::
+
+    .. directive :: (spec)
+       directive body
+
+A directive may be e preprocessor statement too. Preprocesso begins with markup start,
+followed by "$" (dollar) and statement. Example:
+
+::
+
+    .. $if CONDITION
+
+RST statement
+~~~~~~~~~~~~~
 
 Current supported statements are:
 
@@ -176,65 +180,172 @@ Current supported statements are:
     .. $elif CONDITION
     .. $else
     .. $fi
-
     .. $include FILENAME
+    .. $block BLOCKNAME
     .. $set VAR EXPRESSION
-    .. $merge_docs
 
-Notes: MACRO and VAR are the same object.
-In this documentation VAR means the name of the macro while MACRO is the name of the macro enclosed by doubel bracets.
 
-::
+RST directives
+~~~~~~~~~~~~~~
 
-    i.e.  .. $if branch == '12.0'
-          Current branch is {{branch}}
-
-In above example then word branch after statement $if ia the VAR branch.
-The word branch in the second line is a text. The item {{branch}} is the macro, replaced by the value of varaibale branch.
-
-CONDITION may be a python condition or one of follow special condition:
+gen_readme supports following rst directives:
 
 ::
 
-    VAR in LIST
-    where VAR is a variable to test and LIST is value list space separated
-    i.e.
-    .. $if branch in '10.0' '11.0' '12.0'
+    .. figure
+    .. image
 
-FILE may be a file name. Supported file types are .rst and .csv
+RST inline markup
+~~~~~~~~~~~~~~~~~
+
+The standard reST inline markup to visual *italic*, **boldface**
+and ``code text`` is quite simple:
 
 ::
 
-    i.e.
-        .. $include my_description.rst
-        .. $include my_table.csv
+    use one asterisk: *text* for emphasis (italics),
+    two asterisks: **text** for strong emphasis (boldface)
+    backquotes: ``text`` for code samples.
 
+RST lists
+~~~~~~~~~
 
+Lists and Quote-like blocks:
+just place an asterisk at the start of a paragraph and indent properly.
+The same goes for numbered lists; they can also be autonumbered using a #. sign:
+
+::
+
+    * list item A
+    * list item B
+    * list item C
+
+::
+
+    #. list item 1
+    #. list item 2
+    #. list item 3
+
+Example:
+
+* list item A
+* list item B
+* list item C
+
+#. list item 1
+#. list item 2
+#. list item 3
+
+RST table
+~~~~~~~~~
+
+They look like this:
+
+::
+
+    +------------------------+------------+----------+----------+
+    | Header row, column 1   | Header 2   | Header 3 | Header 4 |
+    | (header rows optional) |            |          |          |
+    +========================+============+==========+==========+
+    | body row 1, column 1   | column 2   | column 3 | column 4 |
+    +------------------------+------------+----------+----------+
+    | body row 2             | ...        | ...      |          |
+    +------------------------+------------+----------+----------+
+
+Example:
+
++------------------------+------------+----------+----------+
+| Header row, column 1   | Header 2   | Header 3 | Header 4 |
++========================+============+==========+==========+
+| body row 1, column 1   | column 2   | column 3 | column 4 |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+
+.. important::
+    Tables are automatically created from .csv files. See below "gen_reame symbols"
+
+RST sections
+~~~~~~~~~~~~
+
+::
+
+    =======
+    TITLE 1
+    =======
+
+    Title 2
+    =======
+
+    Title 3
+    -------
+
+    Title 4
+    ~~~~~~~
+
+gen_readme symbols
+~~~~~~~~~~~~~~~~~~
+
+gen_readme provides some no standard features.
+
+Graphical button (only for Odoo documentation):
+
+::
+
+    Click on [Button] to do something
+
+.. raw:: html
+
+    Click on <span style="color:white;background-color:#7C7BAD">Button</span> to do something
+
+Page tabbed (only for Odoo documentation):
+
+::
+
+    Click on [`Tabbed`] to see other information
+
+.. raw:: html
+
+    Click on <span style="border-style:solid;border-width:1px 1px 0px 1px">Tabbed</span> to see other information
+
+Other predefined symbols are:
+
+.. $include usage_gen_readme_sym.csv
 
 Macro
 ~~~~~
 
-Macro currently supported:
+Text macro is replaced by macro contents. For current version {{branch}} of
+gen_readme.py, macro is enclosed by double braces.
 
-.. $include description_macro.csv
+.. raw:: html
 
+    For current version &lbrace;&lbrace;branch}} of gen_readme.py
 
-Documentation may contains some graphical symbols in format \|symbol\|.
-Currently follows symbols are supported:
+Capture command output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. $include usage_gen_readme_sym.csv
+You can add command output of a chell command in your documentation.
+The syntax is the same of bash:
 
-Macro used in documentation templates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. raw:: html
 
-Following macroes may be declared in package documentation, mainly in __init__.txt or in __manifest__.rst file with $set statement.
+    &dollar;(COMMAND ARGUMENTS)
 
-+---------------------+-----------------------------------------------+
-| include             | Document to include                           |
-+---------------------+-----------------------------------------------+
-| no_pypi             | Value 1 means module is not a pypi package    |
-+---------------------+-----------------------------------------------+
-| no_section_oca_diff | If value is 1 the section oca_diff is skipped |
-+---------------------+-----------------------------------------------+
-| submodules          | Declare sub-documents                         |
-+---------------------+-----------------------------------------------+
+Example:
+
+.. raw:: html
+
+    Here the output of the help of bash Linux command <b>true</b>:<br/><br/>
+    &dollar;(man true)
+
+::
+
+    $(man true)
+
+gen_readme.py command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $(gen_readme -h)

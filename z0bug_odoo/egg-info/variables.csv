@@ -21,7 +21,7 @@ PS_NOP_COLOR,34;107,N/D
 PS_HDR1_COLOR,97;42,N/D
 PS_HDR2_COLOR,30;43,N/D
 PS_HDR3_COLOR,30;45,N/D
-PYPI_RUN_PYVER,(2.7|3.5|3.6|3.7|3.8),python versions to run (only PYPI projects)
+PYPI_RUN_PYVER,(2.7|3.5|3.6|3.7|3.8|3.9),python versions to run (only PYPI projects)
 SERVER_EXPECTED_ERRORS,,# of expected errors after tests
 TEST_DEPENDENCIES,0,Read above
 TRAVIS_DEBUG_MODE,0,Read above

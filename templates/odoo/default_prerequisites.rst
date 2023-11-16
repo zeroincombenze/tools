@@ -14,3 +14,13 @@
 * python 2.7+ (best 2.7.5+)
 * postgresql 9.2+ (best 9.5)
 .. $fi
+
+::
+
+    cd $HOME
+    # Follow statements activate deployment, installation and upgrade tools
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools

@@ -93,7 +93,6 @@ ChangeLog History
 
 * [IMP] Stable version
 
-
 |
 |
 

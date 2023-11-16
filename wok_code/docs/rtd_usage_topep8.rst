@@ -43,7 +43,6 @@ topep8 usage
      -0                   create yaml file from zero
      -1                   do not recurse travese directories
 
-
 |
 |
 

@@ -11,7 +11,6 @@ Features
 * coverage integration
 * travis integration
 
-
 |
 |
 

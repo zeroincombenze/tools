@@ -1,4 +1,4 @@
-Parameter name,standard value,unidentified distro,zeroincombenze(R) distro,oca distro,personal distro,Note
+Parameter name,standard value,unidentified distro,zeroincombenze® distro,oca distro,personal distro,Note
 ROOT (Odoo root),,~/%V,~/zero%M,~/oca%M,~/odoo_%M,i.e. ~/oca14
 CONFN (configuration file),odoo.conf odoo-server.conf,odoo%M-server.conf,odoo%M-zero.conf,odoo%M-oca.conf,odoo%M-PUID.conf,Directory /etc/odoo (see Odoo structure)
 USER (db user),odoo,odoo%M,odoo%M,odoo%M,odoo%M,i.e odoo12

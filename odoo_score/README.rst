@@ -1,4 +1,3 @@
-
 ================
 odoo_score 2.0.6
 ================
@@ -6,7 +5,6 @@ odoo_score 2.0.6
 
 
 |Maturity| |license gpl|
-
 
 
 
@@ -18,24 +16,30 @@ Odoo supercore
 odoo_score is a library that extends the odoo orm functionality and makes available
 a simple odoo shell even for older Odoo version.
 
-In order to complete all full tests, it required to test the
+Regression tests of this package do not guarantee full features coverage.
+In order to complete all tests, it required to run test of the
 Odoo module test_odoo_score-* in repository
-`zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`
+`zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`__
 
 
-|
-|
 
 Getting started
 ===============
 
 
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,38 +48,39 @@ Stable version via Python Package
 
     pip install odoo_score
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
+
+Upgrade
+-------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install odoo_score -U
+    pip install --upgrade odoo_score
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 ChangeLog History
@@ -86,24 +91,62 @@ ChangeLog History
 
 * [FIX] Import class models.Model
 
-2.0.6.0.6
-~~~~~~~~~
+2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] run_odoo_debug.sh: moved to package wok_code
 
-2.0.6.0.6
-~~~~~~~~~
+2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] run_odoo_debug.sh: test creates log
 
-2.0.6.0.6
-~~~~~~~~~
+2.0.3 (2022-11-11)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
 
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
 
-|
-|
+* [FIX] run_odoo_debug: test function improvements
+* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
+
+2.0.1.1 (2022-10-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: python stub
+* [FIX] run_odoo_debug: crash in sime rare cases
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: test via pycharm
+* [FIX] run_odoo_debug: concurrent tests
+
+2.0.0.2 (2022-09-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test with random rpcport for multiple tests
+* [IMP] odoo_shell.py: new actions
+
+2.0.0.1 (2022-09-07)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odo_debug with debug
+* [IMP] run_odoo_debug: experimental debug via pycharm
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
+
+
 
 Credits
 =======
@@ -114,24 +157,67 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-|
-
 Authors
 -------
 
-* `Antonio Maria Vigliotti <False>`__
 * `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
 
 Contributors
 ------------
 
-Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
+* | <False>
+* This module is part of tools project. <False>
+* Last Update / Ultimo aggiornamento: 2023-05-21 <False>
+* .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png <False>
+* :target: https://odoo-community.org/page/development-status <False>
+* :alt: <False>
+* .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg <False>
+* :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html <False>
+* :alt: License: AGPL-3 <False>
+* .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg <False>
+* :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html <False>
+* :alt: License: OPL <False>
+* .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg <False>
+* :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev <False>
+* :alt: Technical Documentation <False>
+* .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg <False>
+* :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man <False>
+* :alt: Technical Documentation <False>
+* .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg <False>
+* :target: https://erp2.zeroincombenze.it <False>
+* :alt: Try Me <False>
+* .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4 <False>
+* :target: https://www.zeroincombenze.it/ <False>
+* :alt: Zeroincombenze <False>
+* .. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png <False>
+* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
+* .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png <False>
+* :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/ <False>
+* .. |check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png <False>
+* .. |no_check| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png <False>
+* .. |menu| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png <False>
+* .. |right_do| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png <False>
+* .. |exclamation| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png <False>
+* .. |warning| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png <False>
+* .. |same| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png <False>
+* .. |late| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png <False>
+* .. |halt| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png <False>
+* .. |info| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png <False>
+* .. |xml_schema| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png <False>
+* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md <False>
+* .. |DesktopTelematico| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png <False>
+* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md <False>
+* .. |FatturaPA| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png <False>
+* :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md <False>
+* .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif <False>
+* :target: https://t.me/Assitenza_clienti_powERP <False>
+
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-10-28
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -176,5 +262,3 @@ Last Update / Ultimo aggiornamento: 2023-10-28
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
