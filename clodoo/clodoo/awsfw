@@ -40,7 +40,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 get_remote_ip() {
 #get_remote_ip(1|net)
@@ -246,3 +246,4 @@ else
   sts=1
 fi
 exit $sts
+

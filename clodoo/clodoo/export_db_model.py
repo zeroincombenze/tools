@@ -23,7 +23,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 CACHE = {}
@@ -279,3 +279,4 @@ if ctx["model"]:
     export_table(ctx)
 else:
     print("Missed model name!")
+

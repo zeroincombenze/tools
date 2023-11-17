@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 
 venv_mgr_install_pkg() {
@@ -284,3 +284,4 @@ echo $cmd
 eval $cmd
 # [ $opt_verbose -ne 0 ] && echo "\$ deactivate"
 # deactivate
+

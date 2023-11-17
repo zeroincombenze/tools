@@ -23,7 +23,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 MODULE_ID = "clodoo"
@@ -693,3 +693,4 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+

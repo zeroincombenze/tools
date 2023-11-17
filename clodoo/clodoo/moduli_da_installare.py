@@ -20,7 +20,7 @@ except ImportError:
 # import transodoo
 # import pdb
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 VERSIONS = ["vg7", "61", "70", "80", "90", "100", "110", "120"]
@@ -337,3 +337,4 @@ for id in VERSIONS:
     line = "%s,%s" % (line, ctrs[id])
 fd.write(line)
 fd.close()
+

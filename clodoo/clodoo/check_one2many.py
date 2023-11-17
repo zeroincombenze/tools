@@ -19,7 +19,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 msg_time = time.time()
 
 
@@ -97,3 +97,4 @@ for fld_id in oerp.search(model_fld, [("ttype", "=", "one2many")]):
         print("**** Error in model %s id %d! ****" % (model_fld, fld_id))
         with open("check_one2many.log", "ab") as log:
             log.write("**** Error in model %s id %d! ****\n" % (model_fld, fld_id))
+
