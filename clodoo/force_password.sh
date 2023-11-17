@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 get_dbuser() {
   # get_dbuser odoo_majver
@@ -98,7 +98,7 @@ fi
 [ -z "$opt_user" ] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Install odoo theme" \
-    "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2015-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -150,3 +150,4 @@ else
   run_traced "psql -p $opt_port -c \"update res_users set password='$pwd1' where id=$userid;\" \"$opt_db\""
 fi
 echo "Restart Odoo Service"
+

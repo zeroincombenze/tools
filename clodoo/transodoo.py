@@ -55,7 +55,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 VERSIONS = [
     "6.1",
     "7.0",
@@ -868,3 +868,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

@@ -35,7 +35,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 
 OPTOPTS=(h        n            V           v)
@@ -57,7 +57,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Set odoo web interface colors"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -132,3 +132,4 @@ elif [ "$HOSTNAME" == "$HOSTNAME_PRD" ]; then
 else
   echo "Macchina non riconosciuta"
 fi
+

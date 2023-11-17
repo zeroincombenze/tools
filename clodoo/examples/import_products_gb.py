@@ -7,7 +7,7 @@ from import_products import init_n_connect, add_elem
 # import pdb
 
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 MYDICT = {
     "default_code": 0,
@@ -31,3 +31,4 @@ if __name__ == "__main__":
                 continue
             # print row[1]
             add_elem(row, ctx, MYDICT)
+

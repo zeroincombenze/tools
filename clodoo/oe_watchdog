@@ -46,7 +46,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 
 detached_login () {
@@ -301,7 +301,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Odoo watchdog"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 PIDFILE=/var/run/odoo/oe_watchdog.pid
@@ -537,3 +537,4 @@ while [ $ctr -gt 0 ]; do
   fi
 done
 exit $sts
+

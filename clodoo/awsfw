@@ -40,7 +40,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 get_remote_ip() {
 #get_remote_ip(1|net)
@@ -121,7 +121,7 @@ fi
 HLPCMDLIST="help|allow|enable|mysship|show|start|stop"
 if [[ $opt_help -gt 0 ]]; then
   print_help "AWS or local Firewall\n act may be on of $HLPCMDLIST"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -246,3 +246,4 @@ else
   sts=1
 fi
 exit $sts
+

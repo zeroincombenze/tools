@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 
 up_oemod() {
@@ -203,7 +203,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Manage Cloud DB(s) \n"\
-  "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2020 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2020 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 sts=$STS_SUCCESS
@@ -515,3 +515,4 @@ for odoo_vid in ${odoo_vids//,/ }; do
   fi
 done
 exit $sts
+

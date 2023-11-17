@@ -21,7 +21,7 @@ if sys.version_info >= (3, 0):
         "future",
         "jsonlib-python3",
         "openpyxl",
-        "odoorpc",
+        "odoorpc<0.10.0",
         "oerplib3",
         "odoo-client-lib",
         "os0",
@@ -35,7 +35,7 @@ else:
         "future",
         "jsonlib",
         "openpyxl<=3.0",
-        "odoorpc",
+        "odoorpc<0.10.0",
         "oerplib",
         "os0",
         "psycopg2-binary",
@@ -46,7 +46,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.7",
+    version="2.0.8",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[
@@ -95,3 +95,4 @@ setup(
     },
     zip_safe=False,
 )
+

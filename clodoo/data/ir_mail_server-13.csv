@@ -1,2 +1,2 @@
 id,name,smtp_port,smtp_host,smtp_user,smtp_pass,smtp_encryption
-1,Zeroincombenze(R),25,smtp.zeroincombenze.it,erp@zeroincombenze.it,$1$!7Ga.?!U/1;,starttls
+1,Zeroincombenze®,25,smtp.zeroincombenze.it,erp@zeroincombenze.it,$1$!7Ga.?!U/1;,starttls

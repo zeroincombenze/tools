@@ -67,7 +67,7 @@ except ImportError:
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 msg_time = time.time()
@@ -422,3 +422,4 @@ def init_n_connect(flavour=None):
     ctx["default_country_id"] = get_country_id(ctx, "Italia")
     ctx["default_is_company"] = True
     return uid, ctx, src_uid, src_ctx
+
