@@ -1,0 +1,11 @@
+Oerplib3,Oerplib,OdooRPC
+XML-RPC protocols, XML-RPC and (legacy) Net-RPC protocols,JSON RPC
+Transfer from Odoo >= 6.1 <= 9.0 to Odoo >= 11.0,Transfer from Odoo >= 6.1 <= 9.0 to Odoo >= 6.1 <= 9.0,Transfer from Odoo >= 10.0 to Odoo >= 10.0
+access to all methods proposed by a model class (even browse),|same|,|same|
+ability to use named parameters with such methods (Odoo >= 6.1),|same|,|same|
+user context automatically sent (Odoo >= 6.1) providing support for internationalization,|same|,|same|
+browse records,|same|,|same|
+execute workflows,|same|,|same|
+manage databases,|same|,|same|
+reports downloading,|same|,|same|
+inspection capabilities,|same|,|same|

@@ -1,25 +1,20 @@
-.. oerplib3 documentation master file, created by
-   gen_readme.py on 2023-11-18 09:03:47
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-========================================
-Welcome to oerplib3 0.8.4 documentation!
-========================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+FAQ
+===
 
 
-   rtd_description
-   rtd_features
-   rtd_usage
-   rtd_getting_started
-   rtd_faq
-   rtd_changelog
-   rtd_credits
+**Why this module was forked from OERPlib?**
 
+OERPlib runs just with python2 and the author did not migrate
+package on python3
+
+**Why I should use this module? Was it better to use OdooRPC?**
+
+OdooRPC runs on python3 but it does not support Odoo xmlrpc protocol.
+So, if you have to read data from an old Odoo version database, you have to
+use OERPlib3.
 
 |
 |
@@ -67,12 +62,3 @@ Welcome to oerplib3 0.8.4 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
