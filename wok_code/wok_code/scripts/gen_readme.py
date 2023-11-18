@@ -1708,6 +1708,8 @@ def write_rtd_group(ctx, name):
     with open(rtd_fn, "w") as fd:
         fd.write(parse_local_file(ctx, "rtd_template.rst"))
     ctx[name] = ""
+    if "contents" in ctx:
+        del ctx["contents"]
     return "   rtd_%s\n" % name
 
 
@@ -2577,7 +2579,8 @@ def read_purge_readme(ctx, source):
             cur_sect = ""
         elif (
             re.match(r"^\|$", line)
-            and re.match(r"^\|$", next_line)
+            and (cur_sect in ("authors", "contributors")
+                 or re.match(r"^\|$", next_line))
         ):
             cur_sect = ""
         elif re.match(r"^\* *[|.:]", line):
@@ -3140,6 +3143,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-    exit(main())
-
-

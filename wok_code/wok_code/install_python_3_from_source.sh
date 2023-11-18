@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-[[ ! $1 =~ ^(3.5|3.6|3.7|3.8|3.9) ]] && echo "$0 3.5|3.6|3.7|3.8|3.9" && exit 1
+[[ ! $1 =~ ^(2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11) ]] && echo "$0 2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11" && exit 1
 [[ $EUID -ne 0 ]] && echo "This code may be executed just by root user" && exit 1
 [[ -z $(which wget 2>/dev/null) ]] && echo "Please install wget" && exit 1
 pyver="$1"
-[[ $1 == "3.9" ]] && pyver="$1.15"
-[[ $1 == "3.8" ]] && pyver="$1.15"
-[[ $1 == "3.7" ]] && pyver="$1.15"
+[[ $1 == "3.11" ]] && pyver="$1.6"
+[[ $1 == "3.10" ]] && pyver="$1.13"
+[[ $1 == "3.9" ]] && pyver="$1.18"
+[[ $1 == "3.8" ]] && pyver="$1.18"
+[[ $1 == "3.7" ]] && pyver="$1.17"
 [[ $1 == "3.6" ]] && pyver="$1.15"
 [[ $1 == "3.5" ]] && pyver="$1.10"
+[[ $1 == "3.4" ]] && pyver="$1.10"
+[[ $1 == "2.7" ]] && pyver="$1.18"
 echo ""
 echo "Use $0 $1 APT WGET_OPTS CONFIG-OPTS"
 echo "where:"
