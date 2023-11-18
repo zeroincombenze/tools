@@ -1,21 +1,40 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
-========
+ChangeLog History
+=================
 
 
-*lisa* stands for Linux Install Simplifier App
+2.0.3 (2023-09-07
+~~~~~~~~~~~~~~~~~
 
-*lisa* is an interactive tool to install, update, remove, query and manage software for building a complete LAMP server.
-LAMP means Linux Apache Mysql PHP; in recent times, Python and Postgresql were added.
+* [FIX] lisa_bld_ods: fixes & improvements
 
-*lisa* is just a front-end for yum and apt-get commands, it is not a real package installer.
-It require yum on CentOS and Red Hat family distros, and apt-get on Ubuntu and debian family distros.
-It is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
-For every main package, may be managed some dependent package; i.e. openssh-server manages openssh-client too.
 
-You can easily write portable script to install packages on every Linux distribution.
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: fixes & improvements
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld_ods: stable version
+
+2.0.0.2 (2022-09-29)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] lisa_bld_ods: improvements
+
+2.0.0.1 (2022-09-10)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] wsl2-systemd: experimental systemd for wsl2
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
 
 |
 |

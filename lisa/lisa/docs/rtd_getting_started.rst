@@ -1,21 +1,63 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
-========
+Getting started
+===============
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+Installation
+------------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install lisa
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install --upgrade lisa
 
 
-*lisa* stands for Linux Install Simplifier App
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
-*lisa* is an interactive tool to install, update, remove, query and manage software for building a complete LAMP server.
-LAMP means Linux Apache Mysql PHP; in recent times, Python and Postgresql were added.
+::
 
-*lisa* is just a front-end for yum and apt-get commands, it is not a real package installer.
-It require yum on CentOS and Red Hat family distros, and apt-get on Ubuntu and debian family distros.
-It is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
-For every main package, may be managed some dependent package; i.e. openssh-server manages openssh-client too.
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
 
-You can easily write portable script to install packages on every Linux distribution.
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
 
 |
 |

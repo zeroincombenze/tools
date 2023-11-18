@@ -1,4 +1,3 @@
-
 ==========
 lisa 2.0.3
 ==========
@@ -9,12 +8,8 @@ lisa 2.0.3
 
 
 
-
 Overview
 ========
-
-lisa
-----
 
 *lisa* stands for Linux Install Simplifier App
 
@@ -29,21 +24,24 @@ For every main package, may be managed some dependent package; i.e. openssh-serv
 You can easily write portable script to install packages on every Linux distribution.
 
 
-|
-|
 
 Getting started
 ===============
 
 
-Installation
-------------
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,18 +50,17 @@ Stable version via Python Package
 
     pip install lisa
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Upgrade
@@ -74,27 +71,33 @@ Stable version via Python Package
 
 ::
 
-    pip install lisa -U
+    pip install --upgrade lisa
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 ChangeLog History
 -----------------
 
+2.0.3 (2023-09-07
+~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: fixes & improvements
+
+
 2.0.2 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
-* [FIX] liba_bld_ods: fixes & improvements
+* [FIX] lisa_bld_ods: fixes & improvements
 
 2.0.1 (2022-10-12)
 ~~~~~~~~~~~~~~~~~~
@@ -111,10 +114,12 @@ ChangeLog History
 
 * [IMP] wsl2-systemd: experimental systemd for wsl2
 
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
 
 
-|
-|
 
 Credits
 =======
@@ -125,17 +130,21 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-13
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
@@ -180,5 +189,3 @@ Last Update / Ultimo aggiornamento: 2023-08-13
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
