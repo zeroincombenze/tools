@@ -86,7 +86,7 @@ def format_line(ctx, cols_size, row, sep=None, flist=None):
         # if not sep and ctx["wrap"]:
         #     if isinstance(row, list) and row[i] > cols_size[p]:
         #         pass
-        if not sep and ctx["sphynx"]:
+        if not sep and ctx["sphinx"]:
             if isinstance(row, list):
                 for ch in DOUBLE_CHARS:
                     sz -= row[i].count(ch)
@@ -200,7 +200,7 @@ def main(cli_args=None):
     )
     parser.add_argument('-n')
     parser.add_argument('-q')
-    parser.add_argument('-S', '--sphynx', action='store_true')
+    parser.add_argument('-S', '--sphinx', action='store_true')
     parser.add_argument('-V')
     parser.add_argument('-v')
     # parser.add_argument('-w', '--wrap', action='store')

@@ -235,7 +235,9 @@ class PleaseCwd(object):
             logo = pth.join(docs_dir, "logozero_180x46.png")
             if not pth.isfile(logo):
                 srclogo = pth.join(
-                    please.get_tools_dir(pkgtool=True), "docs", "logozero_180x46.png")
+                    please.get_pkg_tool_dir(pkgtool=True),
+                    "docs",
+                    "logozero_180x46.png")
                 if please.opt_args.verbose:
                     print("%s cp %s %s" % (">" if please.opt_args.dry_run else "$",
                                            srclogo,
@@ -486,7 +488,7 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            tgtdir = please.get_tools_dir()
+            tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2
@@ -590,7 +592,7 @@ class PleaseCwd(object):
             if pth.isdir(pth.join(ffn, ".git")):
                 submodules.append("/%s" % fn)
 
-        srcpath = pth.join(please.get_tools_dir(pkgtool=True), "templates")
+        srcpath = pth.join(please.get_pkg_tool_dir(pkgtool=True), "templates")
         if is_odoo_pkg and py23 == 2 and tmpl_fn == "pre-commit-config2.yaml":
             srcpath = pth.join(srcpath, "pre-commit-config2.yaml")
         else:
@@ -728,12 +730,6 @@ class PleaseCwd(object):
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
-                # sts = please.run_traced(
-                #     ("sphinx-quickstart -p '%s' -a '%s' -v '%s' -r '%s' -l en"
-                #      " --no-batchfile --makefile --master index --suffix .rst ./")
-                #     % (pkg_name, author, branch, branch),
-                #     rtime=True,
-                # )
                 sts = please.run_traced("make html", rtime=True)
                 os.chdir(saved_pwd)
             if sts == 0:
@@ -787,7 +783,7 @@ class PleaseCwd(object):
                         print("Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
-            tgtdir = please.get_tools_dir()
+            tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
                 print("Tools directory %s not found!" % tgtdir)
                 return 2
@@ -1062,10 +1058,21 @@ class PleaseCwd(object):
         return sts
 
     def do_version(self):
-        def update_version(fqn, regex, sep):
+        def search_last_history(fqn):
+            if pth.isfile(fqn):
+                with open(fqn, "r") as fd:
+                    for line in fd.read().split("\n"):
+                        if re.match(r"[\d]+\.[\d]+", line):
+                            x = re.match(r"[\d]+(\.[\d]+)+", line)
+                            if x:
+                                ver_text = line[x.start(): x.end()]
+                                if ver_text != self.ref_version:
+                                    print(fqn, "->", ver_text, "***")
+                            break
+
+        def update_version(fqn, regex):
             target = ""
             do_rewrite = False
-            # tag_found = False
             ext = fqn.rsplit(".", 1)
             ext = ext[1] if len(ext) > 1 else ""
             if ext in BIN_EXTS:
@@ -1073,14 +1080,8 @@ class PleaseCwd(object):
             with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        # x = regex.match(ln) if not tag_found else None
                         x = regex.match(ln)
                         if x:
-                            # tag_found = True
-                            # if sep:
-                            #   ver_text = ln[x.start(): x.end()].split(sep)[-1].strip()
-                            # else:
-                            #     ver_text = ln[x.start(): x.end()].strip()
                             ver_text = x.groups()[1]
                             cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string
                             if pth.basename(fqn) in ("setup.py",
@@ -1096,7 +1097,6 @@ class PleaseCwd(object):
                                     please.opt_args.branch
                                     and ver_text != please.opt_args.branch
                             ):
-                                # ln = ln.replace(ver_text, please.opt_args.branch)
                                 ln = re.sub(
                                     r"\d+\.\d+\.\d+(\.\d+)?(\.\d+)?(\.\d+)?",
                                     please.opt_args.branch,
@@ -1178,20 +1178,18 @@ class PleaseCwd(object):
                         continue
                     if fn in ("testenv.py", "testenv.rst"):
                         rex = REGEX_TESTENV_VER
-                        sep = "v"
                     elif fn in ("__manifest__.py", "__openerp__.rst"):
                         rex = REGEX_DICT_VER
-                        sep = ":"
                     else:
                         rex = REGEX_VER
-                        sep = "="
-                    sts = update_version(pth.join(root, fn), rex, sep)
+                    sts = update_version(pth.join(root, fn), rex)
                     if sts:
                         break
             if sts == 0:
                 sts = update_version(pth.join(os.getcwd(), "docs", "conf.py"),
-                                     REGEX_VER,
-                                     "=")
+                                     REGEX_VER,)
+            if sts == 0:
+                search_last_history(pth.join("egg-info", "CHANGELOG.rst"))
             return sts
         elif please.is_odoo_pkg():
             fqn = "__manifest__.py"
@@ -1200,7 +1198,8 @@ class PleaseCwd(object):
             if not pth.isfile(fqn):
                 print("Manifest file not found!")
                 return 3
-            return update_version(fqn, REGEX_DICT_VER, ":")
+            search_last_history(pth.join("readme", "CHANGELOG.rst"))
+            return update_version(fqn, REGEX_DICT_VER)
         elif (please.opt_args.branch or please.opt_args.from_version):
             print("Version options are not applicable to all packages")
             return 126

@@ -90,6 +90,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.12.1 (2023-11-17)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please install python, now can install python 3.10
+* [IMP] arcangelo: new python version assignment from odoo version
+* [IMP] please version: now show compare with last entry of history
+* [FIX] please docs: faq
+
 2.0.12 (2023-08-29)
 ~~~~~~~~~~~~~~~~~~~
 

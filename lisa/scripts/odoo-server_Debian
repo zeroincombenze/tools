@@ -35,7 +35,7 @@ xtl_sudo=0
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by zeroincombenze(R) <http://wiki.zeroincombenze.it>
+# (C) 2015-2022 by zeroincombenze® <http://wiki.zeroincombenze.it>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}

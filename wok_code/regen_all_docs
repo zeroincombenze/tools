@@ -68,7 +68,7 @@ if [ $opt_verbose -eq -1 ]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Regenerate all documentation of specific odoo version of module"\
-  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2020 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")

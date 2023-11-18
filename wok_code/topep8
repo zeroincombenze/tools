@@ -308,7 +308,7 @@ format_yaml() {
         if [ "$PKGNAME" != "OCB" ]; then
           echo "$line" >>$fntmp
         fi
-      elif [[ $lne =~ "# Use Zeroincombenze(R) tools" ]]; then
+      elif [[ $lne =~ "# Use Zeroincombenze® tools" ]]; then
         :
       elif [[ $lne =~ "git clone https://github.com/zeroincombenze/tools.git" ]]; then
         :
@@ -409,7 +409,7 @@ format_yaml() {
           echo "  directories:" >>$fntmp
           echo "    - \$HOME/.cache/pip" >>$fntmp
         elif [[ $cur_sect == "before_install" ]]; then
-          echo "  # Use Zeroincombenze(R) tools" >>$fntmp
+          echo "  # Use Zeroincombenze® tools" >>$fntmp
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1" >>$fntmp
           echo "  - \${HOME}/tools/install_tools.sh -qpt" >>$fntmp
           echo "  - source \${HOME}/devel/activate_tools -t" >>$fntmp
@@ -641,7 +641,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "PEP8 source python file\nfull path name maybe supplied or a single file\n" \
-    "(C) 2015-2023 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "(C) 2015-2023 by zeroincombenze®\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

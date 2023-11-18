@@ -24,7 +24,7 @@ Update bash script
  -Z                   load zar library
 .SH DESCRIPTION
 cvt_script update bash scripts in order to make them more standard with
-zeroincombenze(R) tools.
+zeroincombenze® tools.
 .SH OPTIONS
 See above
 .SH EXAMPLES

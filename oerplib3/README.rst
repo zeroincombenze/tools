@@ -1,7 +1,6 @@
-
-======
- 0.8.4
-======
+==============
+oerplib3 0.8.4
+==============
 
 
 
@@ -9,54 +8,109 @@
 
 
 
-
 Overview
 ========
-
-OERPLib3
 
 OERPLib3 is a Python module providing an easy way to pilot
 your OpenERP and Odoo servers through RPC.
 
-It is a fork for python3 of OERPLib project <https://github.com/osiell/oerplib>
-by Sébastien Alix which does not participate to development of this module.
-
-Please do not yet use this code: it is experimental code
+It is a fork for python3 of `OERPLib project <https://github.com/osiell/oerplib>`__
+by Sébastien Alix who have not participated to development of this module.
 
 
 
-|
+Features
+--------
+
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| Oerplib3                                                                                 | Oerplib                                                | OdooRPC                                    |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| XML-RPC protocols                                                                        |  XML-RPC and (legacy) Net-RPC protocols                | JSON RPC                                   |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| Transfer from Odoo >= 6.1 <= 9.0 to Odoo >= 11.0                                         | Transfer from Odoo >= 6.1 <= 9.0 to Odoo >= 6.1 <= 9.0 | Transfer from Odoo >= 10.0 to Odoo >= 10.0 |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| access to all methods proposed by a model class (even browse)                            | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| ability to use named parameters with such methods (Odoo >= 6.1)                          | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| user context automatically sent (Odoo >= 6.1) providing support for internationalization | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| browse records                                                                           | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| execute workflows                                                                        | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| manage databases                                                                         | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| reports downloading                                                                      | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+| inspection capabilities                                                                  | |same|                                                 | |same|                                     |
++------------------------------------------------------------------------------------------+--------------------------------------------------------+--------------------------------------------+
+
+
 
 Usage
 =====
 
-See OERPLib module <https://github.com/osiell/oerplib>
+This module work exactly like original
+`OERPLib <https://github.com/osiell/oerplib>`__
+
+::
+
+    import oerplib3 as oerplib
+
+    # Prepare the connection to the server
+    oerp = oerplib.OERP('localhost', protocol='xmlrpc', port=8069)
+
+    # Check available databases
+    print(oerp.db.list())
+
+    # Login (the object returned is a browsable record)
+    user = oerp.login('user', 'passwd', 'db_name')
+    print(user.name)            # name of the user connected
+    print(user.company_id.name) # the name of its company
+
+    # Simple 'raw' query
+    user_data = oerp.execute('res.users', 'read', [user.id])
+    print(user_data)
+
+    # Use all methods of an OSV class
+    order_obj = oerp.get('sale.order')
+    order_ids = order_obj.search([])
+    for order in order_obj.browse(order_ids):
+        print(order.name)
+        products = [line.product_id.name for line in order.order_line]
+        print(products)
+
+    # Update data through a browsable record
+    user.name = "Brian Jones"
+    oerp.write_record(user)
 
 
-|
-|
 
 Getting started
 ===============
 
 
-Installation
-------------
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install 
-
-|
+    pip install oerplib3
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,10 +118,11 @@ Current version via Git
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Upgrade
@@ -78,22 +133,22 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install --upgrade oerplib3
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-History
--------
+
+ChangeLog History
+-----------------
 
 0.8.4 (2023-05-06)
 ~~~~~~~~~~~~~~~~~~
@@ -102,8 +157,21 @@ History
 
 
 
-|
-|
+FAQ
+---
+
+**Why this module was forked from OERPlib?**
+
+OERPlib runs just with python2 and the author did not migrate
+package on python3
+
+**Why I should use this module? Was it better to use OdooRPC?**
+
+OdooRPC runs on python3 but it does not support Odoo xmlrpc protocol.
+So, if you have to read data from an old Odoo version database, you have to
+use OERPlib3.
+
+
 
 Credits
 =======
@@ -114,17 +182,22 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* Sébastien Alix <False>
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of  project.
-
-Last Update / Ultimo aggiornamento: 
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
@@ -136,10 +209,10 @@ Last Update / Ultimo aggiornamento:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.8/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.8.4/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.8/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.8.4/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
     :target: https://erp0.zeroincombenze.it
@@ -169,5 +242,3 @@ Last Update / Ultimo aggiornamento:
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

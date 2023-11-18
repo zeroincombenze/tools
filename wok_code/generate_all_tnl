@@ -233,7 +233,7 @@ if [ $opt_nooca -ne 0 -a $opt_drop -ne 0 ]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "(Re)generate translations"\
-  "(C) 2018-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2020 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ "$opt_branch" == "all" ]; then

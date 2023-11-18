@@ -1,8 +1,9 @@
 .. toctree::
    :maxdepth: 2
 
-lisa
-----
+Overview
+========
+
 
 *lisa* stands for Linux Install Simplifier App
 
@@ -16,12 +17,8 @@ For every main package, may be managed some dependent package; i.e. openssh-serv
 
 You can easily write portable script to install packages on every Linux distribution.
 
-
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-13
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
     :target: https://odoo-community.org/page/development-status
@@ -66,5 +63,3 @@ Last Update / Ultimo aggiornamento: 2023-08-13
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

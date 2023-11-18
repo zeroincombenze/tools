@@ -233,6 +233,7 @@ ALTERNATE_NAMES = {
     "__manifest__": "__init__",
     "description_i18n": "descrizione",
     "configuration": "configure",
+    "known_issues": "roadmap",
     "summary_i18n": "sommario",
 }
 ZERO_PYPI_PKGS = "wok_code"
@@ -311,7 +312,6 @@ MANIFEST_ITEMS_OPTIONAL = (
     "active",
 )
 RST2HTML = {
-    # &': '&amp;',
     "©": "&copy",
     "®": "&reg",
     "à": "&agrave;",
@@ -830,11 +830,13 @@ def rst2html(ctx, text, draw_button=False):
             ctx["html_state"][prpty] = ""
         return html_tag
 
-    def get_anchor(ctx, line):
+    def get_anchor(ctx, text):
         # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
-        x = re.search(r"`[^`]+`__", line)
-        while x:
-            txt = line[x.start() + 1: x.end() - 3]
+        while True:
+            x = re.search(r"`[^`]+`__", text, flags=re.S)
+            if not x:
+                break
+            txt = text[x.start() + 1: x.end() - 3]
             txt = txt.replace("&lt;", "<").replace("&gt;", ">")
             u = re.search(r"<.*>", txt)
             if u:
@@ -843,46 +845,18 @@ def rst2html(ctx, text, draw_button=False):
                     url = "mailto:" + url
                 elif url.startswith("http") and not url.startswith("https"):
                     url.replace("http", "https")
-                if url.startswith("http") and not url.endswith("/"):
-                    url += "/"
-                line = '%s<a href="%s">%s</a>%s' % (
-                    line[:x.start()],
+                # if url.startswith("http") and not url.endswith("/"):
+                #     url += "/"
+                text = '%s<a href="%s">%s</a>%s' % (
+                    text[:x.start()],
                     url,
-                    txt[:u.start()].strip(),
-                    line[x.end():],
+                    txt[:u.start()].replace("\n", " ").strip(),
+                    text[x.end():],
                 )
-            x = re.search(r"`[^`]+`__", line)
-        return line
+            x = re.search(r"`[^`]+`__", text)
+        return text
 
     def get_inline_tag(ctx, line):
-        # Parse single-line rst tags: <**>BOLD<**>
-        while True:
-            x = re.search(r"\*\*\w[\w ]+\w\*\*", line)
-            if not x:
-                break
-            line = "%s<b>%s</b>%s" % (line[0:x.start()],
-                                      line[x.start() + 2: x.end() - 2],
-                                      line[x.end():])
-
-        # Parse single-line rst tag: <*>ITALIC<*>
-        while True:
-            x = re.search(r"\*\w[\w ]+\w\*", line)
-            if not x:
-                break
-            line = "%s<i>%s</i>%s" % (line[0:x.start()],
-                                      line[x.start() + 1: x.end() - 1],
-                                      line[x.end():])
-
-        # # Parse multi-line rst tags: <**>BOLD<**> ?
-        # start = line.find("**")
-        # stop = line.find("**", start + 2)
-        # while start > 0 and stop > start:
-        #     line = "%s<b>%s</b>%s" % (line[0:start],
-        #                               line[start + 2: stop],
-        #                               line[stop + 2:])
-        #     start = line.find("**")
-        #     stop = line.find("**", start + 2)
-
         # Parse single-line rst tag: <``>CODE<``>
         while True:
             x = re.search(r"``[^`]+``", line)
@@ -892,6 +866,35 @@ def rst2html(ctx, text, draw_button=False):
                                             line[x.start() + 2: x.end() - 2],
                                             line[x.end():])
         return line
+
+    def get_multiline_tag(ctx, text):
+        text = get_anchor(ctx, text)
+
+        # Parse multi-line rst tags: <**>BOLD<**>
+        while True:
+            x = re.search(r"\*\*[^ ][^*]+[^ ]\*\*", text, flags=re.S)
+            if not x:
+                break
+            text = (text[0:x.start()]
+                    + "<b>"
+                    + text[x.start() + 2: x.end() - 2]
+                    + "</b>"
+                    + text[x.end():])
+
+        # Parse multi-line rst tag: <*>ITALIC<*>
+        while True:
+            x = re.search(r"\*[^ ][^*]+[^ ]\*", text, flags=re.S)
+            if not x:
+                break
+            text = (text[0:x.start()]
+                    + "<i>"
+                    + text[x.start() + 1: x.end() - 1]
+                    + "</i>"
+                    + text[x.end():])
+
+        for t in list(RST2HTML_GRYMB.keys()):
+            text = text.replace(t, RST2HTML_GRYMB[t])
+        return text
 
     def get_navicon(ctx, line):
         stop = 0
@@ -985,7 +988,6 @@ def rst2html(ctx, text, draw_button=False):
         return lineno
 
     def parse_all_single_line_tags(ctx, line, draw_button):
-        line = get_anchor(ctx, line)
         line = get_inline_tag(ctx, line)
         line = get_navicon(ctx, line)
         if draw_button:
@@ -997,8 +999,7 @@ def rst2html(ctx, text, draw_button=False):
     text = text.replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace("\a", "<").replace("\b", ">")
     text = text.replace(" & ", " &amp; ")
-    for t in list(RST2HTML_GRYMB.keys()):
-        text = text.replace(t, RST2HTML_GRYMB[t])
+    # TODO> Remove early
     for token in DEFINED_GRYMB_SYMBOLS:
         tok = "|" + token + "|"
         start = text.find(tok)
@@ -1007,7 +1008,7 @@ def rst2html(ctx, text, draw_button=False):
             text = text[0:start] + value + text[start + len(tok):]
             start = text.find(tok)
 
-    # Parse single line rst tags; remove trailing and tailing empty lines
+    # Parse single line rst tags; remove heading and trailing empty lines
     lines = text.split("\n")
     while len(lines) > 1 and not lines[-1]:
         del lines[-1]
@@ -1017,7 +1018,6 @@ def rst2html(ctx, text, draw_button=False):
     ctx["html_state"] = {"tag": "", "open_para": 0}
     lineno = 0
     while lineno < len(lines):
-        # lineno = close_opened_tag(ctx, lines, lineno)
         if not lines[lineno].startswith(".. "):
             if ctx["html_state"]["tag"] in ("image", "figure"):
                 x = re.match(r" +:(alt|target|width|height):", lines[lineno])
@@ -1058,25 +1058,28 @@ def rst2html(ctx, text, draw_button=False):
                 lineno = open_tag(ctx, lines, lineno, "ol")
                 lines[lineno] = "<li>%s</li>" % parse_all_single_line_tags(
                     ctx, lines[lineno][2:], draw_button)
+            elif not lines[lineno] and ctx["html_state"]["tag"] == "Code":
+                lines[lineno] = "<code>"
+                ctx["html_state"]["tag"] = "code"
             elif not lines[lineno]:
-                if ctx["html_state"]["tag"] == "Code":
-                    lines[lineno] = "<code>"
-                    ctx["html_state"]["tag"] = "code"
-                elif ctx["html_state"]["open_para"]:
+                if ctx["html_state"]["tag"]:
+                    lineno = close_opened_tag(ctx, lines, lineno)
+                if ctx["html_state"]["open_para"]:
                     lines[lineno] = "</p><p align='justify'>"
                 else:
                     lines[lineno] = "<p align='justify'>"
                     ctx["html_state"]["open_para"] += 1
             elif (
                 re.match(r"^=+$", lines[lineno])
-                and lineno > 0
+                and lineno > 1
                 and len(lines[lineno]) == len(lines[lineno - 1])
+                and lines[lineno] == lines[lineno - 2]
             ):
                 lines[lineno - 1] = "<h1>%s</h1>" % lines[lineno - 1]
                 del lines[lineno]
                 continue
             elif (
-                re.match(r"^-+$", lines[lineno])
+                re.match(r"^=+$", lines[lineno])
                 and lineno > 0
                 and len(lines[lineno]) == len(lines[lineno - 1])
             ):
@@ -1084,11 +1087,19 @@ def rst2html(ctx, text, draw_button=False):
                 del lines[lineno]
                 continue
             elif (
-                re.match(r"^~+$", lines[lineno])
+                re.match(r"^-+$", lines[lineno])
                 and lineno > 0
                 and len(lines[lineno]) == len(lines[lineno - 1])
             ):
                 lines[lineno - 1] = "<h3>%s</h3>" % lines[lineno - 1]
+                del lines[lineno]
+                continue
+            elif (
+                re.match(r"^~+$", lines[lineno])
+                and lineno > 0
+                and len(lines[lineno]) == len(lines[lineno - 1])
+            ):
+                lines[lineno - 1] = "<h4>%s</h4>" % lines[lineno - 1]
                 del lines[lineno]
                 continue
             elif re.match(r"^:: *$", lines[lineno]):
@@ -1097,13 +1108,16 @@ def rst2html(ctx, text, draw_button=False):
             elif lines[lineno] == "|":
                 lines[lineno] = "<br/>"
             else:
+                lineno = close_opened_tag(ctx, lines, lineno)
                 lines[lineno] = parse_all_single_line_tags(
                     ctx, lines[lineno], draw_button)
         else:
             if ctx["html_state"]["tag"] == "table":
                 lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
                 ctx["html_state"]["tag"] = ""
-            elif ctx["html_state"]["open_para"]:
+            else:
+                lineno = close_opened_tag(ctx, lines, lineno)
+            if ctx["html_state"]["open_para"]:
                 lines.insert(lineno, "</p>")
                 ctx["html_state"]["open_para"] -= 1
             if is_rst_tag(ctx, lines[lineno], "image"):
@@ -1118,9 +1132,9 @@ def rst2html(ctx, text, draw_button=False):
                     ctx, lines[lineno], "figure")[0]
                 del lines[lineno]
                 continue
-            else:
-                lines[lineno] = parse_all_single_line_tags(
-                    ctx, lines[lineno], draw_button)
+            # else:
+            #     lines[lineno] = parse_all_single_line_tags(
+            #         ctx, lines[lineno], draw_button)
         lineno += 1
     close_opened_tag(ctx, lines, lineno)
     if ctx["html_state"]["tag"] == "image":
@@ -1137,7 +1151,7 @@ def rst2html(ctx, text, draw_button=False):
         ctx["html_state"]["open_para"] -= 1
     for prpty in ("alt", "target", "width", "height", "max-width", "url"):
         ctx["html_state"][prpty] = ""
-    return "\n".join(lines)
+    return get_multiline_tag(ctx, "\n".join(lines))
 
 
 def expand_macro(ctx, token, default=None):
@@ -1694,6 +1708,8 @@ def write_rtd_group(ctx, name):
     with open(rtd_fn, "w") as fd:
         fd.write(parse_local_file(ctx, "rtd_template.rst"))
     ctx[name] = ""
+    if "contents" in ctx:
+        del ctx["contents"]
     return "   rtd_%s\n" % name
 
 
@@ -1894,7 +1910,8 @@ def read_file_rst_or_csv(ctx, fqn):
     if fqn_csv and pth.isfile(fqn_csv):
         args = [
             "-b", ctx["branch"],
-            "-S" if ctx["product_doc"] == "pypi" else "",
+            # "-S" if ctx["product_doc"] == "pypi" else "",
+            "-S",
             "-q",
             fqn_csv,
             fqn
@@ -2562,7 +2579,8 @@ def read_purge_readme(ctx, source):
             cur_sect = ""
         elif (
             re.match(r"^\|$", line)
-            and re.match(r"^\|$", next_line)
+            and (cur_sect in ("authors", "contributors")
+                 or re.match(r"^\|$", next_line))
         ):
             cur_sect = ""
         elif re.match(r"^\* *[|.:]", line):
@@ -3125,6 +3143,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-    exit(main())
-
-

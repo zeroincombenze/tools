@@ -61,6 +61,7 @@ BUGS
             help="Options for ./configure; example:  --with-openssl=DIR",
         )
         if not for_help:
+            self.please.add_argument(parser, "-j")
             self.please.add_argument(parser, "-n")
             self.please.add_argument(parser, "-q")
             self.please.add_argument(parser, "-v")
@@ -79,10 +80,11 @@ BUGS
         if not os.path.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
             return 127
-        if not please.sub1 or please.sub1 not in ("3.6", "3.7", "3.8", "3.9"):
-            print("You must specify the python version: 3.6 or 3.7 or 3.8 or 3.9")
+        valid_odoo_vers = ("2.7", "3,5", "3,6", "3.7", "3.8", "3.9", "3.10", "3.11")
+        if please.opt_args.python not in valid_odoo_vers:
+            print("You must specify the python version: %s" % ",".join(valid_odoo_vers))
             return 1
-        cmd += " " + please.sub1
+        cmd += " " + please.opt_args.python
         cmd += (
             " '"
             + (please.opt_args.cmd_before if please.opt_args.cmd_before else "")

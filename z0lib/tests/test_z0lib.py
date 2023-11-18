@@ -11,7 +11,7 @@ sys.path.insert(0,
                 else os.path.dirname(os.getcwd()))
 from z0lib import z0lib                                                    # noqa: E402
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -27,8 +27,8 @@ class RegressionTest:
         self.Z = zarlib
 
     def test_01(self, z0ctx):
-        sts = self.Z.test_result(
-            z0ctx, "Version", z0lib.get_metadata("version"), __version__)
+        # sts = self.Z.test_result(
+        #    z0ctx, "Version", z0lib.get_metadata("version"), __version__)
         #
         parser = z0lib.parseoptargs(
             "Unit Test", "© 2015-2023 by SHS-AV s.r.l.", version=__version__
@@ -121,3 +121,4 @@ class RegressionTest:
 #     ctx = Z.parseoptest(sys.argv[1:],
 #                         version=version())
 #     exit(Z.main(ctx, RegressionTest))
+

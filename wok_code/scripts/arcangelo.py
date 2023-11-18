@@ -72,7 +72,7 @@ def get_pyver_4_odoo(odoo_ver):
     if odoo_major <= 10:
         pyver = "2.7"
     else:
-        pyver = "3.%d" % (int((odoo_major - 10) / 2) + 6)
+        pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
     return pyver
 
 
