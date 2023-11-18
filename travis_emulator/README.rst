@@ -1,6 +1,5 @@
-
 =====================
-travis_emulator 2.0.6
+travis_emulator 2.0.7
 =====================
 
 
@@ -9,28 +8,68 @@ travis_emulator 2.0.6
 
 
 
-
 Overview
 ========
 
-Emulate travis to test application before pushing to git
---------------------------------------------------------
-
-Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine and it is osx/darwin compatible.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local
+Linux machine and it is osx/darwin compatible.
 You can test your application before pushing code to github.com web site.
 
-Travis emulator can creates all the build declared in **.travis.yml**; all the builds are executed in sequential way.
+Travis emulator can creates all the build declared in ``travis.yml**``;
+all the builds are executed in sequential way.
 The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
 Please note that log file is a binary file with escape ANSI screen code.
 If you want to see the log use one of following command:
 
-    `travis show`
+::
 
-    `less -R ~/travis_log/<build_name>.log`
+    travis show
+
+    less -R ~/travis_log/<build_name>.log
 
 A travis build executes the following steps:
 
-$include travis_phases.csv
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Description                                                     | name               | local    | web |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Initialize from .travis.conf                                    | travis.conf        | ✔        | ✗   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Matrix initialization (python version too)                      | matrix             | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Build job                                                       | build              | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Optional install packages `apt addons`                          | addons.apt.package | simulate | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Optional install packages `cache`                               |                    | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Set global values `env global`                                  | env.global         | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute code `before_install`                                   | before_install     | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute build code `install`                                    |                    | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute build code `before_script`                              |                    | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute build code `script`                                     | script             | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute build `before_cache` (only if cache is effective)       |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute build code `after_success`                              |                    | ✔        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Or execute `after_failure`                                      |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Optional code `before_deploy` (only if deployment is effective) |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Optional code `deploy`                                          |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Optional code `after_deploy` (only if deployment is effective)  |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Execute code `after_script`                                     |                    | ✗        | ✔   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+| Wep from local .travis.conf                                     |                    | ✔        | ✗   |
++-----------------------------------------------------------------+--------------------+----------+-----+
+
+
 
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 
@@ -38,15 +77,17 @@ Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job
 Difference between local travis and web site
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The travis emulator works mostly like TravisCi web site. However you ha to consider some points where you run local tests:
+The travis emulator works mostly like TravisCi web site. However you ha to consider
+some points where you run local tests:
 
 Local software is not published
 
-    When you test on your local PC, the software is not yet publishd. Perhaps you prefer test
-    local packages or local modules.
-    The travis emulator with z0bug_odoo replace the commands `git clone` with local `ln -s` creating
-    logical link with local repository, if possible.
-    Local module are searched in the testing module directory. See Odoo structure for furthermore info.
+    When you test on your local PC, the software is not yet publishd.
+    Perhaps you prefer test local packages or local modules.
+    The travis emulator with z0bug_odoo replace the commands ``git clone`` with
+    local `ln -s` creating logical link with local repository, if possible.
+    Local module are searched in the testing module directory. See Odoo structure
+    for furthermore info.
 
 Your PC is not TravisCi web site
 
@@ -58,8 +99,6 @@ Your PC is not TravisCi web site
     Please, install manually all the global packages using apt-get, yum, dnf or your local installer software.
 
 
-
-|
 
 Features
 --------
@@ -97,7 +136,6 @@ Features
 +--------------------------------------+--------------------+--------------------------------------+
 
 
-|
 
 Usage
 =====
@@ -107,44 +145,57 @@ Travis emulator usage
 
 ::
 
-    Usage: travis [-hBC][-c file][-D number][-dEFfjk][-L number][-l dir][-Mmn][-O git-org][-pqr][-S false|true][-Vv][-X 0|1][-Y file][-y pyver][-Z] action sub sub2
+    Usage: travis [-h][-A regex][-BC][-D number][-E][-e iso][-Ffk][-j pyver][-L number][-l dir][-mn][-O git-org][-P file:line][-p pattern][-Q file][-qr][-S false|true][-T regex][-Vv][-X 0|1][-Y file][-Z] action sub sub2
     Travis-ci emulator for local developer environment
-    Action may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml
+    Action may be: (help,emulate,force-lint,lint,force-test,test,force-test-multi,test-multi,force-testdeps,testdeps,force-translate,translate,chkconfig,parseyaml,show,show-log,show-color,summary,wep-db)
      -h --help            this help
+     -A --trace-after regex
+                          travis stops after executed yaml statement
      -B --debug           debug mode: do not create log
      -C --no-cache        do not use stored PYPI
-     -c --conf file
-                          configuration file (def .travis.conf)
      -D --debug-level number
                           travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)
-     -d --osx             emulate osx-darwin
      -E --no-savenv       do not save virtual environment into ~/VME/... if does not exist
+     -e --locale iso
+                          use locale
      -F --full            run final travis with full features
-     -f --force           force yaml to run w/o cmd subst
-     -j                   execute tests in project dir rather in test dir (or expand macro if parseyaml)
-     -k --keep            keep DB and virtual environment after tests
+     -f --force           force to create stored VME or remove recent log (wep-db)
+     -k --keep            keep DB and virtual environment before and after tests
+     -j --python pyver
+                          test with specific python versions (comma separated)
      -L --lint-level number
                           lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
      -l --logdir dir
-                          log directory (def=/home/antoniomaria/odoo/travis_log)
-     -M                   use local MQT (deprecated)
+                          log directory (def=/home/odoo/travis_log)
      -m --missing         show missing line in report coverage
      -n --dry-run         do nothing (dry-run)
      -O --org git-org
-                          git organization, i.e. oca or zeroincombenze
-     -p --pytest          prefer python test over bash test when avaiable
+                          git organization to test, i.e. oca or zeroincombenze
+     -P --python-brk file:line
+                          set python breakpoint at file:linenumber
+     -p --pattern pattern
+                          pattern to apply for test files (comma separated)
+     -Q --config file
+                          configuration file (def .z0tools.conf)
      -q --quiet           silent mode
      -r                   run restricted mode (deprecated)
      -S --syspkg false|true
                           use python system packages (def yaml dependents)
+     -T --trace regex
+                          trace stops before executing yaml statement
      -V --version         show version
      -v --verbose         verbose mode
-     -X 0|1               enable translation test (def yaml dependents)
+     -X --translation 0|1
+                          enable translation test (def yaml dependents)
      -Y --yaml-file file
                           file yaml to process (def .travis.yml)
-     -y --pyver pyver
-                          test with specific python versions (comma separated)
      -Z --zero            use local zero-tools
+    
+    © 2015-2022 by zeroincombenze®
+    https://zeroincombenze-tools.readthedocs.io/
+    Author: antoniomaria.vigliotti@gmail.com
+    
+
 
 Configuration file
 ~~~~~~~~~~~~~~~~~~
@@ -189,21 +240,23 @@ Values in configuration file are:
 
 
 
-|
-|
-
 Getting started
 ===============
 
 
-Installation
-------------
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -212,18 +265,17 @@ Stable version via Python Package
 
     pip install travis_emulator
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Upgrade
@@ -234,18 +286,18 @@ Stable version via Python Package
 
 ::
 
-    pip install travis_emulator -U
+    pip install --upgrade travis_emulator
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Troubleshooting
@@ -258,7 +310,7 @@ Troubleshooting
     Please configure postgresql and enable user <name> to use psql via shell.
     If user is not *odoo* declare username with following command:
 
-    `please config global`
+    ``please config global``
 
     and then set *dbuser* parameter value.
 
@@ -270,11 +322,16 @@ Troubleshooting
     Please install the package <pkg> via *apt-get* or *yum* or *dnf* based on your distro.
     You can use *lisa* to install package <pkg> on all distribution with following command:
 
-    `lisa install <pkg>`
+    ``lisa install <pkg>``
 
 
 ChangeLog History
 -----------------
+
+2.0.7 (2023-11-17)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Automatic python version for Odoo
 
 2.0.6 (2023-07-10)
 ~~~~~~~~~~~~~~~~~~
@@ -342,10 +399,12 @@ ChangeLog History
 * [IMP] travis: new improvements (-f -k switches)
 
 
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring for shell scripts
 
 
-|
-|
 
 Credits
 =======
@@ -356,18 +415,22 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio M. Vigliotti <info@shs-av.com>
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio M. Vigliotti <info@shs-av.com>`__
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-08-08
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -379,10 +442,10 @@ Last Update / Ultimo aggiornamento: 2023-08-08
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.6/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.6/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -412,5 +475,3 @@ Last Update / Ultimo aggiornamento: 2023-08-08
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

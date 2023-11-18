@@ -1,26 +1,13 @@
-.. travis_emulator documentation master file, created by
-   gen_readme.py on 2023-11-18 10:03:35
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-===============================================
-Welcome to travis_emulator 2.0.7 documentation!
-===============================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+Code documentation
+------------------
 
-   rtd_description
-   rtd_features
-   rtd_usage
-   rtd_getting_started
-   rtd_usage_config
-   rtd_automodule
-   rtd_changelog
-   rtd_credits
+travis_emulator.make_travis_conf
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. automodule:: travis_emulator.make_travis_conf
 
 |
 |
@@ -68,12 +55,3 @@ Welcome to travis_emulator 2.0.7 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

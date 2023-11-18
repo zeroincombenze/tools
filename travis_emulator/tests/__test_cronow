@@ -42,7 +42,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 test_01() {
     CFG_init
@@ -96,7 +96,7 @@ Run now a selected cron statement from crontab
  -v             verbose mode
  -w             wait for job activation
 
-(C) 2015-2016 by zeroincombenze(R)
+(C) 2015-2016 by zeroincombenze®
 http://wiki.zeroincombenze.org/en/Linux/dev
 Author: antoniomaria.vigliotti@gmail.com
 EOF
@@ -172,3 +172,4 @@ Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit $sts
+

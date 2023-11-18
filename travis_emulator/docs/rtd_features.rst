@@ -1,26 +1,41 @@
-.. travis_emulator documentation master file, created by
-   gen_readme.py on 2023-11-18 10:03:35
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-===============================================
-Welcome to travis_emulator 2.0.7 documentation!
-===============================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Features
+========
 
 
-   rtd_description
-   rtd_features
-   rtd_usage
-   rtd_getting_started
-   rtd_usage_config
-   rtd_automodule
-   rtd_changelog
-   rtd_credits
-
++--------------------------------------+--------------------+--------------------------------------+
+| Function                             | Status             | Note                                 |
++--------------------------------------+--------------------+--------------------------------------+
+| Execute tests in virtual environment | |check|            | As TravisCI                          |
++--------------------------------------+--------------------+--------------------------------------+
+| Python 2 test                        | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Python 3 test                        | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Bash test                            | |check|            | Using zerobug package                |
++--------------------------------------+--------------------+--------------------------------------+
+| Matrix                               | |check|            | Test sequentialized                  |
++--------------------------------------+--------------------+--------------------------------------+
+| Show coverage result                 | |check|            | If installed in local machine        |
++--------------------------------------+--------------------+--------------------------------------+
+| Quality check                        | |check|            | With zerobug and z0bug_odoo packages |
++--------------------------------------+--------------------+--------------------------------------+
+| Stored images                        | |check|            | In ~/VME/ directory (see -C switch)  |
++--------------------------------------+--------------------+--------------------------------------+
+| Debug information                    | |check|            | See -B and -D switches               |
++--------------------------------------+--------------------+--------------------------------------+
+| Keep DB after test                   | |check|            | See -k switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| Lint level                           | |check|            | With zerobug, see -L switch          |
++--------------------------------------+--------------------+--------------------------------------+
+| Build selection                      | |check|            | See -O switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| System packages                      | |check| |no_check| | See -S switch                        |
++--------------------------------------+--------------------+--------------------------------------+
+| Use specific python version          | |check|            | See -y switch                        |
++--------------------------------------+--------------------+--------------------------------------+
 
 |
 |
@@ -68,12 +83,3 @@ Welcome to travis_emulator 2.0.7 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
