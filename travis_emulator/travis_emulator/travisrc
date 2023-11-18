@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.0.6
+#__version__=2.0.7
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -1101,3 +1101,4 @@ run_server_test() {
 }
 
 conf_default
+

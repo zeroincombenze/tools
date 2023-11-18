@@ -82,6 +82,14 @@ def expand_macro(line, section, ctx):
     return line
 
 
+def get_pyver_4_odoo(odoo_major):
+    if odoo_major <= 10:
+        pyver = "2.7"
+    else:
+        pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
+    return pyver
+
+
 def make_travis_conf(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
@@ -98,19 +106,12 @@ def make_travis_conf(cli_args=None):
         "TRAVIS_REPO_SLUG":
             os_env("TRAVIS_REPO_SLUG", "local/%s" % os.path.basename(os.getcwd())),
     }
-    odoo_main_version = ctx["TRAVIS_BRANCH"].split(".")[0]
+    odoo_major = ctx["TRAVIS_BRANCH"].split(".")[0]
     ctx["GIT_ORG"] = "zeroincombenze"
-    if odoo_main_version.isdigit():
-        odoo_main_version = eval(odoo_main_version)
-        ctx["ODOO_MAIN_VERSION"] = odoo_main_version
-        if odoo_main_version >= 12:
-            ctx["GIT_ORG"] = "librerp"
-        if odoo_main_version <= 10:
-            ctx["TRAVIS_PYTHON_VERSION"] = "2.7"
-        elif odoo_main_version < 14:
-            ctx["TRAVIS_PYTHON_VERSION"] = "3.7"
-        else:
-            ctx["TRAVIS_PYTHON_VERSION"] = "3.8"
+    if odoo_major.isdigit():
+        odoo_major = eval(odoo_major)
+        ctx["ODOO_MAIN_VERSION"] = odoo_major
+        ctx["TRAVIS_PYTHON_VERSION"] = get_pyver_4_odoo(odoo_major)
     else:
         ctx["ODOO_MAIN_VERSION"] = 0
 

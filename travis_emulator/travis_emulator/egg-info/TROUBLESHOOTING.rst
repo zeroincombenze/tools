@@ -5,7 +5,7 @@
     Please configure postgresql and enable user <name> to use psql via shell.
     If user is not *odoo* declare username with following command:
 
-    `please config global`
+    ``please config global``
 
     and then set *dbuser* parameter value.
 
@@ -17,4 +17,4 @@
     Please install the package <pkg> via *apt-get* or *yum* or *dnf* based on your distro.
     You can use *lisa* to install package <pkg> on all distribution with following command:
 
-    `lisa install <pkg>`
+    ``lisa install <pkg>``
