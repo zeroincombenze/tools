@@ -63,6 +63,8 @@ Ths TestEnv software requires:
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
 
+Usage Details
+-------------
 
 Model data declaration
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -677,8 +679,7 @@ def resource_write(self, resource, xref=None, values=None, raise_if_not_found=Tr
         resource (str|obj): Odoo model name or record to update
         xref (str): external reference to update: required id resource is string
         values (dict): record data (default stored data)
-        raise_if_not_found (bool): raise exception if xref not found or
-                       if more records found
+        raise_if_not_found (bool): raise exception if xref not found or if more records found
         group (str): used to manager group data; default is "base"
 
     Returns:
@@ -721,9 +722,8 @@ def declare_resource_data(self, resource, data, name=None, group=None, merge=Non
 
     Args:
         message (dict): data message
-            TEST_SETUP_LIST (list): resource list to load
-            TEST_* (dict): resource data; * is the uppercase resource name where
-                           dot are replaced by "_"; (see declare_resource_data)
+        TEST_SETUP_LIST (list): resource list to load
+        TEST_* (dict): resource data; * is the uppercase resource name where dot are replaced by "_"; (see declare_resource_data)
         group (str): used to manager group data; default is "base"
         merge (str): merge data with public data (currently just "zerobug")
 
@@ -871,9 +871,8 @@ def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}
 
     Args:
         resource (str or obj): if field is a string simulate create web behavior of
-                               Odoo model issued in resource;
-                               if field is an obj simulate write web behavior on the
-                               issued record
+        Odoo model issued in resource;
+        if field is an obj simulate write web behavior on the issued record
         default (dict): default value to assign
         web_changes (list): list of tuples (field, value); see <wiz_edit>
 

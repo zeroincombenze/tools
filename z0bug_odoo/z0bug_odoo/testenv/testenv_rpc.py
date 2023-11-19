@@ -148,6 +148,7 @@ KEY_INCANDIDATE = {
     "code": ["product.product"],
     "partner_id": ["account.move.line", "stock.location"],
     "ref": ["res.partner"],
+    "reference": ["sale.order"],
 }
 KEY_OF_RESOURCE = {
     "account.tax": "description",
@@ -209,7 +210,8 @@ class MainTest(test_common.TransactionCase):
 
     def tearDown(self):
         super(MainTest, self).tearDown()
-        self._logger.info("🏆🥇 %d RPC tests SUCCESSFULLY completed" % self.assert_counter)
+        self._logger.info("🏆🥇 %d RPC tests SUCCESSFULLY completed"
+                          % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --
@@ -1904,8 +1906,10 @@ class MainTest(test_common.TransactionCase):
         domain = build_domain(domain, ln, values)
         if not domain:                                               # pragma: no cover
             if raise_if_not_found:
-                self.raise_error("Invalid search keys for model %s" % resource)
-            self._logger.info("⚠ Invalid search keys for model %s" % resource)
+                self.raise_error("Invalid search keys %s for model %s"
+                                 % (self.skeys[resource], resource))
+            self._logger.info("⚠ Invalid search keys %s for model %s"
+                              % (self.skeys[resource], resource))
             return False
         record = self.env[resource].search(domain, limit=3)
         if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):

@@ -205,13 +205,15 @@ KEY_CANDIDATE = (
 )
 KEY_INCANDIDATE = {
     "code": ["product.product"],
-    "partner_id": ["account.move.line"],
+    "partner_id": ["account.move.line", "stock.location"],
     "ref": ["res.partner"],
+    "reference": ["sale.order"],
 }
 KEY_OF_RESOURCE = {
-    "res.users": "login",
     "account.tax": "description",
     "account.rc.type.tax": "purchase_tax_id",
+    "res.users": "login",
+    "stock.location": "name",
 }
 REC_KEY_NAME = {"id", "code", "name"}
 if PY3:  # pragma: no cover
@@ -603,7 +605,11 @@ class MainTest(test_common.TransactionCase):
 
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
-        xref, ln = xref.rsplit("_", 1)
+        try:
+            xref, ln = xref.rsplit("_", 1)
+        except ValueError:
+            self.log_lvl_1(" 🌍 Invalid detail xref %s" % xref)
+            ln = ""
         if ln.isdigit():
             ln = int(ln) or False
         elif isinstance(ln, basestring) and self._is_xref(ln):
@@ -1903,8 +1909,10 @@ class MainTest(test_common.TransactionCase):
         domain = build_domain(domain, ln, values)
         if not domain:                                               # pragma: no cover
             if raise_if_not_found:
-                self.raise_error("Invalid search keys for model %s" % resource)
-            self._logger.info("⚠ Invalid search keys for model %s" % resource)
+                self.raise_error("Invalid search keys %s for model %s"
+                                 % (self.skeys[resource], resource))
+            self._logger.info("⚠ Invalid search keys %s for model %s"
+                              % (self.skeys[resource], resource))
             return False
         record = self.env[resource].search(domain, limit=3)
         if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):
@@ -2872,7 +2880,8 @@ class MainTest(test_common.TransactionCase):
                 ctr_assertion += self.tmpl_validate_record(template, rec)
             return ctr_assertion
 
-        if [key for key in template["_MATCH"]][0][1] == record:
+        # if [key for key in template["_MATCH"]][0][1] == record:
+        if template["_MATCH"] and template["_MATCH"].keys()[0][1] == record:
             for field in template.keys():
                 if field in (childs_name, "id") or field.startswith("_"):
                     continue
@@ -2936,7 +2945,9 @@ class MainTest(test_common.TransactionCase):
         ctr_assertion = self.tmpl_validate_record(template, records)
         matches = []
         for tmpl in template:
-            if tmpl["_MATCH"] not in matches:
+            if not tmpl["_MATCH"]:
+                self.raise_error("One template item matches twice!\n%s" % tmpl)
+            elif tmpl["_MATCH"] not in matches:
                 matches.append(tmpl["_MATCH"])
                 ctr_assertion += 1
             else:

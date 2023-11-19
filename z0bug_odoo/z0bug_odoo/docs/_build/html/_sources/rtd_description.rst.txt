@@ -482,19 +482,19 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 Look at follow table to understand which set of tests are enabled or disabled:
 
 +--------------------+--------------+--------------+--------------+-------------------------+
-| statement          | application  | module l10n_ | odoo/addons  | addons + dependencies   |
+| statement          | application  | local module | odoo/addons  | addons + dependencies   |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | ALL                | |check|      | |check|      | |check|      | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | APPLICATIONS       | |check|      | |no_check|   | |no_check|   | Only if application     |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only module l10n_*      |
+| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only local modules      |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | CORE               | |no_check|   | |no_check|   | |check|      | |no_check|              |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-APPLICATION     | |no_check|   | |check|      | |check|      | No if application       |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No if module l10n_*     |
+| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No local modules        |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-CORE            | |check|      | |check|      | |no_check|   | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
