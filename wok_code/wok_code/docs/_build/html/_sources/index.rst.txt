@@ -1,5 +1,5 @@
 .. wok_code documentation master file, created by
-   gen_readme.py on 2023-11-18 08:16:52
+   gen_readme.py on 2023-11-22 09:37:09
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -13,6 +13,7 @@ Welcome to wok_code 2.0.12 documentation!
 
 
    rtd_description
+   rtd_usage
    rtd_getting_started
    rtd_description_arcangelo
    rtd_usage_arcangelo
@@ -23,6 +24,7 @@ Welcome to wok_code 2.0.12 documentation!
    rtd_description_odoo_dependencies
    rtd_usage_odoo_dependencies
    rtd_description_please
+   rtd_usage_please
    rtd_automodule
    rtd_changelog
    rtd_credits

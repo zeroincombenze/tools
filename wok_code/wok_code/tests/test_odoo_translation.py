@@ -8,158 +8,107 @@
 import os
 import sys
 
-from python_plus import _c
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.12"
 
-MODULE_ID = "z0bug_odoo"
+MODULE_ID = "wok_code"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
+
 ODOO_VERSIONS = ("12.0", "10.0", "7.0")
 
-DESCR_FN = """Lorem ipsum
------------
+PO_FILE = """# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * test_module
+#
+msgid ""
+msgstr ""
 
-Lorem ipsum **dolor** sit amet
-.. $if branch in '%s'
-consectetur *adipiscing* elit
-.. $fi
-.. $if branch in '12.0'
-odoo 12.0
-.. $elif branch in '10.0'
-odoo 10.0
-.. $elif branch in '8.0'
-odoo 8.0
-.. $else
-Unknown Odoo version
-.. $fi
+#. module: test_module
+#: model:ir.model.fields:test_module.account_id
+msgid "account"
+msgstr ""
 
-* Feature A
-* Feature B
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.test_model_account_id
+msgid "Account"
+msgstr ""
 
-::
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.test_model_account_id
+msgid "Account."
+msgstr ""
 
-    >>> doc
-|
-.. image:: logo.png
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
 
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.test_model_account_id
+msgid "tax"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.test_model_account_id
+msgid "Invoices"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "<b>Invoice</b>"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "Dear ${name}"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "&gt; 100%%"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "Invoice n.%s"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "invoice n.%(number)s of %(date)s"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "# invoice lines"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "/usr/name/line"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "account.tax"
+msgstr ""
 """
 
-AUTHORS_FN = """Lorem ipsum
-.. $if branch in '%s'
-* SHS-AV s.r.l. <https://www.shs-av.com>
-.. $elif branch in '12.0'
-* wrong author <https://12.0>
-.. $elif branch in '10.0'
-* wrong author <https://10.0>
-.. $elif branch in '8.0'
-* wrong author <https://8.0>
-.. $else
-Unknown Odoo version
-.. $fi
-"""
-
-CONTRIBUTORS_FN = """Lorem ipsum
-.. $if branch in '%s'
-* antonio <antoniov@libero.it>
-.. $elif branch in '12.0'
-* alberta <alberta@libero.it>
-.. $elif branch in '10.0'
-* daniela <daniela@libero.it>
-.. $elif branch in '8.0'
-* elia <elia@libero.it>
-.. $else
-Unknown Odoo version
-.. $fi
-"""
-
-README_MAIN_MODULE = """
-{{description}}
-"""
-
-README_7 = """Lorem ipsum **dolor** sit amet
-consectetur *adipiscing* elit
-Unknown Odoo version
-
-* Feature A
-* Feature B
-
-::
-
-    >>> doc
-|
-.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/7.0/test_module/static/src/img/logo.png
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
-
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
-"""
-
-README_10 = """Lorem ipsum **dolor** sit amet
-consectetur *adipiscing* elit
-odoo 10.0
-
-* Feature A
-* Feature B
-
-::
-
-    >>> doc
-|
-.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/10.0/test_module/static/description/logo.png
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
-
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
-"""
-
-README_12 = """Lorem ipsum **dolor** sit amet
-consectetur *adipiscing* elit
-odoo 12.0
-
-* Feature A
-* Feature B
-
-::
-
-    >>> doc
-|
-.. image:: https://raw.githubusercontent.com/zeroincombenze/test_repo/12.0/test_module/static/description/logo.png
-   :alt: Odoo Community Association
-   :target: https://odoo-community.org
-
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
-"""
-
+PO_TEST_VALUE = {
+    "msgid \"account\"": "msgstr \"conto\"",
+    "msgid \"Account\"": "msgstr \"Conto\"",
+    "msgid \"Account.\"": "msgstr \"Conto.\"",
+    "msgid \"tax\"": "msgstr \"IVA\"",
+    "msgid \"Invoices\"": "msgstr \"Fatture\"",
+    "msgid \"<b>Invoice<b>\"": "msgstr \"<b>Fattura<b>\"",
+    "msgid \"Dear ${name}\"": "msgstr \"Gentile ${name}\"",
+    "msgid \"&gt; 100%%\"": "msgstr \"&gt; 100%%\"",
+    "msgid \"Invoice n.%s\"": "msgstr \"Fattura n.%s\"",
+    "msgid \"invoice n.%(number)s of %(date)s\"":
+        "msgstr \"fattura n.%(number)s di %(date)s\"",
+    "msgid \"# invoice lines\"": "msgstr \"N. righe fattura\"",
+    "msgid \"/usr/name/line\"": "msgstr \"/usr/name/line\"",
+    "msgid \"account.tax\"": "msgstr \"account.tax\"",
+}
 
 def version():
     return __version__
@@ -171,116 +120,29 @@ class RegressionTest:
         self.Z.inherit_cls(self)
 
     def setup(self, z0ctx):
-        self.templatedir = os.path.join(
-            os.path.expanduser("~"), "devel", "pypi", "tools", "templates"
-        )
-        if not os.path.isdir(self.templatedir):
-            os.makedirs(self.templatedir)
-        with open(os.path.join(self.templatedir, "footer.rst"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-----------------------
-
-.. |en| image:: {{grymb_image_en}}
-   :target: {{grymb_url_en}}
-.. |it| image:: {{grymb_image_it}}
-   :target: {{grymb_url_it}}
-"""
-                )
-            )
-        with open(os.path.join(self.templatedir, "header_authors.txt"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-Authors
--------
-"""
-                )
-            )
-        with open(os.path.join(self.templatedir, "header_contributors.txt"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-Contributors
-------------
-"""
-                )
-            )
-        with open(os.path.join(self.templatedir, "header_acknowledges.txt"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-Acknoledges to
---------------
-"""
-                )
-            )
-
-        self.create_readme_main_module_file()
-
-
-        with open(
-                os.path.join(self.templatedir, "readme_main_repository.rst"), "w"
-        ) as fd:
-            fd.write(
-                _c(
-                    """
-{{description}}
-"""
-                )
-            )
-        with open(os.path.join(self.templatedir, "readme_main_ocb.rst"), "w") as fd:
-            fd.write(
-                _c(
-                    """
-{{description}}
-"""
-                )
-            )
         z0lib.run_traced(
-            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
+            "build_cmd %s" % os.path.join(
+                self.Z.rundir, "scripts", "odoo_translation.py")
         )
 
-    def get_doc_path(self, odoo_path, gitorg):
-        doc_path = os.path.join(odoo_path, "readme")
-        if not os.path.isdir(doc_path):
-            os.mkdir(doc_path)
-        return doc_path
+    def get_fqn(self, fn):
+        return os.path.join(self.Z.testdir, "data", fn)
 
-    def create_description_file(self, moduledir, odoo_version, gitorg):
-        egg_info_path = self.get_doc_path(moduledir, gitorg)
-        descr_fn = os.path.join(egg_info_path, "DESCRIPTION.rst")
-        with open(descr_fn, "w") as fd:
-            fd.write(_c(DESCR_FN % odoo_version))
+    def rm_data_file(self, fn):
+        fqn = self.get_fqn(fn)
+        if os.path.isfile(fqn):
+            os.unlink(fqn)
 
-    def create_authors_file(self, moduledir, odoo_version, gitorg):
-        egg_info_path = self.get_doc_path(moduledir, gitorg)
-        if gitorg == "zero":
-            descr_fn = os.path.join(egg_info_path, "AUTHORS.rst")
-            with open(descr_fn, "w") as fd:
-                fd.write(_c(AUTHORS_FN % odoo_version))
-
-    def create_contributors_file(self, moduledir, odoo_version, gitorg):
-        egg_info_path = self.get_doc_path(moduledir, gitorg)
-        descr_fn = os.path.join(egg_info_path, "CONTRIBUTORS.rst")
-        with open(descr_fn, "w") as fd:
-            fd.write(_c(CONTRIBUTORS_FN % odoo_version))
-
-    def create_readme_main_module_file(self):
-        tmpl_fn = os.path.join(self.templatedir, "readme_main_module.rst")
-        with open(tmpl_fn, "w") as fd:
-            fd.write(_c(README_MAIN_MODULE))
-
-    def fn_source(self, fn):
-        with open(fn) as fd:
-            test_source = fd.read()
-        return test_source
+    def read_data_file(self, fn):
+        fqn = self.get_fqn(fn)
+        with open(fqn, "r") as fd:
+            contents = fd.read()
+        return contents
 
     def test_01(self, z0ctx):
-        sts = 0
-        cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
-        gitorg = "zero"
+        base_cmd = os.path.join(self.Z.rundir, "scripts", "odoo_translation.py")
+        ref_template = self.read_data_file("ref_odoo_template_tnl.csv")
+        ref_tnl = self.read_data_file("ref_odoo_translation.csv")
         for odoo_version in ODOO_VERSIONS:
             if not z0ctx["dry_run"]:
                 self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
@@ -291,43 +153,45 @@ Acknoledges to
                 moduledir = z0testodoo.create_module(
                     z0ctx, repodir, "test_module", "%s.0.1.0" % odoo_version
                 )
-                self.create_description_file(moduledir, odoo_version, gitorg)
-                self.create_authors_file(moduledir, odoo_version, gitorg)
-                self.create_contributors_file(moduledir, odoo_version, gitorg)
+                i18n_dir = os.path.join(moduledir, "i18n")
+                it_po_file = os.path.join(moduledir, "i18n", "it.po")
+
+                if not os.path.isdir(i18n_dir):
+                    os.mkdir(i18n_dir)
+                if os.path.isfile(it_po_file):
+                    os.unlink(it_po_file)
+                self.rm_data_file("odoo_template_tnl.csv")
+                self.rm_data_file("odoo_translation.csv")
                 os.chdir(moduledir)
-                cmd = "%s -fBwG%s" % (cmd, gitorg)
+
+                cmd = "%s %s -WT" % (sys.executable, base_cmd)
                 sts, stdout, stderr = z0lib.run_traced(cmd)
                 self.assertEqual(sts, 0, msg_info=cmd)
-                for fn in ("__manifest__.rst",
-                           "CHANGELOG.rst",
-                           "DESCRIPTION.it_IT.rst",
-                           "USAGE.rst",
-                           "USAGE.it_IT.rst",
-                           "CONFIGURATION.rst",
-                           "CONFIGURATION.it_IT.rst",
-                           ):
-                    self.assertTrue(
-                        os.path.isfile(os.path.join(moduledir, "readme", fn)),
-                        msg_info=cmd)
+                template = self.read_data_file("odoo_template_tnl.csv")
+                tnl = self.read_data_file("odoo_translation.csv")
 
-                if odoo_version == "7.0":
-                    self.assertEqual(
-                        README_7,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
-                elif odoo_version == "10.0":
-                    self.assertEqual(
-                        README_10,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
-                elif odoo_version == "12.0":
-                    self.assertEqual(
-                        README_12,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
+                self.assertEqual(
+                    template, ref_template, msg="odoo_template_tnl contents"
+                )
+                self.assertEqual(
+                    tnl, ref_tnl, msg="odoo_translation contents"
+                )
+
+                with open(it_po_file, "w") as fd:
+                    fd.write(PO_FILE)
+                cmd = "%s %s -T" % (sys.executable, base_cmd)
+                sts, stdout, stderr = z0lib.run_traced(cmd)
+                self.assertEqual(sts, 0, msg_info=cmd)
+                with open(it_po_file, "r") as fd:
+                    po_contents = fd.read()
+                test_value = ""
+                for ln in po_contents.split("\n"):
+                    if test_value:
+                        self.assertEqual(ln, test_value)
+                        test_value = ""
+                    else:
+                        test_value = PO_TEST_VALUE.get(ln)
+
         return self.ret_sts()
 
 

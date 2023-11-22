@@ -1,7 +1,6 @@
-
-======
- 2.0.1
-======
+=========
+os0 2.0.1
+=========
 
 
 
@@ -9,12 +8,8 @@
 
 
 
-
 Overview
 ========
-
-Operating System indipendent interface
---------------------------------------
 
 This module is deprecated. It was born to extend python os module.
 
@@ -50,30 +45,31 @@ No yet migration path
 * str2bool
 
 
-|
-|
 
 Getting started
 ===============
 
 
-Installation
-------------
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    pip install 
-
-|
+    pip install os0
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,10 +77,11 @@ Current version via Git
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Upgrade
@@ -95,32 +92,39 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
+    pip install --upgrade os0
 
-|
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-History
--------
+
+ChangeLog History
+-----------------
 
 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
 
+1.0.3.1 (2021-12-23)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python compatibility
+
+1.0.3 (2021-12-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Stable version
 
 
-|
-|
 
 Credits
 =======
@@ -131,17 +135,21 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of  project.
-
-Last Update / Ultimo aggiornamento: 
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -186,5 +194,3 @@ Last Update / Ultimo aggiornamento:
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

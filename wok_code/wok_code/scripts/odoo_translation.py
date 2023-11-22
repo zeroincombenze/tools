@@ -4,6 +4,7 @@
 Create map of Odoo modules
 """
 import os
+import os.path as pth
 import sys
 from time import time, sleep
 import argparse
@@ -23,66 +24,6 @@ __version__ = "2.0.12"
 
 
 MODULE_SEP = "\ufffa"
-
-# (<en>, <it>, <module>, <result>, ovverride)
-TEST_DATA = [
-    ("name", "nome", None, "nome"),
-    ("Name", "Nome", None, "Nome"),
-    ("Name.", "Name.", None, "Nome."),
-    ("Name!!", "Name!!", None, "Nome!!"),
-    ("First Name", "Nome di battesimo", None, "Nome di battesimo"),
-    ("Last Name", "Cognome", None, "Cognome"),
-    ("Name s.r.l.", None, None, "Nome s.r.l."),
-    ("account", "conto", None, "conto"),
-    ("tax", "IVA", None, "IVA"),
-    ("UE", "EU", None, "EU"),
-    ("Customer", "Cliente", None, "Cliente"),
-    ("Invoice", "Fattura", None, "Fattura"),
-    ("invoice", "", None, "fattura"),
-    ("<b>Invoice</b>", "<b>Invoice</b>", None, "<b>Fattura</b>"),
-    ("<b>Invoice</b>", "", None, "<b>Fattura</b>"),
-    ("<b>Invoice</b>", "<b>Fattura</b>", None, "<b>Fattura</b>"),
-    ("Print <b>Invoice</b>!", "Stampa <b>Fattura</b>!", None, "Stampa <b>Fattura</b>!"),
-    ("Order(s)", "Ordine/i", None, "Ordine/i"),
-    ("Invoice n.%s", "", None, "Fattura n.%s"),
-    ("Invoice n.%(number)s of %(date)s", "", None, "Fattura n.%(number)s of %(date)s"),
-    ("Invoices", "", None, "Fatture"),
-    ("Invoice(s)", "", None, "Fattura/e"),
-    ("Invoice ", "", None, "Fattura "),
-    (" Invoice", "", None, " Fattura"),
-    (" Invoice ", "", None, " Fattura "),
-    ("Invoices.", "", None, "Fatture."),
-    ("line", "riga", None, "riga"),
-    ("lines", "", None, "righe"),
-    ("Invoice lines", "Righe fattura", None, "Righe fattura"),
-    ("Sale", "Vendite", None, "Vendite"),
-    (
-        "Sale Invoice lines",
-        "Righe fattura di vendita",
-        None,
-        "Righe fattura di vendita",
-    ),
-    ("Credit", "Credito", None, "Credito"),
-    ("Credit", "Avere", "l10n_it", "Avere"),
-    ("account.tax", "*WRONG*", None, "account.tax"),
-    ("Dear", "Gentile", None, "Gentile"),
-    ("Dear ${name}", "", None, "Gentile ${name}"),
-    ("Purchase", "", None, "Acquistare"),
-    ("&gt; 100%%", "", None, "&gt; 100%%"),
-    ("/usr/name/line", "", None, "/usr/name/line"),
-    ("%s invoice lines", "righe %s fattura", None, "righe %s fattura"),
-    ("# invoice lines", None, None, "N.fattura righe"),
-    ("Acceptance Account", "Conto RI.BA. all'incasso", None, "Conto RiBA all'incasso"),
-    ("Ri.Ba. Bank", "Banca Ri.Ba", None, "Banca RiBA"),
-    ("Created by", "Creato da", None, "Creato da"),
-    ("Created by", "Creato da", None, "Creato da"),
-    ("Customer SEPA account", None, None, "Conto cliente SEPA"),
-    ("Customer SEPA account", "Conto cliente SEPA", None, "Conto cliente SEPA", True),
-    ("Account (Credit)", "Conto (avere)", None, "Conto (avere)"),
-    ("Account (Credit)", None, "l10n_it", "Conto (Avere)"),
-    ("Other Info", "Altre informazioni", None, "Altre informazioni"),
-    ("Other Info", "Altre info", "l10n_it", "Altre info"),
-]
 
 TNL_TYPES = (
     "ir.actions.act_window,name",
@@ -117,21 +58,40 @@ class OdooTranslation(object):
         self.ts = ts
         self.opt_args = opt_args
         self.dict = {}
+        if not opt_args.target_path:
+            opt_args.target_path = os.getcwd()
         if (
             opt_args.target_path
             and opt_args.target_path.endswith(".po")
-            and os.path.basename(os.path.dirname(opt_args.target_path)) == "i18n"
+            and pth.basename(pth.dirname(opt_args.target_path)) == "i18n"
         ):
-            self.opt_args.target_path = os.path.dirname(
-                os.path.dirname(opt_args.target_path)
+            self.opt_args.target_path = pth.dirname(
+                pth.dirname(opt_args.target_path)
             )
-        if not opt_args.file_xlsx:
+        if not self.opt_args.module_name and not opt_args.rewrite_xlsx:
+            po_file = pth.join(opt_args.target_path, "i18n", self.opt_args.lang + ".po")
+            if not pth.isfile(po_file):
+                po_file = pth.join(opt_args.target_path,
+                                   "i18n",
+                                   self.opt_args.lang.split("_")[0] + ".po")
+                if pth.isfile(po_file):
+                    self.opt_args.module_name = pth.basename(self.opt_args.target_path)
+        if not opt_args.file_xlsx and not self.opt_args.test:
             root = self.get_home_devel()
             if opt_args.dbg_template:
-                dict_name = os.path.join(root, "pypi", "tools", "odoo_default_tnl.xlsx")
+                dict_name = pth.join(root, "pypi", "tools", "odoo_template_tnl.xlsx")
             else:
-                dict_name = os.path.join(root, "venv", "bin", "odoo_default_tnl.xlsx")
-            if os.path.isfile(dict_name):
+                dict_name = pth.join(root, "venv", "bin", "odoo_template_tnl.xlsx")
+            if pth.isfile(dict_name):
+                self.opt_args.file_xlsx = dict_name
+        elif not opt_args.file_xlsx and self.opt_args.test:
+            root = os.environ["HOME"]
+            if opt_args.dbg_template:
+                dict_name = pth.join(root, "pypi", "tools", "odoo_template_tnl.xlsx")
+            else:
+                dict_name = pth.join(pth.dirname(pth.dirname(__file__)),
+                                     "tests", "data", "odoo_template_tnl.xlsx")
+            if pth.isfile(dict_name):
                 self.opt_args.file_xlsx = dict_name
 
         # Type classification
@@ -185,21 +145,21 @@ class OdooTranslation(object):
 
     def get_home_devel(self):
         root = os.environ.get("HOME_DEVEL")
-        if not root or not os.path.isdir(root):
-            if os.path.isdir(os.path.expanduser("~/odoo/devel")):
-                root = os.path.expanduser("~/odoo/devel")
-            elif os.path.isdir(os.path.expanduser("~/devel")):
-                root = os.path.expanduser("~/devel")
+        if not root or not pth.isdir(root):
+            if pth.isdir(pth.expanduser("~/odoo/devel")):
+                root = pth.expanduser("~/odoo/devel")
+            elif pth.isdir(pth.expanduser("~/devel")):
+                root = pth.expanduser("~/devel")
             else:
                 root = os.environ.get("HOME")
         return root
 
     def ismodule(self, path):
-        if os.path.isdir(path):
+        if pth.isdir(path):
             if (
-                os.path.isfile(os.path.join(path, "__manifest__.py"))
-                or os.path.isfile(os.path.join(path, "__openerp__.py"))
-            ) and os.path.isfile(os.path.join(path, "__init__.py")):
+                pth.isfile(pth.join(path, "__manifest__.py"))
+                or pth.isfile(pth.join(path, "__openerp__.py"))
+            ) and pth.isfile(pth.join(path, "__init__.py")):
                 return True
         return False
 
@@ -211,16 +171,16 @@ class OdooTranslation(object):
     def isfullupper(self, term):
         return term == term.upper()
 
-    def get_filenames(self, filename=None):
-        filename = filename or self.opt_args.file_xlsx
+    def get_filenames(self, fqn=None):
+        fqn = fqn or self.opt_args.file_xlsx
         tmp_file = bak_file = None
-        if filename:
-            tmp_file = "%s.tmp" % filename
-            bak_file = "%s.bak" % filename
-        return filename, tmp_file, bak_file
+        if fqn:
+            tmp_file = "%s.tmp" % fqn
+            bak_file = "%s.bak" % fqn
+        return fqn, tmp_file, bak_file
 
     def save_n_bak_fn(self, filename, tmp_file, bak_file):
-        if os.path.isfile(bak_file):
+        if pth.isfile(bak_file):
             os.unlink(bak_file)
         os.rename(filename, bak_file)
         os.rename(tmp_file, filename)
@@ -246,6 +206,14 @@ class OdooTranslation(object):
                     and not self.isfullupper(tnxl)
                 ):
                     tnxl = tnxl[0].lower() + tnxl[1:]
+            if orig.endswith(".") and not tnxl.endswith("."):
+                tnxl += "."
+            elif orig.endswith("!") and not tnxl.endswith("!"):
+                tnxl += "!"
+            elif orig.endswith(" ") and not tnxl.endswith(" "):
+                tnxl += " "
+            elif orig.endswith(":") and not tnxl.endswith(":"):
+                tnxl += ":"
         return tnxl
 
     def set_plural(self, orig, term):
@@ -297,7 +265,9 @@ class OdooTranslation(object):
         if len(msg_orig) <= 1 and not is_tag:
             return msg_orig
         if collections.Counter(msg_orig)["%"] != collections.Counter(msg_tnxl)["%"]:
-            print("*** Warning: different macro: " + msg_orig + " / " + msg_tnxl)
+            print("*** Warning: different param subts: <<"
+                  + msg_orig + ">> / <<" + msg_tnxl + ">>")
+            return msg_orig
         if not is_tag and not raw:
             for item in self.tags:
                 tnxls = self.dict[item]
@@ -311,7 +281,7 @@ class OdooTranslation(object):
                 ltoken = " %s" % tnxls[0]
                 rtoken = " %s" % tnxls[1]
                 if msg_tnxl.endswith(ltoken):
-                    msg_tnxl = msg_tnxl[0 : -len(ltoken)] + rtoken
+                    msg_tnxl = msg_tnxl[0: -len(ltoken)] + rtoken
         hash_key = self.get_hash_key(hash_key, False, module=module)
         if hash_key and (
             hash_key not in self.dict
@@ -474,6 +444,7 @@ class OdooTranslation(object):
         override=None,
         module=None,
         is_tag=None,
+        adjust_case=None
     ):
         if not msg_orig:
             return msg_orig
@@ -615,11 +586,14 @@ class OdooTranslation(object):
         elif fullterm_2_store or (
             fullterm_tnxl == fulltermhk_tnxl and hash_key in self.dict
         ):
-            return self.get_term(hash_key, fullterm_orig, fullterm_tnxl)
+            return self.get_term(
+                hash_key, fullterm_orig, fullterm_tnxl, adjust_case=adjust_case)
         return fullterm_tnxl
 
-    def translate_item(self, msg_orig, msg_tnxl, module=None):
-        return self.do_dict_item(msg_orig, msg_tnxl, action="translate", module=module)
+    def translate_item(self, msg_orig, msg_tnxl, module=None, adjust_case=None):
+        return self.do_dict_item(
+            msg_orig, msg_tnxl,
+            action="translate", module=module, adjust_case=adjust_case)
 
     def translate_pofile(self, po_fn):
         def add_po_line(potext, line):
@@ -696,10 +670,10 @@ class OdooTranslation(object):
                 break
             return left_ix, right_ix
 
-        if os.path.isfile(po_fn):
-            filename, tmp_file, bak_file = self.get_filenames(filename=po_fn)
+        if pth.isfile(po_fn):
+            fqn, tmp_file, bak_file = self.get_filenames(fqn=po_fn)
             if self.opt_args.verbose:
-                print("Writing %s" % filename)
+                print("Writing %s" % fqn)
 
             module = self.opt_args.module_name
             try:
@@ -715,7 +689,7 @@ class OdooTranslation(object):
                 )
 
             pofile.write_po(open(tmp_file, "wb"), catalog, include_previous=True)
-            with open(filename, "r") as fd:
+            with open(fqn, "r") as fd:
                 left_lines = fd.read().split("\n")
             with open(tmp_file, "r") as fd:
                 right_lines = fd.read().split("\n")
@@ -807,24 +781,26 @@ class OdooTranslation(object):
                 with open(tmp_file, "w") as fd:
                     fd.write("\n".join(right_lines))
 
-            self.save_n_bak_fn(filename, tmp_file, bak_file)
+            self.save_n_bak_fn(fqn, tmp_file, bak_file)
 
-    def load_terms_from_text(self, fqn=None):
-        fqn = fqn or os.path.join(os.path.dirname(__file__), "odoo_translation.dat")
-        if not self.opt_args.ignore_cache and os.path.isfile(fqn):
-            with open(fqn, "r") as fd:
-                for ln in fd.read().split("\n"):
-                    if not ln:
-                        continue
-                    module, msgid, msgstr = ln.split("\t", 2)
-                    msg_burst("%s ..>" % msgid[:60].split("\n")[0])
-                    msgid = msgid.replace("\x7f", "\n")
-                    msgstr = msgstr.replace("\x7f", "\n")
-                    hkey = self.get_hash_key(msgid, False, module=module)
-                    self.store_1_item(hkey, msgid, msgstr, module=module, raw=True)
+    def load_terms_from_cached_xlsx(self, fqn=None):
+        fqn = fqn or self.opt_args.file_xlsx
+        fqn = pth.join(pth.dirname(fqn), "odoo_translation.xlsx")
+        if not self.opt_args.ignore_cache and pth.isfile(fqn):
+            # with open(fqn, "r") as fd:
+            #     for ln in fd.read().split("\n"):
+            #         if not ln:
+            #             continue
+            #         module, msgid, msgstr = ln.split("\t", 2)
+            #         msg_burst("%s ..>" % msgid[:60].split("\n")[0])
+            #         msgid = msgid.replace("\x7f", "\n")
+            #         msgstr = msgstr.replace("\x7f", "\n")
+            #         hkey = self.get_hash_key(msgid, False, module=module)
+            #         self.store_1_item(hkey, msgid, msgstr, module=module, raw=True)
+            self.load_terms_from_xlsx(fqn)
 
     def load_terms_from_pofile(self, po_fn, override=None):
-        if os.path.isfile(po_fn):
+        if pth.isfile(po_fn):
             if self.opt_args.verbose:
                 print("Loading %s" % po_fn)
             try:
@@ -840,7 +816,7 @@ class OdooTranslation(object):
                 )
 
     def load_terms_from_xlsx(self, dict_fn):
-        if os.path.isfile(dict_fn):
+        if pth.isfile(dict_fn):
             if self.opt_args.verbose:
                 print("Loading terms from %s" % dict_fn)
             wb = load_workbook(dict_fn)
@@ -877,28 +853,18 @@ class OdooTranslation(object):
                         module=row["module"],
                     )
 
-    def load_terms_for_test(self):
-        for items in TEST_DATA:
-            self.do_dict_item(
-                items[0],
-                items[1],
-                action="build_dict",
-                module=items[2],
-                override=items[4] if len(items) > 4 else None,
-            )
-
     def do_work_on_path(self, root, base, action=None):
         action = action or "translate"
-        path = os.path.join(root, base) if base else root
+        path = pth.join(root, base) if base else root
         if self.ismodule(path):
-            i18n_path = os.path.join(path, "i18n")
-            po_fn = os.path.join(i18n_path, "%s.po" % self.opt_args.lang)
-            if not os.path.isfile(po_fn):
-                po_fn = os.path.join(
+            i18n_path = pth.join(path, "i18n")
+            po_fn = pth.join(i18n_path, "%s.po" % self.opt_args.lang)
+            if not pth.isfile(po_fn):
+                po_fn = pth.join(
                     i18n_path, "%s.po" % self.opt_args.lang.split("_")[0]
                 )
-            if not os.path.isfile(po_fn):
-                print("Module %s without translation" % os.path.basename(path))
+            if not pth.isfile(po_fn):
+                print("Module %s without translation" % pth.basename(path))
                 return
             if action == "build_dict":
                 self.load_terms_from_pofile(po_fn)
@@ -925,19 +891,47 @@ class OdooTranslation(object):
             self.do_dict_item(msg_orig, msg_tnxl, action="build_dict", is_tag=is_tag)
 
     def build_dict(self):
-        self.load_terms_from_text()
-        if self.opt_args.database and self.opt_args.file_xlsx:
+        self.load_terms_from_cached_xlsx(self.opt_args.file_xlsx)
+        if self.opt_args.file_xlsx:
             self.load_terms_from_xlsx(self.opt_args.file_xlsx)
-        elif not self.opt_args.module_name:
-            target_path = os.path.abspath(self.opt_args.target_path)
-            self.do_work_on_path(target_path, None)
+        if not self.opt_args.module_name and self.opt_args.target_path:
+            target_path = pth.abspath(self.opt_args.target_path)
+            # Parse root and then all sub-directories
+            self.do_work_on_path(target_path, None, action="build_dict")
             for root, dirs, files in os.walk(
                 target_path, topdown=True, followlinks=False
             ):
                 dirs[:] = [
                     d
                     for d in dirs
-                    if d not in (".git", "__to_remove", "doc", "setup", ".idea")
+                    if (
+                        not d.startswith(".")
+                        and not d.startswith("_")
+                        and not d.endswith("~")
+                        and d
+                        not in (
+                            "build",
+                            "debian",
+                            "dist",
+                            "doc",
+                            "docs",
+                            "egg-info",
+                            "filestore",
+                            "history",
+                            "howtos",
+                            "images" "migrations",
+                            "redhat",
+                            "reference",
+                            "scripts",
+                            "server",
+                            "setup",
+                            "static",
+                            "tests",
+                            "tmp",
+                            "venv_odoo",
+                            "win32",
+                        )
+                    )
                 ]
                 for base in dirs:
                     self.do_work_on_path(root, base, action="build_dict")
@@ -1019,7 +1013,7 @@ class OdooTranslation(object):
                 )
                 if len(term_tnl):
                     term_tnl = term_tnl[0]
-            value = self.translate_item(term.src, term.value)
+            value = self.translate_item(term.src, term.value, adjust_case=True)
             if not term_tnl:
                 if value != term.value:
                     vals = {
@@ -1064,7 +1058,7 @@ class OdooTranslation(object):
                 ctr_write += 1
             return ctr_write
 
-        if not os.path.isfile(self.opt_args.config):
+        if not pth.isfile(self.opt_args.config):
             print("File %s not found!" % self.opt_args.config)
             return 1
         ctr_read = ctr_write = db_tnl = 0
@@ -1104,10 +1098,10 @@ class OdooTranslation(object):
 
     def translate_module(self):
         module = self.opt_args.module_name
-        target_path = os.path.abspath(self.opt_args.target_path)
-        if module == "OCB" and os.path.isfile(os.path.join(target_path, "odoo-bin")):
+        target_path = pth.abspath(self.opt_args.target_path)
+        if module == "OCB" and pth.isfile(pth.join(target_path, "odoo-bin")):
             self.do_work_on_path(target_path, None, action="translate")
-        elif module == os.path.basename(target_path):
+        elif module == pth.basename(target_path):
             self.do_work_on_path(target_path, None, action="translate")
         else:
             for root, dirs, files in os.walk(
@@ -1127,43 +1121,81 @@ class OdooTranslation(object):
         for hash_key, terms in self.dict.items():
             print("[%s]\n'%s'='%s'" % (hash_key, terms[0], terms[1]))
 
-    def write_text(self, fqn=None):
-        fqn = fqn or os.path.join(os.path.dirname(__file__), "odoo_translation.dat")
-        with open(fqn, "w") as fd:
-            for hash_key, terms in self.dict.items():
-                if MODULE_SEP in hash_key:
-                    module = hash_key.split(MODULE_SEP)[0]
-                else:
-                    module = ""
-                fd.write("%s\t%s\t%s\n" % (module,
-                                           terms[0].replace("\n", "\x7f"),
-                                           terms[1].replace("\n", "\x7f")))
+    def write_cache_xlsx(self, fqn=None):
+        fqn = fqn or self.opt_args.file_xlsx
+        fqn = pth.join(pth.dirname(fqn), "odoo_translation.xlsx")
+        self.write_xlsx(fqn=fqn, inplace=True)
 
-    def write_xlsx(self):
-        if os.path.isfile(self.opt_args.file_xlsx):
-            filename, tmp_file, bak_file = self.get_filenames()
-            if self.opt_args.verbose:
-                print("Writing %s" % filename)
-            wb = Workbook()
-            sheet = wb.active
-            sheet.title = "odoo_default_tnxl"
-            sheet.cell(row=1, column=1, value="module")
-            sheet.cell(row=1, column=2, value="msgid")
-            sheet.cell(row=1, column=3, value="msgstr")
+    def write_xlsx(self, fqn=None, inplace=None, only_template=None):
+        fqn, tmp_file, bak_file = self.get_filenames(fqn)
+        if not pth.isfile(fqn):
+            inplace = True
+        if self.opt_args.test:
+            return self.write_csv(fqn=fqn, inplace=inplace, only_template=only_template)
+        if self.opt_args.verbose:
+            print("Writing %s" % fqn)
+        wb = Workbook()
+        sheet = wb.active
+        sheet.title = "odoo_default_tnxl"
+        sheet.cell(row=1, column=1, value="module")
+        sheet.cell(row=1, column=2, value="msgid")
+        sheet.cell(row=1, column=3, value="msgstr")
+        if not only_template:
             sheet.cell(row=1, column=4, value="hashkey")
-            row = 1
-            for hash_key, terms in self.dict.items():
-                row += 1
+        row = 1
+        for hash_key, terms in sorted(self.dict.items(), key=lambda x: x[0]):
+            if terms[0] == terms[1]:
+                continue
+            if only_template and not re.match(r"[\w][-\w ]+[\w]$", terms[0]):
+                continue
+            row += 1
+            if MODULE_SEP in hash_key:
+                module = hash_key.split(MODULE_SEP)[0]
+            else:
+                module = ""
+            sheet.cell(row=row, column=1, value=module)
+            sheet.cell(row=row, column=2, value=terms[0])
+            sheet.cell(row=row, column=3, value=terms[1])
+            if not only_template:
+                sheet.cell(row=row, column=4, value=hash_key)
+        if inplace:
+            wb.save(fqn)
+        else:
+            wb.save(tmp_file)
+            self.save_n_bak_fn(fqn, tmp_file, bak_file)
+
+    def write_csv(self, fqn=None, inplace=None, only_template=None):
+        fqn = fqn.replace(".xlsx", ".csv")
+        if self.opt_args.verbose:
+            print("Writing %s" % fqn)
+        with open(fqn, "w") as fd:
+            if only_template:
+                fd.write("%s\t%s\t%s\n" % (
+                    "module", "msgid", "msgstr"
+                ))
+            else:
+                fd.write("%s\t%s\t%s\t%s\n" % (
+                    "module", "msgid", "msgstr", "hashkey"
+                ))
+            for hash_key, terms in sorted(self.dict.items(), key=lambda x: x[0]):
+                if terms[0] == terms[1]:
+                    continue
+                if only_template and not re.match(r"[\w][-\w ]+[\w]$", terms[0]):
+                    continue
                 if MODULE_SEP in hash_key:
                     module = hash_key.split(MODULE_SEP)[0]
                 else:
                     module = ""
-                sheet.cell(row=row, column=1, value=module)
-                sheet.cell(row=row, column=2, value=terms[0])
-                sheet.cell(row=row, column=3, value=terms[1])
-                sheet.cell(row=row, column=4, value=hash_key)
-            wb.save(tmp_file)
-            self.save_n_bak_fn(filename, tmp_file, bak_file)
+                if only_template:
+                    fd.write("%s\t%s\t%s\n" % ((module,
+                                                terms[0].replace("\n", "\x7f"),
+                                                terms[1].replace("\n", "\x7f"))))
+                else:
+                    fd.write("%s\t%s\t%s\t%s\n" % ((
+                        module,
+                        terms[0].replace("\n", "\x7f"),
+                        terms[1].replace("\n", "\x7f"),
+                        hash_key)))
 
 
 def main(cli_args=None):
@@ -1210,9 +1242,7 @@ def main(cli_args=None):
 
     odoo_tnxl = OdooTranslation(parser.parse_args(cli_args))
     sts = 0
-    if odoo_tnxl.opt_args.test:
-        odoo_tnxl.load_terms_for_test()
-    elif odoo_tnxl.opt_args.file_xlsx or odoo_tnxl.opt_args.target_path:
+    if odoo_tnxl.opt_args.file_xlsx or odoo_tnxl.opt_args.target_path:
         odoo_tnxl.build_dict()
     else:
         print("Invalid parameters: please set xlsx file or Odoo path")
@@ -1226,29 +1256,8 @@ def main(cli_args=None):
     elif odoo_tnxl.opt_args.module_name:
         odoo_tnxl.translate_module()
     if odoo_tnxl.opt_args.rewrite_xlsx:
-        odoo_tnxl.write_xlsx()
-    if odoo_tnxl.opt_args.test:
-        print("")
-        print("")
-        print("Test starting ...")
-        ctr = ctr_err = 0
-        for items in TEST_DATA:
-            res = odoo_tnxl.translate_item(items[0], items[1], module=items[2])
-            print("[%s]->[%s]" % (items[0], items[3]))
-            if items[3] != res:
-                print("    **** TEST FAILED!!!! [" + items[3] + "]!=[" + res + "]")
-                ctr_err += 1
-            ctr += 1
-        print("")
-        for items in odoo_tnxl.dict.values():
-            if items[0] != items[0].strip():
-                print("    **** TEST FAILED!!!! [" + items[0] + "] with trailing space")
-                ctr_err += 1
-            ctr += 1
-        print("")
-        print("%d test executed with %d error detected." % (ctr, ctr_err))
-    else:
-        odoo_tnxl.write_text()
+        odoo_tnxl.write_xlsx(only_template=True)
+    odoo_tnxl.write_cache_xlsx()
     return sts
 
 

@@ -1,0 +1,5 @@
+Function/Feature,please syntax,external command,Note(s)
+help,please help,,
+clean,please clean,,clean temporary files in current working directory and sub directories
+clean db,please clean db,,remove old databases and virtual directories
+translatation,please translate,odoo_translation.py,translate file .po of Odoo module

@@ -27,6 +27,116 @@ The available tools are:
 
 
 
+Usage
+=====
+
+::
+
+    usage: please.py [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
+    
+    Zeroincombenze® developer shell.
+    obj after action may be on of apache, cwd, python, z0bug, zerobug, travis
+    
+    positional arguments:
+      action
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+      -H PATH, --home-devel PATH
+                            Home devel directory
+      -n, --dry-run         do nothing (dry-run)
+      -Q FILE, --tools-config FILE
+                            Configuration file
+      -q, --quiet           silent mode
+      -v, --verbose         verbose mode
+      -V, --version         show program's version number and exit
+    
+    Help available issuing: please help ACTION
+    © 2015-2023 by SHS-AV s.r.l.
+    Author: antoniomaria.vigliotti@gmail.com
+    Full documentation at: https://zeroincombenze-tools.readthedocs.io/
+    
+
+
+
+Action is one of:
+
+* help
+* build
+* chkconfig
+* config
+* docs
+* duplicate
+* export MODULE DB
+* import
+* list
+* lsearch
+* publish
+* push
+* pythonhosted
+* replace
+* replica
+* show
+* status
+* test
+* translate MODULE DB
+* version
+* wep
+
+*build*
+
+    Build a tar file for current PYPI project
+
+*chkconfig*
+
+    Display various values of current project.
+
+*config global|local*
+
+    Set various parameter by edit with vim.
+    Set various parameter editing with vim.
+    Comments inside configuration file can aim to set values.
+
+    Some variable are:
+
+    * GBL_EXCLUDE=test_impex -> Module globally escluded by test because can fail locally
+    * PYTHON_MATRIX="2.7 3.7" -> python version to use in tests
+
+*docs*
+
+    Prepare documentation to publish on readthedocs website (PYPI).
+    Create / update README and index.html of Odoo module.
+    Notice: README of repository history is tailored with last 60 days items;
+    on README and index,html of module, history is tailored with last 180 days items;
+    However max 12 items are added in README / index.html
+    Summary showed to console are tailored with last 15 days.
+
+*export MODULE DB [-bBRANCH]*
+
+    Export po file of Odoo project.
+    If current directory is a module directory you can use '.' (dot) for module name.
+
+    To declare specific version use -b switch
+
+*import MODULE DB*
+
+    Import po file of Odoo project.
+
+    To declare target version use \fB-b\fR switch
+
+*publish docs|download|pypi|svg|testpypi*
+
+    Publish documentation or package.
+
+    * publish docs     -> publish generate docs to website (require system privileges)
+    * publish download -> publish tarball to download (require system privileges)
+        type \fBplease build\fR to generate tarball file
+    * publish pypi     -> publish package to pypi website (from odoo user)
+    * publish svg      -> publish test result svg file (require system privileges)
+    * publish tar      -> write a tarball with package files
+
+
+
 Getting started
 ===============
 
@@ -97,6 +207,13 @@ ChangeLog History
 * [IMP] arcangelo: new python version assignment from odoo version
 * [IMP] please version: now show compare with last entry of history
 * [FIX] please docs: faq
+* [FIX] please help cwd
+* [FIX] gen_readme.py: sometimes lost history
+* [FIX] gen_readme.py: error reading malformed table
+* [IMP] odoo_translation.py: new regression tests
+* [FIX] odoo_translation.py: punctuation at the end of term
+* [FIX] odoo_translation.py: first character case
+* [FIX] odoo_translation.py: cache file format is Excel
 
 2.0.12 (2023-08-29)
 ~~~~~~~~~~~~~~~~~~~

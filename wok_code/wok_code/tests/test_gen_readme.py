@@ -14,7 +14,7 @@ from zerobug import z0test, z0testodoo
 
 __version__ = "2.0.12"
 
-MODULE_ID = "z0bug_odoo"
+MODULE_ID = "wok_code"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 ODOO_VERSIONS = ("12.0", "10.0", "7.0")
@@ -279,7 +279,7 @@ Acknoledges to
 
     def test_01(self, z0ctx):
         sts = 0
-        cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
+        base_cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
         gitorg = "zero"
         for odoo_version in ODOO_VERSIONS:
             if not z0ctx["dry_run"]:
@@ -295,7 +295,7 @@ Acknoledges to
                 self.create_authors_file(moduledir, odoo_version, gitorg)
                 self.create_contributors_file(moduledir, odoo_version, gitorg)
                 os.chdir(moduledir)
-                cmd = "%s -fBwG%s" % (cmd, gitorg)
+                cmd = "%s -fBwG%s" % (base_cmd, gitorg)
                 sts, stdout, stderr = z0lib.run_traced(cmd)
                 self.assertEqual(sts, 0, msg_info=cmd)
                 for fn in ("__manifest__.rst",

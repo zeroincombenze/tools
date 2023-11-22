@@ -82,8 +82,8 @@ check_for_modules() {
 
 coverage_set() {
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
-      COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
+      export COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
+      export COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
       if [[ $opt_dry_run -eq 0 ]]; then

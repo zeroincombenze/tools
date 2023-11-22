@@ -149,9 +149,9 @@ REQVERSION = {
     "pylint-odoo": {
         "6.1": "<3.0.0",        # to match lxml
         "11.0": "PYVER",
-        "16.0": ">=7.0.0",      # from pypi documentation
-        "15.0": ">=5.0.1",      # from pypi documentation
         "13.0": ">=3.3.1",      # from pypi documentation
+        "15.0": ">=5.0.1",      # from pypi documentation
+        "16.0": ">=7.0.0",      # from pypi documentation
         "3.5": "<=8.0.0",
         "3.8": ">=3.5.0,<=8.0.0",
     },
@@ -1131,7 +1131,7 @@ def get_pyver_4_odoo(odoo_ver):
     if odoo_major <= 10:
         pyver = "2.7"
     else:
-        pyver = "3.%d" % (int((odoo_major - 10) / 2) + 6)
+        pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
     return pyver
 
 

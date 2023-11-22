@@ -808,7 +808,6 @@ def totroff(text):
 def rst2html(ctx, text, draw_button=False):
 
     def get_tag_image(ctx):
-        # tag = ctx["html_state"]["tag"]
         html_tag = '<img src="%s"' % ctx["html_state"]["url"]
         for prpty in ("alt", "target"):
             if prpty in ctx["html_state"]:
@@ -1034,8 +1033,10 @@ def rst2html(ctx, text, draw_button=False):
                         'border-spacing:2px; text-align:left;"><tr>'
                     )
                     ctx["html_state"]["tag"] = "table"
+                    ctx["html_state"]["sub"] = ""
                 else:
                     lines[lineno] = "</tr><tr>"
+                    ctx["html_state"]["sub"] = "tr"
             elif (
                     ctx["html_state"]["tag"] == "table"
                     and re.match(r" *\|.*\| *$", lines[lineno])
@@ -1047,8 +1048,12 @@ def rst2html(ctx, text, draw_button=False):
                      for col in cols])
                 lines[lineno] = "<td>" + row + "</td>"
             elif ctx["html_state"]["tag"] == "table":
-                lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
+                if ctx["html_state"]["sub"] == "tr":
+                    lines[lineno - 1] += "</tr></table>"
+                else:
+                    lines[lineno - 1] += "</table>"
                 ctx["html_state"]["tag"] = ""
+                ctx["html_state"]["sub"] = ""
                 continue
             elif lines[lineno].startswith("* "):
                 lineno = open_tag(ctx, lines, lineno, "ul")
@@ -1113,8 +1118,12 @@ def rst2html(ctx, text, draw_button=False):
                     ctx, lines[lineno], draw_button)
         else:
             if ctx["html_state"]["tag"] == "table":
-                lines[lineno - 1] = "%s</tr></table>" % lines[lineno - 1][:-4]
+                if ctx["html_state"]["sub"] == "tr":
+                    lines[lineno - 1] += "</tr></table>"
+                else:
+                    lines[lineno - 1] += "</table>"
                 ctx["html_state"]["tag"] = ""
+                ctx["html_state"]["sub"] = ""
             else:
                 lineno = close_opened_tag(ctx, lines, lineno)
             if ctx["html_state"]["open_para"]:
@@ -1144,7 +1153,12 @@ def rst2html(ctx, text, draw_button=False):
         lines.append(get_tag_image(ctx))
         ctx["html_state"]["tag"] = ""
     elif ctx["html_state"]["tag"] == "table":
-        lines[-1] = "</tr></table>"
+        if ctx["html_state"]["sub"] == "tr":
+            lines.append("</tr></table>")
+        else:
+            lines.append("</table>")
+        ctx["html_state"]["tag"] = ""
+        ctx["html_state"]["sub"] = ""
         ctx["html_state"]["tag"] = ""
     while ctx["html_state"]["open_para"] > 0:
         lines.append("</p>")
@@ -1860,7 +1874,7 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
                              if (section and section.startswith(x))]))
     elif in_fmt == "rst" and out_fmt == "troff":
         target = totroff(target)
-    else:
+    elif out_fmt == "rst":
         target = torst(target)
     while target.endswith("\n\n"):
         target = target[:-1]
@@ -2085,7 +2099,7 @@ def adj_version(ctx, odoo_version):
     return odoo_version
 
 
-def read_all_manifests(ctx, path=None, module2search=None):
+def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
     def valid_dir(dirname):
         if dirname.startswith(".") or dirname.startswith("__") or dirname == "setup":
             return False
@@ -2094,7 +2108,8 @@ def read_all_manifests(ctx, path=None, module2search=None):
     path = path or "."
     ctx["manifest"] = {}
     ctx["histories"] = ""
-    ctx["history-summary"] = ""
+    if not no_history:
+        ctx["history-summary"] = ""
     addons_info = {}
     local_modules = "l10n_%s" % ctx["lang"][0:2]
     if ctx["odoo_majver"] >= 10:
@@ -2146,14 +2161,15 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         ctx["histories"] += tail(
                             ctx, _u(fd.read()), max_days=180, module=module_name
                         )
-                        with open(fqn, RMODE) as fd:
-                            ctx["history-summary"] += tail(
-                                ctx,
-                                _u(fd.read()),
-                                max_ctr=1,
-                                max_days=15,
-                                module=module_name,
-                            )
+                        if not no_history:
+                            with open(fqn, RMODE) as fd:
+                                ctx["history-summary"] += tail(
+                                    ctx,
+                                    _u(fd.read()),
+                                    max_ctr=1,
+                                    max_days=15,
+                                    module=module_name,
+                                )
     if not module2search:
         if ctx["odoo_layer"] == "ocb":
             oca_root = "%s/oca%d" % (ctx["odoo_root"], ctx["odoo_majver"])
@@ -2193,8 +2209,9 @@ def read_all_manifests(ctx, path=None, module2search=None):
                         addons_info[module_name]["oca_installable"] = oca_manifest.get(
                             "installable", True
                         )
-        ctx["histories"] = sort_history(ctx["histories"])
-        ctx["history-summary"] = sort_history(ctx["history-summary"])
+        if not no_history:
+            ctx["histories"] = sort_history(ctx["histories"])
+            ctx["history-summary"] = sort_history(ctx["history-summary"])
     ctx["addons_info"] = addons_info
 
 
@@ -2287,7 +2304,7 @@ def read_dependecies_license(ctx):
     saved_manifest = ctx["manifest"].copy()
     root = build_odoo_param("ROOT", odoo_vid=".", multi=True)
     for module in ctx["manifest"].get("depends", []):
-        read_all_manifests(ctx, path=root, module2search=module)
+        read_all_manifests(ctx, path=root, module2search=module, no_history=True)
         if module not in ctx["addons_info"]:
             if not ctx["suppress_warning"]:
                 print_red_message(
