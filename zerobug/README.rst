@@ -32,9 +32,9 @@ You can use z0bug_odoo that is the odoo integration to test Odoo modules.
 * test case - it is a smallest unit test
 
 The main file is the command **zerobug** of this package; it searches for test runner
-files named `[id_]test_` where 'id' is the shor name of testing package.
+files named ``[id_]test_`` where 'id' is the shor name of testing package.
 
-Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
+Test suite is a collection of test case named ``test_[0-9]+`` inside the runner file,
 executed in sorted order.
 
 Every suit can contains one or more test case, the smallest unit test;
@@ -58,16 +58,18 @@ Usage
 
 ::
 
-    usage: zerobug [-h] [-B] [-C] [-e] [-f] [-J] [-k] [-l file] [-N] [-n] [-O] [-p file_list] [-Q] [-q] [-R] [-r number]
-                   [-s number] [-V] [-v] [-x] [-X] [-z number] [-0] [-1] [-2] [-3]
-
+    usage: zerobug [-h] [-B] [-C] [-e] [-f] [-J] [-k] [-l file] [-N] [-n] [-O]
+                   [-p file_list] [-Q] [-q] [-R] [-r number] [-s number] [-V] [-v]
+                   [-x] [-X] [-z number] [-0]
+    
     Regression test on zerobug
-
+    
     optional arguments:
       -h, --help            show this help message and exit
       -B, --debug           run tests in debug mode
       -C, --no-coverage     run tests without coverage
-      -e, --echo            enable echoing even if not interactive tty (deprecated)
+      -e, --echo            enable echoing even if not interactive tty
+                            (deprecated)
       -f, --failfast        Stop on first fail or error
       -J                    load travisrc (deprecated)
       -k, --keep            keep current logfile (deprecated)
@@ -77,9 +79,10 @@ Usage
       -n, --dry-run         count and display # unit tests (deprecated)
       -O                    load odoorc (deprecated)
       -p file_list, --search-pattern file_list
-                            Pattern to match tests, comma separated ('test*.py' default)
+                            Pattern to match tests, comma separated ('test*.py'
+                            default)
       -Q, --count           count # unit tests (deprecated)
-      -q, --quiet           run tests without output (quiet mode)
+      -q, --quiet           run tests without output (quiet mode, deprecated)
       -R, --run-inner       inner mode w/o final messages
       -r number, --restart number
                             restart count next to number
@@ -88,15 +91,15 @@ Usage
       -V, --version         show program's version number and exit
       -v, --verbose         verbose mode
       -x, --qsanity         like -X but run silently (deprecated)
-      -X, --esanity         execute test library sanity check and exit (deprecated)
+      -X, --esanity         execute test library sanity check and exit
+                            (deprecated)
       -z number, --end number
                             display total # tests when execute them
       -0, --no-count        no count # unit tests (deprecated)
-      -1, --coverage        run tests for coverage (deprecated)
-      -2, --python2         use python2 (deprecated)
-      -3, --python3         use python3 (deprecated)
-
-    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug
+    
+    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-
+    tools.readthedocs.io/en/latest/zerobug
+    
 
 
 
@@ -162,6 +165,15 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.10.1 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Disabled sanity_check
+* [IMP] Disabled some deprecated switches
+* [FIX] Coverage data file
+* [IMP] zerobug: test function signature like unittest2
+* [IMP] zerobug: no more execution for count
 
 2.0.10 (2023-11-10)
 ~~~~~~~~~~~~~~~~~~~

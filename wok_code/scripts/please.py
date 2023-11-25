@@ -292,8 +292,8 @@ class Please(object):
                 "--force",
                 action="store_true",
                 help=(
-                    "force copy (push) | build (publish/test) | set_exec (wep) |"
-                    " full (status)"
+                    "force copy (push) | build (publish/test) |"
+                    " full (status) | translate"
                 ),
             )
         elif arg in ("-j", "--python"):

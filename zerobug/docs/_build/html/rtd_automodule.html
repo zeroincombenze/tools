@@ -132,8 +132,8 @@ FILE: pathfile to execute doctest (macro expanded)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.has_args">
-<span class="sig-name descname"><span class="pre">has_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.has_args" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.exec_local_test">
+<span class="sig-name descname"><span class="pre">exec_local_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.exec_local_test" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -165,6 +165,11 @@ Cls2Test: test class for internal tests;</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.new_Cls2Test">
+<span class="sig-name descname"><span class="pre">new_Cls2Test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Cls2Test</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.new_Cls2Test" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.parseoptest">
 <span class="sig-name descname"><span class="pre">parseoptest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.parseoptest" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -176,26 +181,18 @@ Cls2Test: test class for internal tests;</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.res_test_env">
-<span class="sig-name descname"><span class="pre">res_test_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.res_test_env" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.ret_sts">
 <span class="sig-name descname"><span class="pre">ret_sts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.ret_sts" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.sanity_check">
-<span class="sig-name descname"><span class="pre">sanity_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">opt_echo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.sanity_check" title="Permalink to this definition"></a></dt>
-<dd><p>Internal regression test
-Module z0testlib is needed to run regression tests
-This function run auto validation tests for z0testlib functions</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.set_shabang">
 <span class="sig-name descname"><span class="pre">set_shabang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testfile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.set_shabang" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="zerobug.z0testlib.Z0test.set_test_env">
+<span class="sig-name descname"><span class="pre">set_test_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0test.set_test_env" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -327,17 +324,17 @@ git clone or wget from web.</p>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.build_os_tree"><code class="docutils literal notranslate"><span class="pre">Z0test.build_os_tree()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.default_conf"><code class="docutils literal notranslate"><span class="pre">Z0test.default_conf()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.doctest"><code class="docutils literal notranslate"><span class="pre">Z0test.doctest()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.has_args"><code class="docutils literal notranslate"><span class="pre">Z0test.has_args()</span></code></a></li>
+<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.exec_local_test"><code class="docutils literal notranslate"><span class="pre">Z0test.exec_local_test()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.inherit_cls"><code class="docutils literal notranslate"><span class="pre">Z0test.inherit_cls()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.main"><code class="docutils literal notranslate"><span class="pre">Z0test.main()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.main_local"><code class="docutils literal notranslate"><span class="pre">Z0test.main_local()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.msg_test"><code class="docutils literal notranslate"><span class="pre">Z0test.msg_test()</span></code></a></li>
+<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.new_Cls2Test"><code class="docutils literal notranslate"><span class="pre">Z0test.new_Cls2Test()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.parseoptest"><code class="docutils literal notranslate"><span class="pre">Z0test.parseoptest()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.remove_os_tree"><code class="docutils literal notranslate"><span class="pre">Z0test.remove_os_tree()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.res_test_env"><code class="docutils literal notranslate"><span class="pre">Z0test.res_test_env()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.ret_sts"><code class="docutils literal notranslate"><span class="pre">Z0test.ret_sts()</span></code></a></li>
-<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.sanity_check"><code class="docutils literal notranslate"><span class="pre">Z0test.sanity_check()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.set_shabang"><code class="docutils literal notranslate"><span class="pre">Z0test.set_shabang()</span></code></a></li>
+<li><a class="reference internal" href="#zerobug.z0testlib.Z0test.set_test_env"><code class="docutils literal notranslate"><span class="pre">Z0test.set_test_env()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.set_tlog_file"><code class="docutils literal notranslate"><span class="pre">Z0test.set_tlog_file()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.test_failed"><code class="docutils literal notranslate"><span class="pre">Z0test.test_failed()</span></code></a></li>
 <li><a class="reference internal" href="#zerobug.z0testlib.Z0test.test_result"><code class="docutils literal notranslate"><span class="pre">Z0test.test_result()</span></code></a></li>

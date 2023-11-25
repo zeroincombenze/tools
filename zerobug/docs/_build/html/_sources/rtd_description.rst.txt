@@ -26,9 +26,9 @@ You can use z0bug_odoo that is the odoo integration to test Odoo modules.
 * test case - it is a smallest unit test
 
 The main file is the command **zerobug** of this package; it searches for test runner
-files named `[id_]test_` where 'id' is the shor name of testing package.
+files named ``[id_]test_`` where 'id' is the shor name of testing package.
 
-Test suite is a collection of test case named `test_[0-9]+` inside the runner file,
+Test suite is a collection of test case named ``test_[0-9]+`` inside the runner file,
 executed in sorted order.
 
 Every suit can contains one or more test case, the smallest unit test;

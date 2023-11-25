@@ -287,18 +287,22 @@ class PleaseZ0bug(object):
                             with open(pth.join("tests", fn), "w") as fd:
                                 fd.write(new_content)
             args = self.build_run_odoo_base_args(branch=branch)
+            print("")
             sts = please.chain_python_cmd("run_odoo_debug.py", args)
             if sts:
                 return sts
             if not please.opt_args.no_verify and not please.opt_args.debug:
+                print("")
                 sts = please.do_docs()
             if sts:
                 return sts
             if not please.opt_args.no_verify and not please.opt_args.debug:
+                print("")
                 sts = please.run_traced("git add ./", rtime=True)
             if sts:
                 return sts
-            if not please.opt_args.no_translate and not please.opt_args.debug:
+            if not please.opt_args.no_translate:
+                print("")
                 sts = please.do_translate()
             return sts
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():

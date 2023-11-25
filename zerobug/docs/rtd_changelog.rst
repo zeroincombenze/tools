@@ -5,6 +5,15 @@ ChangeLog History
 =================
 
 
+2.0.10.1 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Disabled sanity_check
+* [IMP] Disabled some deprecated switches
+* [FIX] Coverage data file
+* [IMP] zerobug: test function signature like unittest2
+* [IMP] zerobug: no more execution for count
+
 2.0.10 (2023-11-10)
 ~~~~~~~~~~~~~~~~~~~
 

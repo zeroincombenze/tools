@@ -82,8 +82,8 @@ check_for_modules() {
 
 coverage_set() {
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
-      COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
+      export COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
+      export COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
       if [[ $opt_dry_run -eq 0 ]]; then
@@ -243,7 +243,7 @@ clean_old_templates() {
           run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
           c=$(pg_db_active -c "$d")
           [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$d\"" && continue
-          [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
+          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
         fi
     done
 }
@@ -387,7 +387,7 @@ odoo_fver=""
 if [[ -n $opt_conf ]]; then
     CONFN=$opt_conf
     [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
-    opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+    opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
     for p in ${opaths//,/ }; do
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
@@ -413,7 +413,7 @@ elif [[ -n $opt_odir ]]; then
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
-    opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')"
+    opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
@@ -425,7 +425,7 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="$odoo_root"
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 else
     odoo_fver=$(build_odoo_param FULLVER "$PWD")
@@ -436,7 +436,7 @@ else
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
-    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{print $2}')" || opaths="$odoo_root"
+    [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 fi
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
@@ -455,13 +455,13 @@ if [[ -n $opt_rport ]]; then
 elif [[ $opt_test -ne 0 ]]; then
     [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -f $opt_conf ]]; then
-    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
-    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
 elif [[ $opt_web -ne 0 ]]; then
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 elif [[ -f $CONFN ]]; then
-    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{print $2}' | tr -d " ")
-    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    RPCPORT=$(grep ^http_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+    [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
 else
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 fi
@@ -470,7 +470,7 @@ fi
 if [[ -n $opt_dbuser ]]; then
     DB_USER=$opt_dbuser
 elif [[ -f $opt_conf || -f $CONFN ]]; then
-    DB_USER=$(grep ^db_user $CONFN | awk -F= '{print $2}' | tr -d " ")
+    DB_USER=$(grep ^db_user $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
 else
     DB_USER=$(build_odoo_param DB_USER $odoo_fver $GIT_ORGID)
 fi
@@ -478,7 +478,7 @@ fi
 if [[ -n "$opt_qport" ]]; then
     DB_PORT=$opt_qport
 elif [[ -f $CONFN ]]; then
-    DB_PORT=$(grep ^db_port $CONFN | awk -F= '{print $2}' | tr -d " ")
+    DB_PORT=$(grep ^db_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ $DB_PORT == "False" ]] && unset DB_PORT
 fi
 
@@ -524,8 +524,10 @@ if [[ -n "$opt_modules" ]]; then
         else
             [[ $opt_verbose -ne 0 ]] && echo "# Searching for module paths ..."
             if [[ "$opt_modules" == "all" ]]; then
+              [[ $opt_verbose -gt 1 ]] && echo "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\")"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths")
             else
+                [[ $opt_verbose -gt 1 ]] && echo "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\" -PM $opt_modules)"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
             fi
             [[ -z "$depmods" ]] && echo "Modules $opt_modules not found!" && exit 1
@@ -636,7 +638,12 @@ if [[ $opt_touch -eq 0 ]]; then
     fi
     [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"
     replace_web_module
-    [[ ! -f "$CONFN" ]] && run_traced "$script -s --stop-after-init"
+    if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
+        run_traced "cd $TEST_VDIR"
+        [[ $opt_dry_run -ne 0 && $opt_verbose -ne 0 ]] && echo "> source ./bin/activate"
+        [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
+        run_traced "$script -s --stop-after-init"
+    fi
     set_confn
     if [[ -n "$TEST_VDIR" ]]; then
       coverage_set
@@ -669,7 +676,7 @@ if [[ $opt_touch -eq 0 ]]; then
                     run_traced "pg_db_active -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
                     c=$(pg_db_active -c "$TEMPLATE")
                     [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
-                    [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
+                    [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
                 fi
                 if [[ $opt_force -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                     [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
@@ -682,7 +689,7 @@ if [[ $opt_touch -eq 0 ]]; then
                 run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
                 c=$(pg_db_active -c \"$opt_db\")
                 [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-                [[ $opt_dry_run -eq 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
+                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
             fi
             if [[ $opt_dry_run -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
                 [[ -n "$depmods" ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"

@@ -133,7 +133,7 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
             run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
         cmd = "cp %s/README.rst %s/%s" % (srcdir, toolsdir, pkg)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
-    for fn in ("install_tools.sh", "odoo_default_tnl.xlsx", "odoo_template_tnl.xlsx"):
+    for fn in ("install_tools.sh", "odoo_template_tnl.xlsx"):
         srcpath = pth.join(pypidir, "tools", fn)
         cmd = "cp %s %s/" % (srcpath, toolsdir)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)

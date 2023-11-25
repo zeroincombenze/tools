@@ -1,0 +1,40 @@
+module	msgid	msgstr	hashkey
+	%s invoice lines	righe %s fattura	%s invoice lines
+	<b>Invoice</b>	<b>Fattura</b>	<b>invoice</b>
+	DDT	DdT	DDT
+	I	io	I
+	N.invoice lines	N. righe fattura	N.invoice lines
+	RI.BA.	RiBA	RI.BA.
+	UE	EU	UE
+	Acceptance Account	Conto RiBA all'incasso	acceptance account
+	account	conto	account
+	Credit	Avere	credit
+	Customer	Cliente	customer
+	ddt	DdT	ddt
+	Dear	Gentile	dear
+	Dear ${name}	gentile ${name}	dear${name}
+	First Name	Nome di battesimo	first name
+	iban	IBAN	iban
+	Invoice	Fattura	invoice
+	Invoice lines	Righe fattura	invoice lines
+	Invoice n.	Fattura n.	invoice n.
+	Invoice n.%(number)s of %(date)s	fattura n.%(number)s di %(date)s	invoice n.%(number)s of%(date)s
+	Invoice n.%s	fattura n.%s	invoice n.%s
+	Invoice(s)	fattura/e	invoice(s)
+	Invoices	Fatture	invoices
+	iva	IVA	iva
+	Last Name	Cognome	last name
+	line	riga	line
+	lines	righe	lines
+	Name	Nome	name
+	Name s.r.l.	Nome s.r.l.	name s.r.l.
+	of	di	of
+	Order	Ordine	order
+	Print	Stampa	print
+	Print <b>Invoice</b>	stampa <b>Fattura</b>	print<b>invoice</b>
+	Purchase	Acquisto	purchase
+	Ri.Ba	RiBA	ri.ba
+	Ri.Ba.	RiBA	ri.ba.
+	Sale	Vendite	sale
+	sepa	SEPA	sepa
+	tax	IVA	tax

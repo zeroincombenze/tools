@@ -236,19 +236,26 @@ class RunOdoo(object):
                 "MAJVER",
                 odoo_vid=self.opt_args.odoo_branch,
                 multi=self.opt_args.odoo_branch)
-        if not self.config and self.odoo_maj_version and any([x for x in items[2:]]):
-            confn = "/etc/odoo/odoo%d%s.conf" % (self.odoo_maj_version,
-                                                 "-".join(items[2:]))
-            if os.path.isfile(confn):
-                self.config = confn
-        if not self.config and self.branch and self.odoo_maj_version:
-            if self.git_org:
-                confn = "/etc/odoo/odoo%d-%s.conf" % (self.odoo_maj_version,
-                                                      self.git_org)
-            elif self.odoo_maj_version < 10:
-                confn = "/etc/odoo/odoo%d-server.conf" % self.odoo_maj_version
-            else:
-                confn = "/etc/odoo/odoo%d.conf" % self.odoo_maj_version
+        if not self.config:
+            if items[0] in ("v", "V") and not items[2]:
+                if self.odoo_maj_version < 10:
+                    confn = "/etc/odoo/odoo-server.conf"
+                else:
+                    confn = "/etc/odoo/odoo.conf"
+                if os.path.isfile(confn):
+                    self.config = confn
+            elif self.odoo_maj_version and any([x for x in items[2:]]):
+                confn = "/etc/odoo/odoo%d%s.conf" % (self.odoo_maj_version,
+                                                     "-".join(items[2:]))
+                if os.path.isfile(confn):
+                    self.config = confn
+        if not self.config and self.branch and self.odoo_maj_version and self .git_org:
+            confn = "/etc/odoo/odoo%d-%s.conf" % (self.odoo_maj_version,
+                                                  self.git_org)
+            # elif self.odoo_maj_version < 10:
+            #     confn = "/etc/odoo/odoo%d-server.conf" % self.odoo_maj_version
+            # else:
+            #     confn = "/etc/odoo/odoo%d.conf" % self.odoo_maj_version
             if os.path.isfile(confn):
                 self.config = confn
 
@@ -396,6 +403,7 @@ class RunOdoo(object):
         if self.config and not os.path.isfile(self.config):
             self.config = None
         if self.config:
+            # self.opt_args.config = self.config
             Config = ConfigParser.RawConfigParser()
             Config.read(self.config)
             if not Config.has_section("options"):

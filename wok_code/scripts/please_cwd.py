@@ -33,8 +33,9 @@ class PleaseCwd(object):
     SYNOPSIS
         please [action] [cwd] [options]
 
-        * clean: clean temporary file in current working directory and sub directories
-        * clean_db: remove old databases
+        * clean: clean temporary files in current working directory and sub directories
+        * clean_db: remove old databases and virtual directories
+        * commit: commit PYPI sub-package
         * defcon precommit|gitignore: set default values for some configuration files
         * docs: create project documentation from egg-info or readme directory
         * edit: edit pofile or other project file
@@ -43,8 +44,29 @@ class PleaseCwd(object):
         * update: update current package into devel virtual environment (only pypi pkgs)
 
     DESCRIPTION
-        This command creates execute one of %(actions)s
-        on current working directory.
+        This command creates execute one of %(actions)s on current working directory.
+
+        please clean
+            Remove temporary files in current working directory and sub directories;
+            this action remove old test log files too.
+
+        please clean db
+            Remove virtual directories created by travis emulator and test and templates
+            databases created by test action. The test and template database have name
+            like regex "(test|template)_{MODULE_NAME}_{ODO_MAJOR}"
+
+        please commit -m "COMMIT_MESSAGE"
+            This action, runs just on PYPI sub-package, does:
+            1. Prepare setup.info file (in future will be removed)
+            2. Execute <git add>
+            3. Execute <git commit -M "COMMIT_MESSAGE">
+            4. Replace source code into master directory
+
+        please defcon FILE_NAME
+            Create or update some configuration file with appropriate values for current
+            directory. Current FILE_NAME are:
+            1. precommit for ".pre-commit-config.yaml"
+            2. gitignore for ".gitingore"
 
     OPTIONS
       %(options)s
@@ -78,7 +100,8 @@ class PleaseCwd(object):
         self.please.add_argument(parser, "-O")
         if not for_help:
             self.please.add_argument(parser, "-q")
-        self.please.add_argument(parser, "-v")
+        if not for_help:
+            self.please.add_argument(parser, "-v")
         parser.add_argument(
             "--no-verify", action="store_true", help="Disable pre-commit on replace"
         )
@@ -396,9 +419,11 @@ class PleaseCwd(object):
             for root, dirs, files in os.walk(self.cur_path_of_pkg()):
                 for fn in files:
                     if (
-                            not fn.endswith(".bak")
+                            fn != "it.mo"
+                            and not fn.endswith(".bak")
                             and not fn.endswith("~")
                             and not fn.endswith(".po.orig")
+                            and not fn.endswith(".pot")
                     ):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
@@ -542,7 +567,6 @@ class PleaseCwd(object):
                     for item in (
                         "install_tools.sh",
                         "LICENSE",
-                        "odoo_default_tnl.xlsx",
                         "odoo_template_tnl.xlsx",
                         "README.rst",
                     ):
@@ -831,7 +855,6 @@ class PleaseCwd(object):
                     for item in (
                         "install_tools.sh",
                         "LICENSE",
-                        "odoo_default_tnl.xlsx",
                         "odoo_template_tnl.xlsx",
                         "README.rst",
                     ):
@@ -876,7 +899,6 @@ class PleaseCwd(object):
                 self.branch = branch
                 self.odoo_major_version = int(branch.split(".")[0])
                 module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
-                # repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 pofile = "./i18n/it.po"
                 if not pth.isfile(pofile):
                     if not please.opt_args.force:
@@ -1122,16 +1144,16 @@ class PleaseCwd(object):
                 "^#? *(__version__|version|release) *= *[\"']?(%s)[\"']?"
                 % please.opt_args.from_version)
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"'](%s)[\"']"
+                "^ *([\"']version[\"']: [\"'])(%s)[\"']"
                 % please.opt_args.from_version)
-            REGEX_TESTENV_VER = re.compile("^.* v%s" % please.opt_args.from_version)
+            REGEX_TESTENV_VER = re.compile("^(.* v)(%s)" % please.opt_args.from_version)
         else:
             REGEX_VER = re.compile(
                 "^#? *(__version__|version|release) *= *[\"']?([0-9.]+)[\"']?")
             REGEX_DICT_VER = re.compile(
-                "^ *[\"']version[\"']: [\"']([0-9.]+)[\"']")
+                "^ *([\"']version[\"']: [\"'])([0-9.]+)[\"']")
             REGEX_TESTENV_VER = re.compile(
-                r"^.* v\d\.\d\.\d+")
+                r"^(.*v)(\d+\.\d+\.\d+)")
         if please.is_pypi_pkg():
             sts = 0
             self.ref_version = ""

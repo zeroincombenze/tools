@@ -488,19 +488,19 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 Look at follow table to understand which set of tests are enabled or disabled:
 
 +--------------------+--------------+--------------+--------------+-------------------------+
-| statement          | application  | module l10n_ | odoo/addons  | addons + dependencies   |
+| statement          | application  | local module | odoo/addons  | addons + dependencies   |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | ALL                | |check|      | |check|      | |check|      | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | APPLICATIONS       | |check|      | |no_check|   | |no_check|   | Only if application     |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only module l10n_*      |
+| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only local modules      |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | CORE               | |no_check|   | |no_check|   | |check|      | |no_check|              |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-APPLICATION     | |no_check|   | |check|      | |check|      | No if application       |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No if module l10n_*     |
+| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No local modules        |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-CORE            | |check|      | |check|      | |no_check|   | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
@@ -757,10 +757,10 @@ Ths TestEnv software requires:
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
 
-TestEnv is full integrated with Zeroincombenze(R) tools.
+TestEnv is full integrated with Zeroincombenze® tools.
 See https://zeroincombenze-tools.readthedocs.io/
 and https://github.com/zeroincombenze/tools.git
-Zeroincombenze(R) tools help you to test Odoo module with pycharm.
+Zeroincombenze® tools help you to test Odoo module with pycharm.
 
 
 
@@ -843,6 +843,8 @@ Ths TestEnv software requires:
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
 
+Usage Details
+-------------
 
 Model data declaration
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1457,8 +1459,7 @@ def resource_write(self, resource, xref=None, values=None, raise_if_not_found=Tr
         resource (str|obj): Odoo model name or record to update
         xref (str): external reference to update: required id resource is string
         values (dict): record data (default stored data)
-        raise_if_not_found (bool): raise exception if xref not found or
-                       if more records found
+        raise_if_not_found (bool): raise exception if xref not found or if more records found
         group (str): used to manager group data; default is "base"
 
     Returns:
@@ -1501,9 +1502,8 @@ def declare_resource_data(self, resource, data, name=None, group=None, merge=Non
 
     Args:
         message (dict): data message
-            TEST_SETUP_LIST (list): resource list to load
-            TEST_* (dict): resource data; * is the uppercase resource name where
-                           dot are replaced by "_"; (see declare_resource_data)
+        TEST_SETUP_LIST (list): resource list to load
+        TEST_* (dict): resource data; * is the uppercase resource name where dot are replaced by "_"; (see declare_resource_data)
         group (str): used to manager group data; default is "base"
         merge (str): merge data with public data (currently just "zerobug")
 
@@ -1651,9 +1651,8 @@ def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}
 
     Args:
         resource (str or obj): if field is a string simulate create web behavior of
-                               Odoo model issued in resource;
-                               if field is an obj simulate write web behavior on the
-                               issued record
+        Odoo model issued in resource;
+        if field is an obj simulate write web behavior on the issued record
         default (dict): default value to assign
         web_changes (list): list of tuples (field, value); see <wiz_edit>
 

@@ -29,14 +29,13 @@ class RegressionTest:
     def __init__(self, z0bug):
         self.Z = z0bug
         self.Z.inherit_cls(self)
-        self.root = ''
 
     def _touch_file(self, fn):
         if not os.path.isfile(fn):
             with open(fn, "w") as fd:
                 fd.write("# Fake\n")
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         cmd = "please --version"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
@@ -73,7 +72,7 @@ class RegressionTest:
 
         return self.ret_sts()
 
-    def test_02(self, z0ctx):
+    def test_02(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please z0bug -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
@@ -134,30 +133,26 @@ class RegressionTest:
                       stdout.split("\n")[2],
                       msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[3],
+            stdout.split("\n")[4],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n",
             msg="Bash command not found in stdout")
-        # self.assertMatch(
-        #     stdout.split("\n")[4],
-        #     ".*/python .*/gen_readme.py -b 12.0 -f -n -RW",
-        #     msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[7],
             ".*/python .*/gen_readme.py -b 12.0 -f -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[5],
+            stdout.split("\n")[8],
             ".*/python .*/gen_readme.py -b 12.0 -f -n -I",
             msg="Bash command not found in stdout")
         self.assertIn("git add ./",
-                      stdout.split("\n")[7],
+                      stdout.split("\n")[11],
                       msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[8],
+            stdout.split("\n")[13],
             ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[9],
+            stdout.split("\n")[14],
             ".*/run_odoo_debug.py -e %s %s -v -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
 
@@ -169,13 +164,13 @@ class RegressionTest:
                       stdout.split("\n")[0],
                       msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[2],
             ".*/run_odoo_debug.py",
             msg="Bash command not found in stdout")
 
         return self.ret_sts()
 
-    def test_03(self, z0ctx):
+    def test_03(self):
         cmd = "please create apache erp.example.com -qn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
@@ -219,7 +214,7 @@ class RegressionTest:
 
         return self.ret_sts()
 
-    def test_04(self, z0ctx):
+    def test_04(self):
         os.chdir(self.tool_pkgdir)
         with open("please.py~", "w") as fd:
             fd.write("# Fake file\n")
@@ -241,7 +236,7 @@ class RegressionTest:
 
         return self.ret_sts()
 
-    def test_05(self, z0ctx):
+    def test_05(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please test -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
@@ -270,27 +265,27 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             ".*run_odoo_debug.py",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[3],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[2],
+            stdout.split("\n")[4],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[7],
             ".*git add ./",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[5],
+            stdout.split("\n")[9],
             ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[6],
+            stdout.split("\n")[10],
             ".*/run_odoo_debug.py -e %s %s -v -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
 
@@ -302,21 +297,21 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[3],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[2],
+            stdout.split("\n")[4],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
 
         return self.ret_sts()
 
-    def test_06(self, z0ctx):
+    def test_06(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please lint -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
@@ -371,7 +366,7 @@ class RegressionTest:
 
         return self.ret_sts()
 
-    def _test_07(self, z0ctx):
+    def _test_07(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please show -n"
         sts, stdout, stderr = z0lib.run_traced(cmd)
@@ -402,24 +397,16 @@ class RegressionTest:
 
         return self.ret_sts()
 
-    def test_08(self, z0ctx):
+    def test_08(self):
         os.chdir(self.pypi_dir)
         cmd = "please replace -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
-        # self.assertIn(
-        #     " rsync -a ",
-        #     stdout,
-        #     msg="Bash command not found in stdout")
 
         os.chdir(self.pypi_dir)
         cmd = "please commit -m \"Test message\" -vn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
-        # self.assertIn(
-        #     "> rsync -a ",
-        #     stdout.split("\n")[3],
-        #     msg="Bash command not found in stdout")
 
         os.chdir(self.pypi_dir)
         cmd = "please update -vn"
@@ -473,44 +460,47 @@ class RegressionTest:
         z0lib.run_traced(
             "find ~/tools/ -type f -name \"*~\" -delete"
         )
-        if not z0ctx['dry_run']:
-            self.tool_pkgdir = os.path.expanduser("~/tools/wok_code")
+        res_dir = os.path.join(self.Z.testdir, "res")
+        if os.path.isdir(res_dir):
+            z0lib.run_traced("rm -fR  %s" % res_dir)
+        self.root = ''
+        self.tool_pkgdir = os.path.expanduser("~/tools/wok_code")
 
-            devel_root = os.path.expanduser("~/devel")
-            self.Z.build_os_tree(
-                z0ctx,
-                [
-                    devel_root,
-                    os.path.join(devel_root, "pypi"),
-                    os.path.join(devel_root, "pypi", ".git"),
-                    os.path.join(devel_root, "pypi", "wok_code"),
-                    os.path.join(devel_root, "pypi", "wok_code", "wok_code"),
-                ],
-            )
-            self.pypi_dir = os.path.join(devel_root, "pypi", "wok_code", "wok_code")
-            self._touch_file(os.path.join(devel_root, "pypi", "wok_code", "setup.py"))
-            self._touch_file(os.path.join(devel_root, "pypi", "wok_code", "README.rst"))
-            self._touch_file(
-                os.path.join(devel_root, "pypi", "wok_code", "wok_code", "__init__.py")
-            )
+        devel_root = os.path.expanduser("~/devel")
+        self.Z.build_os_tree(
+            z0ctx,
+            [
+                devel_root,
+                os.path.join(devel_root, "pypi"),
+                os.path.join(devel_root, "pypi", ".git"),
+                os.path.join(devel_root, "pypi", "wok_code"),
+                os.path.join(devel_root, "pypi", "wok_code", "wok_code"),
+            ],
+        )
+        self.pypi_dir = os.path.join(devel_root, "pypi", "wok_code", "wok_code")
+        self._touch_file(os.path.join(devel_root, "pypi", "wok_code", "setup.py"))
+        self._touch_file(os.path.join(devel_root, "pypi", "wok_code", "README.rst"))
+        self._touch_file(
+            os.path.join(devel_root, "pypi", "wok_code", "wok_code", "__init__.py")
+        )
 
-            self.odoo_root = z0testodoo.build_odoo_env(z0ctx, "12.0")
-            self.odoo_repodir = z0testodoo.create_repo(
-                z0ctx,
-                self.odoo_root,
-                'test_repo',
-                "12.0",
-            )
-            self.odoo_moduledir = z0testodoo.create_module(
-                z0ctx, self.odoo_repodir, 'test_module', "12.0"
-            )
-            if not os.path.isdir(os.path.join(self.odoo_moduledir, "tests")):
-                os.mkdir(os.path.join(self.odoo_moduledir, "tests"))
-            if not os.path.isdir(os.path.join(self.odoo_moduledir, "tests", "logs")):
-                os.mkdir(os.path.join(self.odoo_moduledir, "tests", "logs"))
-            self._touch_file(
-                os.path.join(self.odoo_moduledir, "tests", "logs", "show-log.sh")
-            )
+        self.odoo_root = z0testodoo.build_odoo_env(z0ctx, "12.0")
+        self.odoo_repodir = z0testodoo.create_repo(
+            z0ctx,
+            self.odoo_root,
+            'test_repo',
+            "12.0",
+        )
+        self.odoo_moduledir = z0testodoo.create_module(
+            z0ctx, self.odoo_repodir, 'test_module', "12.0"
+        )
+        if not os.path.isdir(os.path.join(self.odoo_moduledir, "tests")):
+            os.mkdir(os.path.join(self.odoo_moduledir, "tests"))
+        if not os.path.isdir(os.path.join(self.odoo_moduledir, "tests", "logs")):
+            os.mkdir(os.path.join(self.odoo_moduledir, "tests", "logs"))
+        self._touch_file(
+            os.path.join(self.odoo_moduledir, "tests", "logs", "show-log.sh")
+        )
 
     def tearoff(self, z0ctx):
         os.system("dropdb test_test_module_12")

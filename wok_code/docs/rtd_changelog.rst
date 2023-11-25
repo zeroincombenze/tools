@@ -12,6 +12,14 @@ ChangeLog History
 * [IMP] arcangelo: new python version assignment from odoo version
 * [IMP] please version: now show compare with last entry of history
 * [FIX] please docs: faq
+* [FIX] please help cwd
+* [FIX] gen_readme.py: sometimes lost history
+* [FIX] gen_readme.py: error reading malformed table
+* [IMP] odoo_translation.py: new regression tests
+* [FIX] odoo_translation.py: punctuation at the end of term
+* [FIX] odoo_translation.py: first character case
+* [FIX] odoo_translation.py: cache file format is Excel
+* [FIX] run_odoo_debug: path with heading space
 
 2.0.12 (2023-08-29)
 ~~~~~~~~~~~~~~~~~~~

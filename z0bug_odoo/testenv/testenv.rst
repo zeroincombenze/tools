@@ -85,11 +85,11 @@ Ths TestEnv software requires:
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
 
-TestEnv is full integrated with Zeroincombenze(R) tools.
+TestEnv is full integrated with Zeroincombenze® tools.
 * Visit https://zeroincombenze-tools.readthedocs.io
 * Visit https://github.com/zeroincombenze/tools
 * Visit https://github.com/zeroincombenze/zerobug-test
-Zeroincombenze(R) tools help you to test Odoo module with pycharm.
+Zeroincombenze® tools help you to test Odoo module with pycharm.
 
 Model data declaration
 ----------------------

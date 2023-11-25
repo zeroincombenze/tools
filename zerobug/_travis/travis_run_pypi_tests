@@ -147,8 +147,8 @@ coverage_set() {
     if [[ $opt_dry_run -eq 0 ]]; then
       [[ ! -d $HOME/coverage ]] && mkdir $HOME/coverage
       coverage_tmpl=$($READLINK -f .coveragerc)
-      COVERAGE_DATA_FILE="$HOME/coverage/${UML}"
-      COVERAGE_PROCESS_START="$HOME/coverage/${UMLI}rc"
+      run_traced "export COVERAGE_DATA_FILE=\"$HOME/coverage/${UMLI}coverage\""
+      run_traced "export COVERAGE_PROCESS_START=\"$HOME/coverage/${UMLI}rc\""
       [[ -f "$coverage_tmpl" ]] && cp "$coverage_tmpl" "$COVERAGE_PROCESS_START"
       if [[ ! -f $COVERAGE_PROCESS_START ]]; then
           cat << EOF > $COVERAGE_PROCESS_START
@@ -201,17 +201,7 @@ EOF
     fi
 }
 
-#coverage_ensure_installed() {
-#    cov=$(which coverage 2>/dev/null)
-#    [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
-#    cov=$(which coverage 2>/dev/null)
-#    if [[ -n $cov ]]; then
-#      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-#      [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
-#    fi
-#}
-
-run_regression_test() {
+do_test () {
     echo "======== Running regression_test ========"
     local x opts OPTS
     local s sts
@@ -243,21 +233,8 @@ run_regression_test() {
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
         if [[ ! -f $COVERAGE_DATA_FILE ]]; then
-            echo "Result coverage file not found!"
+            echo "Result coverage file $COVERAGE_DATA_FILE not found!"
         fi
-    fi
-    return $sts
-}
-
-do_test () {
-    if [[ $PRJNAME == "Odoo" ]]; then
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo "\$ run_server_test"
-        run_server_test
-        sts=$?
-    else
-        [[ ${opt_verbose:-1} -gt 0 ]] && echo "\$ run_regression_test"
-        run_regression_test
-        sts=$?
     fi
     return $sts
 }
@@ -356,7 +333,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run test in travis environment" \
-               "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+               "(C) 2015-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 

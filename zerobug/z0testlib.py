@@ -29,7 +29,7 @@ from os0 import os0
 from z0lib import z0lib
 from python_plus import _c
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 # return code
 TEST_FAILED = 1
@@ -156,6 +156,11 @@ exclude_lines =
     # Ignore unit test failure
     return TEST_FAILED
 """
+
+
+def has_args(method):
+    return (getargspec(method) if sys.version_info[0] == 2
+            else list(signature(method).parameters))
 
 
 def main():
@@ -466,10 +471,7 @@ class SanityTest:
         ctx = self.Z.parseoptest(opts)
         ctx['WLOGCMD'] = "wecho-0"
         # sts = self.simulate_main(ctx, '1')
-        sts = self.Z.main(ctx, unittest_list=['__test_01'])
-        # if os.environ.get("COVERAGE_PROCESS_START", ""):
-        #     tres = 0
-        # else:                                             # pragma: no cover
+        self.Z.main(ctx, unittest_list=['__test_01'])          # pragma: no cover
         tres = 1
         sts = self.Z.test_result(z0ctx, "UT", tres, ctx['max_test'])
         if sts == TEST_SUCCESS:
@@ -711,7 +713,7 @@ class Z0test(object):
         parser.add_argument(
             "-q",
             "--quiet",
-            help="run tests without output (quiet mode)",
+            help="run tests without output (quiet mode, deprecated)",
             action="store_false",
             dest="opt_echo_q",
             default=True,
@@ -773,30 +775,30 @@ class Z0test(object):
             dest="opt_noctr",
             default=True,
         )
-        parser.add_argument(
-            "-1",
-            "--coverage",
-            help="run tests for coverage (deprecated)",
-            action="store_true",
-            dest="run4cover",
-            default=True,
-        )
-        parser.add_argument(
-            "-2",
-            "--python2",
-            help="use python2 (deprecated)",
-            action="store_true",
-            dest="python2",
-            default=False,
-        )
-        parser.add_argument(
-            "-3",
-            "--python3",
-            help="use python3 (deprecated)",
-            action="store_true",
-            dest="python3",
-            default=False,
-        )
+        # parser.add_argument(
+        #     "-1",
+        #     "--coverage",
+        #     help="run tests for coverage (deprecated)",
+        #     action="store_true",
+        #     dest="run4cover",
+        #     default=True,
+        # )
+        # parser.add_argument(
+        #     "-2",
+        #     "--python2",
+        #     help="use python2 (deprecated)",
+        #     action="store_true",
+        #     dest="python2",
+        #     default=False,
+        # )
+        # parser.add_argument(
+        #     "-3",
+        #     "--python3",
+        #     help="use python3 (deprecated)",
+        #     action="store_true",
+        #     dest="python3",
+        #     default=False,
+        # )
         return parser
 
     def set_tlog_file(self, ctx):
@@ -844,8 +846,6 @@ class Z0test(object):
                 ctx['logfn'] = ctx['tlog']
             else:
                 ctx['logfn'] = "~/" + ctx['this'] + ".log"
-        # if not ctx.get('WLOGCMD', None) and not ctx.get('_run_autotest', False):
-        #     self.set_tlog_file(ctx)
         sts, stdout, stderr = z0lib.run_traced('coverage --version', verbose=0)
         ctx['run4cover'] = (sts == 0)
         if os.environ.get("COVERAGE_PROCESS_START", ""):
@@ -938,35 +938,38 @@ class Z0test(object):
         opt_obj = parser.parse_args(arguments)
         ctx['_opt_obj'] = opt_obj
         ctx = self._create_params_dict(ctx)
-        if ctx['esanity']:  # pragma: no cover
-            exit(self.sanity_check('-e'))
-        elif ctx['qsanity']:  # pragma: no cover
-            exit(self.sanity_check('-q'))
+        # if ctx['esanity']:  # pragma: no cover
+        #     exit(self.sanity_check('-e'))
+        # elif ctx['qsanity']:  # pragma: no cover
+        #     exit(self.sanity_check('-q'))
         return ctx
 
     def default_conf(self, ctx):
         return DEFDCT
 
     def _inherit_opts(self, ctx):
+        # Set run inner (child of current process)
         args = ['-R']
         for p in LX_OPT_CFG_S:
-            if p == 'opt_echo':
+            # if p == 'opt_echo':
+            #     if p in ctx and ctx[p]:
+            #         args.append(LX_OPT_ARGS[p])
+            #     else:
+            #         args.append('-q')
+            # if p == 'opt_verbose' or p == 'opt_noctr' or p == 'opt_debug':
+            if p == 'opt_verbose' or p == 'opt_debug':
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p])
-                else:
-                    args.append('-q')
-            elif p == 'opt_verbose' or p == 'opt_noctr' or p == 'opt_debug':
-                if p in ctx and ctx[p]:
-                    args.append(LX_OPT_ARGS[p])
-            elif p == 'logfn':
-                if p in ctx and ctx[p]:
-                    args.append(LX_OPT_ARGS[p] + ctx[p])
+            # elif p == 'logfn':
+            #     if p in ctx and ctx[p]:
+            #         args.append(LX_OPT_ARGS[p] + ctx[p])
             elif p == 'run4cover':
                 if p in ctx and not ctx[p]:
                     args.append(LX_OPT_ARGS[p])
             elif p == 'min_test':
                 args.append(LX_OPT_ARGS[p] + str(ctx['ctr']))
-            elif not ctx.get('opt_noctr', None) and p == 'max_test':
+            # elif not ctx.get('opt_noctr', None) and p == 'max_test':
+            elif p == 'max_test':
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p] + str(ctx[p]))
         return args
@@ -1020,9 +1023,9 @@ class Z0test(object):
 
     def set_shabang(self, ctx, testfile):
         if (
-            not ctx.get('python3', False)
-            and not ctx.get('python2', False)
-            and os.path.isfile(testfile)
+            # not ctx.get('python3', False)
+            # and not ctx.get('python2', False)
+            os.path.isfile(testfile)
         ):
             do_rewrite = False
             with open(testfile, 'rb') as fd:
@@ -1039,7 +1042,7 @@ class Z0test(object):
     def ret_sts(self):
         return 0 if self.successful else 1
 
-    def res_test_env(self, ctx):
+    def set_test_env(self, ctx):
         ctx["ctr"] = max(self.assert_counter, ctx["ctr"])
         ctx["successful"] &= self.successful
 
@@ -1083,11 +1086,6 @@ class Z0test(object):
         elif tver == "0":
             res = __version__
         if cmd:
-            # os0.muteshell(cmd, keepout=True)
-            # stdout_fd = open(os0.setlfilename(os0.bgout_fn, 'r'))
-            # res = stdout_fd.read().strip()
-            # stdout_fd.close()
-            # os.remove(os0.bgout_fn)
             sts, stdout, stderr = z0lib.run_traced(cmd, verbose=0)
             res = stdout.strip()
         return self.test_result(ctx, msg, version, res)
@@ -1110,10 +1108,6 @@ class Z0test(object):
         )
         return self.test_result(ctx, msg, TEST_SUCCESS, res)
 
-    def has_args(self, method):
-        return (getargspec(method) if sys.version_info[0] == 2
-                else list(signature(method).parameters))
-
     def _exec_tests_4_count(self, test_list, ctx, Cls2Test=None):
         # Deprecated
         opt4childs = ['-n', '-R']
@@ -1121,10 +1115,10 @@ class Z0test(object):
         ctx = self._save_options(ctx)
         testctr = 0
         if Cls2Test:
-            T = Cls2Test(self)
-            if hasattr(Cls2Test, 'setup'):
+            runT = self.new_Cls2Test(Cls2Test)
+            if hasattr(runT, 'setup'):
                 ctx['dry_run'] = True
-                T.setup(ctx)
+                self.exec_local_test(runT, "setup", ctx=ctx)
         for testname in test_list:
             ctx['dry_run'] = True
             basetn = os.path.basename(testname)
@@ -1135,22 +1129,19 @@ class Z0test(object):
                 self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif Cls2Test and hasattr(Cls2Test, testname):
-                if self.has_args(getattr(T, testname))[0]:
-                    getattr(T, testname)(ctx)
-                else:
-                    getattr(T, testname)()
+            elif Cls2Test and hasattr(runT, testname):
+                self.exec_local_test(runT, testname, ctx=ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
                 if mime == 'text/x-python':
-                    if ctx.get('python3', False):
-                        test_w_args = ['python3'] + [testname] + opt4childs
-                    elif ctx.get('python2', False):
-                        test_w_args = ['python2'] + [testname] + opt4childs
-                    else:
-                        test_w_args = [sys.executable] + [testname] + opt4childs
+                    # if ctx.get('python3', False):
+                    #     test_w_args = ['python3'] + [testname] + opt4childs
+                    # elif ctx.get('python2', False):
+                    #     test_w_args = ['python2'] + [testname] + opt4childs
+                    # else:
+                    test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
                 p = Popen(test_w_args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -1160,17 +1151,37 @@ class Z0test(object):
                 except BaseException:  # pragma: no cover
                     ctx['ctr'] = 0
                 self.ctr_list.append(ctx['ctr'])
-            self.res_test_env(ctx)
+            self.set_test_env(ctx)
             testctr += ctx['ctr']
-        if Cls2Test and hasattr(Cls2Test, 'teardown'):
+        if Cls2Test and hasattr(runT, 'teardown'):
             ctx['dry_run'] = True
-            T.teardown(ctx)
+            self.exec_local_test(runT, "teardown", ctx=ctx)
         ctx = self._restore_options(ctx)
         ctx['ctr'] = testctr
         if ctx.get('max_test', 0) == 0:
             ctx['max_test'] = ctx.get('min_test', 0) + testctr
         ctx['_prior_msg'] = ''
         return TEST_SUCCESS
+
+    def new_Cls2Test(self, Cls2Test):
+        if (
+                hasattr(Cls2Test, "__init__")
+                and len(has_args(getattr(Cls2Test, "__init__"))) == 2
+        ):
+            runT = Cls2Test(self)
+        else:
+            runT = Cls2Test()
+        self.inherit_cls(runT)
+        return runT
+
+    def exec_local_test(self, T, testname, ctx=None):
+        if len(has_args(getattr(T, testname))):
+            sts = getattr(T, testname)(ctx)
+        else:
+            sts = getattr(T, testname)()
+        if sts is None:
+            return self.ret_sts()
+        return sts
 
     def _exec_all_tests(self, test_list, ctx, Cls2Test=None):
         ctx = self._ready_opts(ctx)
@@ -1186,9 +1197,9 @@ class Z0test(object):
         ctx['ctr'] = ctx['min_test']
 
         if Cls2Test:
-            T = Cls2Test(self)
-        if Cls2Test and hasattr(Cls2Test, 'setup'):
-            T.setup(ctx)
+            runT = self.new_Cls2Test(Cls2Test)
+            if hasattr(runT, "setup"):
+                sts = self.exec_local_test(runT, "setup", ctx=ctx)
         for testname in test_list:
             opt4childs = self._inherit_opts(ctx)
             basetn = os.path.basename(testname)
@@ -1198,11 +1209,8 @@ class Z0test(object):
                 sts = self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif Cls2Test and hasattr(Cls2Test, testname):
-                if self.has_args(getattr(T, testname))[0]:
-                    getattr(T, testname)(ctx)
-                else:
-                    getattr(T, testname)()
+            elif Cls2Test and hasattr(runT, testname):
+                sts = self.exec_local_test(runT, testname, ctx=ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1217,27 +1225,12 @@ class Z0test(object):
                         opt4childs = []
                         del content
                     if os.environ.get('TRAVIS_PDB') == 'true':
-                        if ctx.get('python3', False):
-                            test_w_args = [
-                                'python3',
-                                '-m',
-                                'pdb',
-                                testname,
-                            ] + opt4childs
-                        elif ctx.get('python2', False):
-                            test_w_args = [
-                                'python2',
-                                '-m',
-                                'pdb',
-                                testname,
-                            ] + opt4childs
-                        else:
-                            test_w_args = [
-                                sys.executable,
-                                '-m',
-                                'pdb',
-                                testname,
-                            ] + opt4childs
+                        test_w_args = [
+                            sys.executable,
+                            '-m',
+                            'pdb',
+                            testname,
+                        ] + opt4childs
                     elif ctx.get('run4cover', False) and not ctx.get('dry_run', False):
                         self.set_shabang(ctx, testname)
                         test_w_args = [
@@ -1248,12 +1241,12 @@ class Z0test(object):
                             testname,
                         ] + opt4childs
                     else:
-                        if ctx.get('python3', False):
-                            test_w_args = ['python3'] + [testname] + opt4childs
-                        elif ctx.get('python2', False):
-                            test_w_args = ['python2'] + [testname] + opt4childs
+                        test_w_args = [sys.executable] + [testname] + opt4childs
+                    if ctx.get("opt_verbose"):
+                        if ctx.get('dry_run', False):
+                            print("    > " + " ".join(test_w_args))
                         else:
-                            test_w_args = [sys.executable] + [testname] + opt4childs
+                            print("    $ " + " ".join(test_w_args))
                     try:
                         sts = subprocess.call(test_w_args)
                     except OSError:
@@ -1267,13 +1260,13 @@ class Z0test(object):
                 if not ctx.get('opt_noctr', False):
                     ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
-            self.res_test_env(ctx)
+            self.set_test_env(ctx)
             if sts or not ctx.get('successful'):  # pragma: no cover
                 sts = TEST_FAILED
                 break
         ctx['min_test'] = ctx['ctr']
-        if Cls2Test and hasattr(Cls2Test, 'teardown'):
-            T.teardown(ctx)
+        if Cls2Test and hasattr(runT, "teardown"):
+            self.exec_local_test(runT, "teardown", ctx=ctx)
         return sts
 
     def main_local(self, ctx, Cls2Test, unittest_list=None):
@@ -1283,20 +1276,12 @@ class Z0test(object):
             [
                 meth
                 for meth in dir(Cls2Test)
-                if meth.startswith("test_") and callable(getattr(Cls2Test, meth))
+                if (meth.startswith("test_")
+                    and callable(getattr(Cls2Test, meth))
+                    and (not unittest_list or meth in unittest_list))
             ]
         )
-        if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, Cls2Test)
-        if ctx.get('dry_run', False):
-            if not ctx.get('_run_autotest', False):
-                print(ctx['max_test'])
-            sts = TEST_SUCCESS
-        else:
-            # if not ctx.get('_run_autotest', False):
-            #     self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, Cls2Test)
-        return sts
+        return self._exec_all_tests(test_list, ctx, Cls2Test)
 
     def main(self, ctx={}, Cls2Test=None, unittest_list=None):
         """Default main program for test execution
@@ -1317,13 +1302,13 @@ class Z0test(object):
                     and ctx.get('run4cover', False)
                     and not ctx.get('dry_run', False)
             ):
-                sts, stdout, stderr = z0lib.run_traced('coverage erase', verbose=0)
+                sts, stdout, stderr = z0lib.run_traced(
+                    'coverage erase --rcfile=%s' % ctx['COVERAGE_PROCESS_START'])
                 if sts:
                     print('Coverage not found!')
                     ctx['run4cover'] = False
         test_list = []
         if isinstance(unittest_list, (list, tuple)):
-            # self.dbgmsg(ctx, '>>> test_list=%s' % UT)
             test_list = unittest_list
         elif not ctx.get('_run_autotest', False):
             # Discover test files
@@ -1351,28 +1336,21 @@ class Z0test(object):
                     if meth.startswith("test_") and callable(getattr(Cls2Test, meth))
                 ]
             )
-        if not ctx.get('opt_noctr', False):
-            self._exec_tests_4_count(test_list, ctx, Cls2Test)
-        if ctx.get('dry_run', False):
-            if not ctx.get('_run_autotest', False):
-                print(ctx['ctr'])
-            sts = TEST_SUCCESS
-        else:
-            # if not ctx.get('_run_autotest', False):
-            #     self.set_tlog_file(ctx)
-            sts = self._exec_all_tests(test_list, ctx, Cls2Test)
-            if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
-                if sts == 0:
-                    print(success_msg)
-                    if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
-                        sts, stdout, stderr = z0lib.run_traced(
-                            'coverage report --show-missing', verbose=0)
-                        if sts:
-                            print('Coverage not found!')
-                            ctx['run4cover'] = False
-                        sts = 0
-                else:
-                    print(fail_msg)
+        sts = self._exec_all_tests(test_list, ctx, Cls2Test)
+        if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
+            if sts == 0:
+                print(success_msg)
+                if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
+                    sts, stdout, stderr = z0lib.run_traced(
+                        'coverage report --show-missing --rcfile=%s'
+                        % ctx['COVERAGE_PROCESS_START'],
+                        verbose=0)
+                    if sts:
+                        print('Coverage not found!')
+                        ctx['run4cover'] = False
+                    sts = 0
+            else:
+                print(fail_msg)
         return sts
 
     def msg_test(self, ctx, msg):
@@ -1533,7 +1511,7 @@ class Z0test(object):
     def assertMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if not re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> does not match <<%s>>!" % (first, second),
@@ -1542,7 +1520,7 @@ class Z0test(object):
     def assertNotMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> matches <<%s>>!" % (first, second),
@@ -1555,28 +1533,28 @@ class Z0test(object):
             for p in 'min_test', 'max_test', 'opt_debug', 'opt_noctr', 'dry_run':
                 if p in full:
                     z0ctx[p] = full[p]
-        if opt_echo == '-e':
-            z0ctx['WLOGCMD'] = 'echo'
-        elif opt_echo == '-q':
-            z0ctx['WLOGCMD'] = 'wecho-0'
+        # if opt_echo == '-e':
+        #     z0ctx['WLOGCMD'] = 'echo'
+        # elif opt_echo == '-q':
+        #     z0ctx['WLOGCMD'] = 'wecho-0'
         z0ctx['this'] = self.module_id
         z0ctx['this_fqn'] = './' + self.module_id
         z0ctx['_run_autotest'] = True
         # self.def_tlog_fn = '~/z0bug.log'
         return z0ctx
 
-    def sanity_check(self, opt_echo, full={}):
-        """Internal regression test
-        Module z0testlib is needed to run regression tests
-        This function run auto validation tests for z0testlib functions
-        """
-        z0ctx = self._init_test_ctx(opt_echo, full)
-        sts = self.main(z0ctx, SanityTest)
-        if full:
-            for p in 'min_test', 'max_test', 'ctr':
-                full[p] = z0ctx[p]
-        del z0ctx
-        return sts
+    # def sanity_check(self, opt_echo, full={}):
+    #     """Internal regression test
+    #     Module z0testlib is needed to run regression tests
+    #     This function run auto validation tests for z0testlib functions
+    #     """
+    #     z0ctx = self._init_test_ctx(opt_echo, full)
+    #     sts = self.main(z0ctx, SanityTest)
+    #     if full:
+    #         for p in 'min_test', 'max_test', 'ctr':
+    #             full[p] = z0ctx[p]
+    #     del z0ctx
+    #     return sts
 
     def build_os_tree(self, ctx, os_tree):
         """Create a filesytem tree to test"""

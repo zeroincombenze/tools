@@ -482,19 +482,19 @@ To avoid these test on web travis-ci you have to set EXCLUDE value in .travis.ym
 Look at follow table to understand which set of tests are enabled or disabled:
 
 +--------------------+--------------+--------------+--------------+-------------------------+
-| statement          | application  | module l10n_ | odoo/addons  | addons + dependencies   |
+| statement          | application  | local module | odoo/addons  | addons + dependencies   |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | ALL                | |check|      | |check|      | |check|      | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | APPLICATIONS       | |check|      | |no_check|   | |no_check|   | Only if application     |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only module l10n_*      |
+| LOCALIZATION       | |no_check|   | |check|      | |no_check|   | Only local modules      |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | CORE               | |no_check|   | |no_check|   | |check|      | |no_check|              |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-APPLICATION     | |no_check|   | |check|      | |check|      | No if application       |
 +--------------------+--------------+--------------+--------------+-------------------------+
-| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No if module l10n_*     |
+| NO-LOCALIZATION    | |check|      | |no_check|   | |check|      | No local modules        |
 +--------------------+--------------+--------------+--------------+-------------------------+
 | NO-CORE            | |check|      | |check|      | |no_check|   | |check|                 |
 +--------------------+--------------+--------------+--------------+-------------------------+
@@ -751,10 +751,10 @@ Ths TestEnv software requires:
 * z0bug_odoo PYPI package
 * python 2.7 / 3.6 / 3.7 / 3.8
 
-TestEnv is full integrated with Zeroincombenze(R) tools.
+TestEnv is full integrated with Zeroincombenze® tools.
 See https://zeroincombenze-tools.readthedocs.io/
 and https://github.com/zeroincombenze/tools.git
-Zeroincombenze(R) tools help you to test Odoo module with pycharm.
+Zeroincombenze® tools help you to test Odoo module with pycharm.
 
 |
 |
