@@ -12,6 +12,7 @@
 * [FIX] odoo_translation.py: punctuation at the end of term
 * [FIX] odoo_translation.py: first character case
 * [FIX] odoo_translation.py: cache file format is Excel
+* [FIX] run_odoo_debug: path with heading space
 
 2.0.12 (2023-08-29)
 ~~~~~~~~~~~~~~~~~~~

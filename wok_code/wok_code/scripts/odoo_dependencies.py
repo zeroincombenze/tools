@@ -298,7 +298,7 @@ def read_valid_manifest(manifest_path, depends_by=None, ao_list=None):
 
 def get_modules_info(path, depth=1, depends_by=None, ao_list=None):
     """Return a digest of each installable module's manifest in path repo"""
-    path = os.path.expanduser(path)
+    path = os.path.expanduser(path.strip())
     # Avoid empty basename when path ends with slash
     path = os.path.dirname(path) if not os.path.basename(path) else path
     modules = {}

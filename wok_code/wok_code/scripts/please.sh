@@ -499,12 +499,12 @@ do_edit_pofile() {
 
 do_edit_translation() {
   local xfile
-  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
+  [[ -f "$HOME_DEVEL/pypi/tools/odoo_template_tnl" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_template_tnl.xlsx"
   if [[ -n "$xfile" ]]; then
     [[ -f /etc/wsl.conf ]] && xfile="z:$xfile"
     run_traced "libreoffice $xfile"
   else
-    echo "No file odoo_default_tnl.xlsx found!"
+    echo "No file odoo_template_tnl.xlsx found!"
   fi
   return $STS_STS_SUCCESS
 }

@@ -30,8 +30,8 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
 
     def run_odoo_test(self, vid):
         os.putenv("ODOO_GIT_ORGID", "zero")
@@ -44,18 +44,11 @@ class RegressionTest:
             print(stderr)
         return sts, stdout, stderr
 
-    def test_01(self, z0ctx):
-        sts, stdout, stderr = z0lib.run_traced("run_odoo_debug --version")
-        if sts:
-            self.Z.test_result(z0ctx, "run_odoo_debug --version", 0, sts)
-            return sts
-        self.Z.test_result(
-            z0ctx,
-            "run_odoo_debug --version",
-            __version__,
-            (stdout + stderr).split("\n")[0]
-        )
-        return sts
+    def test_01(self):
+        cmd = "run_odoo_debug --version"
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
     def test_02(self, z0ctx):
         sts = 0
@@ -97,38 +90,19 @@ class RegressionTest:
                     TRES = "~/%s/openerp-server"
                 else:
                     TRES = "~/%s/odoo-bin"
-                # TRES = TRES.replace("~", self.Z.testdir)
                 TRES = os.path.expanduser(TRES % vid)
                 cmd = "run_odoo_debug -b%s -vn" % vid
                 sts, stdout, stderr = self.run_odoo_test(vid)
-                sts = self.Z.test_result(
-                    z0ctx,
-                    cmd,
-                    None,
-                    re.search("File .*no.*(exist|esistente)", (stdout + stderr)),
-                )
-                if sts:
-                    return sts
-                sts = self.Z.test_result(
-                    z0ctx,
-                    cmd,
-                    True,
-                    bool(re.search("cd.*/%s.*%s.*--config" % (vid, TRES),
-                                   stdout.replace("\n", " "))),
-                )
-                if sts:
-                    return sts
-        return sts
+                self.assertEqual(sts, 0, msg_info=cmd)
+                self.assertMatch(stdout.replace("\n", " "),
+                                 ".* cd .*/%s.*%s.*--config=" % (vid, TRES))
 
-    def setup(self, z0ctx):
+    def setup(self):
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(self.Z.rundir,
                                           "scripts",
                                           "run_odoo_debug.py")
         )
-
-    def tearoff(self, z0ctx):
-        pass
 
 
 #

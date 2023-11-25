@@ -190,7 +190,7 @@ class OdooTranslation(object):
         if ignore_case:
             kk = key if self.isfullupper(key) else key.lower()
         if module:
-            kk = module + MODULE_SEP + kk
+            kk = module + MODULE_SEP + kk.split(MODULE_SEP)[-1]
         return kk
 
     def adjust_case(self, orig, tnxl):
@@ -266,7 +266,7 @@ class OdooTranslation(object):
             return msg_orig
         if collections.Counter(msg_orig)["%"] != collections.Counter(msg_tnxl)["%"]:
             print("*** Warning: different param subts: <<"
-                  + msg_orig + ">> / <<" + msg_tnxl + ">>")
+                  + msg_orig[:80] + ">> / <<" + msg_tnxl[:80] + ">>")
             return msg_orig
         if not is_tag and not raw:
             for item in self.tags:

@@ -567,7 +567,6 @@ class PleaseCwd(object):
                     for item in (
                         "install_tools.sh",
                         "LICENSE",
-                        "odoo_default_tnl.xlsx",
                         "odoo_template_tnl.xlsx",
                         "README.rst",
                     ):
@@ -856,7 +855,6 @@ class PleaseCwd(object):
                     for item in (
                         "install_tools.sh",
                         "LICENSE",
-                        "odoo_default_tnl.xlsx",
                         "odoo_template_tnl.xlsx",
                         "README.rst",
                     ):
