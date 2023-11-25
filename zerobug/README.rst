@@ -172,7 +172,7 @@ ChangeLog History
 * [IMP] Disabled sanity_check
 * [IMP] Disabled some deprecated switches
 * [FIX] Coverage data file
-* [IMP] zerobug: test function signature line unittest2
+* [IMP] zerobug: test function signature like unittest2
 * [IMP] zerobug: no more execution for count
 
 2.0.10 (2023-11-10)

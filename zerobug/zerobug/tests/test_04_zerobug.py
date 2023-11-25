@@ -26,10 +26,10 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        z0bug.inherit_cls(self)
+    # def __init__(self, z0bug):
+    #     z0bug.inherit_cls(self)
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         self.assertTrue(True, msg_info="assertTrue()")
         self.assertFalse(False, msg_info="assertFalse()")
         self.assertEqual("equal", "equal", msg_info="assertEqual()")
@@ -45,8 +45,7 @@ class RegressionTest:
         self.assertNotIn("z", "abc", msg_info="assertNotIn()")
         self.assertNotIn("z", ["a", "b", "c"], msg_info="assertNotIn()")
         self.assertMatch("abc", ".*", msg_info="assertMatch()")
-        self.assertNotMatch("abc", "[0-9]", msg_info="assertMatch()")
-        return self.ret_sts()
+        self.assertNotMatch("abc", "[0-9]", msg_info="assertNotMatch()")
 
 
 #

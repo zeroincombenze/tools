@@ -1042,7 +1042,7 @@ class Z0test(object):
     def ret_sts(self):
         return 0 if self.successful else 1
 
-    def res_test_env(self, ctx):
+    def set_test_env(self, ctx):
         ctx["ctr"] = max(self.assert_counter, ctx["ctr"])
         ctx["successful"] &= self.successful
 
@@ -1115,10 +1115,10 @@ class Z0test(object):
         ctx = self._save_options(ctx)
         testctr = 0
         if Cls2Test:
-            T = Cls2Test(self)
-            if hasattr(Cls2Test, 'setup'):
+            runT = self.new_Cls2Test(Cls2Test)
+            if hasattr(runT, 'setup'):
                 ctx['dry_run'] = True
-                self.exec_local_test(Cls2Test, T, "setup", ctx=ctx)
+                self.exec_local_test(runT, "setup", ctx=ctx)
         for testname in test_list:
             ctx['dry_run'] = True
             basetn = os.path.basename(testname)
@@ -1129,8 +1129,8 @@ class Z0test(object):
                 self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif Cls2Test and hasattr(Cls2Test, testname):
-                self.exec_local_test(Cls2Test, T, testname, ctx=ctx)
+            elif Cls2Test and hasattr(runT, testname):
+                self.exec_local_test(runT, testname, ctx=ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1151,11 +1151,11 @@ class Z0test(object):
                 except BaseException:  # pragma: no cover
                     ctx['ctr'] = 0
                 self.ctr_list.append(ctx['ctr'])
-            self.res_test_env(ctx)
+            self.set_test_env(ctx)
             testctr += ctx['ctr']
-        if Cls2Test and hasattr(Cls2Test, 'teardown'):
+        if Cls2Test and hasattr(runT, 'teardown'):
             ctx['dry_run'] = True
-            self.exec_local_test(Cls2Test, T, "teardown", ctx=ctx)
+            self.exec_local_test(runT, "teardown", ctx=ctx)
         ctx = self._restore_options(ctx)
         ctx['ctr'] = testctr
         if ctx.get('max_test', 0) == 0:
@@ -1163,8 +1163,19 @@ class Z0test(object):
         ctx['_prior_msg'] = ''
         return TEST_SUCCESS
 
-    def exec_local_test(self, Cls2Test, T, testname, ctx=None):
-        if len(has_args(getattr(Cls2Test, testname))) > 1:
+    def new_Cls2Test(self, Cls2Test):
+        if (
+                hasattr(Cls2Test, "__init__")
+                and len(has_args(getattr(Cls2Test, "__init__"))) == 2
+        ):
+            runT = Cls2Test(self)
+        else:
+            runT = Cls2Test()
+        self.inherit_cls(runT)
+        return runT
+
+    def exec_local_test(self, T, testname, ctx=None):
+        if len(has_args(getattr(T, testname))):
             sts = getattr(T, testname)(ctx)
         else:
             sts = getattr(T, testname)()
@@ -1186,9 +1197,9 @@ class Z0test(object):
         ctx['ctr'] = ctx['min_test']
 
         if Cls2Test:
-            T = Cls2Test(self)
-            if hasattr(Cls2Test, "setup"):
-                sts = self.exec_local_test(Cls2Test, T, "setup", ctx=ctx)
+            runT = self.new_Cls2Test(Cls2Test)
+            if hasattr(runT, "setup"):
+                sts = self.exec_local_test(runT, "setup", ctx=ctx)
         for testname in test_list:
             opt4childs = self._inherit_opts(ctx)
             basetn = os.path.basename(testname)
@@ -1198,8 +1209,8 @@ class Z0test(object):
                 sts = self.test_version(ctx, testname)
             elif testname.startswith('__doctest'):
                 self.doctest(ctx, testname)
-            elif Cls2Test and hasattr(Cls2Test, testname):
-                sts = self.exec_local_test(Cls2Test, T, testname, ctx=ctx)
+            elif Cls2Test and hasattr(runT, testname):
+                sts = self.exec_local_test(runT, testname, ctx=ctx)
             elif os.path.splitext(basetn)[0] != ctx['this']:
                 mime = magic.Magic(mime=True).from_file(os.path.realpath(testname))
                 if os.path.dirname(testname) == "":
@@ -1214,21 +1225,6 @@ class Z0test(object):
                         opt4childs = []
                         del content
                     if os.environ.get('TRAVIS_PDB') == 'true':
-                        # if ctx.get('python3', False):
-                        #     test_w_args = [
-                        #         'python3',
-                        #         '-m',
-                        #         'pdb',
-                        #         testname,
-                        #     ] + opt4childs
-                        # elif ctx.get('python2', False):
-                        #     test_w_args = [
-                        #         'python2',
-                        #         '-m',
-                        #         'pdb',
-                        #         testname,
-                        #     ] + opt4childs
-                        # else:
                         test_w_args = [
                             sys.executable,
                             '-m',
@@ -1245,11 +1241,6 @@ class Z0test(object):
                             testname,
                         ] + opt4childs
                     else:
-                        # if ctx.get('python3', False):
-                        #     test_w_args = ['python3'] + [testname] + opt4childs
-                        # elif ctx.get('python2', False):
-                        #     test_w_args = ['python2'] + [testname] + opt4childs
-                        # else:
                         test_w_args = [sys.executable] + [testname] + opt4childs
                     if ctx.get("opt_verbose"):
                         if ctx.get('dry_run', False):
@@ -1269,13 +1260,13 @@ class Z0test(object):
                 if not ctx.get('opt_noctr', False):
                     ctx['ctr'] += self.ctr_list[ix]
                 ix += 1
-            self.res_test_env(ctx)
+            self.set_test_env(ctx)
             if sts or not ctx.get('successful'):  # pragma: no cover
                 sts = TEST_FAILED
                 break
         ctx['min_test'] = ctx['ctr']
-        if Cls2Test and hasattr(Cls2Test, 'teardown'):
-            self.exec_local_test(Cls2Test, T, "teardown", ctx=ctx)
+        if Cls2Test and hasattr(runT, "teardown"):
+            self.exec_local_test(runT, "teardown", ctx=ctx)
         return sts
 
     def main_local(self, ctx, Cls2Test, unittest_list=None):
@@ -1345,13 +1336,6 @@ class Z0test(object):
                     if meth.startswith("test_") and callable(getattr(Cls2Test, meth))
                 ]
             )
-        # if not ctx.get('opt_noctr', False):
-        #     self._exec_tests_4_count(test_list, ctx, Cls2Test)
-        # if ctx.get('dry_run', False):
-        #     if not ctx.get('_run_autotest', False):
-        #         print(ctx['ctr'])
-        #     sts = TEST_SUCCESS
-        # else:
         sts = self._exec_all_tests(test_list, ctx, Cls2Test)
         if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
             if sts == 0:
@@ -1527,7 +1511,7 @@ class Z0test(object):
     def assertMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if not re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> does not match <<%s>>!" % (first, second),
@@ -1536,7 +1520,7 @@ class Z0test(object):
     def assertNotMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(msg_info)
+            print(("%d. " % self.assert_counter) + msg_info)
         if re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> matches <<%s>>!" % (first, second),
