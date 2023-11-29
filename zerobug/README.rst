@@ -1,5 +1,5 @@
 ==============
-zerobug 2.0.10
+zerobug 2.0.11
 ==============
 
 
@@ -11,45 +11,33 @@ zerobug 2.0.10
 Overview
 ========
 
-This library can run unit test of target package software.
+This library can run unit test of software target package.
 Supported languages are *python* (through z0testlib.py) and *bash* (through z0testrc)
 
-*zerobug* supports test automation, aggregation of tests into collections
+*zerobug* was born to supports test automation, aggregation of tests into collections
 and independence of the tests from the reporting framework.
-The *zerobug* module provides all code that make it easy to support testing
-both for python programs both for bash scripts.
-*zerobug* shows execution test with a message like "n/tot message"
-where *n* is current unit test and *tot* is the total unit test to execute,
-that is a sort of advancing test progress.
+Currently is becoming an improvements of *python unittest2* but still run bash tests.
 
-You can use z0bug_odoo that is the odoo integration to test Odoo modules.
-
-*zerobug* is built on follow concepts:
-
-* test main - it is a main program to executes all test runners
-* test runner - it is a program to executes one or more test suites
-* test suite - it is a collection of test cases
-* test case - it is a smallest unit test
-
-The main file is the command **zerobug** of this package; it searches for test runner
-files named ``[id_]test_`` where 'id' is the shor name of testing package.
+The command **zerobug** of this package runs tests: it searches for test runner
+files named ``test_`` (see -p switch).
 
 Test suite is a collection of test case named ``test_[0-9]+`` inside the runner file,
 executed in sorted order.
 
-Every suit can contains one or more test case, the smallest unit test;
+Every suite can contains one or more test case, the smallest unit test;
 every unit test terminates with success or with failure.
+
+*zerobug* is full integrated with coverage and travis-ci.
 
 
 
 Features
 --------
 
-* Test execution log
 * Autodiscovery test modules and functions
 * Python 2.7+ and 3.5+
 * coverage integration
-* travis integration
+* travis-ci integration
 
 
 
@@ -166,8 +154,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.10.1 (2023-11-19)
+2.0.11.1 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] python2: has_args
+
+2.0.11 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Disabled sanity_check
 * [IMP] Disabled some deprecated switches
@@ -299,10 +292,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.11/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.11/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
