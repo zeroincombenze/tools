@@ -1149,9 +1149,9 @@ class PleaseCwd(object):
             REGEX_TESTENV_VER = re.compile("^(.* v)(%s)" % please.opt_args.from_version)
         else:
             REGEX_VER = re.compile(
-                "^#? *(__version__|version|release) *= *[\"']?([0-9.]+)[\"']?")
+                r"^#? *(__version__|version|release) *= *[\"']?([0-9]+\.[0-9.]+)[\"']?")
             REGEX_DICT_VER = re.compile(
-                "^ *([\"']version[\"']: [\"'])([0-9.]+)[\"']")
+                r"^ *([\"']version[\"']: [\"'])([0-9]+\.[0-9.]+)[\"']")
             REGEX_TESTENV_VER = re.compile(
                 r"^(.*v)(\d+\.\d+\.\d+)")
         if please.is_pypi_pkg():
@@ -1208,8 +1208,9 @@ class PleaseCwd(object):
                     if sts:
                         break
             if sts == 0:
-                sts = update_version(pth.join(os.getcwd(), "docs", "conf.py"),
-                                     REGEX_VER,)
+                fqn = pth.join(os.getcwd(), "docs", "conf.py")
+                if pth.isfile(fqn):
+                    sts = update_version(fqn, REGEX_VER)
             if sts == 0:
                 search_last_history(pth.join("egg-info", "CHANGELOG.rst"))
             return sts

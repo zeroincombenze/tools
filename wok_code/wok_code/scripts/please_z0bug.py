@@ -286,6 +286,17 @@ class PleaseZ0bug(object):
                         if do_rewrite:
                             with open(pth.join("tests", fn), "w") as fd:
                                 fd.write(new_content)
+            if (
+                    not please.opt_args.no_verify
+                    and pth.isdir("tests")
+                    and pth.isdir(pth.join("tests", "data"))
+                    and pth.isfile(pth.join("tests", "data", "account.account.xlsx"))
+            ):
+                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                                   "testenv")
+                please.run_traced(
+                    "cp %s/account.account.xlsx tests/data/account.account.xlsx"
+                    % srcpath, rtime=True)
             args = self.build_run_odoo_base_args(branch=branch)
             print("")
             sts = please.chain_python_cmd("run_odoo_debug.py", args)
