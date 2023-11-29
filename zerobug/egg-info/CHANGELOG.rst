@@ -1,5 +1,10 @@
-2.0.10.1 (2023-11-19)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.12 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~
+
+[FIX] python2: has_args
+
+2.0.11 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Disabled sanity_check
 * [IMP] Disabled some deprecated switches

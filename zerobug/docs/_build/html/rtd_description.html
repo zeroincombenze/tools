@@ -5,18 +5,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Overview &#8212; zerobug 2.0.10 documentation</title>
+    <title>Overview &#8212; zerobug 2.0.12 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=35ed7e2b"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=a66d7058"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Features" href="rtd_features.html" />
-    <link rel="prev" title="Welcome to zerobug 2.0.10 documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to zerobug 2.0.12 documentation!" href="index.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -31,9 +31,9 @@
           <a href="rtd_features.html" title="Features"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to zerobug 2.0.10 documentation!"
+          <a href="index.html" title="Welcome to zerobug 2.0.12 documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.12 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Overview</a></li> 
       </ul>
     </div>  
@@ -47,29 +47,18 @@
 </div>
 <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
-<p>This library can run unit test of target package software.
+<p>This library can run unit test of software target package.
 Supported languages are <em>python</em> (through z0testlib.py) and <em>bash</em> (through z0testrc)</p>
-<p><em>zerobug</em> supports test automation, aggregation of tests into collections
+<p><em>zerobug</em> was born to supports test automation, aggregation of tests into collections
 and independence of the tests from the reporting framework.
-The <em>zerobug</em> module provides all code that make it easy to support testing
-both for python programs both for bash scripts.
-<em>zerobug</em> shows execution test with a message like “n/tot message”
-where <em>n</em> is current unit test and <em>tot</em> is the total unit test to execute,
-that is a sort of advancing test progress.</p>
-<p>You can use z0bug_odoo that is the odoo integration to test Odoo modules.</p>
-<p><em>zerobug</em> is built on follow concepts:</p>
-<ul class="simple">
-<li><p>test main - it is a main program to executes all test runners</p></li>
-<li><p>test runner - it is a program to executes one or more test suites</p></li>
-<li><p>test suite - it is a collection of test cases</p></li>
-<li><p>test case - it is a smallest unit test</p></li>
-</ul>
-<p>The main file is the command <strong>zerobug</strong> of this package; it searches for test runner
-files named <code class="docutils literal notranslate"><span class="pre">[id_]test_</span></code> where ‘id’ is the shor name of testing package.</p>
+Currently is becoming an improvements of <em>python unittest2</em> but still run bash tests.</p>
+<p>The command <strong>zerobug</strong> of this package runs tests: it searches for test runner
+files named <code class="docutils literal notranslate"><span class="pre">test_</span></code> (see -p switch).</p>
 <p>Test suite is a collection of test case named <code class="docutils literal notranslate"><span class="pre">test_[0-9]+</span></code> inside the runner file,
 executed in sorted order.</p>
-<p>Every suit can contains one or more test case, the smallest unit test;
+<p>Every suite can contains one or more test case, the smallest unit test;
 every unit test terminates with success or with failure.</p>
+<p><em>zerobug</em> is full integrated with coverage and travis-ci.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 <div class="line"><br /></div>
@@ -89,7 +78,7 @@ every unit test terminates with success or with failure.</p>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="index.html"
-                          title="previous chapter">Welcome to zerobug 2.0.10 documentation!</a></p>
+                          title="previous chapter">Welcome to zerobug 2.0.12 documentation!</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -130,9 +119,9 @@ every unit test terminates with success or with failure.</p>
           <a href="rtd_features.html" title="Features"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to zerobug 2.0.10 documentation!"
+          <a href="index.html" title="Welcome to zerobug 2.0.12 documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.12 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Overview</a></li> 
       </ul>
     </div>

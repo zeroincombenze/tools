@@ -29,7 +29,7 @@ from os0 import os0
 from z0lib import z0lib
 from python_plus import _c
 
-__version__ = "2.0.10"
+__version__ = "2.0.12"
 
 # return code
 TEST_FAILED = 1
@@ -159,7 +159,7 @@ exclude_lines =
 
 
 def has_args(method):
-    return (getargspec(method) if sys.version_info[0] == 2
+    return (getargspec(method).args if sys.version_info[0] == 2
             else list(signature(method).parameters))
 
 
@@ -1285,10 +1285,11 @@ class Z0test(object):
 
     def main(self, ctx={}, Cls2Test=None, unittest_list=None):
         """Default main program for test execution
-        ctx: context
-        Cls2Test: test class for internal tests;
-                  if supplied only internal tests are executed
-        unittest_list: Unit Test list (if None, search for files)
+
+        Args:
+            ctx (dict): context
+            Cls2Test (class): test class for internal tests
+            unittest_list (list): Unit Test list (if None, search for files)
         """
         ctx = self._ready_opts(ctx)
         # Execute sanity check on test library (no if zerobug testing itself)
@@ -1865,3 +1866,4 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+

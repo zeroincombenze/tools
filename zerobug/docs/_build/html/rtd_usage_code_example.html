@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Digest of code_example &#8212; zerobug 2.0.10 documentation</title>
+    <title>Digest of code_example &#8212; zerobug 2.0.12 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=35ed7e2b"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=a66d7058"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="rtd_getting_started.html" title="Getting started"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.12 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Digest of code_example</a></li> 
       </ul>
     </div>  
@@ -49,95 +49,87 @@
 <h1>Digest of code_example<a class="headerlink" href="#digest-of-code-example" title="Permalink to this heading"></a></h1>
 <section id="code-example">
 <h2>Code example<a class="headerlink" href="#code-example" title="Permalink to this heading"></a></h2>
-<p><em>zerobug</em> makes avaiable following functions to test:</p>
-<div class="line-block">
-<div class="line"><br /></div>
+<p><em>zerobug</em> makes available following functions to test:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Z0BUG_setup</span>         <span class="c1"># bash</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>    <span class="c1"># python (deprecated)</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>       <span class="c1"># python</span>
+</pre></div>
 </div>
-<p><cite>Z0BUG.setup(ctx)</cite> (python)</p>
-<p><cite>Z0BUG_setup</cite> (bash)</p>
-<p>Setup for test. It is called before all tests.</p>
-<div class="line-block">
-<div class="line"><br /></div>
+<p>Setup for test. It is called before all tests. It has same functionality of
+unittest2.setup()</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Z0BUG_teardown</span>         <span class="c1"># bash</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">teardown</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>    <span class="c1"># python (deprecated)</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">teardown</span><span class="p">()</span>       <span class="c1"># python</span>
+</pre></div>
 </div>
-<p><cite>Z0BUG.teardown(ctx)</cite> (python)</p>
-<p><cite>Z0BUG_teardown</cite> (bash)</p>
-<p>Setup for test. It is called after all tests.</p>
-<div class="line-block">
-<div class="line"><br /></div>
+<p>Clear at the end of test. It is called after all tests. It has same functionality of
+unittest2.teardown()</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Z0BUG_build_os_tree</span>  <span class="n">list_of_paths</span>         <span class="c1"># bash</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">build_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>  <span class="c1"># python</span>
+</pre></div>
 </div>
-<p><cite>Z0BUG.build_os_tree(ctx, list_of_paths)</cite> (python)</p>
-<p><cite>Z0BUG_build_os_tree list_of_paths</cite> (bash)</p>
 <p>Build a full os tree from supplied list.
 If python, list of paths is a list of strings.
 If bash, list is one string of paths separated by spaces.
 Function reads list of paths and then create all directories.
 If directory is an absolute path, it is created with the supplied path.
-If directory is a relative path, the directory is created under “tests/res” directory.</p>
-<p>Warning!
-To check is made is parent dir does not exit. Please, supply path from parent
+If directory is a relative path, the directory is created under <strong>tests/res</strong> directory.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>No check is made if parent dir does not exit. Please, supply path from parent
 to children, if you want to build a nested tree.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
-<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
-
-    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
-        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">build_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Z0BUG_remove_os_tree</span>  <span class="n">list_of_paths</span>         <span class="c1"># bash</span>
+<span class="n">Z0BUG</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>  <span class="c1"># python</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (bash)</span>
-<span class="n">Z0BUG_setup</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">Z0BUG_build_os_tree</span> <span class="s2">&quot;10.0 10.0/addons 10.0/odoo&quot;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
-<p><cite>Z0BUG.remove_os_tree(ctx, list_of_paths)</cite> (python)</p>
-<p><cite>Z0BUG_remove_os_tree list_of_paths</cite> (bash)</p>
-<p>Remove a full os tree created by <cite>build_os_tree</cite>
+<p>Remove a full os tree created by <code class="docutils literal notranslate"><span class="pre">build_os_tree</span></code>
 If python, list of paths is a list of strings.
 If bash, list is a string of paths separated by spaces.
 Function reads list of paths and remove all directories.
 If directory is an absolute path, the supplied path is dropped.
 If directory is a relative path, the directory is dropped from tests/res directory.</p>
-<p>Warning!
-This function remove directory and all sub-directories without any control.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function remove directory and all sub-directories without any control</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#! python</span>
+<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">z0test</span>
+
 <span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
-        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;10.0&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;10.0/addons&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;10.0/odoo&#39;</span><span class="p">,]</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;16.0/addons&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;16.0/odoo&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;16.0&#39;</span>
+        <span class="p">]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;16.0&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;16.0/addons&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;16.0/odoo&#39;</span>
+        <span class="p">]</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">build_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="line-block">
-<div class="line"><br /></div>
-</div>
-<p><cite>Z0BUG.build_odoo_env(ctx, version)</cite> (python)</p>
-<p>Like build_os_tree but create a specific odoo os tree.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
-<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#! bash</span>
+<span class="n">Z0BUG_setup</span><span class="p">()</span> <span class="p">{</span>
+    <span class="p">:</span>
+<span class="p">}</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
+<span class="n">Z0BUG_teardwon</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Z0BUG_build_os_tree</span> <span class="s2">&quot;16.0/addons 16.0/odoo 16.0&quot;</span>
+<span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
-        <span class="n">root</span> <span class="o">=</span> <span class="n">Z0testOdoo</span><span class="o">.</span><span class="n">build_odoo_env</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s1">&#39;10.0&#39;</span><span class="p">)</span>
+<span class="n">test_01</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Z0BUG_build_os_tree</span> <span class="s2">&quot;16.0 16.0/addons 16.0/odoo&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <div class="line-block">
@@ -238,7 +230,7 @@ Return odoo root directory</p>
         <li class="right" >
           <a href="rtd_getting_started.html" title="Getting started"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.12 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Digest of code_example</a></li> 
       </ul>
     </div>

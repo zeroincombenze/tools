@@ -15,7 +15,7 @@ sys.path.insert(0,
 from zerobug import z0test                                                # noqa: E402
 
 
-__version__ = "2.0.10"
+__version__ = "2.0.12"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -46,4 +46,6 @@ if __name__ == "__main__":
     UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
     UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
     exit(z0test.main(ctx, unittest_list=UT_LIST))
+
+
 
