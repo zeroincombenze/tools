@@ -40,6 +40,8 @@ class Z0bugOdoo(object):
                 self.release = release
             except ImportError:
                 self.release = None
+        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        self.caller_data_dir = None
 
     def get_image_filename(self, xref):
         file_image = os.path.join(os.path.dirname(__file__), 'data', '%s.png' % xref)
@@ -66,9 +68,9 @@ class Z0bugOdoo(object):
                 row["code"] = "%s" % row["code"]
             getattr(self, model)[row['id']] = unicodes(row)
 
-    def get_data_file_xlsx(self, model, full_fn):
+    def get_data_file_xlsx(self, model, fqn):
         pymodel = model.replace('.', '_')
-        wb = load_workbook(full_fn)
+        wb = load_workbook(fqn)
         for sheet in wb:
             break
         colnames = []
@@ -85,9 +87,9 @@ class Z0bugOdoo(object):
                 row[colnames[column]] = cell.value
             self.save_row(pymodel, row)
 
-    def get_data_file_csv(self, model, full_fn):
+    def get_data_file_csv(self, model, fqn):
         pymodel = model.replace('.', '_')
-        with open(full_fn, 'r') as fd:
+        with open(fqn, 'r') as fd:
             hdr = True
             csv_obj = csv.DictReader(fd, fieldnames=[], restkey='undef_name')
             for row in csv_obj:
@@ -98,12 +100,29 @@ class Z0bugOdoo(object):
                     continue
                 self.save_row(pymodel, row)
 
-    def get_data_file(self, model, filename):
-        full_fn = os.path.join(os.path.dirname(__file__), 'data', filename)
-        if os.path.isfile('%s.xlsx' % full_fn):
-            return self.get_data_file_xlsx(model, '%s.xlsx' % full_fn)
+    def choice_xlsx_or_csv(self, fqn):
+        if os.path.isfile('%s.xlsx' % fqn):
+            fqn = '%s.xlsx' % fqn
+        elif os.path.isfile('%s.csv' % fqn):
+            fqn = '%s.csv' % fqn
         else:
-            return self.get_data_file_csv(model, '%s.csv' % full_fn)
+            fqn = None
+        return fqn
+
+    def get_data_file(self, model, filename, raise_if_not_found=True):
+        fqn = None
+        if self.caller_data_dir:
+            fqn = self.choice_xlsx_or_csv(os.path.join(self.caller_data_dir, filename))
+        if not fqn:
+            fqn = self.choice_xlsx_or_csv(os.path.join(self.data_dir, filename))
+        if not fqn:
+            if raise_if_not_found:
+                raise KeyError('Filename %s for model %s not found!' % (filename,
+                                                                        model))
+            return fqn
+        return (self.get_data_file_xlsx(model, fqn)
+                if fqn.endswith(".xlsx")
+                else self.get_data_file_csv(model, fqn))
 
     def get_test_xrefs(self, model):
         """Return model xref list"""
@@ -134,3 +153,5 @@ class Z0bugOdoo(object):
         for xref in getattr(self, pymodel):
             pass
 
+    def declare_data_dir(self, data_dir):
+        self.caller_data_dir = data_dir

@@ -2183,7 +2183,7 @@ class MainTest(test_common.TransactionCase):
                 TEST_* (dict): resource data; * is the uppercase resource name where
                                dot are replaced by "_"; (see declare_resource_data)
             group (str): used to manager group data; default is "base"
-            merge (str): merge data with public data (currently just "zerobug")
+            merge (str): merge data with public data; may be path to data dir or zerobug
 
         Raises:
             TypeError: if invalid parameters issued
@@ -2194,6 +2194,12 @@ class MainTest(test_common.TransactionCase):
         if "TEST_SETUP_LIST" not in message:  # pragma: no cover
             self.raise_error("Key TEST_SETUP_LIST not found")
         group = group or "base"
+        if not merge and os.path.isdir(os.path.join("tests", "data")):
+            z0bug_odoo_lib.Z0bugOdoo().declare_data_dir(
+                os.path.abspath(os.path.join("tests", "data")))
+        elif os.path.isdir(merge):
+            z0bug_odoo_lib.Z0bugOdoo().declare_data_dir(merge)
+            merge = None
         for resource in message["TEST_SETUP_LIST"]:
             item = "TEST_%s" % resource.upper().replace(".", "_")
             if item not in message:  # pragma: no cover
@@ -2415,6 +2421,8 @@ class MainTest(test_common.TransactionCase):
         Returns:
             None
         """
+        if "TEST_SETUP_LIST" in inspect.stack()[1][0].globals:
+            pass
         self._logger.info(
             "🎺🎺🎺 Starting test v2.0.12 (debug_level=%s)" % (self.debug_level)
         )

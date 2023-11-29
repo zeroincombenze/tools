@@ -5,6 +5,12 @@ ChangeLog History
 =================
 
 
+2.0.12.1 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: now you can declare you own source data directory
+* [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
+
 2.0.12 (2023-09-12)
 ~~~~~~~~~~~~~~~~~~~
 

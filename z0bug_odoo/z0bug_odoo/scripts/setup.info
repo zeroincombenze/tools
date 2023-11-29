@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path as pth
-import sys
+# import sys
 
 from setuptools import find_packages, setup
 
