@@ -1,5 +1,5 @@
-2.0.12.1 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.13 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] TestEnv: now you can declare you own source data directory
 * [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records

@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.12
+z0bug_odoo 2.0.13
 =================
 
 
@@ -766,7 +766,7 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package 2.0.12
+* z0bug_odoo PYPI package 2.0.13
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
@@ -864,7 +864,7 @@ TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.12
+* z0bug_odoo PYPI package version 2.0.13
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -2043,8 +2043,8 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.12.1 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.13 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] TestEnv: now you can declare you own source data directory
 * [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
@@ -2191,10 +2191,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
