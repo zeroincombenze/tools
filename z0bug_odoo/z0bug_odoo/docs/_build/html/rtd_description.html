@@ -48,10 +48,10 @@
 <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h1>
 <p>This package is an plug-in of <strong>zerobug</strong> package and aim to easily create odoo tests.</p>
-<p>It replaces OCA MQT with some nice additional features.</p>
+<p>It can be used replacing OCA MQT with some nice additional features.</p>
 <p><em>z0bug_odoo</em> is built on follow concepts:</p>
 <ul class="simple">
-<li><p>Odoo version independent; it can test Odoo from 6.1 until 16.0</p></li>
+<li><p>Odoo version independent; it can test Odoo from 6.1 until 17.0</p></li>
 <li><p>It is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p></li>
 <li><p>It can run with full or reduced set of pylint tests</p></li>
 <li><p>Test using ready-made database records</p></li>
@@ -60,10 +60,10 @@
 <section id="travis-ci-support">
 <h2>travis ci support<a class="headerlink" href="#travis-ci-support" title="Permalink to this heading"></a></h2>
 <p>The goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
-The code was forked from OCA MQT but some improvements were added.
-This package and OCA MQT differ by:</p>
+This package can e used replacing OCA MQT and it differs by:</p>
 <ul class="simple">
 <li><p>z0bug_odoo can also test Odoo 6.1 and 7.0 where OCA MQT fails with these versions</p></li>
+<li><p>z0bug_odoo can also test Odoo using python2 where OCA abandoned the developing of Odoo base on python2</p></li>
 <li><p>z0bug_odoo is designed to execute some debug statements, mainly in local environment</p></li>
 <li><p>z0bug_odoo has more options to run with reduced set of lint tests</p></li>
 <li><p>OCA MQT is the only component to build environment and test Odoo while z0bug_odoo is part of <a class="reference external" href="https://github.com/zeroincombenze/tools">Zeroincombenze® tools</a></p></li>
@@ -98,13 +98,12 @@ You can test against:</p>
 <li><p>odoo/odoo</p></li>
 <li><p>OCA/OCB</p></li>
 <li><p>zeroincombenze/OCB</p></li>
-<li><p>librerp/OCB</p></li>
 </ul>
 <p>You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Odoo Branch 16.0</span>
 <span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;16.0&quot;</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;odoo/odoo&quot;</span>
 
-<span class="c1"># Pull request odoo/odoo#143</span>
+<span class="c1"># Pull request odoo/odoo#143 (not in local)</span>
 <span class="o">-</span>  <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;pull/143&quot;</span> <span class="n">ODOO_REPO</span><span class="o">=</span><span class="s2">&quot;OCA/OCB&quot;</span>
 
 <span class="c1"># Branch saas-17</span>
@@ -138,20 +137,25 @@ You can avoid following directive in ODOO_TEST_SELECT=”APPLICATIONS”:</p>
 <section id="python-version">
 <h3>Python version<a class="headerlink" href="#python-version" title="Permalink to this heading"></a></h3>
 <p>Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Warning: currently, some Odoo version cannot support python 3.8.
+From Odoo 11.0, python3 is used. You can test against 3.6, 3.7, 3.8, 3.9 and 3.10 python versions.
 Python 3.5 still works but support is ended.
 This is the declaration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span><span class="p">:</span>
-  <span class="o">-</span> <span class="s2">&quot;3.5&quot;</span>
-  <span class="o">-</span> <span class="s2">&quot;3.6&quot;</span>
-  <span class="o">-</span> <span class="s2">&quot;3.7&quot;</span>
-  <span class="o">-</span> <span class="s2">&quot;3.8&quot;</span>
-  <span class="o">-</span> <span class="s2">&quot;3.9&quot;</span>
+  <span class="o">-</span> <span class="s2">&quot;3.6&quot;</span>       <span class="c1"># Odoo 11.0 12.0</span>
+  <span class="o">-</span> <span class="s2">&quot;3.7&quot;</span>       <span class="c1"># Odoo 12.0</span>
+  <span class="o">-</span> <span class="s2">&quot;3.8&quot;</span>       <span class="c1"># Odoo 13.0 14.0</span>
+  <span class="o">-</span> <span class="s2">&quot;3.9&quot;</span>       <span class="c1"># Odoo 15.0 16.0</span>
+  <span class="o">-</span> <span class="s2">&quot;3.10&quot;</span>      <span class="c1"># Odoo 17.0</span>
 </pre></div>
 </div>
-<p>Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>python 3.5 support is ended on 2020 and 3,6 is ended on 2021.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Currently, some Odoo version cannot support python 3.8+. See above.</p>
+</div>
 </section>
 <section id="deployment-and-setup-environment">
 <h3>Deployment and setup environment<a class="headerlink" href="#deployment-and-setup-environment" title="Permalink to this heading"></a></h3>
@@ -161,26 +165,29 @@ Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7</p>
 <li><p>PYPI packages</p></li>
 <li><p>Odoo repositories dependencies</p></li>
 </ul>
-<p>Linux packages must be declared in <cite>&lt;addons/apt&gt;</cite> section of .travis.yml using Ubuntu namespace.
+<p>Linux packages must be declared in <code class="docutils literal notranslate"><span class="pre">&lt;addons/apt&gt;</span></code> section of .travis.yml using Ubuntu namespace.
 If you run test in local environment, travis emulator automatically translate Ubuntu names into your local distro names, if necessary.
 See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">travis emulator</a> guide for furthermore info.</p>
 <p>The PYPI packages, installable by PIP are declared in standard PIP way, using <strong>requirements.txt</strong> file.</p>
 <p>If your project depends on other Odoo Github repositories like OCA, create a file called <strong>oca_dependencies.txt</strong> at the root of your project and list the dependencies there.
 One per line like so:</p>
-<blockquote>
-<div><p>project_name optional_repository_url optional_branch_name</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">project_name</span> <span class="n">optional_repository_url</span> <span class="n">optional_branch_name</span>
+</pre></div>
+</div>
 <p>During testbed setup, z0bug_odoo will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: they will be placed after your own repo, but before the odoo core repo.</p>
-<p>If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
-Please note this behaviour differs from OCA MQT.
-OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
-So you will test both with z0bug_ood and both OCA MQT, always insert the full repository URL.</p>
+<p>If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This behaviour differs from OCA MQT</p>
+</div>
+<p>OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
+So you will test both with z0bug_odoo and both OCA MQT, always insert the full repository URL.</p>
 </section>
 <section id="test-execution">
 <h3>Test execution<a class="headerlink" href="#test-execution" title="Permalink to this heading"></a></h3>
 <p>Tests run by travis_run_test command. The script is deployed in _travis directory of <strong>zerobug</strong> package.
-Command have to be in <cite>&lt;script&gt;</cite> section of .travis.yml file:</p>
+Command have to be in <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code> section of .travis.yml file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">script</span><span class="p">:</span>
     <span class="o">-</span> <span class="n">travis_run_tests</span>
 </pre></div>
@@ -189,7 +196,7 @@ Command have to be in <cite>&lt;script&gt;</cite> section of .travis.yml file:</
 <section id="isolated-pylint-flake8-checks">
 <h3>Isolated pylint+flake8 checks<a class="headerlink" href="#isolated-pylint-flake8-checks" title="Permalink to this heading"></a></h3>
 <p>If you want to make a build for these checks, you can add a line
-on the <cite>&lt;env&gt;</cite> section of the .travis.yml file with this content:</p>
+on the <code class="docutils literal notranslate"><span class="pre">&lt;env&gt;</span></code> section of the .travis.yml file with this content:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;12.0&quot;</span> <span class="n">LINT_CHECK</span><span class="o">=</span><span class="s2">&quot;1&quot;</span>
 </pre></div>
 </div>
@@ -894,7 +901,7 @@ So if some dependecies module does not meet this test, then the full travis test
 <section id="disable-unit-test">
 <h3>Disable unit test<a class="headerlink" href="#disable-unit-test" title="Permalink to this heading"></a></h3>
 <p>If you want to make a build without tests, you can use the following directive:
-<cite>TEST_ENABLE=”0”</cite></p>
+<code class="docutils literal notranslate"><span class="pre">TEST_ENABLE=&quot;0&quot;</span></code></p>
 <p>You will simply get the databases with packages installed,
 but without running any tests.</p>
 </section>
@@ -988,8 +995,8 @@ This test is a sub test of unit test. This is the directive:</p>
 <h3>Module unit tests<a class="headerlink" href="#module-unit-tests" title="Permalink to this heading"></a></h3>
 <p>z0bug_odoo is also capable to test each module individually.
 The intention is to check if all dependencies are correctly defined.
-Activate it through the <cite>UNIT_TEST</cite> directive.
-An additional line should be added to the <cite>env:</cite> section,
+Activate it through the <code class="docutils literal notranslate"><span class="pre">UNIT_TEST</span></code> directive.
+An additional line should be added to the <code class="docutils literal notranslate"><span class="pre">env:</span></code> section,
 similar to this one:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">VERSION</span><span class="o">=</span><span class="s2">&quot;12.0&quot;</span> <span class="n">UNIT_TEST</span><span class="o">=</span><span class="s2">&quot;1&quot;</span>
 </pre></div>
@@ -1011,7 +1018,7 @@ You might want to do that if you want to double them up as
 staging DBs or if you want to work with an advanced set of
 templates in order to speed up your CI pipeline.
 Just specify at will:</p>
-<p><cite>MQT_TEMPLATE_DB=’odoo_template’ MQT_TEST_DB=’odoo_test’</cite>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MQT_TEMPLATE_DB='odoo_template'</span> <span class="pre">MQT_TEST_DB='odoo_test'</span></code></p>
 <p>In your local travis you can declare the default value but these values are not applied in web TravisCi web site.</p>
 <p>Database user is the current username. This behavior works both in local test both in TravisCi web site.
 However, sometimes, local user and db username can be different. You can set the default value in travis emulator.</p>
@@ -1020,7 +1027,7 @@ However, sometimes, local user and db username can be different. You can set the
 <h3>Coveralls/Codecov configuration file<a class="headerlink" href="#coveralls-codecov-configuration-file" title="Permalink to this heading"></a></h3>
 <p><a class="reference external" href="https://coveralls.io/">Coveralls</a> and <a class="reference external" href="https://codecov.io/">Codecov</a> services provide information on the test coverage of your modules.
 Currently both configurations are automatic (check default configuration <a class="reference external" href="cfg/.coveragerc">here</a>.
-So, as of today, you don’t need to include a <cite>.coveragerc</cite> into the repository,
+So, as of today, you don’t need to include a <code class="docutils literal notranslate"><span class="pre">.coveragerc</span></code> into the repository,
 If you do it, it will be simply ignored.</p>
 </section>
 <section id="other-configurations">
@@ -1170,7 +1177,7 @@ If you do it, it will be simply ignored.</p>
 <section id="debug-information">
 <h3>Debug information<a class="headerlink" href="#debug-information" title="Permalink to this heading"></a></h3>
 <p>If you declare the following directive in &lt;env global&gt; section:</p>
-<p><cite>TRAVIS_DEBUG_MODE=”n”</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">TRAVIS_DEBUG_MODE=&quot;n&quot;</span></code></p>
 <p>where “n” means:</p>
 <table class="docutils align-default">
 <tbody>
@@ -1220,7 +1227,7 @@ If you do it, it will be simply ignored.</p>
 </table>
 <p>Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.</p>
 <p>When MQT is execute in local environment the value</p>
-<p><cite>TRAVIS_DEBUG_MODE=”9”</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">TRAVIS_DEBUG_MODE=&quot;9&quot;</span></code></p>
 <p>does not execute unit test. It is used to debug MQT itself.</p>
 <p>See <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p>
 </section>
@@ -1276,21 +1283,24 @@ module in quick and easy way.</p>
 <li><p>Environment running different Odoo modules versions</p></li>
 </ul>
 <p>Please, pay attention to test data: TestEnv use internal unicode even for python 2
-based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
-Note, Odoo core uses unicode even on old Odoo version.</p>
-<p>Tests are based on test environment created by module mk_test_env in repository
-<a class="reference external" href="https://github.com/zeroincombenze/zerobug-test">https://github.com/zeroincombenze/zerobug-test</a></p>
+based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Odoo core uses unicode even on old Odoo version.</p>
+</div>
+<p>Tests are based on test environment created by module mk_test_env in
+<a class="reference external" href="https://github.com/zeroincombenze/zerobug-test">repository</a></p>
 <section id="requirements">
 <h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h3>
 <p>Ths TestEnv software requires:</p>
 <ul class="simple">
 <li><p>python_plus PYPI package</p></li>
-<li><p>z0bug_odoo PYPI package</p></li>
+<li><p>z0bug_odoo PYPI package 2.0.12</p></li>
 <li><p>python 2.7 / 3.6 / 3.7 / 3.8</p></li>
 </ul>
 <p>TestEnv is full integrated with Zeroincombenze® tools.
-See <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io/">https://zeroincombenze-tools.readthedocs.io/</a>
-and <a class="reference external" href="https://github.com/zeroincombenze/tools.git">https://github.com/zeroincombenze/tools.git</a>
+See <a class="reference external" href="https://zeroincombenze-tools.readthedocs.io/">readthedocs</a>
+and <a class="reference external" href="https://github.com/zeroincombenze/tools.git">zeroincombenze github</a>
 Zeroincombenze® tools help you to test Odoo module with pycharm.</p>
 <div class="line-block">
 <div class="line"><br /></div>

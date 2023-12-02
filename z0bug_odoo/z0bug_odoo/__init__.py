@@ -12,11 +12,11 @@ z0bugodoo = z0bug_odoo_lib.Z0bugOdoo()
 Z0BUG = z0bugodoo
 try:
     import odoo.release as release
-    from . import test_common
+    # from . import test_common
 except ImportError:
     try:
         import openerp.release as release
-        from . import test_common
+        # from . import test_common
     except ImportError:
         release = ''
 

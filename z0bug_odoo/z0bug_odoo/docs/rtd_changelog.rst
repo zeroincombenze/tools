@@ -10,6 +10,8 @@ ChangeLog History
 
 * [IMP] TestEnv: now you can declare you own source data directory
 * [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
+* [IMP] TestEnv: file account.tax.xlsx with some italian taxes for l10n_generic_oca
+* [IMP] TestEnv: simple expression for data value
 
 2.0.12 (2023-09-12)
 ~~~~~~~~~~~~~~~~~~~

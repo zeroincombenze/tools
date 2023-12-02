@@ -1,5 +1,13 @@
-Usage Details
--------------
+Test Environment v2.0.12
+========================
+
+Overview
+--------
+
+.. $include testenv_description.rst
+
+How to use
+----------
 
 .. $include testenv_usage.rst
 
@@ -12,11 +20,6 @@ Magic relationship
 ~~~~~~~~~~~~~~~~~~
 
 .. $include testenv_usage_magic_relationship.rst
-
-External reference
-~~~~~~~~~~~~~~~~~~
-
-.. $include testenv_usage_external_reference.rst
 
 Module test execution session
 -----------------------------
@@ -70,6 +73,11 @@ binary
 ~~~~~~
 
 .. $include testenv_usage_data_binary.rst
+
+External reference for many2one, one2many and many2many fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. $include testenv_usage_external_reference.rst
 
 Functions
 ---------

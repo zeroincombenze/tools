@@ -45,6 +45,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
 ]
 
 
@@ -172,5 +173,5 @@ autodoc_default_options = {
     "undoc-members": True,
     # "suppress_warnings": "autodoc.import_object",
     "member-order": "bysource",
-    # "exclude-members": "__docs__"
+    # "exclude-members": "z0bug_odoo.test_common"
 }

@@ -15,12 +15,11 @@ from __future__ import print_function, unicode_literals
 from past.builtins import long
 
 # import sys
+import os
 import base64
 import csv
-import os
 
 from openpyxl import load_workbook
-
 
 from python_plus import unicodes
 
@@ -40,8 +39,8 @@ class Z0bugOdoo(object):
                 self.release = release
             except ImportError:
                 self.release = None
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
-        self.caller_data_dir = None
+        self.model_list = []
+        self.declare_data_dir(None)
 
     def get_image_filename(self, xref):
         file_image = os.path.join(os.path.dirname(__file__), 'data', '%s.png' % xref)
@@ -57,19 +56,22 @@ class Z0bugOdoo(object):
             return base64.b64encode(image)
         return False
 
-    def save_row(self, model, row):
+    def get_pymodel(self, model):
+        return model.replace('.', '_')
+
+    def save_row(self, pymodel, row):
         if 'id' in row:
             for field in row.copy().keys():
                 if row[field] == r'\N':
                     del row[field]
                 elif row[field] == r'\\N':
                     row[field] = r'\N'
-            if model == "account_account" and isinstance(row["code"], (int, long)):
+            if pymodel == "account_account" and isinstance(row["code"], (int, long)):
                 row["code"] = "%s" % row["code"]
-            getattr(self, model)[row['id']] = unicodes(row)
+            getattr(self, pymodel)[row['id']] = unicodes(row)
 
     def get_data_file_xlsx(self, model, fqn):
-        pymodel = model.replace('.', '_')
+        pymodel = self.get_pymodel(model)
         wb = load_workbook(fqn)
         for sheet in wb:
             break
@@ -88,7 +90,7 @@ class Z0bugOdoo(object):
             self.save_row(pymodel, row)
 
     def get_data_file_csv(self, model, fqn):
-        pymodel = model.replace('.', '_')
+        pymodel = self.get_pymodel(model)
         with open(fqn, 'r') as fd:
             hdr = True
             csv_obj = csv.DictReader(fd, fieldnames=[], restkey='undef_name')
@@ -100,33 +102,44 @@ class Z0bugOdoo(object):
                     continue
                 self.save_row(pymodel, row)
 
-    def choice_xlsx_or_csv(self, fqn):
-        if os.path.isfile('%s.xlsx' % fqn):
-            fqn = '%s.xlsx' % fqn
-        elif os.path.isfile('%s.csv' % fqn):
-            fqn = '%s.csv' % fqn
-        else:
-            fqn = None
+    def match_file_type(self, fqn, bin_types=[]):
+        bin_types = bin_types or ["xml", "xlsx", "csv", "png", "jpg"]
+        if not hasattr(bin_types, "__iter__"):
+            bin_types = [bin_types]                                 # pragma: no cover
+        if not os.path.isfile(fqn):
+            found = False
+            for btype in bin_types:
+                if os.path.isfile("%s.%s" % (fqn, btype)):
+                    fqn = "%s.%s" % (fqn, btype)
+                    found = True
+                    break
+            if not found:
+                fqn = None
+        return fqn
+
+    def get_data_filename(self, filename, bin_types=[], raise_if_not_found=True):
+        fqn = None
+        if self.caller_data_dir:
+            fqn = self.match_file_type(
+                os.path.join(self.caller_data_dir, filename), bin_types=bin_types)
+        if not fqn and self.default_data_dir:
+            fqn = self.match_file_type(
+                os.path.join(self.default_data_dir, filename), bin_types=bin_types)
+        if not fqn and raise_if_not_found:
+            raise KeyError('Filename %s not found!' % filename)
         return fqn
 
     def get_data_file(self, model, filename, raise_if_not_found=True):
-        fqn = None
-        if self.caller_data_dir:
-            fqn = self.choice_xlsx_or_csv(os.path.join(self.caller_data_dir, filename))
-        if not fqn:
-            fqn = self.choice_xlsx_or_csv(os.path.join(self.data_dir, filename))
-        if not fqn:
-            if raise_if_not_found:
-                raise KeyError('Filename %s for model %s not found!' % (filename,
-                                                                        model))
-            return fqn
+        fqn = self.get_data_filename(
+            filename, bin_types=["xlsx", "csv"], raise_if_not_found=raise_if_not_found)
+        self.model_list.append(model)
         return (self.get_data_file_xlsx(model, fqn)
                 if fqn.endswith(".xlsx")
                 else self.get_data_file_csv(model, fqn))
 
     def get_test_xrefs(self, model):
         """Return model xref list"""
-        pymodel = model.replace('.', '_')
+        pymodel = self.get_pymodel(model)
         if not hasattr(self, pymodel):
             self.get_data_file(model, pymodel)
         return list(getattr(self, pymodel))
@@ -136,7 +149,7 @@ class Z0bugOdoo(object):
         xids = xref.split('.')
         if len(xids) == 1:
             xids[0], xids[1] = 'z0bug', xids[0]
-        pymodel = model.replace('.', '_')
+        pymodel = self.get_pymodel(model)
         if not hasattr(self, pymodel):
             self.get_data_file(model, pymodel)
         if xref not in getattr(self, pymodel):
@@ -145,13 +158,30 @@ class Z0bugOdoo(object):
             return {}
         return getattr(self, pymodel)[xref]
 
-    def initialize_model(self, model):
+    def initialize_model(self, model, merge=False):
         """Write all record of model with test values"""
-        pymodel = model.replace('.', '_')
-        if not hasattr(self, pymodel):
-            self.get_data_file(model, pymodel)
-        for xref in getattr(self, pymodel):
-            pass
+        pymodel = self.get_pymodel(model)
+        if not merge and hasattr(self, pymodel):
+            delattr(self, pymodel)
+        # if not hasattr(self, pymodel):
+        #     self.get_data_file(model, pymodel)
 
-    def declare_data_dir(self, data_dir):
+    def declare_data_dir(self, data_dir, merge=False, raise_if_not_found=True):
+        if data_dir:
+            if not os.path.isdir(data_dir):
+                if raise_if_not_found:
+                    raise KeyError("Directory %s not found in the system" % data_dir)
+                return
+            old_caller_data_dir = self.caller_data_dir
+            old_default_data_dir = self.default_data_dir
+        else:
+            old_caller_data_dir = old_default_data_dir = None
+        self.default_data_dir = (os.path.join(os.path.dirname(__file__), 'data')
+                                 if not data_dir or merge else None)
         self.caller_data_dir = data_dir
+        if (
+                self.caller_data_dir != old_caller_data_dir
+                or self.default_data_dir != old_default_data_dir
+        ):
+            for model in self.model_list:
+                self.initialize_model(model, merge=merge)

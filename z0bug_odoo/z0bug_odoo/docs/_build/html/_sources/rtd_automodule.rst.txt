@@ -9,16 +9,6 @@ z0bug_odoo.z0bug_odoo_lib
 
 .. automodule:: z0bug_odoo.z0bug_odoo_lib
 
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.test_common
-
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.test_common
-
 z0bug_odoo.testenv
 ~~~~~~~~~~~~~~~~~~
 
