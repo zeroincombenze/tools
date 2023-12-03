@@ -1,17 +1,55 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
-========
+Getting started
+===============
 
+Prerequisites
+-------------
 
-Zeroincombenze® Archive Replica
--------------------------------
+Zeroincombenze tools requires:
 
-ZAR stand for Zeroincombenze® Archive Replica.
-It is a tool kit to backup, restore, replicate files and/or database.
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
 
-ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.
+Installation
+------------
+
+For stable version:
+
+`pip install zar`
+
+For current version:
+
+`cd $HOME`
+`git@github.com:zeroincombenze/tools.git`
+`cd $HOME/tools`
+`./install_tools.sh`
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install --upgrade zar
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+Source code
+~~~~~~~~~~~
+
+You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
 
 |
 |

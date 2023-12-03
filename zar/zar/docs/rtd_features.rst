@@ -1,17 +1,17 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
+Features
 ========
 
 
-Zeroincombenze® Archive Replica
--------------------------------
-
-ZAR stand for Zeroincombenze® Archive Replica.
-It is a tool kit to backup, restore, replicate files and/or database.
-
-ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.
+* backup and restore odoo database
+* backup and restore based on rules by configuration file
+* restore database with automatic actions disabled
+* multiple copies of database by configuration file
+* automatic purging of oldest copies
+* configuration based on host name: it works on duplicate host image too
+* backup on same host or on remote host
 
 |
 |

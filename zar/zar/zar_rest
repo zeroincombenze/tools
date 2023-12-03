@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 kill_process() {
@@ -535,3 +535,4 @@ if [ $opt_dry_run -eq 0 ]; then
 fi
 wlog "== $ctr databases are restored"
 exit 0
+

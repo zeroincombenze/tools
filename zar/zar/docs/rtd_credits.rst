@@ -1,17 +1,19 @@
 .. toctree::
    :maxdepth: 2
 
-Overview
-========
+Credits
+=======
 
+Authors
+-------
 
-Zeroincombenze® Archive Replica
--------------------------------
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
 
-ZAR stand for Zeroincombenze® Archive Replica.
-It is a tool kit to backup, restore, replicate files and/or database.
+Contributors
+------------
 
-ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.
+* `Antonio M. Vigliotti <info@shs-av.com>`__
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 |
 |

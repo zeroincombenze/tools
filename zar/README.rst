@@ -1,7 +1,6 @@
-
-======
- 2.0.3
-======
+=========
+zar 2.0.4
+=========
 
 
 
@@ -9,12 +8,8 @@
 
 
 
-
 Overview
 ========
-
-zar
-===
 
 Zeroincombenze® Archive Replica
 -------------------------------
@@ -25,8 +20,6 @@ It is a tool kit to backup, restore, replicate files and/or database.
 ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.
 
 
-
-|
 
 Features
 --------
@@ -40,7 +33,6 @@ Features
 * backup on same host or on remote host
 
 
-|
 
 Usage
 =====
@@ -65,12 +57,24 @@ There are avaiable two postgresql facilities:
 `pg_db_reassign_owner` can reassign owner to database. It reassign the ownership of all objects.
 
 
-|
-|
 
 Getting started
 ===============
 
+
+Prerequisites
+-------------
+
+Zeroincombenze tools requires:
+
+* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
+* python 2.7+, some tools require python 3.6+, best python 3.8+
+* bash 5.0+
+
+
+
+Installation
+------------
 
 For stable version:
 
@@ -84,6 +88,7 @@ For current version:
 `./install_tools.sh`
 
 
+
 Upgrade
 -------
 
@@ -92,22 +97,32 @@ Stable version via Python Package
 
 ::
 
-    pip install  -U
-
-|
+    pip install --upgrade zar
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-History
--------
+
+ChangeLog History
+-----------------
+
+2.0.4 (2023-09-08)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Backup filestore
+* [FIX] Remote copy to /dev/null
+
+2.0.3 (2023-09-06)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] DB name with hyphen (-)
 
 2.0.2 (2023-05-14)
 ~~~~~~~~~~~~~~~~~~
@@ -124,10 +139,12 @@ History
 
 * [IMP] Stable version
 
+1.3.35.3 (2021-08-13)
+~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] pg_db_active: kill process
 
 
-|
-|
 
 Credits
 =======
@@ -138,18 +155,22 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio M. Vigliotti <info@shs-av.com>
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+* `Antonio M. Vigliotti <info@shs-av.com>`__
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of  project.
-
-Last Update / Ultimo aggiornamento: 
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -161,10 +182,10 @@ Last Update / Ultimo aggiornamento:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.3/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.4/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.3/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.4/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -194,5 +215,3 @@ Last Update / Ultimo aggiornamento:
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

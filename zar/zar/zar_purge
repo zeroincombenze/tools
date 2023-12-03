@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 OPTOPTS=(h        c        e      i      I       K        k          l       m          n            T         U          V           v)
@@ -161,3 +161,4 @@ else
   wlog "== $ctr files should be purged!"
 fi
 exit 0
+
