@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.12
+__version__=2.0.13
 
 
 
@@ -114,4 +114,5 @@ for f in $(find $tgtdir -maxdepth 2 -type d -name 'egg-info'); do
     fi
   fi
 done
+
 

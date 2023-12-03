@@ -31,7 +31,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -1172,4 +1172,5 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 

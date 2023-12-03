@@ -120,7 +120,7 @@ except ImportError:
 standard_library.install_aliases()
 
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -3240,3 +3240,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
