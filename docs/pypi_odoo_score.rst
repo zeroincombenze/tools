@@ -14,6 +14,14 @@ Regression tests of this package do not guarantee full features coverage.
 In order to complete all tests, it required to run test of the
 Odoo module test_odoo_score-* in repository
 `zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`__
+Digest of odoo_shell
+====================
+
+
+odoo_shell
+----------
+
+Odoo shell is a simple line command shell to manager Odoo database using the internal Odoo functions.
 
 |
 |
@@ -28,10 +36,10 @@ Odoo module test_odoo_score-* in repository
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

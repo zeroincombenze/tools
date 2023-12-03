@@ -22,7 +22,7 @@ Sparse python and bash source code
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | odoo_score      | odoo_score.py        | Odoo ORM super core                                                                                                                                        | development               |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-|                 | odoo_shell.py        | Odoo shell for Odoo versions from 6.1 to 13.0                                                                                                              | Development & maintenance |
+|                 | odoo_shell.py        | Odoo shell for Odoo versions from 6.1 to 17.0                                                                                                              | Development & maintenance |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | os0             |                      | Simple os interface checked for OpenVMS too                                                                                                                | development               |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -48,7 +48,7 @@ Sparse python and bash source code
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 |                 | please               | Developer shell                                                                                                                                            | development               |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
-| z0bug_odoo      | z0bug_odoo           | Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 13.0                      | testing                   |
+| z0bug_odoo      | z0bug_odoo           | Integration of zerobug and Odoo. Initially forked form OCA maintainer quality tools. It works with all Odoo version, from 6.1 to 17.0                      | testing                   |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
 | z0lib           |                      | General purpose bash & python library                                                                                                                      | development               |
 +-----------------+----------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------+
@@ -70,10 +70,10 @@ Sparse python and bash source code
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

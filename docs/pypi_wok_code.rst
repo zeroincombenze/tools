@@ -18,6 +18,290 @@ The available tools are:
 * arcangelo: parse source .py file to meet pep8 and convert across Odoo versions
 * please: developer shell
 * wget_odoo_repositories.py: get repository names from github.com
+Digest of odoo_dependencies
+===========================
+
+
+odoo_dependecies.py: show odoo dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Show information about odoo dependencies and module tree.
+Digest of arcangelo
+===================
+
+
+arcangelo: python edit utility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+arcangelo is a python source code automatic editor which Parse source file to meet pep8
+requirements and  makes some source transformation based on rules,
+Digest of please
+================
+
+
+please is an interactive developer shell aim to help development and testing software.
+It has no function integrated in it, it ids simply a hook for various commands.
+Digest of macro
+===============
+
+
++---------------------------+-----------------------------------------------------------------------+
+| acknowledges              | Acknowledges list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| authors                   | Authors list                                                          |
++---------------------------+-----------------------------------------------------------------------+
+| available_addons          | N/D                                                                   |
++---------------------------+-----------------------------------------------------------------------+
+| branch                    | Odoo version for this repository/module                               |
++---------------------------+-----------------------------------------------------------------------+
+| certifications            | Certificates list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| contact_us                | Contact informations                                                  |
++---------------------------+-----------------------------------------------------------------------+
+| contributors              | Contributors list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| configuration             | How to configure                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| copyright_notes           | Copyright notes                                                       |
++---------------------------+-----------------------------------------------------------------------+
+| description               | English description of the repository/module (mandatory)              |
++---------------------------+-----------------------------------------------------------------------+
+| descrizione               | Descrizione modulo/progetto in italiano (obbligatoria)                |
++---------------------------+-----------------------------------------------------------------------+
+| doc-URL                   | URL for button documentation                                          |
++---------------------------+-----------------------------------------------------------------------+
+| faq                       | Frequently asked questions                                            |
++---------------------------+-----------------------------------------------------------------------+
+| features                  | Features of the repository/module                                     |
++---------------------------+-----------------------------------------------------------------------+
+| GPL                       | same of gpl                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| git_orgid                 | Git organization                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| gpl                       | License name: may be A-GPL or L-GPL                                   |
++---------------------------+-----------------------------------------------------------------------+
+| grymb_image_*             | Symbol imagae (suffix is a supported symbol name)                     |
++---------------------------+-----------------------------------------------------------------------+
+| help-URL                  | URL for button help                                                   |
++---------------------------+-----------------------------------------------------------------------+
+| history                   | Changelog history                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| known_issues              | Known issues                                                          |
++---------------------------+-----------------------------------------------------------------------+
+| include                   | files included (space separated) to read before writing document      |
++---------------------------+-----------------------------------------------------------------------+
+| installation              | How to install                                                        |
++---------------------------+-----------------------------------------------------------------------+
+| name                      | Module name (must be a python name)                                   |
++---------------------------+-----------------------------------------------------------------------+
+| now                       | Create timestamp                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| maintenance               | Maintenance information                                               |
++---------------------------+-----------------------------------------------------------------------+
+| maturity                  | Maturity status (alpha, beta, etc.)                                   |
++---------------------------+-----------------------------------------------------------------------+
+| module_name               | Module name                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| OCA-URL                   | URL to the same repository/module of OCA in github.com                |
++---------------------------+-----------------------------------------------------------------------+
+| oca_diff                  | OCA comparation                                                       |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_fver                 | Odoo full version (deprecated)                                        |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_majver               | Odoo major version; internal use to set some values                   |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_layer                | Document layer, may be: ocb, module or repository                     |
++---------------------------+-----------------------------------------------------------------------+
+| prerequisites             | Installation prerequisites                                            |
++---------------------------+-----------------------------------------------------------------------+
+| prior_branch              | Previous Odoo version of this repository/module                       |
++---------------------------+-----------------------------------------------------------------------+
+| prior2_branch             | Previous Odoo version of previous repository/module                   |
++---------------------------+-----------------------------------------------------------------------+
+| proposals_for_enhancement | Proposals for enhancement text                                        |
++---------------------------+-----------------------------------------------------------------------+
+| pypi_modules              | pypi module list (may be set in __manifest__.rst)                     |
++---------------------------+-----------------------------------------------------------------------+
+| pypi_sects                | pypi section names to import (may be set in __manifest__.rst)         |
++---------------------------+-----------------------------------------------------------------------+
+| repos_name                | Repository/project name                                               |
++---------------------------+-----------------------------------------------------------------------+
+| sponsor                   | Sponsors list                                                         |
++---------------------------+-----------------------------------------------------------------------+
+| sommario                  | Traduzione italiana di summary                                        |
++---------------------------+-----------------------------------------------------------------------+
+| submodules                | Sub module list (space separated) to document (only in pypi projects) |
++---------------------------+-----------------------------------------------------------------------+
+| summary                   | Repository/module summary (CR are translated into spaces)             |
++---------------------------+-----------------------------------------------------------------------+
+| support                   | Support informations                                                  |
++---------------------------+-----------------------------------------------------------------------+
+| today                     | Create date                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| translators               | Translators list                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| troubleshooting           | Troubleshooting information                                           |
++---------------------------+-----------------------------------------------------------------------+
+| try_me-URL                | URL for button try-me                                                 |
++---------------------------+-----------------------------------------------------------------------+
+| upgrade                   | How to upgrade                                                        |
++---------------------------+-----------------------------------------------------------------------+
+| usage                     | How to usage                                                          |
++---------------------------+-----------------------------------------------------------------------+
+Digest of gen_readme
+====================
+
+
+gen_readme.py: documentation generator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use this software to generate the project or module documentation.
+You can create the README.rst of OCB, repository and modules of Odoo projects.
+You can also generate the index.html of Odoo module.
+
+You can even create the README.rst of PYPI projects.
+This document was generated by this tool itself.
+
+The tool is supplied with follow templates:
+
+* Odoo README.rst: to generare README of Odoo repository o module
+* PYPI README.rst: to generate README of pypi package
+* index.html: to generate Odoo module index.html
+* __openerp__.py: to update __openerp__.py of Odoo < 8.0 with description
+
+
+templates
+~~~~~~~~~
+
+This tool read a template and write the document (usually named README.rst).
+The template can contains macro which format is \{\{macro_name\}\}.
+
+Currently, the follow macros are recognized:
+
++---------------------------+-----------------------------------------------------------------------+
+| acknowledges              | Acknowledges list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| authors                   | Authors list                                                          |
++---------------------------+-----------------------------------------------------------------------+
+| available_addons          | N/D                                                                   |
++---------------------------+-----------------------------------------------------------------------+
+| branch                    | Odoo version for this repository/module                               |
++---------------------------+-----------------------------------------------------------------------+
+| certifications            | Certificates list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| contact_us                | Contact informations                                                  |
++---------------------------+-----------------------------------------------------------------------+
+| contributors              | Contributors list                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| configuration             | How to configure                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| copyright_notes           | Copyright notes                                                       |
++---------------------------+-----------------------------------------------------------------------+
+| description               | English description of the repository/module (mandatory)              |
++---------------------------+-----------------------------------------------------------------------+
+| descrizione               | Descrizione modulo/progetto in italiano (obbligatoria)                |
++---------------------------+-----------------------------------------------------------------------+
+| doc-URL                   | URL for button documentation                                          |
++---------------------------+-----------------------------------------------------------------------+
+| faq                       | Frequently asked questions                                            |
++---------------------------+-----------------------------------------------------------------------+
+| features                  | Features of the repository/module                                     |
++---------------------------+-----------------------------------------------------------------------+
+| GPL                       | same of gpl                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| git_orgid                 | Git organization                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| gpl                       | License name: may be A-GPL or L-GPL                                   |
++---------------------------+-----------------------------------------------------------------------+
+| grymb_image_*             | Symbol imagae (suffix is a supported symbol name)                     |
++---------------------------+-----------------------------------------------------------------------+
+| help-URL                  | URL for button help                                                   |
++---------------------------+-----------------------------------------------------------------------+
+| history                   | Changelog history                                                     |
++---------------------------+-----------------------------------------------------------------------+
+| known_issues              | Known issues                                                          |
++---------------------------+-----------------------------------------------------------------------+
+| include                   | files included (space separated) to read before writing document      |
++---------------------------+-----------------------------------------------------------------------+
+| installation              | How to install                                                        |
++---------------------------+-----------------------------------------------------------------------+
+| name                      | Module name (must be a python name)                                   |
++---------------------------+-----------------------------------------------------------------------+
+| now                       | Create timestamp                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| maintenance               | Maintenance information                                               |
++---------------------------+-----------------------------------------------------------------------+
+| maturity                  | Maturity status (alpha, beta, etc.)                                   |
++---------------------------+-----------------------------------------------------------------------+
+| module_name               | Module name                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| OCA-URL                   | URL to the same repository/module of OCA in github.com                |
++---------------------------+-----------------------------------------------------------------------+
+| oca_diff                  | OCA comparation                                                       |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_fver                 | Odoo full version (deprecated)                                        |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_majver               | Odoo major version; internal use to set some values                   |
++---------------------------+-----------------------------------------------------------------------+
+| odoo_layer                | Document layer, may be: ocb, module or repository                     |
++---------------------------+-----------------------------------------------------------------------+
+| prerequisites             | Installation prerequisites                                            |
++---------------------------+-----------------------------------------------------------------------+
+| prior_branch              | Previous Odoo version of this repository/module                       |
++---------------------------+-----------------------------------------------------------------------+
+| prior2_branch             | Previous Odoo version of previous repository/module                   |
++---------------------------+-----------------------------------------------------------------------+
+| proposals_for_enhancement | Proposals for enhancement text                                        |
++---------------------------+-----------------------------------------------------------------------+
+| pypi_modules              | pypi module list (may be set in __manifest__.rst)                     |
++---------------------------+-----------------------------------------------------------------------+
+| pypi_sects                | pypi section names to import (may be set in __manifest__.rst)         |
++---------------------------+-----------------------------------------------------------------------+
+| repos_name                | Repository/project name                                               |
++---------------------------+-----------------------------------------------------------------------+
+| sponsor                   | Sponsors list                                                         |
++---------------------------+-----------------------------------------------------------------------+
+| sommario                  | Traduzione italiana di summary                                        |
++---------------------------+-----------------------------------------------------------------------+
+| submodules                | Sub module list (space separated) to document (only in pypi projects) |
++---------------------------+-----------------------------------------------------------------------+
+| summary                   | Repository/module summary (CR are translated into spaces)             |
++---------------------------+-----------------------------------------------------------------------+
+| support                   | Support informations                                                  |
++---------------------------+-----------------------------------------------------------------------+
+| today                     | Create date                                                           |
++---------------------------+-----------------------------------------------------------------------+
+| translators               | Translators list                                                      |
++---------------------------+-----------------------------------------------------------------------+
+| troubleshooting           | Troubleshooting information                                           |
++---------------------------+-----------------------------------------------------------------------+
+| try_me-URL                | URL for button try-me                                                 |
++---------------------------+-----------------------------------------------------------------------+
+| upgrade                   | How to upgrade                                                        |
++---------------------------+-----------------------------------------------------------------------+
+| usage                     | How to usage                                                          |
++---------------------------+-----------------------------------------------------------------------+
+
+
+
+Documentation may contains some graphical symbols in format \|symbol\|.
+Currently, follows symbols are recognized:
+
+* check
+* DesktopTelematico
+* en
+* exclamation
+* FatturaPA
+* halt
+* info
+* it
+* late
+* menu
+* no_check
+* right_do
+* same
+* warning
+* xml_schema
 
 ::
 
@@ -137,10 +421,10 @@ Action is one of:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

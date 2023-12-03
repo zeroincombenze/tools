@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.4
+__version__=2.0.5
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -439,3 +439,4 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "--------------------------------------------------------------${CLR}"
     echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
+
