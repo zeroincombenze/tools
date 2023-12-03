@@ -40,7 +40,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 
 DOUBLE_CHARS = _u("✅❌")
 
@@ -212,5 +212,6 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
