@@ -24,9 +24,9 @@ copyright = '2016-20, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '2.0.7'
+version = '2.0.8'
 # The full version, including alpha/beta/rc tags
-release = '2.0.7'
+release = '2.0.8'
 
 
 # -- General configuration ---------------------------------------------------
@@ -154,4 +154,5 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+
 

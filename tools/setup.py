@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='tools',
-    version='2.0.4',
+    version='2.0.5',
     author="SHS-AV s.r.l.",
     description='Sparse python source code',
     license='Affero GPL',
@@ -14,3 +14,4 @@ setup(
     ],
     author_email='antoniomaria.vigliotti@gmail.com',
 )
+

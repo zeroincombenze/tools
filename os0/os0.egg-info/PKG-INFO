@@ -9,7 +9,6 @@ License: Affero GPL
 Project-URL: Documentation, https://zeroincombenze-tools.readthedocs.io
 Project-URL: Source, https://github.com/zeroincombenze/tools
 Keywords: os path linux windows openvms
-Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: License :: OSI Approved :: GNU Affero General Public License v3
 Classifier: Operating System :: POSIX
@@ -23,6 +22,8 @@ Classifier: Topic :: Software Development
 Classifier: Topic :: Software Development :: Build Tools
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/x-rst
+Requires-Dist: z0lib
+Requires-Dist: future
 
 
 This module extends python os module with a few new functionality
@@ -41,5 +42,3 @@ UNC example for the same of previous URI name is '\home\myfile'
 (with single backslash).
 
 ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
-
-

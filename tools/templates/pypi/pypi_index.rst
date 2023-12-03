@@ -8,7 +8,7 @@ Welcome to tools {{branch}} documentation!
 ==========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
 .. $merge_docs

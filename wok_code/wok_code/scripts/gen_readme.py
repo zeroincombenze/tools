@@ -236,7 +236,8 @@ ALTERNATE_NAMES = {
     "known_issues": "roadmap",
     "summary_i18n": "sommario",
 }
-ZERO_PYPI_PKGS = "wok_code"
+ZERO_PYPI_PKGS = ("clodoo lisa odoo_score oerplib3 os0 python_plus travis_emulator"
+                  "vatnumber3 wok_code z0bug_odoo z0lib zar zerobug")
 ZERO_PYPI_SECTS = "description usage"
 LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
 DEFINED_GRYMB_SYMBOLS = {
@@ -439,6 +440,10 @@ def __init__(ctx):
     for section in MAGIC_SECTIONS + DEFINED_SECTIONS + DEFINED_TAG:
         ctx[section] = ""
         ctx[section + "_i18n"] = ""
+    for section in GROUPS:
+        name = GROUPS[section]
+        ctx[name] = ""
+        ctx[name + "_i18n"] = ""
     ctx["pre_pat"] = r"\.\. +"
 
     if ctx["product_doc"] == "odoo":
@@ -1661,8 +1666,8 @@ def write_automodule(ctx):
         ctx["header"] = ctx["contents"] = ""
         for name in names:
             write_1_automodule(ctx, name)
-        if pth.isfile("./testenv/testenv.py"):
-            write_1_automodule(ctx, "testenv")
+        # if pth.isfile("./testenv/testenv.py"):
+        #     write_1_automodule(ctx, "testenv")
         contents = parse_local_file(
             ctx, "rtd_template_automodule.rst", section="usage")
         with open(rtd_fn, "w") as fd:
@@ -1708,9 +1713,11 @@ def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
     if "contents" in ctx:
         del ctx["contents"]
     ctx["header1"] = ""
-    return ("   rtd_%s_%s\n" % (section, sub)
-            if sub
-            else "   rtd_%s\n" % section if name == section else "")
+    return (
+        "   rtd_%s_%s\n" % (section, sub)
+        if sub
+        else ("   %s\n" % pth.splitext(pth.basename(rtd_fn))[0]) if name == section
+        else "")
 
 
 def write_rtd_group(ctx, name):
@@ -1791,26 +1798,84 @@ def parse_pypi_packges(ctx):
 
 
 def parse_merge_docs(ctx):
-    for module in ctx["pypi_modules"].split(" "):
-        target = ""
-        # Up to global pypi root
+    def get_module_dir(module):
         module_dir = pth.abspath(
-            pth.join(os.getcwd(), "..", "..")
+            pth.join(os.getcwd(), "..")
         )
         while pth.isdir(pth.join(module_dir, module)):
             # down to module root
             module_dir = pth.join(module_dir, module)
-        if pth.isdir(pth.join(module_dir, "docs")):
-            for name in ctx["pypi_sects"].split(" "):
-                name = "rtd_%s" % name
-                src = pth.join(module_dir, "docs", "%s.rst" % name)
-                if pth.isfile(src):
-                    tgt = pth.join(
-                        ".", "pypi_%s_%s.rst" % (module, name)
-                    )
-                    copyfile(src, tgt)
-                    target += "\n   pypi_%s_%s" % (module, name)
-            target += "\n"
+        module_dir = pth.join(module_dir, "docs")
+        return module_dir if pth.isdir(module_dir) else None
+
+    def update_titles(fqn, module):
+        with open(fqn, "r") as fd:
+            lines = fd.read().split("\n")
+            target = ""
+            rst_title = False
+            for ln in lines:
+                if ln == "Overview":
+                    target += module
+                    rst_title = ln
+                elif rst_title == "Overview":
+                    target += ("=" * len(rst_title))
+                    rst_title = False
+                elif ln == "Usage":
+                    target += ln
+                    rst_title = ln
+                elif rst_title == "Usage":
+                    target += ("-" * len(rst_title))
+                    rst_title = False
+                else:
+                    target += ln
+                target += "\n"
+        with open(fqn, "w") as fd:
+            fd.write(target)
+
+    # Input format is RST
+    target = "\n"
+    for section in PYPI_SECTIONS_HDR:
+        target += write_rtd_file(ctx, section)
+    for module in ctx["pypi_modules"].split(" "):
+        # Up to global pypi root
+        module_dir = get_module_dir(module)
+        if not module_dir:
+            continue
+        out_sections = {}
+        for name in ctx["pypi_sects"].split(" "):
+            out_sections[name] = ""
+            src = pth.join(module_dir, "rtd_%s.rst" % name)
+            if pth.isfile(src):
+                with open(src, "r") as fd:
+                    out_sections[name] = read_split_readme(
+                        ctx, fd.read(), sections=name)[0]
+                for fn in os.listdir(module_dir):
+                    base, ext = os.path.splitext(fn)
+                    base = base[4:]
+                    if (
+                            fn.startswith("rtd_")
+                            and ext == ".rst"
+                            and base.startswith(name)
+                            and base != name
+                    ):
+                        src = pth.join(module_dir, fn)
+                        with open(src, "r") as fd:
+                            contents = read_split_readme(
+                                ctx, fd.read(), sections=name)[0]
+                        if contents:
+                            # sub = base[len(name) + 1:]
+                            # out_sections[name] += (sub + "\n")
+                            # out_sections[name] += (("-" * len(sub)) + "\n")
+                            out_sections[name] += contents
+        ctx["contents"] = out_sections["description"] + "\n" + out_sections["usage"]
+        del out_sections
+        target += write_rtd_file(ctx,
+                                 module,
+                                 header=module.title(),
+                                 fn=pth.join("docs", "pypi_%s.rst" % module))
+    for section in PYPI_SECTIONS_FOO:
+        target += write_rtd_file(ctx, section)
+    target += "\n"
     return target
 
 
@@ -2053,19 +2118,19 @@ def read_setup(ctx):
             for dir in dirs:
                 if dir == "tools":
                     continue
-                fqnn = get_fqn(
+                fqn = get_fqn(
                     ctx, pth.join(root, dir, "egg-info"), "CHANGELOG.rst")
-                if pth.isfile(fqnn):
-                    read_history(ctx, fqnn, module=pth.basename(dir))
+                if pth.isfile(fqn):
+                    read_history(ctx, fqn, module=pth.basename(dir))
 
         ctx["histories"] = sort_history(ctx["histories"])
         ctx["history-summary"] = sort_history(ctx["history-summary"])
     else:
-        fqnn = get_fqn(
+        fqn = get_fqn(
             ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
-        if pth.isfile(fqnn):
-            with open(fqnn, RMODE) as fd:
-                read_history(ctx, fqnn)
+        if pth.isfile(fqn):
+            with open(fqn, RMODE) as fd:
+                read_history(ctx, fqn)
 
 
 def read_manifest(ctx):
@@ -2558,41 +2623,57 @@ def complete_setup(ctx, setup_fn):
         fd.write(contents)
 
 
-def read_purge_readme(ctx, source):
+def read_split_readme(ctx, source, sections=None):
+    def init_out_sections(sections):
+        out_sections = {}
+        for section in sections:
+            out_sections[section] = ""
+        return out_sections
+
     if source is None:
         return "", "", ""
     lines = source.split("\n")
-    out_sections = {"description": "", "authors": "", "contributors": ""}
+    sections = sections or ["description", "authors", "contributors"]
+    if not isinstance(sections, (list, tuple)):
+        sections = [sections]
+    out_sections = init_out_sections(sections)
     cur_sect = ""
     ix = 0
     while ix < len(lines):
         line = lines[ix]
         next_line = lines[ix + 1] if ix < (len(lines) - 1) else ""
+        prior_line = lines[ix + -1] if ix > 1 else ""
         if is_rst_tag(ctx, line, "contents"):
-            out_sections = {"description": "", "authors": "", "contributors": ""}
+            out_sections = init_out_sections(sections)
             ix += 1
             continue
         elif (
             re.match(r"^[A-Za-z]\w\w+", line)
             and re.match("^[-=~]+$", next_line)
         ):
-            cur_sect = line.split("/")[0].strip().lower()
-            ix += 2
-            if (
-                    cur_sect == "overview"
-                    or cur_sect.startswith(ctx["module_name"] + " ")
+            x = line.split("/")[0].strip().lower()
+            if x in DEFINED_SECTIONS:
+                cur_sect = x
+                ix += 2
+                continue
+            elif (
+                    x == "overview"
+                    or x.startswith(ctx["module_name"] + " ")
             ):
                 cur_sect = "description"
                 out_sections[cur_sect] = ""
-            continue
+                ix += 2
+                continue
+            elif x.startswith("digest "):
+                cur_sect = "description"
         elif (
             re.match(r"^\|icon\| [A-Za-z]\w\w+", line)
             and re.match("^=+$", next_line)
         ):
-            out_sections = {"description": "", "authors": "", "contributors": ""}
+            out_sections = init_out_sections(sections)
             ix += 1
             continue
-        elif re.match("^-+$", line) and not next_line:
+        elif re.match("^-+$", line) and not prior_line:
             cur_sect = ""
         elif (
             re.match(r"^\|$", line)
@@ -2618,11 +2699,7 @@ def read_purge_readme(ctx, source):
             out_sections[sect] = out_sections[sect].split("\n", 1)[1]
         while out_sections[sect].endswith("\n\n"):
             out_sections[sect] = out_sections[sect][:-1]
-    return (
-        out_sections["description"],
-        out_sections["authors"],
-        out_sections["contributors"],
-    )
+    return list(out_sections[k] for k in sections)
 
 
 def merge_lists(ctx, left, right):
@@ -2680,9 +2757,10 @@ def item_2_test(ctx, section):
         ctx[section] = "\n".join(
             [(get_fmt(x) % (x[1], x[2])) for x in ctx[section]])
     elif section == "maintainer":
-        ctx["manifest"]["maintainer"] = ctx[section][0][1]
-        ctx[section] = get_fmt(ctx[section][0]) % (
-            ctx[section][0][1], ctx[section][0][3] or ctx[section][0][2])
+        if len(ctx[section]):
+            ctx["manifest"]["maintainer"] = ctx[section][0][1]
+            ctx[section] = get_fmt(ctx[section][0]) % (
+                ctx[section][0][1], ctx[section][0][3] or ctx[section][0][2])
     else:
         ctx[section] = "\n".join(
             [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]])
@@ -2970,7 +3048,7 @@ def generate_readme(ctx):
                     ctx["rdme_description"],
                     ctx["rdme_authors"],
                     ctx["rdme_contributors"],
-                ) = read_purge_readme(ctx, _u(fd.read()))
+                ) = read_split_readme(ctx, _u(fd.read()))
             break
     set_default_values(ctx)
     ctx["license_mgnt"] = license_mgnt.License()
@@ -3047,7 +3125,9 @@ def generate_readme(ctx):
         )
     elif ctx["write_index"] and ctx["product_doc"] == "pypi":
         if not ctx["template_name"]:
-            ctx["template_name"] = "module_index.rst"
+            ctx["template_name"] = ("module_index.rst"
+                                    if ctx["odoo_layer"] == "module"
+                                    else "pypi_index.rst")
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
     else:
         if not ctx["template_name"]:

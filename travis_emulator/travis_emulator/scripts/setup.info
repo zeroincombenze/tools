@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='travis_emulator',
-    version='2.0.7',
+    version='2.0.8',
     description='Travis CI emulator for local develop environment',
     long_description="""
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
@@ -82,4 +82,5 @@ Read furthermore info read `travis-ci phase
     },
     zip_safe=False,
 )
+
 

@@ -1,4 +1,4 @@
-# __version__=2.0.4
+# __version__=2.0.5
 if [[ -z $HOME_DEVEL ]]; then
     [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -14,3 +14,4 @@ done
 [[ -f $tgtdir/install_foreign.sh ]] && rm -f $tgtdir/install_foreign.sh
 # cd $tgtdir
 # ./install_tools.sh -T
+
