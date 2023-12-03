@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-__version__=2.0.7
+__version__=2.0.8
 if [[ -z "$1" || "$1" == "-h" ]]; then
     echo "$0 -I|-i     # install travis emulator environment (-i stable version, -I devel version)"
     echo "$0 srcdir    # copy src repository into local venv"
@@ -83,4 +83,5 @@ else
     echo "Invalid switch $1"
     exit 1
 fi
+
 

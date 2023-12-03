@@ -7,11 +7,11 @@ Overview
 
 This package is an plug-in of **zerobug** package and aim to easily create odoo tests.
 
-It replaces OCA MQT with some nice additional features.
+It can be used replacing OCA MQT with some nice additional features.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent; it can test Odoo from 6.1 until 16.0
+* Odoo version independent; it can test Odoo from 6.1 until 17.0
 * It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
 * It can run with full or reduced set of pylint tests
 * Test using ready-made database records
@@ -22,10 +22,10 @@ travis ci support
 -----------------
 
 The goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
-The code was forked from OCA MQT but some improvements were added.
-This package and OCA MQT differ by:
+This package can e used replacing OCA MQT and it differs by:
 
 * z0bug_odoo can also test Odoo 6.1 and 7.0 where OCA MQT fails with these versions
+* z0bug_odoo can also test Odoo using python2 where OCA abandoned the developing of Odoo base on python2
 * z0bug_odoo is designed to execute some debug statements, mainly in local environment
 * z0bug_odoo has more options to run with reduced set of lint tests
 * OCA MQT is the only component to build environment and test Odoo while z0bug_odoo is part of `Zeroincombenze® tools <https://github.com/zeroincombenze/tools>`_
@@ -68,7 +68,6 @@ You can test against:
 * odoo/odoo
 * OCA/OCB
 * zeroincombenze/OCB
-* librerp/OCB
 
 You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:
 
@@ -77,7 +76,7 @@ You can test against specific Odoo core version with ODOO_BRANCH variable if dif
     # Odoo Branch 16.0
     - VERSION="16.0" ODOO_REPO="odoo/odoo"
 
-    # Pull request odoo/odoo#143
+    # Pull request odoo/odoo#143 (not in local)
     -  VERSION="pull/143" ODOO_REPO="OCA/OCB"
 
     # Branch saas-17
@@ -120,22 +119,26 @@ Python version
 ~~~~~~~~~~~~~~
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Warning: currently, some Odoo version cannot support python 3.8.
+From Odoo 11.0, python3 is used. You can test against 3.6, 3.7, 3.8, 3.9 and 3.10 python versions.
 Python 3.5 still works but support is ended.
 This is the declaration:
 
 ::
 
     python:
-      - "3.5"
-      - "3.6"
-      - "3.7"
-      - "3.8"
-      - "3.9"
+      - "3.6"       # Odoo 11.0 12.0
+      - "3.7"       # Odoo 12.0
+      - "3.8"       # Odoo 13.0 14.0
+      - "3.9"       # Odoo 15.0 16.0
+      - "3.10"      # Odoo 17.0
 
-Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
+.. note::
+
+    python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
+
+.. warning::
+
+    Currently, some Odoo version cannot support python 3.8+. See above.
 
 
 Deployment and setup environment
@@ -147,7 +150,7 @@ In order to deploy test environment and setup code you have to declare some .tra
 * PYPI packages
 * Odoo repositories dependencies
 
-Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu namespace.
+Linux packages must be declared in ``<addons/apt>`` section of .travis.yml using Ubuntu namespace.
 If you run test in local environment, travis emulator automatically translate Ubuntu names into your local distro names, if necessary.
 See `travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_ guide for furthermore info.
 
@@ -156,21 +159,27 @@ The PYPI packages, installable by PIP are declared in standard PIP way, using **
 If your project depends on other Odoo Github repositories like OCA, create a file called **oca_dependencies.txt** at the root of your project and list the dependencies there.
 One per line like so:
 
+::
+
     project_name optional_repository_url optional_branch_name
 
 During testbed setup, z0bug_odoo will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: they will be placed after your own repo, but before the odoo core repo.
 
 If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
-Please note this behaviour differs from OCA MQT.
+
+.. note::
+
+    This behaviour differs from OCA MQT
+
 OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
-So you will test both with z0bug_ood and both OCA MQT, always insert the full repository URL.
+So you will test both with z0bug_odoo and both OCA MQT, always insert the full repository URL.
 
 Test execution
 ~~~~~~~~~~~~~~
 
 Tests run by travis_run_test command. The script is deployed in _travis directory of **zerobug** package.
-Command have to be in `<script>` section of .travis.yml file:
+Command have to be in ``<script>`` section of .travis.yml file:
 
 ::
 
@@ -182,7 +191,7 @@ Isolated pylint+flake8 checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to make a build for these checks, you can add a line
-on the `<env>` section of the .travis.yml file with this content:
+on the ``<env>`` section of the .travis.yml file with this content:
 
 ::
 
@@ -445,7 +454,7 @@ Disable unit test
 ~~~~~~~~~~~~~~~~~
 
 If you want to make a build without tests, you can use the following directive:
-`TEST_ENABLE="0"`
+``TEST_ENABLE="0"``
 
 You will simply get the databases with packages installed,
 but without running any tests.
@@ -518,8 +527,8 @@ Module unit tests
 
 z0bug_odoo is also capable to test each module individually.
 The intention is to check if all dependencies are correctly defined.
-Activate it through the `UNIT_TEST` directive.
-An additional line should be added to the `env:` section,
+Activate it through the ``UNIT_TEST`` directive.
+An additional line should be added to the ``env:`` section,
 similar to this one:
 
 ::
@@ -549,7 +558,7 @@ staging DBs or if you want to work with an advanced set of
 templates in order to speed up your CI pipeline.
 Just specify at will:
 
-`MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'`.
+``MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'``
 
 In your local travis you can declare the default value but these values are not applied in web TravisCi web site.
 
@@ -562,7 +571,7 @@ Coveralls/Codecov configuration file
 
 `Coveralls <https://coveralls.io/>`_ and `Codecov <https://codecov.io/>`_ services provide information on the test coverage of your modules.
 Currently both configurations are automatic (check default configuration `here <cfg/.coveragerc>`_.
-So, as of today, you don't need to include a `.coveragerc` into the repository,
+So, as of today, you don't need to include a ``.coveragerc`` into the repository,
 If you do it, it will be simply ignored.
 
 
@@ -650,7 +659,7 @@ Debug information
 
 If you declare the following directive in <env global> section:
 
-`TRAVIS_DEBUG_MODE="n"`
+``TRAVIS_DEBUG_MODE="n"``
 
 where "n" means:
 
@@ -674,7 +683,7 @@ Note this feature does not work with OCA MQT. Local test and TravisCI test have 
 
 When MQT is execute in local environment the value
 
-`TRAVIS_DEBUG_MODE="9"`
+``TRAVIS_DEBUG_MODE="9"``
 
 does not execute unit test. It is used to debug MQT itself.
 
@@ -737,10 +746,13 @@ The purpose of this software are:
 
 Please, pay attention to test data: TestEnv use internal unicode even for python 2
 based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
-Note, Odoo core uses unicode even on old Odoo version.
 
-Tests are based on test environment created by module mk_test_env in repository
-https://github.com/zeroincombenze/zerobug-test
+.. note::
+
+    Odoo core uses unicode even on old Odoo version.
+
+Tests are based on test environment created by module mk_test_env in
+`repository <https://github.com/zeroincombenze/zerobug-test>`__
 
 Requirements
 ~~~~~~~~~~~~
@@ -748,12 +760,12 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package
+* z0bug_odoo PYPI package 2.0.13
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
-See https://zeroincombenze-tools.readthedocs.io/
-and https://github.com/zeroincombenze/tools.git
+See `readthedocs <https://zeroincombenze-tools.readthedocs.io/>`__
+and `zeroincombenze github <https://github.com/zeroincombenze/tools.git>`__
 Zeroincombenze® tools help you to test Odoo module with pycharm.
 
 |
@@ -769,10 +781,10 @@ Zeroincombenze® tools help you to test Odoo module with pycharm.
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

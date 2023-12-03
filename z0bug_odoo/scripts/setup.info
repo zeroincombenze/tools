@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path as pth
-import sys
+# import sys
 
 from setuptools import find_packages, setup
 
@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.12",
+    version="2.0.13",
     description="Odoo testing framework",
     long_description=long_description,
     classifiers=[
@@ -72,3 +72,4 @@ setup(
     },
     zip_safe=False,
 )
+

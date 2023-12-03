@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 OPTOPTS=(h        d        f      l       n            s        t        U          V           v           w)
@@ -82,7 +82,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Copy table between DBs"\
-  "(C) 2015-2020 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2020 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -153,3 +153,4 @@ else
 fi
 rm -f $tmpfn.*
 exit 0
+

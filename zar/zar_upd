@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 detached_login() {
@@ -203,7 +203,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Update zar suite\naction if issued, may be build|build_last"\
-  "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -372,3 +372,4 @@ if [ -f $PGHOME/zar_bck -a ! -f $PGHOME/zar.conf ]; then
   create_conf
 fi
 exit 0
+

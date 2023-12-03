@@ -12,15 +12,15 @@ z0bugodoo = z0bug_odoo_lib.Z0bugOdoo()
 Z0BUG = z0bugodoo
 try:
     import odoo.release as release
-    from . import test_common
+    # from . import test_common
 except ImportError:
     try:
         import openerp.release as release
-        from . import test_common
+        # from . import test_common
     except ImportError:
         release = ''
 
-__version__ = '2.0.12'
+__version__ = '2.0.13'
 if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
     print('DEBUG: z0bug_odoo %s' % __version__)
     print('DEBUG: z0bug_odoo.sys.path=%s' % sys.path)
@@ -28,4 +28,5 @@ if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
         print('DEBUG: Odoo version detected: %s' % release.version)
     else:
         print('DEBUG: No Odoo environment found!')
+
 

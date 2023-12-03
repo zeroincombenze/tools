@@ -39,7 +39,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '2.0.12'
+__version__ = '2.0.13'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -817,4 +817,5 @@ def main(argv=None):
 
 if __name__ == '__main__':
     exit(main())
+
 

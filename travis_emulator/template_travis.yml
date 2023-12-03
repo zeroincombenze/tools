@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=2.0.7
+# __version__=2.0.8
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted in 2 steps:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -18,6 +18,7 @@ python:
   - "3.7"
   - "3.8"
   - "3.9"
+  - "3.10"
 
 virtualenv:
   system_site_packages: false
@@ -51,6 +52,7 @@ addons:
 before_install:
   # Use Zeroincombenze® tools
   - git clone https://github.com/zeroincombenze/tools.git $HOME/tools --single-branch --depth=1
+  # make_travis_conf.py adds 2 to switches if tests run on python2
   - $HOME/tools/install_tools.sh -qpt
   - source $HOME/devel/activate_tools -t
   - vem $HOME/devel/venv install $HOME/tools/${PKGNAME}
@@ -64,6 +66,7 @@ before_install:
   # - sleep 3 # give xvfb some time to start
 
 install:
+  # make_travis_conf.py adds tools to command line if PYPI package test
   - travis_install_env
   - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery,theme_bootswatch
   # - export INCLUDE=$(getaddons.py -m ${HOME}/build/${ODOO_REPO}/odoo/addons ${HOME}/build/${ODOO_REPO}/addons)
@@ -90,7 +93,9 @@ env:
 
   matrix:
   - LINT_CHECK="1"
+  # make_travis_conf.py comment follow line if Odoo test
   - DEV_ENVIRONMENT="${PKGNAME}" LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
+  # make_travis_conf.py comment follow lines if PYPI package test
   - TESTS="1" ODOO_REPO="odoo/odoo"
   - TESTS="1" ODOO_REPO="OCA/OCB"
   - TESTS="1" ODOO_REPO="${GIT_ORG}/OCB"
@@ -103,8 +108,10 @@ env:
   #  - TESTS="1.0" ODOO_REPO="zeroincombenze/OCB" UNIT_TEST="1"
 
 script:
+  # make_travis_conf.py replaces follow line with "travis_run_pypi_tests" if PYPI test
   - travis_run_tests
 
 after_success:
   - travis_after_tests_success
+
 

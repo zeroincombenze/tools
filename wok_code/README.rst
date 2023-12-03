@@ -185,7 +185,6 @@ Stable version via Python Package
 
     pip install --upgrade wok_code
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -200,8 +199,8 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.12.1 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.13 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] please install python, now can install python 3.10
 * [IMP] arcangelo: new python version assignment from odoo version
@@ -215,6 +214,7 @@ ChangeLog History
 * [FIX] odoo_translation.py: first character case
 * [FIX] odoo_translation.py: cache file format is Excel
 * [FIX] run_odoo_debug: path with heading space
+* [IMP] please test now can update account.account.xlsx
 
 2.0.12 (2023-08-29)
 ~~~~~~~~~~~~~~~~~~~

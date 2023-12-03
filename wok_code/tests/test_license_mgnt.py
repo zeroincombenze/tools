@@ -1,23 +1,26 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# flake8: noqa - pylint: skip-file
 # Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
-    Devel Tools unit test library for python programs Regression Test Suite
+    Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 import os
 import sys
 sys.path.insert(0,
-                os.path.dirname(os.getcwd())
+                os.path.dirname(os.path.dirname(os.getcwd()))
                 if os.path.basename(os.getcwd()) == "tests"
-                else os.getcwd())
-from scripts import license_mgnt                                           # noqa: E402
+                else os.path.dirname(os.getcwd()))
+try:
+    import license_mgnt                                                    # noqa: E402
+except ImportError:
+    from wok_code.scripts import license_mgnt                              # noqa: E402
 
 from zerobug import z0test, z0testodoo                                     # noqa: E402
 
 __version__ = "2.0.12"
 
-MODULE_ID = "devel_tool"
+MODULE_ID = 'wok_code'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 

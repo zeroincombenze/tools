@@ -27,7 +27,7 @@ else:
     print('No Odoo environment found!')
     sys.exit(0)
 
-__version__ = '2.0.12'
+__version__ = '2.0.13'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -352,4 +352,5 @@ class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
 
     def set_test_company(self, xref=None):
         return Z0bugBaseCase.set_test_company(self, xref)
+
 

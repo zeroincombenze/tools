@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.12
+z0bug_odoo 2.0.13
 =================
 
 
@@ -13,11 +13,11 @@ Overview
 
 This package is an plug-in of **zerobug** package and aim to easily create odoo tests.
 
-It replaces OCA MQT with some nice additional features.
+It can be used replacing OCA MQT with some nice additional features.
 
 *z0bug_odoo* is built on follow concepts:
 
-* Odoo version independent; it can test Odoo from 6.1 until 16.0
+* Odoo version independent; it can test Odoo from 6.1 until 17.0
 * It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
 * It can run with full or reduced set of pylint tests
 * Test using ready-made database records
@@ -28,10 +28,10 @@ travis ci support
 -----------------
 
 The goal of z0bug_odoo is to provide helpers to ensure the quality of Odoo addons.
-The code was forked from OCA MQT but some improvements were added.
-This package and OCA MQT differ by:
+This package can e used replacing OCA MQT and it differs by:
 
 * z0bug_odoo can also test Odoo 6.1 and 7.0 where OCA MQT fails with these versions
+* z0bug_odoo can also test Odoo using python2 where OCA abandoned the developing of Odoo base on python2
 * z0bug_odoo is designed to execute some debug statements, mainly in local environment
 * z0bug_odoo has more options to run with reduced set of lint tests
 * OCA MQT is the only component to build environment and test Odoo while z0bug_odoo is part of `Zeroincombenze® tools <https://github.com/zeroincombenze/tools>`_
@@ -74,7 +74,6 @@ You can test against:
 * odoo/odoo
 * OCA/OCB
 * zeroincombenze/OCB
-* librerp/OCB
 
 You can test against specific Odoo core version with ODOO_BRANCH variable if differs from your project version:
 
@@ -83,7 +82,7 @@ You can test against specific Odoo core version with ODOO_BRANCH variable if dif
     # Odoo Branch 16.0
     - VERSION="16.0" ODOO_REPO="odoo/odoo"
 
-    # Pull request odoo/odoo#143
+    # Pull request odoo/odoo#143 (not in local)
     -  VERSION="pull/143" ODOO_REPO="OCA/OCB"
 
     # Branch saas-17
@@ -126,22 +125,26 @@ Python version
 ~~~~~~~~~~~~~~
 
 Odoo version from 6.1 to 10.0 are tested with python 2.7
-From Odoo 11.0, python3 is used. You can test against 3.5, 3.6, 3.7 and 3.8 python versions.
-Warning: currently, some Odoo version cannot support python 3.8.
+From Odoo 11.0, python3 is used. You can test against 3.6, 3.7, 3.8, 3.9 and 3.10 python versions.
 Python 3.5 still works but support is ended.
 This is the declaration:
 
 ::
 
     python:
-      - "3.5"
-      - "3.6"
-      - "3.7"
-      - "3.8"
-      - "3.9"
+      - "3.6"       # Odoo 11.0 12.0
+      - "3.7"       # Odoo 12.0
+      - "3.8"       # Odoo 13.0 14.0
+      - "3.9"       # Odoo 15.0 16.0
+      - "3.10"      # Odoo 17.0
 
-Notice: python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
-Python 3.8 is no yet full supported by Odoo (2021), so use python 3.7
+.. note::
+
+    python 3.5 support is ended on 2020 and 3,6 is ended on 2021.
+
+.. warning::
+
+    Currently, some Odoo version cannot support python 3.8+. See above.
 
 
 Deployment and setup environment
@@ -153,7 +156,7 @@ In order to deploy test environment and setup code you have to declare some .tra
 * PYPI packages
 * Odoo repositories dependencies
 
-Linux packages must be declared in `<addons/apt>` section of .travis.yml using Ubuntu namespace.
+Linux packages must be declared in ``<addons/apt>`` section of .travis.yml using Ubuntu namespace.
 If you run test in local environment, travis emulator automatically translate Ubuntu names into your local distro names, if necessary.
 See `travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_ guide for furthermore info.
 
@@ -162,21 +165,27 @@ The PYPI packages, installable by PIP are declared in standard PIP way, using **
 If your project depends on other Odoo Github repositories like OCA, create a file called **oca_dependencies.txt** at the root of your project and list the dependencies there.
 One per line like so:
 
+::
+
     project_name optional_repository_url optional_branch_name
 
 During testbed setup, z0bug_odoo will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: they will be placed after your own repo, but before the odoo core repo.
 
 If missed optional_repository_url, the repository is searched for repository with the same owner of tested project.
-Please note this behaviour differs from OCA MQT.
+
+.. note::
+
+    This behaviour differs from OCA MQT
+
 OCA MQT always loads OCA repository while z0bug_odoo searches for current owner repository.
-So you will test both with z0bug_ood and both OCA MQT, always insert the full repository URL.
+So you will test both with z0bug_odoo and both OCA MQT, always insert the full repository URL.
 
 Test execution
 ~~~~~~~~~~~~~~
 
 Tests run by travis_run_test command. The script is deployed in _travis directory of **zerobug** package.
-Command have to be in `<script>` section of .travis.yml file:
+Command have to be in ``<script>`` section of .travis.yml file:
 
 ::
 
@@ -188,7 +197,7 @@ Isolated pylint+flake8 checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to make a build for these checks, you can add a line
-on the `<env>` section of the .travis.yml file with this content:
+on the ``<env>`` section of the .travis.yml file with this content:
 
 ::
 
@@ -451,7 +460,7 @@ Disable unit test
 ~~~~~~~~~~~~~~~~~
 
 If you want to make a build without tests, you can use the following directive:
-`TEST_ENABLE="0"`
+``TEST_ENABLE="0"``
 
 You will simply get the databases with packages installed,
 but without running any tests.
@@ -524,8 +533,8 @@ Module unit tests
 
 z0bug_odoo is also capable to test each module individually.
 The intention is to check if all dependencies are correctly defined.
-Activate it through the `UNIT_TEST` directive.
-An additional line should be added to the `env:` section,
+Activate it through the ``UNIT_TEST`` directive.
+An additional line should be added to the ``env:`` section,
 similar to this one:
 
 ::
@@ -555,7 +564,7 @@ staging DBs or if you want to work with an advanced set of
 templates in order to speed up your CI pipeline.
 Just specify at will:
 
-`MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'`.
+``MQT_TEMPLATE_DB='odoo_template' MQT_TEST_DB='odoo_test'``
 
 In your local travis you can declare the default value but these values are not applied in web TravisCi web site.
 
@@ -568,7 +577,7 @@ Coveralls/Codecov configuration file
 
 `Coveralls <https://coveralls.io/>`_ and `Codecov <https://codecov.io/>`_ services provide information on the test coverage of your modules.
 Currently both configurations are automatic (check default configuration `here <cfg/.coveragerc>`_.
-So, as of today, you don't need to include a `.coveragerc` into the repository,
+So, as of today, you don't need to include a ``.coveragerc`` into the repository,
 If you do it, it will be simply ignored.
 
 
@@ -656,7 +665,7 @@ Debug information
 
 If you declare the following directive in <env global> section:
 
-`TRAVIS_DEBUG_MODE="n"`
+``TRAVIS_DEBUG_MODE="n"``
 
 where "n" means:
 
@@ -680,7 +689,7 @@ Note this feature does not work with OCA MQT. Local test and TravisCI test have 
 
 When MQT is execute in local environment the value
 
-`TRAVIS_DEBUG_MODE="9"`
+``TRAVIS_DEBUG_MODE="9"``
 
 does not execute unit test. It is used to debug MQT itself.
 
@@ -743,10 +752,13 @@ The purpose of this software are:
 
 Please, pay attention to test data: TestEnv use internal unicode even for python 2
 based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
-Note, Odoo core uses unicode even on old Odoo version.
 
-Tests are based on test environment created by module mk_test_env in repository
-https://github.com/zeroincombenze/zerobug-test
+.. note::
+
+    Odoo core uses unicode even on old Odoo version.
+
+Tests are based on test environment created by module mk_test_env in
+`repository <https://github.com/zeroincombenze/zerobug-test>`__
 
 Requirements
 ~~~~~~~~~~~~
@@ -754,12 +766,12 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package
+* z0bug_odoo PYPI package 2.0.13
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
-See https://zeroincombenze-tools.readthedocs.io/
-and https://github.com/zeroincombenze/tools.git
+See `readthedocs <https://zeroincombenze-tools.readthedocs.io/>`__
+and `zeroincombenze github <https://github.com/zeroincombenze/tools.git>`__
 Zeroincombenze® tools help you to test Odoo module with pycharm.
 
 
@@ -785,10 +797,31 @@ For type data, datetime: value may be a constant or relative date
 Usage
 =====
 
+Usage Details
+-------------
+
+You can locate the recent testenv.py in testenv directory of module
+`z0bug_odoo <https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv>`__
+
+For full documentation visit:
+`zero-tools <https://zeroincombenze-tools.readthedocs.io/en/latest/pypi_z0bug_odoo/index.html>`__
+or
+`z0bug_odoo <https://z0bug-odoo.readthedocs.io/en/latest/>`__
+or
+`zero-tools (github) <https://github.com/zeroincombenze/tools>`__
+or
+`github with example modules <https://github.com/zeroincombenze/zerobug-test>`__
+
 Copy the testenv.py file in tests directory of your module.
-You can locate testenv.py in testenv directory of this module (z0bug_odoo)
 Please copy the documentation testenv.rst file in your module too.
+
 The __init__.py must import testenv.
+
+::
+
+    from . import testenv
+    from . import test_<MY_TEST_FILE>
+
 Your python test file have to contain some following example lines:
 
 ::
@@ -799,7 +832,6 @@ Your python test file have to contain some following example lines:
 
     _logger = logging.getLogger(__name__)
 
-    TEST_RES_PARTNER = {...}
     TEST_SETUP_LIST = ["res.partner", ]
 
     class MyTest(SingleTransactionCase):
@@ -808,11 +840,6 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
-            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
-            for resource in TEST_SETUP_LIST:
-                item = "TEST_%s" % resource.upper().replace(".", "_")
-                data[item] = globals()[item]
-            self.declare_all_data(data)     # TestEnv swallows the data
             self.setup_env()                # Create test environment
 
         def tearDown(self):
@@ -828,9 +855,6 @@ Your python test file have to contain some following example lines:
             )
             ...
 
-        def test_mywizard(self):
-            self.wizard(...)                # Test requires wizard simulator
-
 An important helper to debug is self.debug_level. When you begins your test cycle,
 you are hinted to set self.debug_level = 3; then you can decrease the debug level
 when you are developing stable tests.
@@ -840,18 +864,29 @@ TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package
-* python 2.7 / 3.6 / 3.7 / 3.8
+* z0bug_odoo PYPI package version 2.0.13
+* python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
-Usage Details
--------------
+
 
 Model data declaration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Each model is declared in a dictionary which key which is the external
+Each model is declared in a csv file or xlsx file in **test/data** directory of the
+module. The file name is the same of model name with dots replaced by undescore.
+
+i.e. below the contents of **res_parter.csv** file:
+
+::
+
+    id,name,street
+    z0bug.partner1,Alpha,"1, First Avenue"
+
+The model may also be declared in a dictionary which key which is the external
 reference used to retrieve the record.
-i.e. the following record is named 'z0bug.partner1' in res.partner:
+
+i.e. the following record declaration is the same of above example; record id is named
+``z0bug.partner1`` in res.partner:
 
 ::
 
@@ -863,57 +898,116 @@ i.e. the following record is named 'z0bug.partner1' in res.partner:
         }
     )
 
-Please, do not to declare 'product.product' records: they are automatically
-created as child of 'product.template'. The external reference must contain
-the pattern '_template' (see below).
+.. warning::
+
+    Please, do not to declare ``product.product`` records: they are automatically
+    created as child of ``product.template``. The external reference must contain
+    the pattern ``_template`` (see below).
+
+
 
 Magic relationship
 ~~~~~~~~~~~~~~~~~~
 
-Some models/tables should be managed together, i.e. 'account.move' and 'account.move.line'.
+Some models/tables should be managed together, i.e. **account.move** and **account.move.line**.
 TestEnv manages these models/tables, called header/detail, just as a single object.
-Where header record is created, all detail lines are created with header.
-To do this job you must declare external reference as explained below (external reference).
+When header record is created, all detail lines are created with header.
+Odoo standard declaration requires the details data in child reference field with
+command *0, 0*.
+This method make unreadable the source data. Look at the simple follow example with
+usually Odoo declaration way:
 
-Warning: you must declare header and lines data before create header record.
+::
+
+    sale_order_data = {
+        "example.order_1": {
+            "partner_id": self.env.ref("base.res_partner_1"),
+            "origin": "example",
+            ...
+            "order_line": [
+                (0, 0, {
+                    "product_id": self.env.ref("product.product_product_1"),
+                    "product_qty": 1,
+                    "price_unit": 1.23,}),
+                (0, 0, {
+                    "product_id": self.env.ref("product.product_product_2"),
+                    "product_qty": 2,
+                    "price_unit": 2.34,}),
+            ]
+        }
+
+    }
+
+Now look at the same data in internal declaration by **z0bug_odoo**:
 
 ::
 
     TEST_SALE_ORDER = {
-        "z0bug.order_1": {
+        "example.order_1": {
+            "partner_id": "base.res_partner_1",
+            "origin": "example",
             ...
         }
+
     }
 
     TEST_SALE_ORDER_LINE = {
-        "z0bug.order_1_1": {
-            ...
+        "example.order_1_1": {
+            "product_id": "product.product_product_1",
+            "product_qty": 1,
+            "price_unit": 1.23,
+        },
+        "example.order_1_2": {
+            "product_id": "product.product_product_2",
+            "product_qty": 2,
+            "price_unit": 2.34,
         }
     }
 
+As you can see, the data is easy readable and easy updatable. Please, notice:
+
+#. Sale order lines are declared in specific model **sale.order.line**
+#. Record ID **must** begin with header ID, followed by "_" and line ID
+#. Reference data do not require ``self.env.ref()``: they are automatically referenced
+
+It is also easy write the csv or xlsx file. This is the example with above data
+
+File **sale_order.csv**
+
+::
+
+    id,partner_id,origin
+    example.order_1,base.res_partner_1,example
+
+File **sale_order_line.csv**
+
+::
+
+    id,product_id,product_qty,price_unit
+    example.order_1_1,product.product_product_1,1,1.23
+    example.order_1_2,product.product_product_2,2,2.34
+
+In your test file you must declare the following statement:
+
+::
+
     TEST_SETUP_LIST = ["sale.order", "sale.order.line"]
 
-    class MyTest(SingleTransactionCase):
+.. warning::
 
-        def test_something(self):
-            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
-            for resource in TEST_SETUP_LIST:
-                item = "TEST_%s" % resource.upper().replace(".", "_")
-                data[item] = globals()[item]
-            # Declare order data in specific group to isolate data
-            self.declare_all_data(data, group="order")
-            # Create the full sale order with lines
-            self.resource_make(model, xref, group="order")
+    You must declare header and lines data before create header record
 
-Another magic relationship is the 'product.template' (product) / 'product.product' (variant) relationship.
-Whenever a 'product.template' (product) record is created,
-Odoo automatically creates one variant (child) record for 'product.product'.
+
+Another magic relationship is the **product.template** (product) / **product.product** (variant)
+relationship.
+Whenever a **product.template** (product) record is created,
+Odoo automatically creates one variant (child) record for **product.product**.
 If your test module does not need to manage product variants you can avoid to declare
-'product.product' data even if this model is used in your test data.
+**product.product** data even if this model is used in your test data.
 
-For example, you have to test 'sale.order.line' which refers to 'product.product'.
-You simply declare a 'product.template' record with external reference uses "_template"
-magic text.
+For example, you have to test **sale.order.line** which refers to **product.product**.
+You simply declare a **product.template** record with external reference
+uses "_template" magic text.
 
 ::
 
@@ -933,48 +1027,43 @@ magic text.
         }
     )
 
-    ...
 
-    # Get 'product.template' record
-    self.resource_bind("z0bug.product_template_1")
-    # Get 'product.product' record
-    self.resource_bind("z0bug.product_product_1")
 
 External reference
 ~~~~~~~~~~~~~~~~~~
 
-Every record is tagged by an external reference.
-The external reference may be:
+Every record tagged by an external reference may be:
 
-* Ordinary Odoo external reference (a), format "module.name"
-* Test reference, format "z0bug.name" (b)
-* Key value, format "external.key" (c)
-* 2 keys reference, for header/detail relationship (d)
-* Magic reference for 'product.template' / 'product.product' (e)
+    * Ordinary Odoo external reference ``(a)``, format "module.name"
+    * Test reference, format "z0bug.name" ``(b)``
+    * Key value, format "external.key" ``(c)``
+    * 2 keys reference, for header/detail relationship ``(d)``
+    * Magic reference for **product.template** / **product.product** ``(e)``
 
-Ordinary Odoo external reference (a) is a record of 'ir.model.data';
+Ordinary Odoo external reference ``(a)`` is a record of **ir.model.data**;
 you can see them from Odoo GUI interface.
 
-Test reference (b) are visible just in the test environment.
+Test reference ``(b)`` are visible just in the test environment.
 They are identified by "z0bug." prefix module name.
 
-External key reference (c) is identified by "external." prefix followed by
+External key reference ``(c)`` is identified by "external." prefix followed by
 the key value used to retrieve the record.
 If key value is an integer it is the record "id".
 The field "code" or "name" are used to search record;
 for account.tax the "description" field is used.
 Please set self.debug_level = 2 (or more) to log these field keys.
 
-The 2 keys reference (d) needs to address child record inside header record
+The 2 keys reference ``(d)`` needs to address child record inside header record
 at 2 level model (header/detail) relationship.
 The key MUST BE the same key of the parent record,
-plus "_", plus line identifier (usually 'sequence' field).
-i.e. "z0bug.move_1_3" means: line with sequence 3 of 'account.move.line'
-which is child of record "z0bug.move_1" of 'account.move'.
+plus "_", plus line identifier (usually **sequence** field).
+i.e. ``z0bug.move_1_3`` means: line with sequence ``3`` of **account.move.line**
+which is child of record ``z0bug.move_1`` of **account.move**.
 Please set self.debug_level = 2 (or more) to log these relationships.
 
-For 'product.template' (product) you must use '_template' text in reference (e).
-TestEnv inherit 'product.product' (variant) external reference (read above 'Magic relationship).
+For **product.template** (product) you must use '_template' text in reference ``(e)``.
+TestEnv inherit **product.product** (variant) external reference
+(read above "Magic relationship").
 
 Examples:
 
@@ -1002,18 +1091,23 @@ Examples:
         ],
     )
 
+
+
 Module test execution session
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
+
+Introduction
+~~~~~~~~~~~~
 
 Module test execution workflow should be:
 
-    #. Data declaration, in setUp() function
+    #. Data declaration, in file .csv or .xlszìx or in source code
     #. Base data creation, in setUp() function
-    #. Supplemental data declaration
-    #. Supplemental data creation
+    #. Tests execution
+    #. Supplemental data creation, during test execution, by group name
 
 Test data may be managed by one or more data group; if not declared,
-"base" group name is used. The "base" group must be created at the setUp()
+"base" group name is used. The "base" group will be created at the setUp()
 level: it is the base test data.
 Testing function may declare and manage other group data. Look at the
 following example:
@@ -1051,27 +1145,15 @@ following example:
 
         def setUp(self):
             super().setUp()
-            # Add following statement just for get debug information
             self.debug_level = 2
-            data = {"TEST_SETUP_LIST": TEST_SETUP_LIST}
-            for resource in TEST_SETUP_LIST:
-                item = "TEST_%s" % resource.upper().replace(".", "_")
-                data[item] = globals()[item]
-            self.declare_all_data(data)     # TestEnv swallows the data
-            self.setup_env()                # Create test environment
+            self.setup_env()                # Create base test environment
 
         def test_something(self):
-            data = {"TEST_SETUP_LIST": ["sale.order", "sale.order.line"]}
-            for resource in TEST_SETUP_LIST:
-                item = "TEST_%s" % resource.upper().replace(".", "_")
-                data[item] = globals()[item]
-            # Declare order data in specific group to isolate data
-            self.declare_all_data(data, group="order")
-            # Create the full sale order with lines
-            self.setup_env(group="order")
+            # Now add Sale Order data, group "order"
+            self.setup_env(group="order", setup_list=["sale.order", "sale.order.line"])
 
 Note the external reference are globals and they are visible from any groups.
-After base data is created it starts the real test session. You can simulate
+After base data is created, the real test session can begin. You can simulate
 various situation; the most common are:
 
     #. Simulate web form create record
@@ -1080,16 +1162,18 @@ various situation; the most common are:
     #. Download any binary data created by test
     #. Engage wizard
 
-Notice: you can also create / update record with usually create() / write()
-Odoo function but they do not really simulate the user behavior.
-They do not engage the onchange methods, they do not load any view and so on.
+.. note::
 
-The real best way to test a create session is like the follow example
-based on res,partner model:
+    You can also create / update record with usually create() / write() Odoo function,
+    but they do not really simulate the user behavior because they do not engage the
+    onchange methods, they do not load any view and so on.
+
+The real best way to test a create record is like the follow example
+based on **res.partner model**:
 
 ::
 
-        record = self.resource_edit(
+        partner = self.resource_edit(
             resource="res.partner",
             web_changes=[
                 ("name", "Adam"),
@@ -1102,8 +1186,8 @@ You can also simulate the update session, issuing the record:
 
 ::
 
-        record = self.resource_edit(
-            resource=record,
+        partner = self.resource_edit(
+            resource=partner,
             web_changes=[
                 ("name", "Adam Prime"),
                 ...
@@ -1145,8 +1229,10 @@ wizard:
 
 Look at wizard() documentation for furthermore details.
 
+
+
 Data values
-~~~~~~~~~~~
+-----------
 
 Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
@@ -1154,17 +1240,21 @@ You can declare data value on your own but you can discover th full test environ
 in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
 from this environment.
 
+
+
 company_id
 ~~~~~~~~~~
 
 If value is empty, user company is used.
-When data is searched by resource_bind() function the "company_id" field
+When data is searched by ``resource_search()`` function the "company_id" field
 is automatically filled and added to search domain.
 This behavior is not applied on
-"res.users", "res.partner","product.template" and "product.product" models.
+**res.users**, **res.partner**, **product.template** and **product.product** models.
 For these models you must fill the "company_id" field.
-For these models resource_bind() function searches for record with company_id
+For these models ``resource_search()`` function searches for record with company_id
 null or equal to current user company.
+
+
 
 boolean
 ~~~~~~~
@@ -1172,11 +1262,10 @@ boolean
 You can declare boolean value:
 
 * by python boolean False or True
-* by integer 0 o 1
-* by string "0" / "False" or "1" / "True"
+* by integer 0 or 1
+* by string "0" or "False" or "1" or "True"
 
 ::
-
 
     self.resource_create(
         "res.partner",
@@ -1191,27 +1280,53 @@ You can declare boolean value:
         }
     )
 
+
+
 char / text
 ~~~~~~~~~~~
 
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
 
-::
+You can evalute the field value engaging a simple python expression inside tags like in
+following syntax:
 
+    "<?odoo EXPRESSION ?>"
+
+The expression may be a simple python expression with following functions:
+
++--------------+----------------------------------------+----------------------------------+
+| function     | description                            | example                          |
++--------------+----------------------------------------+----------------------------------+
+| compute_date | Compute date                           | compute_date('<###-##-##').year  |
++--------------+----------------------------------------+----------------------------------+
+| random       | Generate random number from 0.0 to 1.0 | int(random() * 1000)             |
++--------------+----------------------------------------+----------------------------------+
+| ref          | Odoo reference self.env.ref()          | ref('product.product_product_1') |
++--------------+----------------------------------------+----------------------------------+
+| ref[field]   | field of record of external reference  | product.product_product_1.name   |
++--------------+----------------------------------------+----------------------------------+
+
+
+
+::
 
     self.resource_create(
         "res.partner",
         xref="z0bug.partner1",
         values={
              {
-                ...
                 "name": "Alpha",
-                "street": "1, First Avenue",
-                ...
+                "street": "1, First Avenue"
+                # Name of Caserta city
+                "city": "<? base.state_it_ce.name ?>",
+                # Reference: 'year/123'
+                "ref": "<? compute_date('####-##-##')[0:4] + '/123' ?>",
             }
         }
     )
+
+
 
 integer / float / monetary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1236,16 +1351,17 @@ as integer/float.
         }
     )
 
+
+
 date / datetime
 ~~~~~~~~~~~~~~~
 
 Date and Datetime value are managed in special way.
-They are processed by compute_date() function (read below).
+They are processed by ``compute_date()`` function (read below).
 You can issue a single value or a 2 values list, 1st is the date,
 2nd is the reference date.
 
 ::
-
 
     self.resource_create(
         "res.partner",
@@ -1258,19 +1374,20 @@ You can issue a single value or a 2 values list, 1st is the date,
                 "date": -1,                                # Yesterday
                 "last_time_entries_checked":
                     [+2, another_date],                    # 2 days after another day
-                "message_last_post": "2023-06-26",         # Specific date
+                "message_last_post": "2023-06-26",         # Specific date, ISO format
             }
         }
     )
 
+
+
 many2one
 ~~~~~~~~
 
-You can issue an integer (if you exactly know the ID)
+You can issue an integer (if you know exactly the ID)
 or an external reference. Read above about external reference.
 
 ::
-
 
     self.resource_create(
         "res.partner",
@@ -1286,11 +1403,13 @@ or an external reference. Read above about external reference.
         }
     )
 
+
+
 one2many / many2many
 ~~~~~~~~~~~~~~~~~~~~
 
 The one2many and many2many field may contains one or more ID;
-every ID use the many2one notation using external reference.
+every ID use the same above many2one notation with external reference.
 Value may be a string (just 1 value) or a list.
 
 ::
@@ -1311,11 +1430,27 @@ Value may be a string (just 1 value) or a list.
         }
     )
 
+.. note::
+
+    You can also use tha classic Odoo syntax with commands:
+    You can integrate classic Odoo syntax with **z0bug_odoo external** reference.
+
+* [0, 0, values (dict)]               # CREATE record and link
+* [1, ID (int), values (dict)]        # UPDATE linked record
+* [2, ID (int)]                       # DELETE linked record by ID
+* [3, ID (int)]                       # UNLINK record ID (do not delete record)
+* [4, ID (int)]                       # LINK record by ID
+* [5, x] or [5]                       # CLEAR unlink all record IDs
+* [6, x, IDs (list)]                  # SET link record IDs
+
+
+
 binary
 ~~~~~~
 
 Binary file are supplied with os file name. Test environment load file and
-get binary value. File must be located in ./tests/data directrory.
+get binary value. File must be located in **tests/data** directory.
+
 ::
 
     self.resource_create(
@@ -1330,36 +1465,116 @@ get binary value. File must be located in ./tests/data directrory.
     )
 
 
+
 Functions
 ---------
+
+cast_types
+~~~~~~~~~~
+
+**cast_types(self, resource, values, fmt=None, group=None, not_null=False)**
+
+Convert resource fields in appropriate type, based on Odoo type.
+
+| Args:
+|     resource (str): Odoo model name
+|     values (dict): record data
+|     fmt (selection): output format
+|     group (str): used to manager group data; default is "base"
+|
+| Returns:
+|     Appropriate values
+
+The parameter fmt declares the purpose of casting and declare the returned format of
+<2many> fields as follows table:
+
+::
+
+                                    | fmt=='cmd'         | fmt=='id'  | fmt=='py'
+    <2many> [(0|1,x,dict)]          | [(0|1,x,dict)] *   | [dict] *   | [dict] *
+    <2many> [(0|1,x,xref)]          | [(0|1,x,dict)]     | [dict]     | [dict]
+    <2many> [(2|3|4|5,id)]          | as is              | as is      | as is
+    <2many> [(2|3|4|5,xref)]        | [(2|3|4|5,id)]     | as is      | as is
+    <2many> [(6,0,[ids])]           | as is              | [ids]      | [ids]
+    <2many> [(6,0,xref)]            | [(6,0,[id])]       | [id]       | [id]
+    <2many> [(6,0,[xref,...])]      | [(6,0,[ids])]      | [ids]      | [ids]
+    <2many> dict                    | [(0,0,dict)        | [dict]     | [dict]
+    <2many> xref (exists)           | [(6,0,[id])]       | [id]       | [id]
+    <2many> xref (not exists)       | [(0,0,dict)]       | [dict]     | [dict]
+    <2many> [xref] (exists)         | [(6,0,[id])]       | [id]       | [id]
+    <2many> [xref] (not exists)     | [(0,0,dict)]       | [dict]     | [dict]
+    <2many> [xref,...] (exists)     | [(6,0,[ids])]      | [ids]      | [ids]
+    <2many> [xref,...] (not exists) | [(0,0,dict),(...)] | [dict,...] | [dict,...]
+    <2many> [ids] **                | [(6,0,[ids])]      | [ids]      | [ids]
+    <2many> id                      | [(6,0,[id])]       | [id]       | [id]
+    <2many> "xref,..." (exists)     | [(6,0,[ids])]      | [ids]      | [ids]
+    <2many> "xref,..." (not exists) | [(0,0,dict),(...)] | [dict,...] | [dict,...]
+
+    Caption: dict -> {'a': 'A', ..}, xref -> "abc.def", id -> 10, ids -> 1,2,...
+    * fields of dict are recursively processed
+    ** ids 1-6 have processed as Odoo cmd
+
+fmt ==  'cmd' means convert to Odoo API format: <2many> fields are returned with
+prefixed 0|1|2|3|4|5|6 value (read _cast_2many docs).
+
+fmt == 'id' is like 'cmd': prefix are added inside dict not at the beginning.
+
+fmt == 'py' means convert to native python (remove all Odoo command prefixes).
+It is used for comparison.
+
+When no format is required (fmt is None), some conversion may be not applicable:
+
+<many2one> field will be left unchanged when invalid xref is issued and <2many>
+field me will be left unchanged when one or more invalid xref are issued.
+
+str, int, long, selection, binary, html fields are always left as is
+
+date, datetime fields and fmt=='cmd' and python2 (odoo <= 10.0) return ISO format
+many2one fields, if value is (int|long) are left as is; if value is (xref) the
+id of xref is returned.
+
+.. note::
+
+    Odoo one2many valid cmd are: 0,1 and 2 (not checked)
 
 store_resource_data
 ~~~~~~~~~~~~~~~~~~~
 
+**store_resource_data(self, resource, xref, values, group=None, name=None)**
+
 Store a record data definition for furthermore use.
-Data stored is used by setup_env() function and/or by:
 
-* resource_create() without values
-* resource_write() without values
-* resource_make() without values
+| Args:
+|     resource (str): Odoo model name
+|     xref (str): external reference
+|     values (dict): record data
+|     group (str): used to manager group data; default is "base"
+|     name (str): label of dataset; default is resource name
 
-def store_resource_data(self, resource, xref, values, group=None, name=None):
 
-    Args:
-        resource (str): Odoo model name
-        xref (str): external reference
-        values (dict): record data
-        group (str): used to manager group data; default is "base"
-        name (str): label of dataset; default is resource name
+Data stored is used by ``setup_env()`` function and/or by:
+
+* ``resource_create()`` without values
+* ``resource_write()`` without values
+* ``resource_make()`` without values
+
 
 compute_date
 ~~~~~~~~~~~~
 
-Compute date or datetime against today or a reference date. Date may be:
+**compute_date(self, date, refdate=None)**
+
+Compute date or datetime against today or a reference date.
+
+| Args:
+|     date (date or string or integer): text date formula
+|     refdate (date or string): reference date
+
+Date may be:
 
 * python date/datetime value
-* string with ISO format "YYYY-MM-DD" / "YYYY-MM-DD HH:MM:SS"
-* string value that is a relative date against today / reference date
+* string with ISO format "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS"
+* string value that is a relative date against today or reference date
 
 Relative string format is like ISO, with 3 groups separated by '-' (dash).
 Every group may be an integer or a special notation:
@@ -1380,28 +1595,24 @@ Here, in following examples, are used python iso date convention:
 * '%Y-%m-%d %H:%M:%S': same datetime
 * '####-%m-%d': year from refdate (or today), month '%m', day '%d'
 * '####-##-%d': year and month from refdate (or today), day '%d'
-* '2022-##-##': year 2022, month and day from refdate (or today)
+* '2024-##-##': year 2024, month and day from refdate (or today)
 * '<###-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
 * '<001-%m-%d': year -1  from refdate (or today), month '%m', day '%d'
 * '<###-#>-%d': year -1  from refdate, month +1 from refdate, day '%d'
 * '<005-2>-##': year -5, month +2 and day from refdate
 
 Notes:
-    Returns a ISO format string.
-    Returned date is always a valid date; i.e. '####-#>-31',
-    with ref month January result '####-02-31' becomes '####-03-03'
-    To force last day of month, set '99': i.e. '####-<#-99' becomes the
-    last day of previous month of refdate
+    * Returns a ISO format string.
+    * Returned date is a valid date; i.e. '####-#>-31', with ref month January result '####-02-31' becomes '####-03-03'
+    * To force last day of month, set '99': i.e. '####-<#-99' becomes the last day of previous month of refdate
 
-def compute_date(self, date, refdate=None):
 
-    date (date or string or integer): formula; read aboove
-    refdate (date or string): reference date
+resource_browse
+~~~~~~~~~~~~~~~
 
-resource_bind
-~~~~~~~~~~~~~
+**resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None)**
 
-Bind record by xref or searching it or browsing it.
+Bind record by xref, searching it or browsing it.
 This function returns a record using issued parameters. It works in follow ways:
 
 * With valid xref it work exactly like self.env.ref()
@@ -1410,18 +1621,18 @@ This function returns a record using issued parameters. It works in follow ways:
     * xref is searched in stored data
     * xref ("MODULE.NAME"): if MODULE == "external", NAME is the record key
 
-def resource_bind(self, xref, raise_if_not_found=True, resource=None):
-
-    Args:
-        xref (str): external reference
-        raise_if_not_found (bool): raise exception if xref not found or if more records found
-        resource (str): Odoo model name, i.e. "res.partner"
-
-    Returns:
-        obj: the Odoo model record
-
-    Raises:
-        ValueError: if invalid parameters issued
+| Args:
+|     xref (str): external reference
+|     raise_if_not_found (bool): raise exception if xref not found or
+|                                if more records found
+|     resource (str): Odoo model name, i.e. "res.partner"
+|     group (str): used to manager group data; default is "base"
+|
+| Returns:
+|     obj: the Odoo model record
+|
+| Raises:
+|     ValueError: if invalid parameters issued
 
 resource_create
 ~~~~~~~~~~~~~~~
@@ -1431,17 +1642,17 @@ This function works as standard Odoo create() with follow improvements:
 
 * It can create external reference too
 * It can use stored data if no values supplied
+* Use new api even on Odoo 7.0 or less
 
-def resource_create(self, resource, values=None, xref=None, group=None):
+| Args:
+|     resource (str): Odoo model name, i.e. "res.partner"
+|     values (dict): record data (default stored data)
+|     xref (str): external reference to create
+|     group (str): used to manager group data; default is "base"
+|
+| Returns:
+|     obj: the Odoo model record, if created
 
-    Args:
-        resource (str): Odoo model name, i.e. "res.partner"
-        values (dict): record data (default stored data)
-        xref (str): external reference to create
-        group (str): used to manager group data; default is "base"
-
-    Returns:
-        obj: the Odoo model record, if created
 
 resource_write
 ~~~~~~~~~~~~~~
@@ -1481,49 +1692,46 @@ declare_resource_data
 
 Declare data to load on setup_env().
 
-def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
-
-    Args:
-        resource (str): Odoo model name, i.e. "res.partner"
-        data (dict): record data
-        name (str): label of dataset; default is resource name
-        group (str): used to manager group data; default is "base"
-        merge (str): merge data with public data (currently just "zerobug")
-
-    Raises:
-        TypeError: if invalid parameters issued
+| Args:
+|     resource (str): Odoo model name, i.e. "res.partner"
+|     data (dict): record data
+|     name (str): label of dataset; default is resource name
+|     group (str): used to manager group data; default is "base"
+|     merge (str): values are ("local"|"zerobug")
+|
+| Raises:
+|     TypeError: if invalid parameters issued
 
 declare_all_data
 ~~~~~~~~~~~~~~~~
 
-Declare all data to load on setup_env().
+Declare all data to load on setup_env()
 
-def declare_resource_data(self, resource, data, name=None, group=None, merge=None)
-
-    Args:
-        message (dict): data message
-        TEST_SETUP_LIST (list): resource list to load
-        TEST_* (dict): resource data; * is the uppercase resource name where dot are replaced by "_"; (see declare_resource_data)
-        group (str): used to manager group data; default is "base"
-        merge (str): merge data with public data (currently just "zerobug")
-
-    Raises:
-        TypeError: if invalid parameters issuedd
+| Args:
+|     message (dict): data message
+|         TEST_SETUP_LIST (list): resource list to load
+|         TEST_* (dict): resource data; * is the uppercase resource name where
+|                        dot are replaced by "_"; (see declare_resource_data)
+|     group (str): used to manager group data; default is "base"
+|     merge (str): values are ("local"|"zerobug")
+|     data_dir (str): data directory, default is "tests/data"
+|
+| Raises:
+|     TypeError: if invalid parameters issued
 
 get_resource_data
 ~~~~~~~~~~~~~~~~~
 
-Get declared resource data; may be used to test compare.
+Get declared resource data; may be used to test compare
 
-def get_resource_data(self, resource, xref, group=None):
-
-    Args:
-        resource (str): Odoo model name or name assigned, i.e. "res.partner"
-        xref (str): external reference
-        group (str): if supplied select specific group data; default is "base"
-
-    Returns:
-        dictionary with data or empty dictionary
+| Args:
+|     resource (str): Odoo model name or name assigned, i.e. "res.partner"
+|     xref (str): external reference
+|     group (str): if supplied select specific group data; default is "base"
+|     try_again (bool): engage conveyed value
+|
+| Returns:
+|     dictionary with data or empty dictionary
 
 get_resource_data_list
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -1563,17 +1771,18 @@ You can assign partner_xref to company base by group; then all tests executed
 after setup_env(), use the assigned partner data for company of the group.
 You can also create more companies and assign one of them to test by group.
 
-def setup_company(self, company, xref=None, partner_xref=None, values={}, group=None):
-
-    Args:
-        company (obj): company to update; if not supplied a new company is created
-        xref (str): external reference or alias for main company
-        partner_xref (str): external reference or alias for main company partner
-        values (dict): company data to update immediately
-        group (str): if supplied select specific group data; default is "base"
-
-    Returns:
-        default company for user
+| Args:
+|     company (obj): company to update; if not supplied a new company is created
+|     xref (str): external reference or alias for main company
+|     partner_xref (str): external reference or alias for main company partner
+|     recv_xref (str): external reference or alias for receivable account
+|     pay_xref (str): external reference or alias for payable account
+|     bnk1_xref (str): external reference or alias for 1st liquidity bank
+|     values (dict): company data to update immediately
+|     group (str): if supplied select specific group data; default is "base"
+|
+| Returns:
+|     default company for user
 
 setup_env
 ~~~~~~~~~
@@ -1581,27 +1790,30 @@ setup_env
 Create all record from declared data.
 
 This function starts the test workflow creating the test environment.
-Test data must be declared before engage this function with declare_all_data()
-function (see above).
+Test data must be declared before engage this function by file .csv or
+file .xlsx or by source declaration TEST_<MODEL>.
+
 setup_env may be called more times with different group value.
 If it is called with the same group, it recreates the test environment with
 declared values; however this feature might do not work for some reason: i.e.
 if test creates a paid invoice, the setup_env() cannot unlink invoice.
 If you want to recreate the same test environment, assure the conditions for
 unlink of all created and tested records.
-If you create more test environment with different group you can use all data,
-even record created by different group.
-In this way you can test a complex process the evolved scenario.
 
-def setup_env(self, lang=None, locale=None, group=None):
+If you create more test environment with different group you can grow the data
+during test execution with complex scenario.
+In this way you can create functional tests not only regression tests.
 
-    Args:
-        lang (str): install & load specific language
-        locale (str): install locale module with CoA; i.e l10n_it
-        group (str): if supplied select specific group data; default is "base"
-
-    Returns:
-        None
+| Args:
+|     lang (str): install & load specific language
+|     locale (str): install locale module with CoA; i.e l10n_it
+|     group (str): if supplied select specific group data; default is "base"
+|     source (str): values are ("local"|"zerobug")
+|     setup_list (list): list of Odoo modelS; if missed use TEST_SETUP_LIST
+|     data_dir (str): data directory, default is "tests/data"
+|
+| Returns:
+|     None
 
 resource_edit
 ~~~~~~~~~~~~~
@@ -1831,6 +2043,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.13 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: now you can declare you own source data directory
+* [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
+* [IMP] TestEnv: file account.tax.xlsx with some italian taxes for l10n_generic_oca
+* [IMP] TestEnv: simple expression for data value
+
 2.0.12 (2023-09-12)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -1971,10 +2191,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

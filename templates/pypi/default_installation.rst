@@ -1,4 +1,5 @@
 .. $if not no_pypi
+.. $if odoo_layer == 'module'
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -6,6 +7,7 @@ Stable version via Python Package
 
     pip install {{name}}
 
+.. $fi
 .. $fi
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~

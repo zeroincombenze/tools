@@ -9,16 +9,6 @@ z0bug_odoo.z0bug_odoo_lib
 
 .. automodule:: z0bug_odoo.z0bug_odoo_lib
 
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.test_common
-
-z0bug_odoo.test_common
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.test_common
-
 z0bug_odoo.testenv
 ~~~~~~~~~~~~~~~~~~
 
@@ -37,10 +27,10 @@ z0bug_odoo.testenv
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

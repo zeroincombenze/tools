@@ -44,7 +44,6 @@ Stable version via Python Package
 
     pip install --upgrade wok_code
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 

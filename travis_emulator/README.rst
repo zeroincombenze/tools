@@ -1,5 +1,5 @@
 =====================
-travis_emulator 2.0.7
+travis_emulator 2.0.8
 =====================
 
 
@@ -288,7 +288,6 @@ Stable version via Python Package
 
     pip install --upgrade travis_emulator
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -327,6 +326,12 @@ Troubleshooting
 
 ChangeLog History
 -----------------
+
+2.0.8 (2023-12-01)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Translation excel file names
+
 
 2.0.7 (2023-11-17)
 ~~~~~~~~~~~~~~~~~~
@@ -442,10 +447,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

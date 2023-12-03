@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 kill_process() {
@@ -318,7 +318,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Restore/duplicate postgres DB"\
-  "(C) 2015-2023 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -535,3 +535,4 @@ if [ $opt_dry_run -eq 0 ]; then
 fi
 wlog "== $ctr databases are restored"
 exit 0
+

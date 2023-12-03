@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.3
+__version__=2.0.4
 
 
 inherit_options() {
@@ -108,7 +108,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Backup postgres DB"\
-  "(C) 2015-2023 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2023 by zeroincombenze®\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -261,3 +261,4 @@ if [ -n "$dblist" ]; then
   popd >/dev/null
 fi
 exit 0
+

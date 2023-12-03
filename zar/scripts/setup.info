@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 name = "zar"
 github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
-author_email = "<info@shs-av.com>"
+author_email = "antoniomaria.vigliotti@gmail.com"
 source_url = "%s/tree/master/%s" % (github_url, name)
 doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug"
 changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.3",
+    version="2.0.4",
     description="Zeroincombenze Archive Replica",
     long_description=long_description,
     classifiers=[
@@ -64,3 +64,4 @@ setup(
     },
     zip_safe=False,
 )
+
