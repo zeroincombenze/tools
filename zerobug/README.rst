@@ -139,7 +139,6 @@ Stable version via Python Package
 
     pip install --upgrade zerobug
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
