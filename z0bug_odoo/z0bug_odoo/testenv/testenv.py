@@ -612,7 +612,7 @@ KEY_CANDIDATE = (
     "name",
 )
 KEY_INCANDIDATE = {
-    "code": ["product.product"],
+    "code": ["product.product", "asset.asset"],
     "partner_id": ["account.move.line", "stock.location"],
     "ref": ["res.partner"],
     "reference": ["sale.order"],
@@ -677,10 +677,7 @@ class MainTest(test_common.TransactionCase):
                     self.module = modules[0]
                     break
         self.z0bug_lib = z0bug_odoo_lib.Z0bugOdoo()
-        # self.set_datadir(os.path.join(os.path.dirname(__file__), "data"),
-        #                  raise_if_not_found=False)
-        self.set_datadir(get_module_resource(self.module.name, "tests", "data"),
-                         raise_if_not_found=False)
+        self.set_datadir(raise_if_not_found=False)
         self.params = {
             "compute_date": self.compute_date,
             "random": random.random,
@@ -941,13 +938,19 @@ class MainTest(test_common.TransactionCase):
     # --  Hierarchical functions  --
     # ------------------------------
 
-    def set_datadir(self, data_dir, merge=False, raise_if_not_found=True):
-        if not merge:
-            self.source = "local"
+    def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
+        def get_default_data_dir():
+            data_dir = get_module_resource(self.module.name, "tests", "data")
+            return data_dir if os.path.isdir(data_dir) else None
+
+        if merge not in ("local", "zerobug"):                       # pragma: no cover
+            self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
+        self.source = merge
+        self.data_dir = data_dir or getattr(self, "datadir", get_default_data_dir())
         self.z0bug_lib.declare_data_dir(
-            data_dir, merge=merge, raise_if_not_found=raise_if_not_found)
-        if data_dir:
-            self.data_dir = data_dir
+            self.data_dir,
+            merge=(merge != "local"),
+            raise_if_not_found=raise_if_not_found)
 
     def get_test_name(self, resource):
         return "TEST_%s" % self.z0bug_lib.get_pymodel(resource).upper()
@@ -1629,7 +1632,7 @@ class MainTest(test_common.TransactionCase):
         else:
             res = False
             if fmt:
-                self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
+                self.log_lvl_1("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
     @api.model
@@ -2386,14 +2389,15 @@ class MainTest(test_common.TransactionCase):
             domain = [(parent_name, "=", parent_rec.id)]
         else:
             domain = []
-            ln = parent_rec = False
+            parent_rec = False
+            ln = name if module == "external" else False
         domain = build_domain(domain, ln, values)
         if not domain:                                               # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("No value %s supplied for search keys %s for model %s"
                                  % (values, self.skeys[resource], resource))
-            self._logger.info("⚠ No value %s supplied for search keys %s for model %s"
-                              % (values, self.skeys[resource], resource))
+            self.log_lvl_2("⚠ No value %s supplied for search keys %s for model %s"
+                           % (values, self.skeys[resource], resource))
             return False
         record = self.env[resource].search(domain, limit=3)
         if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):
@@ -2435,7 +2439,8 @@ class MainTest(test_common.TransactionCase):
             values = self.get_resource_data(resource, xref, group=group)
             values = self._add_child_records(resource, xref, values, group=group)
         if not values:  # pragma: no cover
-            self.raise_error("No values supplied for %s create" % resource)
+            self.raise_error("No values supplied for xref %s on %s create"
+                             % (xref, resource))
         self.log_lvl_3(
             "🐞%s.resource_create(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -2578,15 +2583,12 @@ class MainTest(test_common.TransactionCase):
         """
         if not isinstance(data, dict):                              # pragma: no cover
             self.raise_error("Dictionary expected")
-        if merge not in ("local", "zerobug"):                       # pragma: no cover
-            self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
-        if merge == "zerobug":
-            self.z0bug_lib.declare_data_dir(self.data_dir, merge=True)
-
+        self.set_datadir(merge=merge)
         data = self.unicodes(data)
         for xref in list(sorted(data.keys())):
-            if merge == "zerobug":
-                zerobug = self.z0bug_lib.get_test_values(resource, xref)
+            if merge in ("local", "zerobug"):
+                zerobug = self.z0bug_lib.get_test_values(
+                    resource, xref, raise_if_not_found=False)
                 for field in list(zerobug.keys()):
                     if (
                         field not in data[xref]
@@ -2624,8 +2626,7 @@ class MainTest(test_common.TransactionCase):
         if "TEST_SETUP_LIST" not in message:                        # pragma: no cover
             self.raise_error("Key TEST_SETUP_LIST not found")
         group = group or "base"
-        if data_dir:
-            self.set_datadir(data_dir, merge=merge != "local")
+        self.set_datadir(data_dir=data_dir, merge=merge)
         for resource in message["TEST_SETUP_LIST"]:
             item = self.get_test_name(resource)
             if item not in message:                                 # pragma: no cover
@@ -2827,7 +2828,7 @@ class MainTest(test_common.TransactionCase):
         lang=None,
         locale=None,
         group=None,
-        source="local",
+        merge="local",
         setup_list=None,
         data_dir=None,
     ):
@@ -2849,7 +2850,7 @@ class MainTest(test_common.TransactionCase):
             lang (str): install & load specific language
             locale (str): install locale module with CoA; i.e l10n_it
             group (str): if supplied select specific group data; default is "base"
-            source (str): values are ("local"|"zerobug")
+            merge (str): values are ("local"|"zerobug")
             setup_list (list): list of Odoo modelS; if missed use TEST_SETUP_LIST
             data_dir (str): data directory, default is "tests/data"
 
@@ -2867,8 +2868,7 @@ class MainTest(test_common.TransactionCase):
             else:
                 self.raise_error("No data supplied for %s" % resource)
 
-        if data_dir:
-            self.set_datadir(data_dir, merge=source != "local")
+        self.set_datadir(data_dir=data_dir, merge=merge)
         if (
                 not self.setup_data
                 and "TEST_SETUP_LIST" in inspect.stack()[1][0].f_globals
@@ -3300,7 +3300,7 @@ class MainTest(test_common.TransactionCase):
 
         resource = self._get_model_from_records(record)
         if not resource:                                            # pragma: no cover
-            self.raise_error("No valid record supplied for comparation!")
+            self.raise_error("No valid record supplied for comparing!")
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
         resource_child = self.childs_resource.get(resource)

@@ -9,11 +9,6 @@ z0bug_odoo.z0bug_odoo_lib
 
 .. automodule:: z0bug_odoo.z0bug_odoo_lib
 
-z0bug_odoo.testenv
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: z0bug_odoo.testenv
-
 |
 |
 

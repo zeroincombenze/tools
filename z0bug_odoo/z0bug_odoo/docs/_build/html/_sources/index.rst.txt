@@ -1,5 +1,5 @@
 .. z0bug_odoo documentation master file, created by
-   gen_readme.py on 2023-12-02 10:53:40
+   gen_readme.py on 2023-12-04 14:17:21
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

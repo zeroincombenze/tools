@@ -1466,6 +1466,29 @@ get binary value. File must be located in **tests/data** directory.
 
 
 
+Useful External Reference
+-------------------------
+
++-------------------+-----------------------+-----------------+----------------------------------+
+| id                | name                  | model           | note                             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| z0bug.bank        | Bank                  | account.account | Default bank account             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.INV      | Sale journal          | account.journal | Default sale journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BILL     | Purchase journal      | account.journal | Default purchase journal         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.MISC     | Miscellaneous journal | account.journal | Default miscellaneous journal    |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BNK1     | Bank journal          | account.journal | Default bank journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.main_company | Default company       | res.company     | Default company for test         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
++-------------------+-----------------------+-----------------+----------------------------------+
+
+
+
 Functions
 ---------
 
@@ -2028,7 +2051,6 @@ Stable version via Python Package
 
     pip install --upgrade z0bug_odoo
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2042,6 +2064,13 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.13.1 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: test on model asset.asset
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
 
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~

@@ -5,6 +5,13 @@ ChangeLog History
 =================
 
 
+2.0.13.1 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: test on model asset.asset
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
+
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~
 

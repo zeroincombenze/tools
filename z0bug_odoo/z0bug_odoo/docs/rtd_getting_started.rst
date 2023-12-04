@@ -37,7 +37,6 @@ Stable version via Python Package
 
     pip install --upgrade z0bug_odoo
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
