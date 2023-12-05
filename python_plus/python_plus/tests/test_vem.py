@@ -26,7 +26,7 @@ parser.add_argument('-V')
 ctx = parser.parseoptargs(['-V'])
 """
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 def version():
@@ -217,6 +217,7 @@ class RegressionTest:
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         # Not isolated environment
         cmd = 'vem -qf -p%s create %s' % (pyver, self.venv_dir)
+        print(cmd, "... please wait for a minute")
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
@@ -232,6 +233,7 @@ class RegressionTest:
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         # Isolated environment
         cmd = 'vem -qIf -p%s create %s' % (pyver, self.venv_dir)
+        print(cmd, "... please wait for a minute")
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
@@ -247,6 +249,7 @@ class RegressionTest:
         pyver = '%d.%d' % (sys.version_info[0], sys.version_info[1])
         # Isolated environment + devel packages
         cmd = 'vem -qDIf -p%s create %s' % (pyver, self.venv_dir)
+        print(cmd, "... please wait for a minute")
         sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
         sts += self.Z.test_result(z0ctx, "%s" % cmd, True, os.path.isdir(self.venv_dir))
         sts += self.Z.test_result(z0ctx, "- status %s" % cmd, 0, sts)
@@ -273,6 +276,7 @@ class RegressionTest:
             majver = int(odoo_ver.split(".")[0])
             # Isolated environment + devel packages + Odoo
             cmd = 'vem -qDIf -p%s create %s -O %s' % (pyver, self.venv_dir, odoo_ver)
+            print(cmd, "... please wait for a minute")
             sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=z0ctx['dry_run'])
             # Weird behavior for pyYAML with python 3.9
             # if odoo_ver == "16.0":
@@ -310,4 +314,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-

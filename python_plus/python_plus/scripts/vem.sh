@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.10
+__version__=2.0.11
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -1635,4 +1635,3 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
-

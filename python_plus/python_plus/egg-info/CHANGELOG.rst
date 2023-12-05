@@ -1,5 +1,5 @@
-2.0.10.1 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.11 (2023-11-17)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] new python version assignment from odoo version
 
