@@ -38,14 +38,12 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
+            # keep data after tests
+            self.odoo_commit_data = True
             self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()     # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
@@ -58,6 +56,10 @@ you are hinted to set self.debug_level = 3; then you can decrease the debug leve
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
 TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
+Another useful helper is the database keep data after test feature. You have to declare
+self.odoo_commit_data = True and you have to set global bash environment
+
+``global ODOO_COMMIT_DATA="1"``
 
 Ths TestEnv software requires:
 

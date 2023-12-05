@@ -34,14 +34,12 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
+            # keep data after tests
+            self.odoo_commit_data = True
             self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()     # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
@@ -685,6 +683,13 @@ class MainTest(test_common.TransactionCase):
         }
 
     def tearDown(self):
+        if (
+                getattr(self, "odoo_commit_test", False)
+                and os.environ.get("ODOO_COMMIT_TEST", "")
+        ):                                                          # pragma: no cover
+            # Save test environment, so it is available to dump
+            self.env.cr.commit()                       # pylint: disable=invalid-commit
+            _logger.info("✨ Test data available on database %s" % self.env.cr.dbname)
         super(MainTest, self).tearDown()
         self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
 
@@ -2485,7 +2490,7 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def resource_write(
-        self, resource, xref=None, values=None, raise_if_not_found=True, group=None
+        self, resource=None, xref=None, values=None, raise_if_not_found=True, group=None
     ):
         """Update a test record.
         This function works as standard Odoo write() with follow improvements:
@@ -2889,7 +2894,8 @@ class MainTest(test_common.TransactionCase):
             self.declare_all_data(data)
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.13 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.13 (debug_level=%s, commit=%s)"
+            % (self.debug_level, self.odoo_commit_test)
         )
         self._logger.info(
             "🎺🎺 Testing module: %s (%s)"

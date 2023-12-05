@@ -18,10 +18,12 @@ It can be used replacing OCA MQT with some nice additional features.
 *z0bug_odoo* is built on follow concepts:
 
 * Odoo version independent; it can test Odoo from 6.1 until 17.0
-* It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
+* It is designed to run inside repository tests with `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
+* It is designed to run in local environment too, using `zerobug <https://github.com/zeroincombenze/tools/tree/master/zerobug>`_
 * It can run with full or reduced set of pylint tests
-* Test using ready-made database records
+* Tests can use many ready-made database records
 * Quality Check Id
+* Keep database after tests (not inside travis and with some limitations)
 
 
 travis ci support
@@ -607,7 +609,7 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                                       |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
-| ODOO_COMMIT_TEST       | 0                                                      | Test result will be committed; require specific code at tear_off function |
+| ODOO_COMMIT_TEST       | 0                                                      | Test result will be committed; require specific code at TearDown function |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | ODOO_REPO              | odoo/odoo                                              | OCB repository against test repository                                    |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
@@ -746,9 +748,10 @@ module in quick and easy way.
 The purpose of this software are:
 
 * Create the Odoo test environment with records to use for your test
-* Make available some useful functions to test your module (in z0bug_odoo)
+* Make available some useful functions to test your module
 * Simulate the wizard to test wizard functions (wizard simulator)
 * Environment running different Odoo modules versions
+* Keep database after tests (with some limitations)
 
 Please, pay attention to test data: TestEnv use internal unicode even for python 2
 based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
@@ -757,8 +760,56 @@ based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
 
     Odoo core uses unicode even on old Odoo version.
 
+For a complete set of examples, please look at the module test_testenv in
+`repository <https://github.com/zeroincombenze/zerobug-test>`__
+
 Tests are based on test environment created by module mk_test_env in
 `repository <https://github.com/zeroincombenze/zerobug-test>`__
+
+keeping database after tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using zerobug in conjunction with z0bug_odoo a nice feature is available: you can keep
+the database after tests, so you can touch teh results or build example DB.
+However this feature has some limitation:
+
+    #. You can use just 1 test class, because saving is made on TearDown execution
+    #. You cannot create on fly record with external reference of current module name
+
+Example 1, double test class: it does not work
+
+::
+
+    class TestExample(SingleTransactionCase):
+        ...
+
+    class Test2Example(SingleTransactionCase):
+        ...
+
+Example 2, module named "my_module":
+
+::
+
+    class TestExample(SingleTransactionCase):
+        ...
+        # Follow record with external reference "my_module.my_xref" will be
+        # automaticaaly deleted by Odoo at the end of the test
+        self.resource_create("my.model", xref="my_module.my_xref", ...
+        # Follow record with external reference "z0bug.my_xref" works!
+        self.resource_create("my.model", xref="z0bug.my_xref", ...
+
+Names used for the test databases in testenv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+zerobug and z0bug_odoo use different rule from travis emulatro to naming test database.
+The database name is "test_<MODULE_NAME>".
+
+Please, notice a template database, named "template_<MODULE_NAME>" is built before test
+database and then ie kept in the system.
+If you do not want to see template databases use following regex for dbfilter parameter
+inf your Odoo configuration file:
+
+    dbfilter = (?!template).*
 
 Requirements
 ~~~~~~~~~~~~
@@ -840,14 +891,12 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
+            # keep data after tests
+            self.odoo_commit_data = True
             self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()     # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
@@ -860,6 +909,10 @@ you are hinted to set self.debug_level = 3; then you can decrease the debug leve
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
 TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
+Another useful helper is the database keep data after test feature. You have to declare
+self.odoo_commit_data = True and you have to set global bash environment
+
+``global ODOO_COMMIT_DATA="1"``
 
 Ths TestEnv software requires:
 
@@ -2068,6 +2121,7 @@ ChangeLog History
 2.0.13.1 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~~~
 
+* [IMP] TestEnv: commit odoo data became internal fetaure
 * [IMP] TestEnv: test on model asset.asset
 * [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
 * [FIX] TestEnv: sometimes external.KEY did not work

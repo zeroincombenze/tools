@@ -81,14 +81,12 @@ Please copy the documentation testenv.rst file in your module too.</p>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
         <span class="c1"># Add following statement just for get debug information</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="c1"># keep data after tests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odoo_commit_data</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create test environment</span>
 
     <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ODOO_COMMIT_TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-            <span class="c1"># Save test environment, so it is available to dump</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cr</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>     <span class="c1"># pylint: disable=invalid-commit</span>
-            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✨ Test data committed&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -101,7 +99,10 @@ Please copy the documentation testenv.rst file in your module too.</p>
 you are hinted to set self.debug_level = 3; then you can decrease the debug level
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
-TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.</p>
+TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.
+Another useful helper is the database keep data after test feature. You have to declare
+self.odoo_commit_data = True and you have to set global bash environment</p>
+<p><code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">ODOO_COMMIT_DATA=&quot;1&quot;</span></code></p>
 <p>Ths TestEnv software requires:</p>
 <ul class="simple">
 <li><p>python_plus PYPI package</p></li>
