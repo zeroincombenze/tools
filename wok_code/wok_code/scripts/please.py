@@ -725,8 +725,9 @@ class Please(object):
         if "total" not in params:
             print("No stats found in %s" % log_fqn)
             return 3
-        params["qrating"] = int(params["cover"] * 0.6
-                                + params["testpoints"] * 400 / params["total"]
+        # Q-rating = coverage (60%) + # testpoints*4/total (40%)
+        params["qrating"] = int((params["cover"] / params["total"] * 60)
+                                + (params["testpoints"] * 160 / params["total"])
                                 + 1)
         test_cov_msg = (
             "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"

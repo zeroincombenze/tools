@@ -199,6 +199,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.13.1 (2023-12-05)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Quality rating formula
+
 2.0.13 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~
 
