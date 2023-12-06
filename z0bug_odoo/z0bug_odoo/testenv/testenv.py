@@ -862,11 +862,10 @@ class MainTest(test_common.TransactionCase):
 
     def _add_conveyance(self, resource, field, convey):
         if isinstance(convey, basestring):
-            self._logger.info("⚠ %s.%s(%s)" % (resource, convey, field))
+            self.log_lvl_1("⚠ Convey %s.%s(%s)" % (resource, convey, field))
         else:
-            self._logger.info(
-                "⚠ %s[%s]: '%s' -> '%s'" % (resource, field, convey[0], convey[1])
-            )
+            self.log_lvl_1("⚠ Convey %s[%s]: '%s' -> '%s'"
+                           % (resource, field, convey[0], convey[1]))
         if field == "all" and (
             not isinstance(convey, basestring)
             or convey != ("_cvt_%s" % resource.replace(".", "_"))
@@ -1028,6 +1027,7 @@ class MainTest(test_common.TransactionCase):
                     raise_if_not_found=False,
                     resource=childs_resource,
                     group=group,
+                    no_warning=True,
                 )
                 if record:
                     values[field].append((1, record.id, child_xref))
@@ -1098,12 +1098,11 @@ class MainTest(test_common.TransactionCase):
                     raise_if_not_found=False,
                     resource=resource,
                     group=group,
+                    no_warning=True,
                 )
                 if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
-                # if not resource:
-                #     resource = self._get_model_of_xref(xref)
                 res = self.env.ref(
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
@@ -1151,7 +1150,7 @@ class MainTest(test_common.TransactionCase):
                 )
                 xref_child = False
             else:
-                self._logger.info(
+                self.log_lvl_1(
                     "xref ('product.template') '%s' -> ('product.product') '%s'"
                     % (xref, xref_child)
                 )
@@ -2296,7 +2295,8 @@ class MainTest(test_common.TransactionCase):
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
     @api.model
-    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None):
+    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None,
+                        no_warning=False):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
 
@@ -2312,6 +2312,7 @@ class MainTest(test_common.TransactionCase):
                                        if more records found
             resource (str): Odoo model name, i.e. "res.partner"
             group (str): used to manager group data; default is "base"
+            no_warning (bool): no warning message if parent xref no found
 
         Returns:
             obj: the Odoo model record
@@ -2385,11 +2386,13 @@ class MainTest(test_common.TransactionCase):
                 group=group,
             )
             if not parent_rec:                                       # pragma: no cover
+                msg = "Parent xref %s.%s not found for %s" % (module, name, resource)
                 if raise_if_not_found:
-                    self.raise_error(
-                        "Parent xref %s.%s not found for %s" % (module, name, resource))
-                self._logger.info(
-                    "⚠ Parent xref %s.%s not found for %s" % (module, name, resource))
+                    self.raise_error(msg)
+                if no_warning:
+                    self.log_lvl_3(msg)
+                else:
+                    self.log_lvl_1(msg)
                 return False
             domain = [(parent_name, "=", parent_rec.id)]
         else:
@@ -2895,10 +2898,10 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
             "🎺🎺🎺 Starting test v2.0.13 (debug_level=%s, commit=%s)"
-            % (self.debug_level, self.odoo_commit_test)
+            % (self.debug_level, getattr(self, "odoo_commit_test", False))
         )
         self._logger.info(
-            "🎺🎺 Testing module: %s (%s)"
+            "🎺🎺🎺 Testing module: %s (%s)"
             % (self.module.name, self.module.installed_version)
         )
         self.log_stack()
