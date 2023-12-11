@@ -86,6 +86,10 @@ In your test file you must declare the following statement:
 
     You must declare header and lines data before create header record
 
+.. note::
+
+    External reference coding is free: however is hinted to use the The 2
+    keys reference explained in "External reference" chapter.
 
 Another magic relationship is the **product.template** (product) / **product.product** (variant)
 relationship.

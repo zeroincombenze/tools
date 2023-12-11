@@ -586,6 +586,14 @@ RESOURCE_WO_COMPANY = (
     "product.template",
     "product.product",
 )
+CHILDS_RESOURCE = {
+    "asset.category": "asset.category.depreciation.type",
+    "product.template": "product.product",
+}
+PARENT_RESOURCE = {
+    "asset.category.depreciation.type": "asset.category",
+    "product.product": "product.template",
+}
 # Please, do not change fields order
 KEY_CANDIDATE = (
     "acc_number",
@@ -618,6 +626,7 @@ KEY_INCANDIDATE = {
 KEY_OF_RESOURCE = {
     "account.tax": "description",
     "account.rc.type.tax": "purchase_tax_id",
+    "asset.category.depreciation.type": "depreciation_type_id",
     "res.users": "login",
     "stock.location": "name",
 }
@@ -960,8 +969,8 @@ class MainTest(test_common.TransactionCase):
         return "TEST_%s" % self.z0bug_lib.get_pymodel(resource).upper()
 
     def _search4parent(self, resource, parent_resource=None):
-        if resource == "product.product":
-            parent_resource = "product.template"
+        if resource in PARENT_RESOURCE:
+            parent_resource = PARENT_RESOURCE[resource]
         else:
             parent_resource = parent_resource or resource.rsplit(".", 1)[0]
         if parent_resource not in self.env:
@@ -984,8 +993,8 @@ class MainTest(test_common.TransactionCase):
 
         childs_resource = childs_resource or []
         if not childs_resource:
-            if resource == "product.template":
-                childs_resource = ["product.product"]
+            if resource in CHILDS_RESOURCE:
+                childs_resource = CHILDS_RESOURCE[resource]
             else:
                 for suffix in (".line", ".rate", ".state", ".tax"):
                     childs_resource.append(resource + suffix)
@@ -2329,10 +2338,8 @@ class MainTest(test_common.TransactionCase):
                 elif field in values:
                     domain.append((field, "=", self._cast_field(
                         resource, field, values[field], fmt="cmd")))
-            if domain and (
-                    resource not in RESOURCE_WO_COMPANY
-                    and "company_id" in self.struct[resource]
-            ):
+            # TODO> Remove early RESOURECE_WO_COMPANY
+            if domain and "company_id" in self.struct[resource]:
                 domain.append("|")
                 domain.append(("company_id", "=", self.default_company().id))
                 domain.append(("company_id", "=", False))
@@ -2378,9 +2385,14 @@ class MainTest(test_common.TransactionCase):
         module, name = xref.split(".", 1)
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
-            name, ln = self._unpack_xref(name)
+            if values.get(parent_name):
+                xref_parent = values[parent_name]
+                ln = False
+            else:
+                name, ln = self._unpack_xref(name)
+                xref_parent = "%s.%s" % (module, name)
             parent_rec = self.resource_browse(
-                "%s.%s" % (module, name),
+                xref_parent,
                 resource=self.parent_resource[resource],
                 raise_if_not_found=False,
                 group=group,

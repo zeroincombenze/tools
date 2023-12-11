@@ -71,10 +71,10 @@ class Z0bugOdoo(object):
                 row["code"] = "%s" % row["code"]
             getattr(self, pymodel)[row['id']] = unicodes(row)
 
-    def get_data_file_xlsx(self, model, fqn):
+    def get_data_file_xlsx(self, model, fqn, sheet_name=None):
         pymodel = self.get_pymodel(model)
         wb = load_workbook(fqn)
-        sheet = wb.active
+        sheet = wb.active if not sheet_name else wb[sheet_name]
         colnames = []
         for column in sheet.columns:
             colnames.append(column[0].value)
