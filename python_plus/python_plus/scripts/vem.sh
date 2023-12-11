@@ -1415,8 +1415,7 @@ pypi_requrements() {
 OPTOPTS=(h        a        B         C      D       d        E          f         F      g       k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
 OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     global  keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
 OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_gbl opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opt_yes)
-OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1       1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
-OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0       0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
+OPTACTI=("+"      ""       0         0      0       ""       ""         0         ""     0       0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
 OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""      ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose"   "")
 OPTHELP=("this help"
   "bin packages to install (* means wkhtmltopdf,lessc)"
@@ -1435,7 +1434,7 @@ OPTHELP=("this help"
   "do nothing (dry-run)"
   "install pypi required by odoo version (amend or create)"
   "odoo path used to search odoo requirements"
-  "python version"
+  "python version (deprecated)"
   "silent mode"
   "after created v.environment install from the given requirements file"
   "create v.environment with access to the global site-packages"
