@@ -6,9 +6,14 @@
 """
 # import os
 import sys
+import os
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))
 
-from z0bug_odoo import z0bugodoo
-from zerobug import z0test
+from z0bug_odoo import z0bugodoo                                           # noqa: E402
+from zerobug import z0test                                                 # noqa: E402
 
 __version__ = "2.0.13"
 
@@ -22,8 +27,8 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
 
     def test_01(self, z0ctx):
         # sts = TEST_SUCCESS
@@ -54,5 +59,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-

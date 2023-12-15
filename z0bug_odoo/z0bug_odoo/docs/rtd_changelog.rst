@@ -10,6 +10,7 @@ ChangeLog History
 
 * [IMP] TestEnv: commit odoo data became internal feataure
 * [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external referecne coding free
 * [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
 * [FIX] TestEnv: sometimes external.KEY did not work
 

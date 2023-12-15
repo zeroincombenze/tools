@@ -1050,6 +1050,10 @@ In your test file you must declare the following statement:
 
     You must declare header and lines data before create header record
 
+.. note::
+
+    External reference coding is free: however is hinted to use the The 2
+    keys reference explained in "External reference" chapter.
 
 Another magic relationship is the **product.template** (product) / **product.product** (variant)
 relationship.
@@ -2123,6 +2127,7 @@ ChangeLog History
 
 * [IMP] TestEnv: commit odoo data became internal feataure
 * [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external referecne coding free
 * [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
 * [FIX] TestEnv: sometimes external.KEY did not work
 

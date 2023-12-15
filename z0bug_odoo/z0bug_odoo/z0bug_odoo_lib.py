@@ -173,12 +173,13 @@ class Z0bugOdoo(object):
         old_caller_data_dir = self.caller_data_dir
         self.caller_data_dir = data_dir
         old_default_data_dir = self.default_data_dir
-        self.default_data_dir = (os.path.join(os.path.dirname(__file__), 'data')
-                                 if merge else None)
+        self.default_data_dir = (
+            os.path.join(os.path.dirname(__file__), 'data')
+            if merge or (self.caller_data_dir is None
+                         and self.default_data_dir is None) else None)
         if (
                 self.caller_data_dir != old_caller_data_dir
                 or self.default_data_dir != old_default_data_dir
         ):
             for model in self.model_list:
                 self.initialize_model(model, merge=merge)
-
