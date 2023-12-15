@@ -952,24 +952,14 @@ class Z0test(object):
         # Set run inner (child of current process)
         args = ['-R']
         for p in LX_OPT_CFG_S:
-            # if p == 'opt_echo':
-            #     if p in ctx and ctx[p]:
-            #         args.append(LX_OPT_ARGS[p])
-            #     else:
-            #         args.append('-q')
-            # if p == 'opt_verbose' or p == 'opt_noctr' or p == 'opt_debug':
             if p == 'opt_verbose' or p == 'opt_debug':
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p])
-            # elif p == 'logfn':
-            #     if p in ctx and ctx[p]:
-            #         args.append(LX_OPT_ARGS[p] + ctx[p])
             elif p == 'run4cover':
                 if p in ctx and not ctx[p]:
                     args.append(LX_OPT_ARGS[p])
             elif p == 'min_test':
                 args.append(LX_OPT_ARGS[p] + str(ctx['ctr']))
-            # elif not ctx.get('opt_noctr', None) and p == 'max_test':
             elif p == 'max_test':
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p] + str(ctx[p]))
@@ -1023,11 +1013,7 @@ class Z0test(object):
         return ctx
 
     def set_shabang(self, ctx, testfile):
-        if (
-            # not ctx.get('python3', False)
-            # and not ctx.get('python2', False)
-            os.path.isfile(testfile)
-        ):
+        if os.path.isfile(testfile):
             do_rewrite = False
             with open(testfile, 'rb') as fd:
                 source = fd.read().decode('utf-8')
@@ -1137,11 +1123,6 @@ class Z0test(object):
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
                 if mime == 'text/x-python':
-                    # if ctx.get('python3', False):
-                    #     test_w_args = ['python3'] + [testname] + opt4childs
-                    # elif ctx.get('python2', False):
-                    #     test_w_args = ['python2'] + [testname] + opt4childs
-                    # else:
                     test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
@@ -1373,17 +1354,9 @@ class Z0test(object):
                         )
                     else:
                         print("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
-            # else:
-            #     if not ctx.get('opt_noctr', None):
-            #         txt = "{}Test {}/{}: {}".format(
-            #             prfx, ctx['ctr'], ctx['max_test'], msg
-            #         )
-            #     else:
-            #         txt = "{}Test {}: {}".format(prfx, ctx['ctr'], msg)
-            #     os0.wlog(txt)
 
     def test_result(self, ctx, msg, test_value, result_val, op=None):
-        # This funcion is deprecated
+        # This function is deprecated
         ctx = self._ready_opts(ctx)
         if not ctx.get('successful'):  # pragma: no cover
             return TEST_FAILED
@@ -1528,22 +1501,22 @@ class Z0test(object):
                 msg or "Value <<%s>> matches <<%s>>!" % (first, second),
                 first, second)
 
-    def _init_test_ctx(self, opt_echo, full={}):
-        """Set context value for autotest"""
-        z0ctx = {}
-        if full:  # just for tests
-            for p in 'min_test', 'max_test', 'opt_debug', 'opt_noctr', 'dry_run':
-                if p in full:
-                    z0ctx[p] = full[p]
-        # if opt_echo == '-e':
-        #     z0ctx['WLOGCMD'] = 'echo'
-        # elif opt_echo == '-q':
-        #     z0ctx['WLOGCMD'] = 'wecho-0'
-        z0ctx['this'] = self.module_id
-        z0ctx['this_fqn'] = './' + self.module_id
-        z0ctx['_run_autotest'] = True
-        # self.def_tlog_fn = '~/z0bug.log'
-        return z0ctx
+    # def _init_test_ctx(self, opt_echo, full={}):
+    #     """Set context value for autotest"""
+    #     z0ctx = {}
+    #     if full:  # just for tests
+    #         for p in 'min_test', 'max_test', 'opt_debug', 'opt_noctr', 'dry_run':
+    #             if p in full:
+    #                 z0ctx[p] = full[p]
+    #     # if opt_echo == '-e':
+    #     #     z0ctx['WLOGCMD'] = 'echo'
+    #     # elif opt_echo == '-q':
+    #     #     z0ctx['WLOGCMD'] = 'wecho-0'
+    #     z0ctx['this'] = self.module_id
+    #     z0ctx['this_fqn'] = './' + self.module_id
+    #     z0ctx['_run_autotest'] = True
+    #     # self.def_tlog_fn = '~/z0bug.log'
+    #     return z0ctx
 
     # def sanity_check(self, opt_echo, full={}):
     #     """Internal regression test
@@ -1558,11 +1531,12 @@ class Z0test(object):
     #     del z0ctx
     #     return sts
 
-    def build_os_tree(self, ctx, os_tree):
+    def build_os_tree(self, *args):
         """Create a filesytem tree to test"""
-        root = os.path.join(
-            os.path.dirname(ctx.get('this_fqn', './Z0BUG/tests')), 'res'
-        )
+        # Old version had the following signature: build_os_tree(self, ctx, os_tree)
+        # Now param ctx is deprecated, so we have to analyze parameters
+        os_tree = args[1] if len(args) == 2 else args[0]
+        root = os.path.join(os.path.dirname(self.this_fqn), 'res')
         if not os.path.isdir(root):
             os.mkdir(root)
         if not isinstance(os_tree, (list, tuple)):
@@ -1574,9 +1548,12 @@ class Z0test(object):
                 os.makedirs(path)
         return root
 
-    def remove_os_tree(self, ctx, os_tree):
+    def remove_os_tree(self, *args):
         """Remove a filesytem tree created to test"""
-        root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
+        # Old version had the following signature: remove_os_tree(self, ctx, os_tree)
+        # Now param ctx is deprecated, so we have to analyze parameters
+        os_tree = args[1] if len(args) == 2 else args[0]
+        root = os.path.join(os.path.dirname(self.this_fqn), 'res')
         if not os.path.isdir(root):
             return
         if not isinstance(os_tree, (list, tuple)):
