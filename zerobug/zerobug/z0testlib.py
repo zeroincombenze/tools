@@ -158,9 +158,10 @@ exclude_lines =
 """
 
 
-def has_args(method):
-    return (getargspec(method).args if sys.version_info[0] == 2
-            else list(signature(method).parameters))
+def sign_params(method):
+    return (
+        (getargspec(method).args + (getargspec(method).varargs or []))[1:]
+        if sys.version_info[0] == 2 else list(signature(method).parameters))
 
 
 def main():
@@ -1166,7 +1167,7 @@ class Z0test(object):
     def new_Cls2Test(self, Cls2Test):
         if (
                 hasattr(Cls2Test, "__init__")
-                and len(has_args(getattr(Cls2Test, "__init__"))) == 2
+                and len(sign_params(getattr(Cls2Test, "__init__"))) in (1, 2)
         ):
             runT = Cls2Test(self)
         else:
@@ -1175,7 +1176,7 @@ class Z0test(object):
         return runT
 
     def exec_local_test(self, T, testname, ctx=None):
-        if len(has_args(getattr(T, testname))):
+        if len(sign_params(getattr(T, testname))):
             sts = getattr(T, testname)(ctx)
         else:
             sts = getattr(T, testname)()
@@ -1866,4 +1867,3 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
-
