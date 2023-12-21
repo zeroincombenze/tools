@@ -27,16 +27,10 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, z0bug):
-    #     self.Z = z0bug
 
-    def test_01(self, z0ctx):
-        # sts = TEST_SUCCESS
-        res = {}
-        if not z0ctx['dry_run']:
-            res = z0bugodoo.get_test_values('res.partner', 'z0bug.res_partner_1')
-        sts = self.Z.test_result(z0ctx, 'get_test_values()', bool(res), True)
-        TEST = {
+    def test_01(self):
+        res = z0bugodoo.get_test_values('res.partner', 'z0bug.res_partner_1')
+        TESTBED_VALUES = {
             'customer': 'True',
             'name': 'Prima Alpha S.p.A.',
             'street': 'Via I Maggio, 101',
@@ -47,9 +41,8 @@ class RegressionTest:
             'phone': '+39 0255582285',
             'vat': 'IT00115719999',
         }
-        for nm in TEST:
-            sts += self.Z.test_result(z0ctx, 'partner.%s' % nm, res.get(nm), TEST[nm])
-        return sts
+        for nm in TESTBED_VALUES:
+            self.assertEqual('partner.%s' % nm, res.get(nm), TESTBED_VALUES[nm])
 
 
 # Run main if executed as a script

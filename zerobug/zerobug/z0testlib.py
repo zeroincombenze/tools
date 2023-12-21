@@ -29,7 +29,7 @@ from os0 import os0
 from z0lib import z0lib
 from python_plus import _c
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 
 # return code
 TEST_FAILED = 1
@@ -1844,3 +1844,4 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+

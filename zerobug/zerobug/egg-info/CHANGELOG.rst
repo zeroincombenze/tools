@@ -1,3 +1,10 @@
+2.0.13 (2023-12-21)
+~~~~~~~~~~~~~~~~~~~
+
+[FIX] python2: argument signature
+[IMP] build_os_tree: compatible with unittest2
+[IMP] remove_os_tree: compatible with unittest2
+
 2.0.12 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~
 

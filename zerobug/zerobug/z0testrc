@@ -62,7 +62,7 @@
 # (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=2.0.12
+__version__=2.0.13
 
 export opt_dry_run
 export ctr
@@ -743,5 +743,6 @@ EOF
     touch $path/.travis.yml
     mkdir -p $path/.git
 }
+
 
 
