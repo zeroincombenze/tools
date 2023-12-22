@@ -10,7 +10,8 @@ ChangeLog History
 
 * [IMP] TestEnv: commit odoo data became internal feataure
 * [IMP] TestEnv: test on model asset.asset
-* [IMP] TestEnv: detail external referecne coding free
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
 * [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
 * [FIX] TestEnv: sometimes external.KEY did not work
 

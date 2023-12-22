@@ -137,6 +137,13 @@ reference used to retrieve the record.</p>
 created as child of <code class="docutils literal notranslate"><span class="pre">product.template</span></code>. The external reference must contain
 the pattern <code class="docutils literal notranslate"><span class="pre">_template</span></code> (see below).</p>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When you write a file with a spreadsheet app, pay attention to automatic string
+replacement. For example double quote char &lt;”&gt; may be replaced by &lt;”&gt;.
+These replaced characters may be create some troubles during import data step,
+expecially when used in “python expression”.</p>
+</div>
 </section>
 <section id="magic-relationship">
 <h3>Magic relationship<a class="headerlink" href="#magic-relationship" title="Permalink to this heading"></a></h3>
@@ -441,19 +448,57 @@ wizard:</p>
 <h2>Data values<a class="headerlink" href="#data-values" title="Permalink to this heading"></a></h2>
 <p>Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
-You can declare data value on your own but you can discover th full test environment
+You can declare data value on your own but you can discover the full test environment
 in <a class="reference external" href="https://github.com/zeroincombenze/zerobug-test/mk_test_env/">https://github.com/zeroincombenze/zerobug-test/mk_test_env/</a> and get data
 from this environment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The fields <strong>company_id</strong> and <strong>currency_id</strong> may be empty to use default value.
+If you want to issue no value, do not declare column in model file (csv or xlsx).</p>
+</div>
+<p>You can evaluate the field value engaging a simple python expression inside tags like in
+following syntax:</p>
+<blockquote>
+<div><p>“&lt;?odoo EXPRESSION ?&gt;”</p>
+</div></blockquote>
+<p>The expression may be a simple python expression with following functions:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>function</p></td>
+<td><p>description</p></td>
+<td><p>example</p></td>
+</tr>
+<tr class="row-even"><td><p>compute_date</p></td>
+<td><p>Compute date</p></td>
+<td><p>&lt;?odoo compute_date(‘&lt;###-##-##’)[0:4] ?&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p>random</p></td>
+<td><p>Generate random number from 0.0 to 1.0</p></td>
+<td><p>&lt;?odoo int(random() * 1000) ?&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p>ref</p></td>
+<td><p>Odoo reference self.env.ref()</p></td>
+<td><p>&lt;?odoo ref(‘product.product_product_1’) ?&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p>ref[field]</p></td>
+<td><p>field of record of external reference</p></td>
+<td><p>&lt;?odoo ref(‘product.product_product_1’).name ?&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p>ref[field]</p></td>
+<td><p>field of record of external reference (brief)</p></td>
+<td><p>&lt;?odoo product.product_product_1.name ?&gt;</p></td>
+</tr>
+</tbody>
+</table>
 <section id="company-id">
 <h3>company_id<a class="headerlink" href="#company-id" title="Permalink to this heading"></a></h3>
 <p>If value is empty, user company is used.
-When data is searched by <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function the “company_id” field
-is automatically filled and added to search domain.
 This behavior is not applied on
 <strong>res.users</strong>, <strong>res.partner</strong>, <strong>product.template</strong> and <strong>product.product</strong> models.
-For these models you must fill the “company_id” field.
-For these models <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function searches for record with company_id
-null or equal to current user company.</p>
+For these models you must fill the <strong>company_id</strong> field.</p>
+<p>When data is searched by <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function on every model with company_id,
+the <strong>company_id</strong> field is automatically added to search domain, using ‘or’ between
+company_id null and company_id equal to supplied value or current user company.</p>
 </section>
 <section id="boolean">
 <h3>boolean<a class="headerlink" href="#boolean" title="Permalink to this heading"></a></h3>
@@ -482,36 +527,6 @@ null or equal to current user company.</p>
 <h3>char / text<a class="headerlink" href="#char-text" title="Permalink to this heading"></a></h3>
 <p>Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.</p>
-<p>You can evalute the field value engaging a simple python expression inside tags like in
-following syntax:</p>
-<blockquote>
-<div><p>“&lt;?odoo EXPRESSION ?&gt;”</p>
-</div></blockquote>
-<p>The expression may be a simple python expression with following functions:</p>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>function</p></td>
-<td><p>description</p></td>
-<td><p>example</p></td>
-</tr>
-<tr class="row-even"><td><p>compute_date</p></td>
-<td><p>Compute date</p></td>
-<td><p>compute_date(‘&lt;###-##-##’).year</p></td>
-</tr>
-<tr class="row-odd"><td><p>random</p></td>
-<td><p>Generate random number from 0.0 to 1.0</p></td>
-<td><p>int(random() * 1000)</p></td>
-</tr>
-<tr class="row-even"><td><p>ref</p></td>
-<td><p>Odoo reference self.env.ref()</p></td>
-<td><p>ref(‘product.product_product_1’)</p></td>
-</tr>
-<tr class="row-odd"><td><p>ref[field]</p></td>
-<td><p>field of record of external reference</p></td>
-<td><p>product.product_product_1.name</p></td>
-</tr>
-</tbody>
-</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
     <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
     <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>

@@ -42,7 +42,8 @@ class RegressionTest:
             'vat': 'IT00115719999',
         }
         for nm in TESTBED_VALUES:
-            self.assertEqual('partner.%s' % nm, res.get(nm), TESTBED_VALUES[nm])
+            self.assertEqual(res.get(nm), TESTBED_VALUES[nm],
+                             msg_info='partner.%s' % nm)
 
 
 # Run main if executed as a script

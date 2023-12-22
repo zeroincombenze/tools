@@ -28,7 +28,7 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
+    def setup(self):
         if os.path.basename(os.getcwd()) == 'tests':
             travis_addons = os.path.abspath(
                 os.path.join(os.environ.get("TRAVIS_BUILD_DIR", ".."), 'travis')
@@ -40,7 +40,6 @@ class RegressionTest:
         if travis_addons not in sys.path:
             sys.path.append(travis_addons)
         self.root = {}
-        self.Z = z0bug
 
     def test_01(self, z0ctx):
         sts = 0
@@ -150,5 +149,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-

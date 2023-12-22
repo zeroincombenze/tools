@@ -113,6 +113,21 @@ Current version via Git
 ChangeLog History
 -----------------
 
+zerobug: 2.0.13 (2023-12-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] python2: argument signature
+[IMP] build_os_tree: compatible with unittest2
+[IMP] remove_os_tree: compatible with unittest2
+
+
+wok_code: 2.0.13.1 (2023-12-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Quality rating formula
+* [FIX] please install python --python=3.7
+
+
 z0bug_odoo: 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -122,24 +137,21 @@ z0bug_odoo: 2.0.13 (2023-12-01)
 * [IMP] TestEnv: simple expression for data value
 
 
+travis_emulator: 2.0.8 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Translation excel file names
+
+
+
 zerobug: 2.0.12 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [FIX] python2: has_args
 
 
-zerobug: 2.0.11 (2023-11-19)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Disabled sanity_check
-* [IMP] Disabled some deprecated switches
-* [FIX] Coverage data file
-* [IMP] zerobug: test function signature like unittest2
-* [IMP] zerobug: no more execution for count
-
-
-wok_code: 2.0.12.1 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+wok_code: 2.0.13 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] please install python, now can install python 3.10
 * [IMP] arcangelo: new python version assignment from odoo version
@@ -156,14 +168,24 @@ wok_code: 2.0.12.1 (2023-11-17)
 * [IMP] please test now can update account.account.xlsx
 
 
+zerobug: 2.0.11 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Disabled sanity_check
+* [IMP] Disabled some deprecated switches
+* [FIX] Coverage data file
+* [IMP] zerobug: test function signature like unittest2
+* [IMP] zerobug: no more execution for count
+
+
 travis_emulator: 2.0.7 (2023-11-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Automatic python version for Odoo
 
 
-python_plus: 2.0.10.1 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+python_plus: 2.0.11 (2023-11-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] new python version assignment from odoo version
 
@@ -196,12 +218,6 @@ clodoo: 2.0.7 (2023-09-26)
 * [FIX] Some fixes due old wrong code (id -> name)
 
 
-z0bug_odoo: 2.0.12 (2023-09-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: validate_records with 2 identical template records
-
-
 zar: 2.0.4 (2023-09-08)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -222,26 +238,6 @@ zar: 2.0.3 (2023-09-06)
 * [FIX] DB name with hyphen (-)
 
 
-wok_code: 2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py: minor fixes
-* [IMP] gen_readme.py: manifest author priority
-* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
-* [IMP] gen_readme.py: link to authors on README.rst and index.html
-* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
-* [FIX] license_mgnt: best organization recognition
-* [IMP] license_mgnt: powerp renamed to librerp
-* [FIX] run_odoo_debug: no doc neither translate after test error
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-* [FIX] deploy_odoo: minor fixes
-* [FIX] odoo_translation: sometime did not translate
-* [IMP] odoo_translation: best performance
-
-
 z0lib: 2.0.7 (2023-07-20)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -256,13 +252,6 @@ python_plus: 2.0.10 (2023-07-18)
 * [IMP] list_requirements.py: werkzeug for Odoo 16.0
 * [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
 * [IMP] pip install packages with use2to3 is backupgrdae to < 23
-
-
-travis_emulator: 2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis: check for dropped DB and abort if still exist
-* [IMP] travis: action show as alias of show-log for please integration
 
 
 oerplib3: 0.8.4 (2023-05-06)

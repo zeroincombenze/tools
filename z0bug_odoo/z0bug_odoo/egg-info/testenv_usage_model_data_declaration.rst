@@ -29,3 +29,10 @@ i.e. the following record declaration is the same of above example; record id is
     Please, do not to declare ``product.product`` records: they are automatically
     created as child of ``product.template``. The external reference must contain
     the pattern ``_template`` (see below).
+
+.. warning::
+
+    When you write a file with a spreadsheet app, pay attention to automatic string
+    replacement. For example double quote char <"> may be replaced by <”>.
+    These replaced characters may be create some troubles during import data step,
+    expecially when used in "python expression".

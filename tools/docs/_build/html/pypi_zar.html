@@ -44,10 +44,29 @@
 </div>
 <section id="zar">
 <h1>Zar<a class="headerlink" href="#zar" title="Permalink to this heading"></a></h1>
+<section id="zeroincombenze-archive-replica">
+<h2>Zeroincombenze® Archive Replica<a class="headerlink" href="#zeroincombenze-archive-replica" title="Permalink to this heading"></a></h2>
+<p>ZAR stand for Zeroincombenze® Archive Replica.
+It is a tool kit to backup, restore, replicate files and/or database.</p>
+<p>ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.</p>
+<p>zar should be execute by postgres user</p>
+<p>Execute zar_upd to install and configure.
+Configuration file is zar.conf
+Execute zar_bck to do backup or restore, based on host role
+Execute zar_rest to do restore</p>
+<p>To execute in cron, use zar_bck -k</p>
+<p>There are avaiable two postgresql facilities:</p>
+<ul class="simple">
+<li><p>pg_db_active</p></li>
+<li><p>pg_db_reassign owner</p></li>
+</ul>
+<p><cite>pg_db_active</cite> show and kill postgres session. It can kill oldest session out of pool.</p>
+<p><cite>pg_db_reassign_owner</cite> can reassign owner to database. It reassign the ownership of all objects.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 <div class="line"><br /></div>
 </div>
+</section>
 </section>
 
 
@@ -60,6 +79,16 @@
             <p class="logo"><a href="index.html">
               <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
             </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Zar</a><ul>
+<li><a class="reference internal" href="#zeroincombenze-archive-replica">Zeroincombenze® Archive Replica</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="pypi_z0lib.html"

@@ -49,10 +49,12 @@
 <p><em>z0bug_odoo</em> is built on follow concepts:</p>
 <ul class="simple">
 <li><p>Odoo version independent; it can test Odoo from 6.1 until 17.0</p></li>
-<li><p>It is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p></li>
+<li><p>It is designed to run inside repository tests with <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/travis_emulator">local travis emulator</a></p></li>
+<li><p>It is designed to run in local environment too, using <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/zerobug">zerobug</a></p></li>
 <li><p>It can run with full or reduced set of pylint tests</p></li>
-<li><p>Test using ready-made database records</p></li>
+<li><p>Tests can use many ready-made database records</p></li>
 <li><p>Quality Check Id</p></li>
+<li><p>Keep database after tests (not inside travis and with some limitations)</p></li>
 </ul>
 <section id="travis-ci-support">
 <h2>travis ci support<a class="headerlink" href="#travis-ci-support" title="Permalink to this heading"></a></h2>
@@ -325,14 +327,12 @@ Please copy the documentation testenv.rst file in your module too.</p>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
         <span class="c1"># Add following statement just for get debug information</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="c1"># keep data after tests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odoo_commit_data</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create test environment</span>
 
     <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ODOO_COMMIT_TEST&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-            <span class="c1"># Save test environment, so it is available to dump</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">cr</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>     <span class="c1"># pylint: disable=invalid-commit</span>
-            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✨ Test data committed&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -345,7 +345,10 @@ Please copy the documentation testenv.rst file in your module too.</p>
 you are hinted to set self.debug_level = 3; then you can decrease the debug level
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
-TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.</p>
+TestEnv logs debug message with symbol “🐞 ” so you can easily recognize them.
+Another useful helper is the database keep data after test feature. You have to declare
+self.odoo_commit_data = True and you have to set global bash environment</p>
+<p><code class="docutils literal notranslate"><span class="pre">global</span> <span class="pre">ODOO_COMMIT_DATA=&quot;1&quot;</span></code></p>
 <p>Ths TestEnv software requires:</p>
 <ul class="simple">
 <li><p>python_plus PYPI package</p></li>
@@ -379,6 +382,13 @@ reference used to retrieve the record.</p>
 <p>Please, do not to declare <code class="docutils literal notranslate"><span class="pre">product.product</span></code> records: they are automatically
 created as child of <code class="docutils literal notranslate"><span class="pre">product.template</span></code>. The external reference must contain
 the pattern <code class="docutils literal notranslate"><span class="pre">_template</span></code> (see below).</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When you write a file with a spreadsheet app, pay attention to automatic string
+replacement. For example double quote char &lt;”&gt; may be replaced by &lt;”&gt;.
+These replaced characters may be create some troubles during import data step,
+expecially when used in “python expression”.</p>
 </div>
 </section>
 <section id="magic-relationship">
@@ -459,6 +469,11 @@ usually Odoo declaration way:</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>You must declare header and lines data before create header record</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>External reference coding is free: however is hinted to use the The 2
+keys reference explained in “External reference” chapter.</p>
 </div>
 <p>Another magic relationship is the <strong>product.template</strong> (product) / <strong>product.product</strong> (variant)
 relationship.
@@ -679,19 +694,57 @@ wizard:</p>
 <h2>Data values<a class="headerlink" href="#data-values" title="Permalink to this heading"></a></h2>
 <p>Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
-You can declare data value on your own but you can discover th full test environment
+You can declare data value on your own but you can discover the full test environment
 in <a class="reference external" href="https://github.com/zeroincombenze/zerobug-test/mk_test_env/">https://github.com/zeroincombenze/zerobug-test/mk_test_env/</a> and get data
 from this environment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The fields <strong>company_id</strong> and <strong>currency_id</strong> may be empty to use default value.
+If you want to issue no value, do not declare column in model file (csv or xlsx).</p>
+</div>
+<p>You can evaluate the field value engaging a simple python expression inside tags like in
+following syntax:</p>
+<blockquote>
+<div><p>“&lt;?odoo EXPRESSION ?&gt;”</p>
+</div></blockquote>
+<p>The expression may be a simple python expression with following functions:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>function</p></td>
+<td><p>description</p></td>
+<td><p>example</p></td>
+</tr>
+<tr class="row-even"><td><p>compute_date</p></td>
+<td><p>Compute date</p></td>
+<td><p>&lt;?odoo compute_date(‘&lt;###-##-##’)[0:4] ?&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p>random</p></td>
+<td><p>Generate random number from 0.0 to 1.0</p></td>
+<td><p>&lt;?odoo int(random() * 1000) ?&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p>ref</p></td>
+<td><p>Odoo reference self.env.ref()</p></td>
+<td><p>&lt;?odoo ref(‘product.product_product_1’) ?&gt;</p></td>
+</tr>
+<tr class="row-odd"><td><p>ref[field]</p></td>
+<td><p>field of record of external reference</p></td>
+<td><p>&lt;?odoo ref(‘product.product_product_1’).name ?&gt;</p></td>
+</tr>
+<tr class="row-even"><td><p>ref[field]</p></td>
+<td><p>field of record of external reference (brief)</p></td>
+<td><p>&lt;?odoo product.product_product_1.name ?&gt;</p></td>
+</tr>
+</tbody>
+</table>
 <section id="company-id">
 <h3>company_id<a class="headerlink" href="#company-id" title="Permalink to this heading"></a></h3>
 <p>If value is empty, user company is used.
-When data is searched by <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function the “company_id” field
-is automatically filled and added to search domain.
 This behavior is not applied on
 <strong>res.users</strong>, <strong>res.partner</strong>, <strong>product.template</strong> and <strong>product.product</strong> models.
-For these models you must fill the “company_id” field.
-For these models <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function searches for record with company_id
-null or equal to current user company.</p>
+For these models you must fill the <strong>company_id</strong> field.</p>
+<p>When data is searched by <code class="docutils literal notranslate"><span class="pre">resource_search()</span></code> function on every model with company_id,
+the <strong>company_id</strong> field is automatically added to search domain, using ‘or’ between
+company_id null and company_id equal to supplied value or current user company.</p>
 </section>
 <section id="boolean">
 <h3>boolean<a class="headerlink" href="#boolean" title="Permalink to this heading"></a></h3>
@@ -720,36 +773,6 @@ null or equal to current user company.</p>
 <h3>char / text<a class="headerlink" href="#char-text" title="Permalink to this heading"></a></h3>
 <p>Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.</p>
-<p>You can evalute the field value engaging a simple python expression inside tags like in
-following syntax:</p>
-<blockquote>
-<div><p>“&lt;?odoo EXPRESSION ?&gt;”</p>
-</div></blockquote>
-<p>The expression may be a simple python expression with following functions:</p>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>function</p></td>
-<td><p>description</p></td>
-<td><p>example</p></td>
-</tr>
-<tr class="row-even"><td><p>compute_date</p></td>
-<td><p>Compute date</p></td>
-<td><p>compute_date(‘&lt;###-##-##’).year</p></td>
-</tr>
-<tr class="row-odd"><td><p>random</p></td>
-<td><p>Generate random number from 0.0 to 1.0</p></td>
-<td><p>int(random() * 1000)</p></td>
-</tr>
-<tr class="row-even"><td><p>ref</p></td>
-<td><p>Odoo reference self.env.ref()</p></td>
-<td><p>ref(‘product.product_product_1’)</p></td>
-</tr>
-<tr class="row-odd"><td><p>ref[field]</p></td>
-<td><p>field of record of external reference</p></td>
-<td><p>product.product_product_1.name</p></td>
-</tr>
-</tbody>
-</table>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
     <span class="s2">&quot;res.partner&quot;</span><span class="p">,</span>
     <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;z0bug.partner1&quot;</span><span class="p">,</span>
@@ -885,6 +908,53 @@ get binary value. File must be located in <strong>tests/data</strong> directory.
 </pre></div>
 </div>
 </section>
+</section>
+<section id="useful-external-reference">
+<h2>Useful External Reference<a class="headerlink" href="#useful-external-reference" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>id</p></td>
+<td><p>name</p></td>
+<td><p>model</p></td>
+<td><p>note</p></td>
+</tr>
+<tr class="row-even"><td><p>z0bug.bank</p></td>
+<td><p>Bank</p></td>
+<td><p>account.account</p></td>
+<td><p>Default bank account</p></td>
+</tr>
+<tr class="row-odd"><td><p>external.INV</p></td>
+<td><p>Sale journal</p></td>
+<td><p>account.journal</p></td>
+<td><p>Default sale journal</p></td>
+</tr>
+<tr class="row-even"><td><p>external.BILL</p></td>
+<td><p>Purchase journal</p></td>
+<td><p>account.journal</p></td>
+<td><p>Default purchase journal</p></td>
+</tr>
+<tr class="row-odd"><td><p>external.MISC</p></td>
+<td><p>Miscellaneous journal</p></td>
+<td><p>account.journal</p></td>
+<td><p>Default miscellaneous journal</p></td>
+</tr>
+<tr class="row-even"><td><p>external.BNK1</p></td>
+<td><p>Bank journal</p></td>
+<td><p>account.journal</p></td>
+<td><p>Default bank journal</p></td>
+</tr>
+<tr class="row-odd"><td><p>base.main_company</p></td>
+<td><p>Default company</p></td>
+<td><p>res.company</p></td>
+<td><p>Default company for test</p></td>
+</tr>
+<tr class="row-even"><td><p>base.USD</p></td>
+<td><p>USD currency</p></td>
+<td><p>res.currency</p></td>
+<td><p>Test currency in test: US dollar</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
@@ -1470,6 +1540,7 @@ records (list or set): records to validate values</p>
 <li><a class="reference internal" href="#binary">binary</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#useful-external-reference">Useful External Reference</a></li>
 <li><a class="reference internal" href="#functions">Functions</a><ul>
 <li><a class="reference internal" href="#cast-types">cast_types</a></li>
 <li><a class="reference internal" href="#store-resource-data">store_resource_data</a></li>

@@ -298,6 +298,48 @@ def all_addr_same_customer(ctx):
     print('%d sale orders updated' % ctr)
 
 
+def hide_invoice_delivery_address(ctx):
+    print('Hide invoice and/od delivery addresses on partners')
+    if ctx['param_1'] == 'help':
+        print(
+            'def hide_invoice_delivery_address (auto|invoice|delivery|bosth)'
+        )
+        return
+    resource_part = 'res.partner'
+    ctr = 0
+    for partner in clodoo.browseL8(
+        ctx, resource_part, clodoo.searchL8(
+            ctx, resource_part, [])):
+        msg_burst('%s ...' % partner.name)
+        childs = {}
+        for partype in ("invoice", "delivery"):
+            childs[partype] = []
+        for child in partner.child_ids:
+            if child.type not in childs:
+                childs[child.type] = []
+            childs[child.type].append(child)
+        if ctx['param_1'] in ("invoice", "delivery"):
+            if ctx['param_1'] in childs:
+                for child in childs[ctx['param_1']]:
+                    clodoo.writeL8(ctx, resource_part, child.id, {"active": False})
+                    ctr += 1
+        elif ctx['param_1'] == "both":
+            for partype in ("invoice", "delivery"):
+                for child in childs[partype]:
+                    clodoo.writeL8(ctx, resource_part, child.id, {"active": False})
+                    ctr += 1
+        else:
+            for partype in ("invoice", "delivery"):
+                for child in childs[partype]:
+                    if len(childs[partype]) != 1:
+                        continue
+                    if partner.name == child.name and partner.street == child.street:
+                        clodoo.writeL8(
+                            ctx, resource_part, child.id, {"active": False})
+                        ctr += 1
+    print('%d partner hided' % ctr)
+
+
 def order_inv_group_by_partner(ctx):
     print('Set order invoicing group by customer setting')
     if ctx['param_1'] == 'help':

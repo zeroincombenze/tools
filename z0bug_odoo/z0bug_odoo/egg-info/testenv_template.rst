@@ -39,6 +39,11 @@ company_id
 
 .. $include testenv_usage_data_company_id.rst
 
+currency_id
+~~~~~~~~~~~
+
+.. $include testenv_usage_data_currency_id.rst
+
 boolean
 ~~~~~~~
 

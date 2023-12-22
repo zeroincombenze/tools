@@ -951,6 +951,10 @@ class MainTest(test_common.TransactionCase):
     # --  Hierarchical functions  --
     # ------------------------------
 
+    def is_none(self, value):
+        return (value is None or isinstance(value, basestring)
+                and value in ("None", r"\N"))
+
     def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
         def get_default_data_dir():
             data_dir = get_module_resource(self.module.name, "tests", "data")
@@ -1236,18 +1240,21 @@ class MainTest(test_common.TransactionCase):
                     value = eval(expr, self.params)
                     if ftype in ("char", "text", "selection"):
                         value = str(value)
-        if value is None or (
-            isinstance(value, basestring)
-            and (value in ("None", r"\N") or field == "id")
-        ):
-            value = None
-        elif (
+        if (
             field == "company_id"
+            and self.is_none(value)
             and fmt
-            and not value
             and resource not in RESOURCE_WO_COMPANY
         ):
             value = self.default_company().id
+        elif (
+            field == "currency_id"
+            and self.is_none(value)
+            and fmt
+        ):
+            value = self.default_company().currency_id.id
+        elif field == "id" or self.is_none(value):
+            value = None
         else:
             method = "_cast_field_%s" % ftype
             method = method if hasattr(self, method) else "_cast_field_base"
@@ -1688,7 +1695,7 @@ class MainTest(test_common.TransactionCase):
     # -------------------------------------
 
     @api.model
-    def cast_types(self, resource, values, fmt=None, group=None):
+    def cast_types(self, resource, values, fmt=None, group=None, keep_null=None):
         """Convert resource fields in appropriate type, based on Odoo type.
         The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
         API format; <2many> fields are prefixed with 0|1|2|3|4|5|6 value (read
@@ -1754,7 +1761,8 @@ class MainTest(test_common.TransactionCase):
                 value = self._cast_field(
                     resource, field, values[field], fmt=fmt, group=group
                 )
-                if value is None:
+                if value is None and (not keep_null
+                                      or field not in ("company_id", "currency_id")):
                     del values[field]
                     if field != "id":
                         self.log_lvl_3(" 🕶️ del %s.vals[%s]" % (resource, field))
@@ -2261,7 +2269,7 @@ class MainTest(test_common.TransactionCase):
             if child_values:
                 values[field_child] = child_values
         self.setup_data[group][name][xref] = self._purge_values(
-            self.cast_types(resource, values, group=group)
+            self.cast_types(resource, values, group=group, keep_null=True)
         )
         self.log_lvl_2(
             "💼 %s.store_resource_data(%s,name=%s,group=%s)"
@@ -2610,11 +2618,11 @@ class MainTest(test_common.TransactionCase):
                 zerobug = self.z0bug_lib.get_test_values(
                     resource, xref, raise_if_not_found=False)
                 for field in list(zerobug.keys()):
-                    if (
-                        field not in data[xref]
-                        and zerobug[field] not in (None, "None", r"\N")
-                    ):
-                        data[xref][field] = zerobug[field]
+                    if field not in data[xref]:
+                        if not self.is_none(zerobug[field]):
+                            data[xref][field] = zerobug[field]
+                        elif field in ("company_id", "currency_id"):
+                            data[xref][field] = None
             tnxl_xref = self._get_conveyed_value(None, None, xref)
             if tnxl_xref != xref:
                 data[tnxl_xref] = self.unicodes(data[xref])
@@ -3515,4 +3523,3 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
-

@@ -114,6 +114,13 @@ i.e. the following record declaration is the same of above example; record id is
     created as child of ``product.template``. The external reference must contain
     the pattern ``_template`` (see below).
 
+.. warning::
+
+    When you write a file with a spreadsheet app, pay attention to automatic string
+    replacement. For example double quote char <"> may be replaced by <”>.
+    These replaced characters may be create some troubles during import data step,
+    expecially when used in "python expression".
+
 
 
 Magic relationship
@@ -450,9 +457,35 @@ Data values
 
 Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
-You can declare data value on your own but you can discover th full test environment
+You can declare data value on your own but you can discover the full test environment
 in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
 from this environment.
+
+.. note::
+
+    The fields **company_id** and **currency_id** may be empty to use default value.
+    If you want to issue no value, do not declare column in model file (csv or xlsx).
+
+You can evaluate the field value engaging a simple python expression inside tags like in
+following syntax:
+
+    "<?odoo EXPRESSION ?>"
+
+The expression may be a simple python expression with following functions:
+
++--------------+-----------------------------------------------+-------------------------------------------------+
+| function     | description                                   | example                                         |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| compute_date | Compute date                                  | <?odoo compute_date('<###-##-##')[0:4] ?>       |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| random       | Generate random number from 0.0 to 1.0        | <?odoo int(random() * 1000) ?>                  |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref          | Odoo reference self.env.ref()                 | <?odoo ref('product.product_product_1') ?>      |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref[field]   | field of record of external reference         | <?odoo ref('product.product_product_1').name ?> |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref[field]   | field of record of external reference (brief) | <?odoo product.product_product_1.name ?>        |
++--------------+-----------------------------------------------+-------------------------------------------------+
 
 
 
@@ -460,13 +493,13 @@ company_id
 ~~~~~~~~~~
 
 If value is empty, user company is used.
-When data is searched by ``resource_search()`` function the "company_id" field
-is automatically filled and added to search domain.
 This behavior is not applied on
 **res.users**, **res.partner**, **product.template** and **product.product** models.
-For these models you must fill the "company_id" field.
-For these models ``resource_search()`` function searches for record with company_id
-null or equal to current user company.
+For these models you must fill the **company_id** field.
+
+When data is searched by ``resource_search()`` function on every model with company_id,
+the **company_id** field is automatically added to search domain, using 'or' between
+company_id null and company_id equal to supplied value or current user company.
 
 
 
@@ -501,27 +534,6 @@ char / text
 
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
-
-You can evalute the field value engaging a simple python expression inside tags like in
-following syntax:
-
-    "<?odoo EXPRESSION ?>"
-
-The expression may be a simple python expression with following functions:
-
-+--------------+----------------------------------------+----------------------------------+
-| function     | description                            | example                          |
-+--------------+----------------------------------------+----------------------------------+
-| compute_date | Compute date                           | compute_date('<###-##-##').year  |
-+--------------+----------------------------------------+----------------------------------+
-| random       | Generate random number from 0.0 to 1.0 | int(random() * 1000)             |
-+--------------+----------------------------------------+----------------------------------+
-| ref          | Odoo reference self.env.ref()          | ref('product.product_product_1') |
-+--------------+----------------------------------------+----------------------------------+
-| ref[field]   | field of record of external reference  | product.product_product_1.name   |
-+--------------+----------------------------------------+----------------------------------+
-
-
 
 ::
 
