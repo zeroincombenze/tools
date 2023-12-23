@@ -71,6 +71,11 @@ binary
 
 .. $include testenv_usage_data_binary.rst
 
+Useful External Reference
+-------------------------
+
+.. $include testenv_useful_external_reference.csv
+
 Functions
 ---------
 

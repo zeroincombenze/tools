@@ -1,0 +1,8 @@
+id,name,model,note
+z0bug.bank,Bank,account.account,Default bank account
+external.INV,Sale journal,account.journal,Default sale journal
+external.BILL,Purchase journal,account.journal,Default purchase journal
+external.MISC,Miscellaneous journal,account.journal,Default miscellaneous journal
+external.BNK1,Bank journal,account.journal,Default bank journal
+base.main_company,Default company,res.company,Default company for test
+base.USD,USD currency,res.currency,Test currency in test: US dollar

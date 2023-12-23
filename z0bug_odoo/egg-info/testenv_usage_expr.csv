@@ -1,5 +1,6 @@
 function,description,example
-compute_date,Compute date,"compute_date('<###-##-##').year"
-random,Generate random number from 0.0 to 1.0,int(random() * 1000)
-ref,Odoo reference self.env.ref(),"ref('product.product_product_1')"
-ref[field],field of record of external reference,product.product_product_1.name
+compute_date,Compute date,"<?odoo compute_date('<###-##-##')[0:4] ?>"
+random,Generate random number from 0.0 to 1.0,<?odoo int(random() * 1000) ?>
+ref,Odoo reference self.env.ref(),"<?odoo ref('product.product_product_1') ?>"
+ref[field],field of record of external reference,"<?odoo ref('product.product_product_1').name ?>"
+ref[field],field of record of external reference (brief),<?odoo product.product_product_1.name ?>

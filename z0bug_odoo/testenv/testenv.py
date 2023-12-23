@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.13
+"""Test Environment v2.0.14
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -34,14 +34,12 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
+            # keep data after tests
+            self.odoo_commit_data = True
             self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()     # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
@@ -588,6 +586,14 @@ RESOURCE_WO_COMPANY = (
     "product.template",
     "product.product",
 )
+CHILDS_RESOURCE = {
+    "asset.category": "asset.category.depreciation.type",
+    "product.template": "product.product",
+}
+PARENT_RESOURCE = {
+    "asset.category.depreciation.type": "asset.category",
+    "product.product": "product.template",
+}
 # Please, do not change fields order
 KEY_CANDIDATE = (
     "acc_number",
@@ -612,7 +618,7 @@ KEY_CANDIDATE = (
     "name",
 )
 KEY_INCANDIDATE = {
-    "code": ["product.product"],
+    "code": ["product.product", "asset.asset"],
     "partner_id": ["account.move.line", "stock.location"],
     "ref": ["res.partner"],
     "reference": ["sale.order"],
@@ -620,6 +626,7 @@ KEY_INCANDIDATE = {
 KEY_OF_RESOURCE = {
     "account.tax": "description",
     "account.rc.type.tax": "purchase_tax_id",
+    "asset.category.depreciation.type": "depreciation_type_id",
     "res.users": "login",
     "stock.location": "name",
 }
@@ -677,10 +684,7 @@ class MainTest(test_common.TransactionCase):
                     self.module = modules[0]
                     break
         self.z0bug_lib = z0bug_odoo_lib.Z0bugOdoo()
-        # self.set_datadir(os.path.join(os.path.dirname(__file__), "data"),
-        #                  raise_if_not_found=False)
-        self.set_datadir(get_module_resource(self.module.name, "tests", "data"),
-                         raise_if_not_found=False)
+        self.set_datadir(raise_if_not_found=False)
         self.params = {
             "compute_date": self.compute_date,
             "random": random.random,
@@ -688,6 +692,13 @@ class MainTest(test_common.TransactionCase):
         }
 
     def tearDown(self):
+        if (
+                getattr(self, "odoo_commit_test", False)
+                and os.environ.get("ODOO_COMMIT_TEST", "")
+        ):                                                          # pragma: no cover
+            # Save test environment, so it is available to dump
+            self.env.cr.commit()                       # pylint: disable=invalid-commit
+            _logger.info("✨ Test data available on database %s" % self.env.cr.dbname)
         super(MainTest, self).tearDown()
         self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
 
@@ -860,11 +871,10 @@ class MainTest(test_common.TransactionCase):
 
     def _add_conveyance(self, resource, field, convey):
         if isinstance(convey, basestring):
-            self._logger.info("⚠ %s.%s(%s)" % (resource, convey, field))
+            self.log_lvl_1("⚠ Convey %s.%s(%s)" % (resource, convey, field))
         else:
-            self._logger.info(
-                "⚠ %s[%s]: '%s' -> '%s'" % (resource, field, convey[0], convey[1])
-            )
+            self.log_lvl_1("⚠ Convey %s[%s]: '%s' -> '%s'"
+                           % (resource, field, convey[0], convey[1]))
         if field == "all" and (
             not isinstance(convey, basestring)
             or convey != ("_cvt_%s" % resource.replace(".", "_"))
@@ -941,20 +951,30 @@ class MainTest(test_common.TransactionCase):
     # --  Hierarchical functions  --
     # ------------------------------
 
-    def set_datadir(self, data_dir, merge=False, raise_if_not_found=True):
-        if not merge:
-            self.source = "local"
+    def is_none(self, value):
+        return (value is None or isinstance(value, basestring)
+                and value in ("None", r"\N"))
+
+    def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
+        def get_default_data_dir():
+            data_dir = get_module_resource(self.module.name, "tests", "data")
+            return data_dir if os.path.isdir(data_dir) else None
+
+        if merge not in ("local", "zerobug"):                       # pragma: no cover
+            self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
+        self.source = merge
+        self.data_dir = data_dir or getattr(self, "datadir", get_default_data_dir())
         self.z0bug_lib.declare_data_dir(
-            data_dir, merge=merge, raise_if_not_found=raise_if_not_found)
-        if data_dir:
-            self.data_dir = data_dir
+            self.data_dir,
+            merge=(merge != "local"),
+            raise_if_not_found=raise_if_not_found)
 
     def get_test_name(self, resource):
         return "TEST_%s" % self.z0bug_lib.get_pymodel(resource).upper()
 
     def _search4parent(self, resource, parent_resource=None):
-        if resource == "product.product":
-            parent_resource = "product.template"
+        if resource in PARENT_RESOURCE:
+            parent_resource = PARENT_RESOURCE[resource]
         else:
             parent_resource = parent_resource or resource.rsplit(".", 1)[0]
         if parent_resource not in self.env:
@@ -977,8 +997,8 @@ class MainTest(test_common.TransactionCase):
 
         childs_resource = childs_resource or []
         if not childs_resource:
-            if resource == "product.template":
-                childs_resource = ["product.product"]
+            if resource in CHILDS_RESOURCE:
+                childs_resource = CHILDS_RESOURCE[resource]
             else:
                 for suffix in (".line", ".rate", ".state", ".tax"):
                     childs_resource.append(resource + suffix)
@@ -1020,6 +1040,7 @@ class MainTest(test_common.TransactionCase):
                     raise_if_not_found=False,
                     resource=childs_resource,
                     group=group,
+                    no_warning=True,
                 )
                 if record:
                     values[field].append((1, record.id, child_xref))
@@ -1090,12 +1111,11 @@ class MainTest(test_common.TransactionCase):
                     raise_if_not_found=False,
                     resource=resource,
                     group=group,
+                    no_warning=True,
                 )
                 if not res and not self.get_resource_data(resource, xref):
                     self._logger.info("⚠ External reference %s not found" % xref)
             else:
-                # if not resource:
-                #     resource = self._get_model_of_xref(xref)
                 res = self.env.ref(
                     self._get_conveyed_value(resource, None, xref),
                     raise_if_not_found=False,
@@ -1143,7 +1163,7 @@ class MainTest(test_common.TransactionCase):
                 )
                 xref_child = False
             else:
-                self._logger.info(
+                self.log_lvl_1(
                     "xref ('product.template') '%s' -> ('product.product') '%s'"
                     % (xref, xref_child)
                 )
@@ -1220,18 +1240,21 @@ class MainTest(test_common.TransactionCase):
                     value = eval(expr, self.params)
                     if ftype in ("char", "text", "selection"):
                         value = str(value)
-        if value is None or (
-            isinstance(value, basestring)
-            and (value in ("None", r"\N") or field == "id")
-        ):
-            value = None
-        elif (
+        if (
             field == "company_id"
+            and self.is_none(value)
             and fmt
-            and not value
             and resource not in RESOURCE_WO_COMPANY
         ):
             value = self.default_company().id
+        elif (
+            field == "currency_id"
+            and self.is_none(value)
+            and fmt
+        ):
+            value = self.default_company().currency_id.id
+        elif field == "id" or self.is_none(value):
+            value = None
         else:
             method = "_cast_field_%s" % ftype
             method = method if hasattr(self, method) else "_cast_field_base"
@@ -1629,7 +1652,7 @@ class MainTest(test_common.TransactionCase):
         else:
             res = False
             if fmt:
-                self._logger.info("⚠ No *2many value for %s.%s" % (resource, value))
+                self.log_lvl_1("⚠ No *2many value for %s.%s" % (resource, value))
         return res
 
     @api.model
@@ -1672,7 +1695,7 @@ class MainTest(test_common.TransactionCase):
     # -------------------------------------
 
     @api.model
-    def cast_types(self, resource, values, fmt=None, group=None):
+    def cast_types(self, resource, values, fmt=None, group=None, keep_null=None):
         """Convert resource fields in appropriate type, based on Odoo type.
         The parameter fmt declares the purpose of casting: 'cmd' means convert to Odoo
         API format; <2many> fields are prefixed with 0|1|2|3|4|5|6 value (read
@@ -1738,7 +1761,8 @@ class MainTest(test_common.TransactionCase):
                 value = self._cast_field(
                     resource, field, values[field], fmt=fmt, group=group
                 )
-                if value is None:
+                if value is None and (not keep_null
+                                      or field not in ("company_id", "currency_id")):
                     del values[field]
                     if field != "id":
                         self.log_lvl_3(" 🕶️ del %s.vals[%s]" % (resource, field))
@@ -2245,7 +2269,7 @@ class MainTest(test_common.TransactionCase):
             if child_values:
                 values[field_child] = child_values
         self.setup_data[group][name][xref] = self._purge_values(
-            self.cast_types(resource, values, group=group)
+            self.cast_types(resource, values, group=group, keep_null=True)
         )
         self.log_lvl_2(
             "💼 %s.store_resource_data(%s,name=%s,group=%s)"
@@ -2288,7 +2312,8 @@ class MainTest(test_common.TransactionCase):
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
     @api.model
-    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None):
+    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None,
+                        no_warning=False):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
 
@@ -2304,6 +2329,7 @@ class MainTest(test_common.TransactionCase):
                                        if more records found
             resource (str): Odoo model name, i.e. "res.partner"
             group (str): used to manager group data; default is "base"
+            no_warning (bool): no warning message if parent xref no found
 
         Returns:
             obj: the Odoo model record
@@ -2320,10 +2346,8 @@ class MainTest(test_common.TransactionCase):
                 elif field in values:
                     domain.append((field, "=", self._cast_field(
                         resource, field, values[field], fmt="cmd")))
-            if domain and (
-                    resource not in RESOURCE_WO_COMPANY
-                    and "company_id" in self.struct[resource]
-            ):
+            # TODO> Remove early RESOURECE_WO_COMPANY
+            if domain and "company_id" in self.struct[resource]:
                 domain.append("|")
                 domain.append(("company_id", "=", self.default_company().id))
                 domain.append(("company_id", "=", False))
@@ -2369,31 +2393,39 @@ class MainTest(test_common.TransactionCase):
         module, name = xref.split(".", 1)
         parent_name = self.parent_name.get(resource)
         if parent_name and self.parent_resource[resource] in self.childs_resource:
-            name, ln = self._unpack_xref(name)
+            if values.get(parent_name):
+                xref_parent = values[parent_name]
+                ln = False
+            else:
+                name, ln = self._unpack_xref(name)
+                xref_parent = "%s.%s" % (module, name)
             parent_rec = self.resource_browse(
-                "%s.%s" % (module, name),
+                xref_parent,
                 resource=self.parent_resource[resource],
                 raise_if_not_found=False,
                 group=group,
             )
             if not parent_rec:                                       # pragma: no cover
+                msg = "Parent xref %s.%s not found for %s" % (module, name, resource)
                 if raise_if_not_found:
-                    self.raise_error(
-                        "Parent xref %s.%s not found for %s" % (module, name, resource))
-                self._logger.info(
-                    "⚠ Parent xref %s.%s not found for %s" % (module, name, resource))
+                    self.raise_error(msg)
+                if no_warning:
+                    self.log_lvl_3(msg)
+                else:
+                    self.log_lvl_1(msg)
                 return False
             domain = [(parent_name, "=", parent_rec.id)]
         else:
             domain = []
-            ln = parent_rec = False
+            parent_rec = False
+            ln = name if module == "external" else False
         domain = build_domain(domain, ln, values)
         if not domain:                                               # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("No value %s supplied for search keys %s for model %s"
                                  % (values, self.skeys[resource], resource))
-            self._logger.info("⚠ No value %s supplied for search keys %s for model %s"
-                              % (values, self.skeys[resource], resource))
+            self.log_lvl_2("⚠ No value %s supplied for search keys %s for model %s"
+                           % (values, self.skeys[resource], resource))
             return False
         record = self.env[resource].search(domain, limit=3)
         if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):
@@ -2435,7 +2467,8 @@ class MainTest(test_common.TransactionCase):
             values = self.get_resource_data(resource, xref, group=group)
             values = self._add_child_records(resource, xref, values, group=group)
         if not values:  # pragma: no cover
-            self.raise_error("No values supplied for %s create" % resource)
+            self.raise_error("No values supplied for xref %s on %s create"
+                             % (xref, resource))
         self.log_lvl_3(
             "🐞%s.resource_create(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -2480,7 +2513,7 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def resource_write(
-        self, resource, xref=None, values=None, raise_if_not_found=True, group=None
+        self, resource=None, xref=None, values=None, raise_if_not_found=True, group=None
     ):
         """Update a test record.
         This function works as standard Odoo write() with follow improvements:
@@ -2578,21 +2611,18 @@ class MainTest(test_common.TransactionCase):
         """
         if not isinstance(data, dict):                              # pragma: no cover
             self.raise_error("Dictionary expected")
-        if merge not in ("local", "zerobug"):                       # pragma: no cover
-            self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
-        if merge == "zerobug":
-            self.z0bug_lib.declare_data_dir(self.data_dir, merge=True)
-
+        self.set_datadir(merge=merge)
         data = self.unicodes(data)
         for xref in list(sorted(data.keys())):
-            if merge == "zerobug":
-                zerobug = self.z0bug_lib.get_test_values(resource, xref)
+            if merge in ("local", "zerobug"):
+                zerobug = self.z0bug_lib.get_test_values(
+                    resource, xref, raise_if_not_found=False)
                 for field in list(zerobug.keys()):
-                    if (
-                        field not in data[xref]
-                        and zerobug[field] not in (None, "None", r"\N")
-                    ):
-                        data[xref][field] = zerobug[field]
+                    if field not in data[xref]:
+                        if not self.is_none(zerobug[field]):
+                            data[xref][field] = zerobug[field]
+                        elif field in ("company_id", "currency_id"):
+                            data[xref][field] = None
             tnxl_xref = self._get_conveyed_value(None, None, xref)
             if tnxl_xref != xref:
                 data[tnxl_xref] = self.unicodes(data[xref])
@@ -2624,8 +2654,7 @@ class MainTest(test_common.TransactionCase):
         if "TEST_SETUP_LIST" not in message:                        # pragma: no cover
             self.raise_error("Key TEST_SETUP_LIST not found")
         group = group or "base"
-        if data_dir:
-            self.set_datadir(data_dir, merge=merge != "local")
+        self.set_datadir(data_dir=data_dir, merge=merge)
         for resource in message["TEST_SETUP_LIST"]:
             item = self.get_test_name(resource)
             if item not in message:                                 # pragma: no cover
@@ -2827,7 +2856,7 @@ class MainTest(test_common.TransactionCase):
         lang=None,
         locale=None,
         group=None,
-        source="local",
+        merge="local",
         setup_list=None,
         data_dir=None,
     ):
@@ -2849,7 +2878,7 @@ class MainTest(test_common.TransactionCase):
             lang (str): install & load specific language
             locale (str): install locale module with CoA; i.e l10n_it
             group (str): if supplied select specific group data; default is "base"
-            source (str): values are ("local"|"zerobug")
+            merge (str): values are ("local"|"zerobug")
             setup_list (list): list of Odoo modelS; if missed use TEST_SETUP_LIST
             data_dir (str): data directory, default is "tests/data"
 
@@ -2867,8 +2896,7 @@ class MainTest(test_common.TransactionCase):
             else:
                 self.raise_error("No data supplied for %s" % resource)
 
-        if data_dir:
-            self.set_datadir(data_dir, merge=source != "local")
+        self.set_datadir(data_dir=data_dir, merge=merge)
         if (
                 not self.setup_data
                 and "TEST_SETUP_LIST" in inspect.stack()[1][0].f_globals
@@ -2889,10 +2917,11 @@ class MainTest(test_common.TransactionCase):
             self.declare_all_data(data)
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.13 (debug_level=%s)" % (self.debug_level)
+            "🎺🎺🎺 Starting test v2.0.14 (debug_level=%s, commit=%s)"
+            % (self.debug_level, getattr(self, "odoo_commit_test", False))
         )
         self._logger.info(
-            "🎺🎺 Testing module: %s (%s)"
+            "🎺🎺🎺 Testing module: %s (%s)"
             % (self.module.name, self.module.installed_version)
         )
         self.log_stack()
@@ -3300,7 +3329,7 @@ class MainTest(test_common.TransactionCase):
 
         resource = self._get_model_from_records(record)
         if not resource:                                            # pragma: no cover
-            self.raise_error("No valid record supplied for comparation!")
+            self.raise_error("No valid record supplied for comparing!")
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
         resource_child = self.childs_resource.get(resource)

@@ -1,3 +1,13 @@
+2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: commit odoo data became internal feature
+* [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
+
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~
 

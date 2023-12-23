@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.13
+z0bug_odoo 2.0.14
 =================
 
 
@@ -18,10 +18,12 @@ It can be used replacing OCA MQT with some nice additional features.
 *z0bug_odoo* is built on follow concepts:
 
 * Odoo version independent; it can test Odoo from 6.1 until 17.0
-* It is designed to run in local environment too, using `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
+* It is designed to run inside repository tests with `local travis emulator <https://github.com/zeroincombenze/tools/tree/master/travis_emulator>`_
+* It is designed to run in local environment too, using `zerobug <https://github.com/zeroincombenze/tools/tree/master/zerobug>`_
 * It can run with full or reduced set of pylint tests
-* Test using ready-made database records
+* Tests can use many ready-made database records
 * Quality Check Id
+* Keep database after tests (not inside travis and with some limitations)
 
 
 travis ci support
@@ -607,7 +609,7 @@ You can highly customize you test: look at below table.
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | NPM_CONFIG_PREFIX      | \$HOME/.npm-global                                     | N/D                                                                       |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
-| ODOO_COMMIT_TEST       | 0                                                      | Test result will be committed; require specific code at tear_off function |
+| ODOO_COMMIT_TEST       | 0                                                      | Test result will be committed; require specific code at TearDown function |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
 | ODOO_REPO              | odoo/odoo                                              | OCB repository against test repository                                    |
 +------------------------+--------------------------------------------------------+---------------------------------------------------------------------------+
@@ -746,9 +748,10 @@ module in quick and easy way.
 The purpose of this software are:
 
 * Create the Odoo test environment with records to use for your test
-* Make available some useful functions to test your module (in z0bug_odoo)
+* Make available some useful functions to test your module
 * Simulate the wizard to test wizard functions (wizard simulator)
 * Environment running different Odoo modules versions
+* Keep database after tests (with some limitations)
 
 Please, pay attention to test data: TestEnv use internal unicode even for python 2
 based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
@@ -757,8 +760,56 @@ based Odoo (i.e. 10.0). You should declare unicode date whenever is possible.
 
     Odoo core uses unicode even on old Odoo version.
 
+For a complete set of examples, please look at the module test_testenv in
+`repository <https://github.com/zeroincombenze/zerobug-test>`__
+
 Tests are based on test environment created by module mk_test_env in
 `repository <https://github.com/zeroincombenze/zerobug-test>`__
+
+keeping database after tests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using zerobug in conjunction with z0bug_odoo a nice feature is available: you can keep
+the database after tests, so you can touch teh results or build example DB.
+However this feature has some limitation:
+
+    #. You can use just 1 test class, because saving is made on TearDown execution
+    #. You cannot create on fly record with external reference of current module name
+
+Example 1, double test class: it does not work
+
+::
+
+    class TestExample(SingleTransactionCase):
+        ...
+
+    class Test2Example(SingleTransactionCase):
+        ...
+
+Example 2, module named "my_module":
+
+::
+
+    class TestExample(SingleTransactionCase):
+        ...
+        # Follow record with external reference "my_module.my_xref" will be
+        # automaticaaly deleted by Odoo at the end of the test
+        self.resource_create("my.model", xref="my_module.my_xref", ...
+        # Follow record with external reference "z0bug.my_xref" works!
+        self.resource_create("my.model", xref="z0bug.my_xref", ...
+
+Names used for the test databases in testenv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+zerobug and z0bug_odoo use different rule from travis emulatro to naming test database.
+The database name is "test_<MODULE_NAME>".
+
+Please, notice a template database, named "template_<MODULE_NAME>" is built before test
+database and then ie kept in the system.
+If you do not want to see template databases use following regex for dbfilter parameter
+inf your Odoo configuration file:
+
+    dbfilter = (?!template).*
 
 Requirements
 ~~~~~~~~~~~~
@@ -766,7 +817,7 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package 2.0.13
+* z0bug_odoo PYPI package 2.0.14
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
@@ -840,14 +891,12 @@ Your python test file have to contain some following example lines:
             super().setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
+            # keep data after tests
+            self.odoo_commit_data = True
             self.setup_env()                # Create test environment
 
         def tearDown(self):
             super().tearDown()
-            if os.environ.get("ODOO_COMMIT_TEST", ""):
-                # Save test environment, so it is available to dump
-                self.env.cr.commit()     # pylint: disable=invalid-commit
-                _logger.info("✨ Test data committed")
 
         def test_mytest(self):
             _logger.info(
@@ -860,11 +909,15 @@ you are hinted to set self.debug_level = 3; then you can decrease the debug leve
 when you are developing stable tests.
 Final code should have self.debug_level = 0.
 TestEnv logs debug message with symbol "🐞 " so you can easily recognize them.
+Another useful helper is the database keep data after test feature. You have to declare
+self.odoo_commit_data = True and you have to set global bash environment
+
+``global ODOO_COMMIT_DATA="1"``
 
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.13
+* z0bug_odoo PYPI package version 2.0.14
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -903,6 +956,13 @@ i.e. the following record declaration is the same of above example; record id is
     Please, do not to declare ``product.product`` records: they are automatically
     created as child of ``product.template``. The external reference must contain
     the pattern ``_template`` (see below).
+
+.. warning::
+
+    When you write a file with a spreadsheet app, pay attention to automatic string
+    replacement. For example double quote char <"> may be replaced by <”>.
+    These replaced characters may be create some troubles during import data step,
+    expecially when used in "python expression".
 
 
 
@@ -997,6 +1057,10 @@ In your test file you must declare the following statement:
 
     You must declare header and lines data before create header record
 
+.. note::
+
+    External reference coding is free: however is hinted to use the The 2
+    keys reference explained in "External reference" chapter.
 
 Another magic relationship is the **product.template** (product) / **product.product** (variant)
 relationship.
@@ -1236,9 +1300,35 @@ Data values
 
 Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
-You can declare data value on your own but you can discover th full test environment
+You can declare data value on your own but you can discover the full test environment
 in https://github.com/zeroincombenze/zerobug-test/mk_test_env/ and get data
 from this environment.
+
+.. note::
+
+    The fields **company_id** and **currency_id** may be empty to use default value.
+    If you want to issue no value, do not declare column in model file (csv or xlsx).
+
+You can evaluate the field value engaging a simple python expression inside tags like in
+following syntax:
+
+    "<?odoo EXPRESSION ?>"
+
+The expression may be a simple python expression with following functions:
+
++--------------+-----------------------------------------------+-------------------------------------------------+
+| function     | description                                   | example                                         |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| compute_date | Compute date                                  | <?odoo compute_date('<###-##-##')[0:4] ?>       |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| random       | Generate random number from 0.0 to 1.0        | <?odoo int(random() * 1000) ?>                  |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref          | Odoo reference self.env.ref()                 | <?odoo ref('product.product_product_1') ?>      |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref[field]   | field of record of external reference         | <?odoo ref('product.product_product_1').name ?> |
++--------------+-----------------------------------------------+-------------------------------------------------+
+| ref[field]   | field of record of external reference (brief) | <?odoo product.product_product_1.name ?>        |
++--------------+-----------------------------------------------+-------------------------------------------------+
 
 
 
@@ -1246,13 +1336,13 @@ company_id
 ~~~~~~~~~~
 
 If value is empty, user company is used.
-When data is searched by ``resource_search()`` function the "company_id" field
-is automatically filled and added to search domain.
 This behavior is not applied on
 **res.users**, **res.partner**, **product.template** and **product.product** models.
-For these models you must fill the "company_id" field.
-For these models ``resource_search()`` function searches for record with company_id
-null or equal to current user company.
+For these models you must fill the **company_id** field.
+
+When data is searched by ``resource_search()`` function on every model with company_id,
+the **company_id** field is automatically added to search domain, using 'or' between
+company_id null and company_id equal to supplied value or current user company.
 
 
 
@@ -1287,27 +1377,6 @@ char / text
 
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
-
-You can evalute the field value engaging a simple python expression inside tags like in
-following syntax:
-
-    "<?odoo EXPRESSION ?>"
-
-The expression may be a simple python expression with following functions:
-
-+--------------+----------------------------------------+----------------------------------+
-| function     | description                            | example                          |
-+--------------+----------------------------------------+----------------------------------+
-| compute_date | Compute date                           | compute_date('<###-##-##').year  |
-+--------------+----------------------------------------+----------------------------------+
-| random       | Generate random number from 0.0 to 1.0 | int(random() * 1000)             |
-+--------------+----------------------------------------+----------------------------------+
-| ref          | Odoo reference self.env.ref()          | ref('product.product_product_1') |
-+--------------+----------------------------------------+----------------------------------+
-| ref[field]   | field of record of external reference  | product.product_product_1.name   |
-+--------------+----------------------------------------+----------------------------------+
-
-
 
 ::
 
@@ -1463,6 +1532,29 @@ get binary value. File must be located in **tests/data** directory.
             }
         }
     )
+
+
+
+Useful External Reference
+-------------------------
+
++-------------------+-----------------------+-----------------+----------------------------------+
+| id                | name                  | model           | note                             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| z0bug.bank        | Bank                  | account.account | Default bank account             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.INV      | Sale journal          | account.journal | Default sale journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BILL     | Purchase journal      | account.journal | Default purchase journal         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.MISC     | Miscellaneous journal | account.journal | Default miscellaneous journal    |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BNK1     | Bank journal          | account.journal | Default bank journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.main_company | Default company       | res.company     | Default company for test         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
++-------------------+-----------------------+-----------------+----------------------------------+
 
 
 
@@ -2028,7 +2120,6 @@ Stable version via Python Package
 
     pip install --upgrade z0bug_odoo
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2042,6 +2133,16 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: commit odoo data became internal feature
+* [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
 
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~
@@ -2191,10 +2292,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -5,6 +5,16 @@ ChangeLog History
 =================
 
 
+2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: commit odoo data became internal feature
+* [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
+
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -128,10 +138,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -20,7 +20,7 @@ except ImportError:
     except ImportError:
         release = ''
 
-__version__ = '2.0.13'
+__version__ = '2.0.14'
 if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
     print('DEBUG: z0bug_odoo %s' % __version__)
     print('DEBUG: z0bug_odoo.sys.path=%s' % sys.path)
@@ -28,5 +28,6 @@ if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
         print('DEBUG: Odoo version detected: %s' % release.version)
     else:
         print('DEBUG: No Odoo environment found!')
+
 
 
