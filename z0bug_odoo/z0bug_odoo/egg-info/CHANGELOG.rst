@@ -1,7 +1,7 @@
-2.0.13.1 (2023-12-01)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~
 
-* [IMP] TestEnv: commit odoo data became internal feataure
+* [IMP] TestEnv: commit odoo data became internal feature
 * [IMP] TestEnv: test on model asset.asset
 * [IMP] TestEnv: detail external reference coding free
 * [IMP] TestEnv: empty currency_id is set with company currency
