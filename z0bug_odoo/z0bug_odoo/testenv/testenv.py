@@ -1234,7 +1234,8 @@ class MainTest(test_common.TransactionCase):
             if x:
                 expr = x.groups()[1].strip()
                 if re.match(r"[\w]+\.[\w]+\.[\w]+$", expr):
-                    xref, field = [x.strip() for x in value[6: -2].rsplit(".", 1)]
+                    xref, field = [x.strip()
+                                   for x in value[6: -2].rsplit(".", 1)]   # noqa: F812
                     value = self.resource_browse(xref=xref)[field]
                 else:
                     value = eval(expr, self.params)
@@ -3523,4 +3524,3 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
-
