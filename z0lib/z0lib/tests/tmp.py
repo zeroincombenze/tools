@@ -24,32 +24,31 @@ p=o.isdir
 C=a(os.path.dirname(__file__))
 D='/home/odoo/devel'
 ###############
-N= 'venv_tools'
 U='setup.py'
-O='tools'
 H=o.expanduser('~')
-T=j(d(D),O)
-R=j(d(D),'pypi') if b(D) == N else j(D, 'pypi')
-W=D if b(D) == N else j(D, 'venv')
+R=j(D,'pypi')
+W=j(D,'venv')
 S='site-packages'
 X='scripts'
+Y=[x for x in sys.path if b(x)==S]
+Y=Y[0] if Y else C
 
 def isk(P):
  return P.startswith((H,D,C,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))
 def adk(L,P):
+ if p(j(P,X)) and j(P,X) not in L:
+  L.append(j(P,X))
  if P not in L:
   L.append(P)
 
 L=[C]
 for B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):
- for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:
+ for P in [C]+os.environ['PATH'].split(':')+[W,R]:
   P=a(P)
   if b(P) in (X,'tests','travis','_travis'):
    P=d(P)
   if b(P)==b(d(P)) and f(j(P,'..',U)):
    P=d(d(P))
-  elif b(d(C))==O and f(j(P,U)):
-   P=d(P)
   if B==b(P) and isk(P):
    adk(L,P)
    break
@@ -59,8 +58,7 @@ for B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):
   elif isk(j(P,B)):
    adk(L,j(P,B))
    break
-  elif isk(j(P,S,B)):
-   adk(L,j(P,S,B))
-   break
+  else:
+   adk(L, j(Y,B))
 adk(L,os.getcwd())
 print(' '.join(L))

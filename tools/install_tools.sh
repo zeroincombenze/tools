@@ -438,4 +438,3 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "--------------------------------------------------------------${CLR}"
     echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
-
