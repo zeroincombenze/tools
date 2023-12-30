@@ -249,9 +249,9 @@ if [[ ! $opts =~ ^-.*k ]]; then
         elif [[ $pkg =~ (z0bug-odoo|z0bug_odoo) ]]; then
           set_hashbang $PYLIB/$pfn/travis
         fi
-        if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
-            run_traced "${pkg}-info --copy-pkg-data"
-        fi
+#        if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
+#            run_traced "${pkg}-info --copy-pkg-data"
+#        fi
     done
 fi
 if [[ -f $BINPATH/please ]]; then
@@ -278,7 +278,7 @@ for fn in $FILES_2_DELETE; do
 done
 
 if [[ ! $opts =~ ^-.*n ]]; then
-    # LOCAL_VENV is DTSPATH/venv
+    # LOCAL_VENV is DSTPATH/venv
     echo "# SRCPATH=$SRCPATH">$DSTPATH/activate_tools
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "# LOCAL_VENV=$LOCAL_VENV">>$DSTPATH/activate_tools
@@ -350,10 +350,6 @@ for pkg in odoorc clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies
   echo -n "."
   [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
 done
-#for pkg in vem; do
-#  echo -n "."
-#  [[ ! -f $LOCAL_VENV/bin/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/bin/$pkg!!${CLR}" && exit
-#done
 for pkg in templates; do
   echo -n "."
   [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
