@@ -25,7 +25,7 @@ THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)
 if [[ $opts =~ ^-.*h ]]; then
-    echo "$THIS [-h][-n][-o][-p][-P][-q][-S][-T][-v][-V]"
+    echo "$THIS [-h][-dDfgGknpPqtTUvV2]"
     echo "  -h  this help"
     echo "  -d  use development branch not master"
     echo "  -D  create the development environment"
@@ -37,6 +37,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -p  mkdir $HOME/devel if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
+    echo "  -s  install stable packages from pypi"
     echo "  -t  this script is executing in test environment"
     echo "  -T  execute regression tests"
     echo "  -U  pull from github for upgrade"
@@ -237,7 +238,8 @@ if [[ ! $opts =~ ^-.*k ]]; then
             [[ -f $LOCAL_VENV/tmp/$pfn/$pfn/README.rst ]] && run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/README.rst $LOCAL_VENV/tmp/$pfn/README.rst"
             srcpath="$LOCAL_VENV/tmp/$pfn"
         fi
-        run_traced "pip install $srcpath $popts"
+        [[ ! $opts =~ ^-.*s ]] && run_traced "pip install $srcpath $popts"
+        [[ $opts =~ ^-.*s ]] && run_traced "pip install $pkg $popts"
         [[ ! -d $PYLIB/$pfn ]] && echo "FAILED: local path $PYLIB/$pfn not found!" && exit 1
         if [[ $pkg =~ (python-plus|python_plus) ]]; then
             [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
@@ -347,7 +349,7 @@ fi
 
 # Final test to validate environment
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-for pkg in odoorc clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
+for pkg in odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
   echo -n "."
   [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
 done
