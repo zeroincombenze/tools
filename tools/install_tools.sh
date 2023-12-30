@@ -243,7 +243,8 @@ if [[ ! $opts =~ ^-.*k ]]; then
             [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
         elif [[ $pkg == "clodoo" ]]; then
             [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
-            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
+            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn/clodoo.py $BINPATH/clodoo"
+            [[ -d $PYLIB/$pfn ]] && run_traced "cp $PYLIB/$pfn/odoorc $BINPATH"
         elif [[ $pkg == "zerobug" ]]; then
           set_hashbang $PYLIB/$pfn/_travis
         elif [[ $pkg =~ (z0bug-odoo|z0bug_odoo) ]]; then
@@ -423,6 +424,7 @@ fi
 
 [[ $opts =~ ^-.*U && ! $opts =~ ^-.*q && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
+    echo -e "${GREEN}--------------------------------------------------------------"
     echo -e "${GREEN}--------------------------------------------------------------"
     echo -e "Zeroincombenze® tools successfully installed on your system."
     echo -e "In order to make available the these tools, please type:${CLR}"
