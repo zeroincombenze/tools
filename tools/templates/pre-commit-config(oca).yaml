@@ -1,4 +1,4 @@
-# __version__=2.0.5
+# __version__=2.1.0
 exclude: |
   (?x)
   # NOT INSTALLABLE ADDONS
@@ -168,4 +168,5 @@ repos:
           - --rcfile=.pylintrc-mandatory
           - --ignore=l10n_it_fatturapa_in/tests/data/
         additional_dependencies: *pylint_deps
+
 

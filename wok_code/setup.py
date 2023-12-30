@@ -81,6 +81,7 @@ setup(
         "console_scripts": [
             "wok_code-info = wok_code.scripts.main:main",
             "cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main",
+            "cvt_csv_2_xml.py = wok_code.cvt_csv_2_xml:main",
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
             "dist_pkg = wok_code.scripts.dist_pkg:main",
@@ -101,4 +102,3 @@ setup(
     },
     zip_safe=False,
 )
-

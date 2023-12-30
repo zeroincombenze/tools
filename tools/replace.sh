@@ -1,4 +1,4 @@
-# __version__=2.0.5
+# __version__=2.1.0
 if [[ -z $HOME_DEVEL ]]; then
     [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
@@ -16,4 +16,5 @@ cp ../.readthedocs.yml $tgtdir/
 [[ -f $tgtdir/install_foreign.sh ]] && rm -f $tgtdir/install_foreign.sh
 # cd $tgtdir
 # ./install_tools.sh -T
+
 
