@@ -73,7 +73,7 @@ set_hashbang() {
 
 RFLIST__travis_emulator=""
 RFLIST__clodoo=""
-RFLIST__zar="pg_db_reassign_owner"
+RFLIST__zar=""
 RFLIST__z0lib=""
 RFLIST__zerobug=""
 RFLIST__lisa=""
@@ -81,10 +81,9 @@ RFLIST__tools="odoo_template_tnl.xlsx license_text templates tests"
 RFLIST__python_plus=""
 RFLIST__wok_code=""
 RFLIST__zerobug_odoo=""
-RFLIST__odoo_score="odoo_shell.py"
+RFLIST__odoo_score=""
 RFLIST__os0=""
-# MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|makepo_it.py|odoo_translation.py|please.man|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc)"
-FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
+FILES_2_DELETE="clodoo clodoocore.py clodoolib.py kbase replica.sh run_odoo_debug.sh test_tools.sh transodoo.csv"
 
 SRCPATH=
 DSTPATH=
@@ -109,10 +108,10 @@ LOCAL_VENV="$DSTPATH/venv"
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
 DEVELPATH="$(readlink $DSTPATH/pypi)"
 
-if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
-    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
-    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
-    [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
+if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git && $opts =~ ^-.*U ]]; then
+    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && run_traced "git stash -q" && run_traced "git checkout devel -f"
+    [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && run_traced "git stash -q" && run_traced "git checkout master -fq"
+    run_traced "git stash -q" && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo -e "${GREEN}# Creating development environment $DEVELPATH ...${CLR}"
@@ -133,8 +132,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
-# Chose python version to use: if _t supplied, python version MUST be the same of the
-# current python
+# Chose python version to use: if _t supplied, python version MUST be the same of the current python
 VPYVER="0.0"
 [[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
@@ -143,6 +141,7 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+[[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
@@ -439,4 +438,3 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "--------------------------------------------------------------${CLR}"
     echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
-
