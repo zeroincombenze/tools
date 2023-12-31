@@ -289,6 +289,18 @@ class MigrateFile(object):
         return ".".join(["%03d" % int(x) for x in version.split(".")])
 
     def update_line(self, nro, items, regex):
+        """Update current line self.lines[nro]
+        Rule is (action, params, ...)
+        action may be: "/?([+-][0-9.]+)?(s|d|i|a|$|=)"
+
+        Args:
+            nro (int): line number
+            items (list): current rule to apply
+            regex (str): regex to match rule
+
+        Returns:
+            do_break, offset
+        """
         action = items[0]
         params = items[1:] if len(items) > 1 else []
         if action.startswith("/"):
@@ -316,7 +328,7 @@ class MigrateFile(object):
                     return False, 0
             action = action[x.end():]
         if action.startswith("-"):
-            x = self.re_match(r"\-[0-9]+\.[0-9]", action)
+            x = self.re_match(r"-[0-9]+\.[0-9]", action)
             if x:
                 ver = action[x.start(): x.end()]
                 if self.comparable_version(
@@ -332,6 +344,7 @@ class MigrateFile(object):
                     return False, 0
             action = action[x.end():]
         if action == "s":
+            # substitute params[0] params[1]
             rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(params[0])
             if sre and re.search(sre, self.lines[nro]):
                 return False, 0
@@ -341,8 +354,17 @@ class MigrateFile(object):
                 )
             return False, 0
         elif action == "d":
+            # delete current line
             del self.lines[nro]
-            return False, -1
+            return True, -1
+        elif action == "i":
+            # insert line before current with params[0]
+            self.lines.insert(nro, params[0])
+            return True, -1
+        elif action == "a":
+            # append line after current with params[0]
+            self.lines.insert(nro + 1, params[0])
+            return False, 0
         elif action == "$":
             if not hasattr(self, params[0]):
                 self.raise_error("Function %s not found!" % params[0])
@@ -408,7 +430,7 @@ class MigrateFile(object):
             return False
         return regex
 
-    def load_config2(self, confname):
+    def load_config2(self, confname, ignore_not_found=False):
         configpath = pth.join(
             pth.dirname(pth.abspath(pth.expanduser(__file__))),
             "config",
@@ -417,14 +439,17 @@ class MigrateFile(object):
         if pth.isfile(configpath):
             with open(configpath, "r") as fd:
                 return yaml.safe_load(fd)
-        internal_name = "RULES_%s" % confname.upper()
-        if internal_name not in globals():
+        # internal_name = "RULES_%s" % confname.upper()
+        # if internal_name not in globals():
+        #     self.raise_error("File %s not found!" % configpath)
+        #     return []
+        # return globals()[internal_name]
+        if not ignore_not_found:
             self.raise_error("File %s not found!" % configpath)
-            return []
-        return globals()[internal_name]
+        return []
 
-    def load_config(self, confname):
-        rules = self.load_config2(confname)
+    def load_config(self, confname, ignore_not_found=False):
+        rules = self.load_config2(confname, ignore_not_found=ignore_not_found)
         rules = [] if rules is None else rules
         for rule in rules:
             if not isinstance(rule, (list, tuple)):
@@ -453,7 +478,7 @@ class MigrateFile(object):
         self.utf8_decl_nro = -1
         self.lines_2_rm = []
 
-        TARGET = self.load_config("globals_xml" if self.is_xml else "globals")
+        TARGET = self.load_config("globals_xml" if self.is_xml else "globals_py")
         if self.opt_args.pypi_package:
             if self.python_future:
                 TARGET += self.load_config("to_pypi_future")
@@ -463,13 +488,13 @@ class MigrateFile(object):
                 )
         elif self.is_xml:
             TARGET += self.load_config(
-                "to_xml_old" if self.to_major_version < 9 else "to_xml_new"
+                "to_old_api_xml" if self.to_major_version < 9 else "to_new_api_xml"
             )
         elif self.from_major_version:
             if self.from_major_version < 8 and self.to_major_version >= 8:
-                TARGET += self.load_config("to_new_api")
+                TARGET += self.load_config("to_new_api_py")
             elif self.from_major_version >= 8 and self.to_major_version < 8:
-                TARGET += self.load_config("to_old_api")
+                TARGET += self.load_config("to_old_api_py")
             TARGET += self.load_config(
                 "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3"
             )
@@ -477,6 +502,34 @@ class MigrateFile(object):
             TARGET += self.load_config(
                 "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3"
             )
+        if self.from_major_version and self.to_major_version:
+            fn = "odoo_from_%s_to_%s_xml" if self.is_xml else "odoo_from_%s_to_%s_py"
+            if self.from_major_version < self.to_major_version:
+                # Migration to newer Odoo version
+                from_major_version = self.from_major_version
+                to_major_version = from_major_version + 1
+                while to_major_version <= self.to_major_version:
+                    rules = self.load_config(
+                        fn % (from_major_version, to_major_version),
+                        ignore_not_found=True
+                    )
+                    if rules:
+                        TARGET += rules
+                    from_major_version += 1
+                    to_major_version = from_major_version + 1
+            elif self.from_major_version > self.to_major_version:
+                # Backport to older Odoo version
+                from_major_version = self.from_major_version
+                to_major_version = from_major_version - 1
+                while to_major_version >= self.to_major_version:
+                    rules = self.load_config(
+                        fn % (from_major_version, to_major_version),
+                        ignore_not_found=True
+                    )
+                    if rules:
+                        TARGET += rules
+                    from_major_version -= 1
+                    to_major_version = from_major_version - 1
         return TARGET
 
     def do_process_source(self):
@@ -780,5 +833,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
-

@@ -1,0 +1,12 @@
+-
+  - '^ *# @api\.multi'
+  -
+    - 's'
+    - '# @api\.multi'
+    - '@api.multi'
+-
+  - '^ *# @api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+  -
+    - 's'
+    - '# @api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+    - '@api.\1'
