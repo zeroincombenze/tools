@@ -2675,6 +2675,8 @@ class MainTest(test_common.TransactionCase):
         if not isinstance(data, dict):  # pragma: no cover
             self.raise_error("Dictionary expected")
         self.set_datadir(merge=merge)
+        if not data and merge == "local":
+            data = {k: {} for k in self.z0bug_lib.get_test_xrefs(resource)}
         data = self.unicodes(data)
         for xref in list(sorted(data.keys())):
             if merge in ("local", "zerobug"):
@@ -2698,7 +2700,7 @@ class MainTest(test_common.TransactionCase):
             )
 
     def declare_all_data(self, message, group=None, merge="local", data_dir=None):
-        """Declare all data to load on setup_env().
+        """Declare all data from message to load on setup_env().
 
         Args:
             message (dict): data message
@@ -2786,7 +2788,7 @@ class MainTest(test_common.TransactionCase):
             return self.setup_data_list[group]
         return []  # pragma: no cover
 
-    def set_locale(self, locale_name, raise_if_not_found=True):
+    def set_locale(self, locale_name, raise_if_not_found=True):      # pragma: no cover
         modules_model = self.env["ir.module.module"]
         modules = modules_model.search([("name", "=", locale_name)])
         if modules and modules[0].state != "uninstalled":
@@ -2811,13 +2813,13 @@ class MainTest(test_common.TransactionCase):
             if languages:
                 languages.write({"active": True})
                 load = True
-        if not languages or load:
+        if not languages or load:                                    # pragma: no cover
             vals = {
                 "lang": iso,
                 "overwrite": overwrite,
             }
             self.env["base.language.install"].create(vals).lang_install()
-        if force_translation:
+        if force_translation:                                        # pragma: no cover
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
