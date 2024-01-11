@@ -1,0 +1,4 @@
+-
+  - '^ *<field name="view_type">form</field>'
+  -
+    - 'd'
