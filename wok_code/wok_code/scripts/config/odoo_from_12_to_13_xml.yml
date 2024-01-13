@@ -2,3 +2,9 @@
   - '^ *<field name="view_type">form</field>'
   -
     - 'd'
+-
+  - '.*src_model="([^"]*)"'
+  -
+    - 's'
+    - 'src_model="([^"]*)"'
+    - 'binding_model="\1"'

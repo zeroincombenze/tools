@@ -1,0 +1,7 @@
+Name,Description
+classname,Name of current class
+from_major_version,Major version of project by -F switch
+is_manifest,True if current file is __manifest__.py or __openerp__.py
+is_xml,True if current file is .xml
+to_major_version,Major version of project by -b switch
+py23,Value 2 if python2 else 3

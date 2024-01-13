@@ -288,7 +288,10 @@ MANIFEST_ITEMS = (
     "development_status",
     "license",
     "depends",
+    "version_depends",
     "external_dependencies",
+    "version_external_dependencies",
+    "conflicts",
     "data",
     "qweb",
     "demo",
@@ -296,6 +299,11 @@ MANIFEST_ITEMS = (
     "maintainer",
     "installable",
     "active",
+    "images",
+    "currency",
+    "price",
+    "support",
+    "pre_init_hook",
 )
 MANIFEST_ITEMS_REQUIRED = (
     "name",
@@ -311,6 +319,16 @@ MANIFEST_ITEMS_OPTIONAL = (
     "test",
     "external_dependencies",
     "active",
+    "version_depends",
+    "version_external_dependencies",
+    "conflicts",
+    "pre_init_hook",
+)
+MANIFEST_ITEMS_MARKETPLACE = (
+    "images",
+    "currency",
+    "price",
+    "support",
 )
 RST2HTML = {
     "©": "&copy",
@@ -780,7 +798,27 @@ def get_default_available_addons(ctx):
 
 
 def url_by_doc(ctx, url):
-    if not url.startswith("http") and not url.startswith("/"):
+    if url.startswith("icon_l10n_"):
+        country = url.replace("icon_", "")
+        if ctx["odoo_marketplace"]:
+            url = country + ".png"
+        elif ctx["rewrite_manifest"]:
+            fmt = ("https://raw.githubusercontent.com/odoo/odoo/%s/"
+                   "addons/%s/static/description/icon.png")
+            if ctx["odoo_majver"] < 8:
+                fmt += "src/img/%s"
+            else:
+                fmt += "description/%s"
+            url = fmt % (
+                ctx["branch"],
+                country,
+                url,
+            )
+        else:
+            url = "/%s/static/description/icon.png" % country
+    elif ctx["odoo_marketplace"] and not ctx["rewrite_manifest"]:
+        url = pth.basename(url)
+    elif not url.startswith("http") and not url.startswith("/"):
         if ctx["rewrite_manifest"]:
             fmt = "/%s/static/src/img/%s"
             url = fmt % (ctx["module_name"], url)
@@ -1181,12 +1219,16 @@ def expand_macro(ctx, token, default=None):
         )
     elif token[0:10] == "grymb_url_" and token[10:] in DEFINED_GRYMB_SYMBOLS:
         value = DEFINED_GRYMB_SYMBOLS[token[10:]][1]
+    elif token.startswith("icon_l10n_"):
+        value = url_by_doc(ctx, token)
     elif token == "module_version":
         value = ctx["manifest"].get("version", "%s.0.1.0" % ctx["branch"])
         if ctx["branch"] and not value.startswith(ctx["branch"]):
             value = ctx["branch"] + "." + value.split(".", 2)[-1]
     elif token == "icon":
         value = url_by_doc(ctx, "icon.png")
+    elif token == "thumbnail":
+        value = url_by_doc(ctx, "description.png")
     elif token == "GIT_URL_ROOT":
         value = "https://github.com/%s/%s" % (
             GIT_USER[ctx["git_orgid"]],
@@ -1334,7 +1376,8 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
             value = ""
         if value and out_fmt in ("html", "troff"):
             value = parse_source(
-                ctx, value, in_fmt=in_fmt, out_fmt=out_fmt, section=section
+                ctx, value, in_fmt=in_fmt, out_fmt=out_fmt, section=section,
+                no_end_nl=("\n" not in tokens[0])
             )
             if "srctype" in ctx:
                 del ctx["srctype"]
@@ -1921,7 +1964,7 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
     return line
 
 
-def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
+def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None, no_end_nl=None):
     out_fmt = out_fmt or ctx["out_fmt"]
     in_fmt = in_fmt or ctx["in_fmt"]
     while source.startswith("\n"):
@@ -1943,7 +1986,7 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None):
         target = torst(target)
     while target.endswith("\n\n"):
         target = target[:-1]
-    if target and not target.endswith("\n"):
+    if target and not target.endswith("\n") and not no_end_nl:
         target += "\n"
     if ctx["pre_action"] != "write":
         print_red_message("Documentation writing suspended by block!")
@@ -2288,8 +2331,9 @@ def manifest_item(ctx, item):
     ):
         ctx["manifest"][item] = eval(ctx["manifest"][item])
     if (
-            item in MANIFEST_ITEMS_OPTIONAL
-            and item in ctx and (ctx[item] is False or ctx[item] == [])
+        (item in MANIFEST_ITEMS_OPTIONAL
+         or (not ctx["odoo_marketplace"] and item in MANIFEST_ITEMS_MARKETPLACE))
+        and item in ctx and (ctx[item] is False or ctx[item] == [])
     ):
         target = ""
     elif item in ("website", "maintainer"):
@@ -2399,7 +2443,9 @@ def manifest_contents(ctx):
         target += line + "\n"
     target += "{\n"
     for item in MANIFEST_ITEMS:
-        if item not in ctx["manifest"] and item in MANIFEST_ITEMS_REQUIRED:
+        if (
+            item not in ctx["manifest"] and item in MANIFEST_ITEMS_REQUIRED
+        ):
             ctx["manifest"][item] = ctx[item]
         elif item == "depends":
             modules = []
@@ -2423,6 +2469,32 @@ def manifest_contents(ctx):
                 else:
                     modules.append(module)
             ctx["manifest"][item] = modules
+        elif item == "maintainer":
+            ctx[item] = ctx[item].replace("\n", "")
+            x = re.search(r"`[^`]+`__", ctx[item], flags=re.S)
+            if x:
+                ctx[item] = ctx[item][x.start() + 1: x.end() - 3]
+            ctx["manifest"][item] = ctx[item]
+        elif (
+            item == "version"
+            and ctx["from_version"]
+            and ctx[item].startswith(ctx["from_version"])
+        ):
+            ctx[item] = ctx[item].replace(ctx["from_version"], ctx["branch"], 1)
+        elif ctx["odoo_marketplace"] and item in MANIFEST_ITEMS_MARKETPLACE:
+            if item == "images":
+                value = eval(ctx.get(item, "[]"))
+                for img in ("description", "l10n_it", "l10n_us", "l10n_uk"):
+                    fqn_img = "static/description/%s.png" % img
+                    if fqn_img not in value:
+                        value.append(fqn_img)
+                ctx["manifest"][item] = value
+            elif item == "currency":
+                ctx["manifest"][item] = ctx.get(item, "EUR")
+            elif item == "price":
+                ctx["manifest"][item] = ctx.get(item, "0.0")
+            elif item == "support":
+                ctx["manifest"][item] = "cc@shs-av.com"
         elif ctx.get(item):
             ctx["manifest"][item] = ctx[item]
         if item in ctx["manifest"]:
@@ -2489,7 +2561,14 @@ def set_default_values(ctx):
             ctx["prior_branch"] = "%d.%d" % (pmv, releases[1])
     if ctx["output_file"]:
         ctx["dst_file"] = ctx["output_file"]
-    elif ctx["write_index"] and ctx["product_doc"] == "odoo":
+    elif (
+        ctx["product_doc"] == "odoo"
+        and ctx["odoo_layer"] == "module"
+        and ctx["rewrite_manifest"]
+    ):
+        ctx["dst_file"] = ctx["manifest_filename"]
+    elif ctx["product_doc"] == "odoo" and (ctx["write_index"]
+                                           or ctx["odoo_marketplace"]):
         if pth.isdir("./static/description"):
             ctx["dst_file"] = "./static/description/index.html"
         else:
@@ -2500,12 +2579,6 @@ def set_default_values(ctx):
             ctx["dst_file"] = "./docs/index.rst"
         else:
             ctx["dst_file"] = "./index.rst"
-    elif (
-        ctx["product_doc"] == "odoo"
-        and ctx["odoo_layer"] == "module"
-        and ctx["rewrite_manifest"]
-    ):
-        ctx["dst_file"] = ctx["manifest_filename"]
     elif ctx["odoo_layer"] == "module" and ctx["write_man_page"]:
         ctx["dst_file"] = "page.man"
     elif pth.isfile("../setup.py"):
@@ -2994,9 +3067,13 @@ def generate_readme(ctx):
         if re.match(r"\s*$", ctx[section]):
             ctx[section] = ""
         if pth.isfile(pth.join("static", "description", "%s.png" % section)):
-            ctx["%s_png" % section] = """.. figure:: /%s/static/description/%s.png
+            ctx["%s_png" % section] = """.. figure:: %s
   :alt: %s
-  :width: 98%%""" % (ctx["module_name"], section, ctx["name"])
+  :width: 98%%""" % (
+                url_by_doc(
+                    ctx,
+                    "/%s/static/description/%s.png" % (ctx["module_name"], section)),
+                ctx["name"])
         else:
             ctx["%s_png" % section] = ""
 
@@ -3098,7 +3175,42 @@ def generate_readme(ctx):
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
 
-    if ctx["write_index"] and ctx["product_doc"] == "odoo":
+    if ctx["odoo_marketplace"] and ctx["product_doc"]:
+        icon_fn = pth.join(ctx["img_dir"], ctx["src_icon"])
+        if not pth.isfile(icon_fn):
+            if ctx["debug_template"]:
+                src_icon = pth.join(ctx["home_devel"],
+                                    "pypi",
+                                    "tools",
+                                    "templates",
+                                    "odoo",
+                                    "icons",
+                                    ctx["src_icon"])
+            else:
+                src_icon = pth.join(ctx["odoo_root"],
+                                    "tools",
+                                    "templates",
+                                    "odoo",
+                                    "icons",
+                                    ctx["src_icon"])
+            if pth.isfile(src_icon):
+                copyfile(src_icon, icon_fn)
+        for country in ("l10n_uk", "l10n_us", "l10n_it"):
+            src_icon = pth.expanduser(pth.join("~",
+                                               ctx["branch"],
+                                               "addons",
+                                               country,
+                                               "static",
+                                               "description",
+                                               "icon.png"))
+            icon_fn = pth.join("static", "description", "%s.png" % country)
+            copyfile(src_icon, icon_fn)
+        if not ctx["template_name"]:
+            ctx["template_name"] = "marketplace_index.html"
+        target = index_html_content(
+            ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")
+        )
+    elif ctx["write_index"] and ctx["product_doc"] == "odoo":
         icon_fn = pth.join(ctx["img_dir"], ctx["src_icon"])
         if not pth.isfile(icon_fn):
             if ctx["debug_template"]:
@@ -3205,6 +3317,11 @@ def main(cli_args=None):
         dest="force_maturity",
     )
     parser.add_argument("-n")
+    parser.add_argument(
+        "-O", "--odoo_marketplace",
+        action="store_true",
+        help="create index.html with Odoo marketplace rules",
+    )
     parser.add_argument("-o", "--output-file", action="store", help="filename")
     parser.add_argument(
         "-P",
@@ -3240,4 +3357,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

@@ -9,9 +9,9 @@
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
 #
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
-export READLINK
-# Based on template 2.0.0
+# READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# export READLINK
+# Based on template 2.0.13
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -380,5 +380,3 @@ if [[ $opt_fetch -eq 0 ]]; then
   fi
 fi
 exit $STS_SUCCESS
-
-

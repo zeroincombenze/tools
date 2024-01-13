@@ -912,7 +912,7 @@ def main(cli_args=None):
         if error:
             print('Broken tree structure')
 
-        rank_modules = {}
+        rank_modules = {MISSED: []}
         for module in modules:
             level = modules[module].get('level', MISSED)
             if level not in rank_modules:
@@ -943,5 +943,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
-

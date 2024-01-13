@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, timedelta
 
 from z0lib import z0lib
-from zerobug import z0test, z0testodoo
+from zerobug import z0test
 
 
 __version__ = "2.0.13"
@@ -26,7 +26,6 @@ def version():
 
 
 class RegressionTest:
-#   class PypiTest(z0testlib.PypiTest):
 
     def setup(self):
         # super(RegressionTest, self).setup()
@@ -34,7 +33,7 @@ class RegressionTest:
             self.testdir = os.getcwd()
             self.rundir = os.path.dirname(os.getcwd())
         else:
-            self.testdir = os.stat.join(os.getcwd(), "tests")
+            self.testdir = os.path.join(os.getcwd(), "tests")
             self.rundir = os.getcwd()
         self.odoo_datadir = os.path.join(self.testdir, "data")
         if not os.path.isdir(self.odoo_datadir):
@@ -236,6 +235,30 @@ class RegressionTest:
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
             self.compare_fn(tgt_ffn, self.get_data_fullname("odoo12.py")))
+
+        src_ffn = self.get_data_fullname("odoo12_view.xml")
+        tgt_ffn = self.get_test_fullname("odoo13_view.xml")
+        cmd = "arcangelo -fw -F12.0 -b13.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_data_fullname("odoo13_view.xml")))
+
+        src_ffn = self.get_data_fullname("odoo13_view.xml")
+        tgt_ffn = self.get_test_fullname("odoo12_view.xml")
+        cmd = "arcangelo -fw -F13.0 -b12.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        # TODO>
+        self.assertTrue(
+            self.compare_fn(tgt_ffn,
+                            self.get_data_fullname("odoo12_view_migrated.xml")))
 
     def test_90(self):
         src_ffn = self.get_data_fullname("CHANGELOG.rst")

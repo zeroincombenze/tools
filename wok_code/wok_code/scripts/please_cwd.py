@@ -39,7 +39,7 @@ class PleaseCwd(object):
         * defcon precommit|gitignore: set default values for some configuration files
         * docs: create project documentation from egg-info or readme directory
         * edit: edit pofile or other project file
-        * replace: replace master local barnch of current package (only pypi pkgs)
+        * replace: replace master local branch of current package (only pypi pkgs)
         * translate: create it.po file with italian translation for Odoo module
         * update: update current package into devel virtual environment (only pypi pkgs)
 
@@ -676,7 +676,7 @@ class PleaseCwd(object):
         return 1
 
     def do_publish(self):
-        print("Missed specification:\nplease publish pypi|test_pypi")
+        print("Missed specification:\nplease publish pypi|test_pypi|marketplace")
         return 126
 
     def do_publish_pypi(self):
@@ -687,6 +687,51 @@ class PleaseCwd(object):
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
             return please.run_traced(cmd, rtime=True)
+        return 126
+
+    def do_publish_marketplace(self):
+        please = self.please
+        if please.is_odoo_pkg():
+            for manifest in ("__manifest__.py", "__openerp__.py"):
+                if pth.isfile(manifest):
+                    break
+            with open(manifest, "r") as fd:
+                contents = eval(fd.read())
+            if not contents.get("application"):
+                print("You can only publish application module!")
+                print("Add:")
+                print("   \"application\": True")
+                print("in your manifest %s" % manifest)
+                return 3
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
+                target_dir = pth.expanduser(
+                    pth.join("~", branch, "marketplace", module_name))
+                if not pth.isdir(pth.dirname(target_dir)):
+                    print("Path %s not found!" % pth.dirname(target_dir))
+                    return 2
+                if pth.isdir(target_dir):
+                    shutil.rmtree(target_dir)
+                shutil.copytree(os.getcwd(), target_dir)
+                sts = please.run_traced("cd " + target_dir)
+                if sts == 0:
+                    target_dir = pth.join(target_dir, "tests", "logs")
+                    if pth.isdir(target_dir):
+                        shutil.rmtree(target_dir)
+                    args = self.build_gen_readme_base_args(branch=branch)
+                    args.append("-O")
+                    sts = please.chain_python_cmd("gen_readme.py", args)
+                if sts == 0:
+                    args = self.build_gen_readme_base_args(branch=branch)
+                    args.append("-O")
+                    args.append("-R")
+                    sts = please.chain_python_cmd("gen_readme.py", args)
+                if sts == 0:
+                    sts = please.run_traced("git add ../", rtime=True)
+                if sts == 0:
+                    sts = please.run_traced("pre-commit run", rtime=True)
+            return sts
         return 126
 
     def do_replace(self):
@@ -1126,5 +1171,3 @@ class PleaseCwd(object):
             print("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
-
-
