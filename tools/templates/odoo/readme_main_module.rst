@@ -7,6 +7,10 @@ Overview | Panoramica
 
 |it| {{description_i18n}}
 
+|thumbnail|
+
+.. |thumbnail| image:: {{thumbnail}}
+
 .. $if defined features
 
 Features | Caratteristiche

@@ -14,33 +14,40 @@
 .. $else
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
-                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
             </p>
             <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
         </div>
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
             </p>
             <h2 class="oe_slogan" style="color:#162832;">{{summary_i18n}}</h2>
         </div>
 .. $fi
 .. $fi
+        <div class="oe_demo oe_screenshot">
+            {{description_png}}
+        </div>
+    </div>
+</section>
+
+<section>
+    <div>
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
-                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{description}}</p>
         </div>
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{description_i18n}}</p>
         </div>
-        {{description_png}}
     </div>
 .. $if defined features
     <div class="oe_row oe_spaced">
@@ -60,14 +67,14 @@
 .. $else
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
-                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{configuration}}</p>
         </div>
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{configuration_i18n}}</p>
         </div>
@@ -84,14 +91,14 @@
 .. $else
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_uk/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
-                <img src="/l10n_us/static/description/icon.png" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{usage}}</p>
         </div>
         <div class="oe_span6">
             <p align="center">
-                <img src="/l10n_it/static/description/icon.png" alt="Italiano" style="width:16px;height:16px;"/>
+                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
             </p>
             <p class="oe_mt16" align="justify">{{usage_i18n}}</p>
         </div>
@@ -122,28 +129,4 @@
         </div>
     </div>
 .. $fi
-</section>
-
-<section class="oe_container oe_separator"/>
-
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <div class="oe_span6" align="left">
-            <p class="oe_mt16">Authors | Autori:</p>
-            <p class="oe_mt16">{{authors}}</p>
-        </div>
-        <div class="oe_span6" align="left">
-            <p class="oe_mt16">Contributors | Contributi da:</p>
-            <p class="oe_mt16">{{contributors}}</p>
-        </div>
-    </div>
-    <div class="oe_row oe_spaced">
-        <div class="oe_span12">
-            <p>This module is maintained by the <b><a href="https://www.shs-av.com">SHS_AV s.r.l.</a></b>.</p>
-        </div>
-    </div>
-    <div class="oe_row oe_spaced">
-        <p>This module is part of <a href="{{GIT_URL_ROOT}}">{{repos_name}}</a> project.</p>
-        <p>Published information on | Informazioni pubblicate: {{today}}</p>
-    </div>
 </section>
