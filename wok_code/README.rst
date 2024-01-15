@@ -204,6 +204,7 @@ ChangeLog History
 
 * [FIX] Quality rating formula
 * [FIX] please install python --python=3.7
+* [IMP] please publish marketplace
 
 2.0.13 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~

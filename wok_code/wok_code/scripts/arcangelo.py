@@ -662,7 +662,10 @@ class MigrateFile(object):
             z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
         else:
             if self.is_manifest and self.opt_args.to_version:
-                opts = "-Rw -b %s -lmodule -Podoo" % (self.opt_args.to_version)
+                opts = "-Rw -lmodule -Podoo"
+                if self.opt_args.from_version and self.opt_args.to_version:
+                    opts += " -F%s -b%s" % (self.opt_args.from_version,
+                                            self.opt_args.to_version)
                 if self.opt_args.git_orgid:
                     opts += " -G%s" % self.opt_args.git_orgid
                 cmd = "gen_readme.py %s" % opts

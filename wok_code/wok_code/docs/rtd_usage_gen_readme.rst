@@ -431,7 +431,7 @@ gen_readme.py command line
                          [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n] [-O]
                          [-o OUTPUT_FILE] [-P PRODUCT_DOC] [-p PATH_NAME] [-q]
                          [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME]
-                         [-T] [-V] [-v] [-W] [-w] [-Y]
+                         [-T] [-V] [-v] [-W] [-w] [-X] [-Y]
     
     Generate README
     
@@ -476,6 +476,7 @@ gen_readme.py command line
       -v, --verbose         verbose mode
       -W, --write-authinfo
       -w, --suppress-warning
+      -X, --write-office
       -Y, --write-man-page
     
     © 2018-2023 by SHS-AV s.r.l.

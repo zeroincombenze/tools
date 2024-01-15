@@ -12,6 +12,12 @@ from python_plus import _c
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
+sys.path.insert(0,
+                os.path.dirname(os.path.dirname(os.getcwd()))
+                if os.path.basename(os.getcwd()) == "tests"
+                else os.path.dirname(os.getcwd()))                         # noqa: E402
+from scripts import gen_readme
+
 __version__ = "2.0.13"
 
 MODULE_ID = "wok_code"
@@ -166,11 +172,11 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
-        self.Z.inherit_cls(self)
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
+    #     self.Z.inherit_cls(self)
 
-    def setup(self, z0ctx):
+    def setup(self):
         self.templatedir = os.path.join(
             os.path.expanduser("~"), "devel", "pypi", "tools", "templates"
         )
@@ -277,57 +283,109 @@ Acknoledges to
             test_source = fd.read()
         return test_source
 
-    def test_01(self, z0ctx):
+    def test_01(self):
+        ctx = {
+            "git_orgid": "zero",
+            "odoo_marketplace": False,
+            "write_index": False,
+            "branch": "12.0",
+            "odoo_majver": 12,
+            "module_name": "mymodule",
+            "repos_name": "myrepo",
+        }
+        src_url = "https://example.com/something"
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url),
+                         tgt_url,
+                         msg_info="README.rst")
+        src_url = ("https://github.com/zeroincombenze/myrepo"
+                   "/mymodule/static/description/icon.png")
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+        src_url = "icon.png"
+        tgt_url = ("https://raw.githubusercontent.com/zeroincombenze/myrepo/12.0"
+                   "/mymodule/static/description/icon.png")
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+
+        ctx["write_index"] = True
+        src_url = "https://example.com/something"
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url),
+                         tgt_url,
+                         msg_info="index.html")
+        src_url = ("https://github.com/zeroincombenze/myrepo"
+                   "/mymodule/static/description/icon.png")
+        tgt_url = "icon.png"
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+        src_url = "icon.png"
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+
+        ctx["write_index"] = False
+        ctx["odoo_marketplace"] = True
+        src_url = "https://example.com/something"
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url),
+                         tgt_url,
+                         msg_info="marketplace")
+        src_url = ("https://github.com/zeroincombenze/myrepo"
+                   "/mymodule/static/description/icon.png")
+        tgt_url = "icon.png"
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+        src_url = "icon.png"
+        tgt_url = src_url
+        self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
+
+    def test_02(self):
         sts = 0
         base_cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
         gitorg = "zero"
         for odoo_version in ODOO_VERSIONS:
-            if not z0ctx["dry_run"]:
-                self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
-                odoo_root = os.path.join(self.root, odoo_version)
-                repodir = z0testodoo.create_repo(
-                    z0ctx, odoo_root, "test_repo", odoo_version
-                )
-                moduledir = z0testodoo.create_module(
-                    z0ctx, repodir, "test_module", "%s.0.1.0" % odoo_version
-                )
-                self.create_description_file(moduledir, odoo_version, gitorg)
-                self.create_authors_file(moduledir, odoo_version, gitorg)
-                self.create_contributors_file(moduledir, odoo_version, gitorg)
-                os.chdir(moduledir)
-                cmd = "%s -fBwG%s" % (base_cmd, gitorg)
-                sts, stdout, stderr = z0lib.run_traced(cmd)
-                self.assertEqual(sts, 0, msg_info=cmd)
-                for fn in ("__manifest__.rst",
-                           "CHANGELOG.rst",
-                           "DESCRIPTION.it_IT.rst",
-                           "USAGE.rst",
-                           "USAGE.it_IT.rst",
-                           "CONFIGURATION.rst",
-                           "CONFIGURATION.it_IT.rst",
-                           ):
-                    self.assertTrue(
-                        os.path.isfile(os.path.join(moduledir, "readme", fn)),
-                        msg_info=cmd)
+            self.root = z0testodoo.build_odoo_env({}, odoo_version)
+            odoo_root = os.path.join(self.root, odoo_version)
+            repodir = z0testodoo.create_repo(
+                {}, odoo_root, "test_repo", odoo_version
+            )
+            moduledir = z0testodoo.create_module(
+                {}, repodir, "test_module", "%s.0.1.0" % odoo_version
+            )
+            self.create_description_file(moduledir, odoo_version, gitorg)
+            self.create_authors_file(moduledir, odoo_version, gitorg)
+            self.create_contributors_file(moduledir, odoo_version, gitorg)
+            os.chdir(moduledir)
+            cmd = "%s -fBwG%s" % (base_cmd, gitorg)
+            sts, stdout, stderr = z0lib.run_traced(cmd)
+            self.assertEqual(sts, 0, msg_info=cmd)
+            for fn in ("__manifest__.rst",
+                       "CHANGELOG.rst",
+                       "DESCRIPTION.it_IT.rst",
+                       "USAGE.rst",
+                       "USAGE.it_IT.rst",
+                       "CONFIGURATION.rst",
+                       "CONFIGURATION.it_IT.rst",
+                       ):
+                self.assertTrue(
+                    os.path.isfile(os.path.join(moduledir, "readme", fn)),
+                    msg_info=cmd)
 
-                if odoo_version == "7.0":
-                    self.assertEqual(
-                        README_7,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
-                elif odoo_version == "10.0":
-                    self.assertEqual(
-                        README_10,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
-                elif odoo_version == "12.0":
-                    self.assertEqual(
-                        README_12,
-                        self.fn_source(os.path.join(moduledir, "README.rst")),
-                        msg_info=os.path.join(moduledir,
-                                              "README.rst") + "  #" + odoo_version)
+            if odoo_version == "7.0":
+                self.assertEqual(
+                    README_7,
+                    self.fn_source(os.path.join(moduledir, "README.rst")),
+                    msg_info=os.path.join(moduledir,
+                                          "README.rst") + "  #" + odoo_version)
+            elif odoo_version == "10.0":
+                self.assertEqual(
+                    README_10,
+                    self.fn_source(os.path.join(moduledir, "README.rst")),
+                    msg_info=os.path.join(moduledir,
+                                          "README.rst") + "  #" + odoo_version)
+            elif odoo_version == "12.0":
+                self.assertEqual(
+                    README_12,
+                    self.fn_source(os.path.join(moduledir, "README.rst")),
+                    msg_info=os.path.join(moduledir,
+                                          "README.rst") + "  #" + odoo_version)
         return self.ret_sts()
 
 
@@ -339,5 +397,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
