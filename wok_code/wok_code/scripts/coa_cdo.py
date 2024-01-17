@@ -181,6 +181,8 @@ class CvtCsvFile(object):
         return []
 
     def set_some_values_group(self, row):
+        if self.opt_args.alt_format and len(row["code_prefix"]) == 4:
+            row["code_prefix"] = row["code_prefix"][:2] + row["code_prefix"][3:4]
         row["id"] = row["code_prefix"]
         return row
 
@@ -189,70 +191,51 @@ class CvtCsvFile(object):
             return self.set_some_values_group(row)
         item = "user_type_id:id"
         if self.to_major_version > 9:
-            if row["code"].startswith("121") or row["code"].startswith("123"):
-                row[item] = "account.data_account_type_fixed_assets"
-            elif row["code"] == "152220":
-                row[item] = "account.data_account_type_current_assets"
-            elif row["code"] == "152420":
-                row[item] = "account.data_account_type_non_current_assets"
-            elif row["code"].startswith("211"):
-                row[item] = "account.data_account_type_equity"
-            elif row["code"].startswith("65"):
-                row[item] = "account.data_account_type_depreciation"
-            elif row["code"] == "190120":
-                row[item] = "account.data_account_type_prepayments"
-            elif (
-                row["code"].startswith("610")
-                and row[item] == "account.data_account_type_expenses"
-            ):
-                row[item] = "account.data_account_type_direct_costs"
-            elif row["code"] == "870230":
+            if row["code"] == "99010003":
                 row[item] = "account.data_unaffected_earnings"
-            elif (
-                row["code"].startswith("8")
-                and row[item] == "account.data_account_type_income"
-            ):
-                row[item] = "account.data_account_type_other_income"
-            elif (
-                row[item] == "account.data_account_type_current_assets"
-                and "+12 M" in row["name"]
-            ):
-                row[item] = "account.data_account_type_non_current_assets"
-            elif (
-                row[item] == "account.data_account_type_liability"
-                and "+12 M" in row["name"]
-            ):
+            elif row["code"] == "02020000":
+                row[item] = "account.data_account_type_receivable"
+                row["reconcile"] = True
+            elif row["code"] == "07010000":
+                row[item] = "account.data_account_type_payable"
+                row["reconcile"] = True
+            elif row["code"] == "03010002":
+                row[item] = "account.data_account_type_prepayments"
+            elif row["code"].startswith("0205"):
+                row[item] = "account.data_account_type_liquidity"
+            elif row["code"].startswith(("01", "02", "03")):
+                row[item] = "account.data_account_type_current_assets"
+            elif row["code"].startswith("04"):
+                row[item] = "account.data_account_type_equity"
+            elif row["code"].startswith(("05", "06", "07", "08")):
+                row[item] = "account.data_account_type_current_liabilities"
+            elif row["code"].startswith("2005"):
+                row[item] = "account.data_account_type_depreciation"
+            elif row["code"].startswith("2001"):
+                row[item] = "account.data_account_type_direct_costs"
+            elif row["code"].startswith(("20", "21", "22")):
+                row[item] = "account.data_account_type_expenses"
+            elif row["code"].startswith(("30", "31", "32", "33")):
+                row[item] = "account.data_account_type_revenue"
+            elif row["code"].startswith("99"):
                 row[item] = "account.data_account_type_non_current_liabilities"
+            else:
+                print("UNRECOGNIZED ACCOUNT %s" % row["code"])
+
+        if self.opt_args.alt_format:
+            row["code"] = row["code"][:2] + row["code"][3:4] + row["code"][5:]
 
         if self.to_major_version > 9:
             item = "group_id:id"
         else:
             item = "parent_id:id"
         if not row[item]:
-            if len(row["code"]) >= 6:
-                if row["code"].startswith("126"):
-                    row[item] = "125"
-                elif row["code"].startswith("154"):
-                    row[item] = "153"
-                elif row["code"].startswith("18"):
-                    row[item] = "180"
-                elif (
-                    row["code"].startswith("12")
-                    or row["code"].startswith("15")
-                    or row["code"].startswith("265")
-                    or row["code"].startswith("651")
-                    or row["code"].startswith("652")
-                ):
-                    row[item] = row["code"][0:3]
-                else:
-                    row[item] = row["code"][0:2]
-            elif len(row["code"]) >= 3:
-                row[item] = row["code"][0:2]
-            elif len(row["code"]) >= 2:
-                row[item] = row["code"][0:1]
+            if self.opt_args.alt_format:
+                row[item] = row["code"][:3]
             else:
-                row[item] = ""
+                row[item] = row["code"][:4]
 
+        row["id"] = row["code"]
         return row
 
     def set_some_values_tax(self, row):
@@ -392,17 +375,20 @@ class CvtCsvFile(object):
                 if len(line[ix]) < 8:
                     line[ix] = ("00000000" + line[ix])[-8:]
                 if self.opt_args.action == "export-group":
-                    if line[ix].startswith(("12", "15", "18", "26", "65", "68")):
-                        group = line[ix][:3]
-                    else:
-                        group = line[ix][:2]
-                    if group not in self.groups:
-                        self.groups.append(group)
-                        ix = self.hdr["code_prefix"]["ix"]
-                        line[ix] = group
-                        if len(group) == 3:
-                            ix = self.hdr["parent_id:id"]["ix"]
-                            line[ix] = group[:2]
+                    if "_" in line[ix]:
+                        if line[ix].endswith("______"):
+                            group = line[ix][:2]
+                        else:
+                            group = line[ix][:4]
+                        if "_" not in group and group not in self.groups:
+                            self.groups.append(group)
+                            ix = self.hdr["code_prefix"]["ix"]
+                            line[ix] = group
+                            if len(group) == 4:
+                                ix = self.hdr["parent_id:id"]["ix"]
+                                line[ix] = group[:2]
+                        else:
+                            continue
                     else:
                         continue
                 else:
@@ -420,21 +406,21 @@ class CvtCsvFile(object):
                     if name == "id":
                         row[name] = self.get_key(line[ix], is_id=True)
                     elif name == "chart_template_id:id":
-                        row[name] = "l10n_chart_it_zeroincombenze"
-                    elif self.hdr[name].get("type", "") == "m2o" and "." in line[ix]:
-                        value = transodoo.translate_from_to(
-                            self.ctx,
-                            "ir.model.data",
-                            self.get_xref(line[ix]),
-                            self.opt_args.from_version,
-                            self.opt_args.to_version,
-                            ttype="xref",
-                            fld_name=name,
-                        )
-                        if isinstance(value, (list, tuple)):
-                            row[name] = self.get_key(value[0])
-                        else:
-                            row[name] = self.get_key(value)
+                        row[name] = "l10n_chart_it_cdo"
+                    # elif self.hdr[name].get("type", "") == "m2o" and "." in line[ix]:
+                    #     value = transodoo.translate_from_to(
+                    #         self.ctx,
+                    #         "ir.model.data",
+                    #         self.get_xref(line[ix]),
+                    #         self.opt_args.from_version,
+                    #         self.opt_args.to_version,
+                    #         ttype="xref",
+                    #         fld_name=name,
+                    #     )
+                    #     if isinstance(value, (list, tuple)):
+                    #         row[name] = self.get_key(value[0])
+                    #     else:
+                    #         row[name] = self.get_key(value)
                     elif self.hdr[name].get("type", "") == "bool":
                         value = os0.str2bool(line[ix], False)
                         if self.opt_args.alt_format:
@@ -453,22 +439,22 @@ class CvtCsvFile(object):
                     ):
                         row[name] = eval(line[ix])
                     else:
-                        if self.hdr[name].get("tnl", ""):
-                            value = transodoo.translate_from_to(
-                                self.ctx,
-                                self.opt_args.model,
-                                line[ix],
-                                self.opt_args.from_version,
-                                self.opt_args.to_version,
-                                ttype="value",
-                                fld_name=name,
-                            )
-                            if isinstance(value, (list, tuple)):
-                                row[name] = value[0]
-                            else:
-                                row[name] = value
-                        else:
-                            row[name] = line[ix]
+                        # if self.hdr[name].get("tnl", ""):
+                        #     value = transodoo.translate_from_to(
+                        #         self.ctx,
+                        #         self.opt_args.model,
+                        #         line[ix],
+                        #         self.opt_args.from_version,
+                        #         self.opt_args.to_version,
+                        #         ttype="value",
+                        #         fld_name=name,
+                        #     )
+                        #     if isinstance(value, (list, tuple)):
+                        #         row[name] = value[0]
+                        #     else:
+                        #         row[name] = value
+                        # else:
+                        row[name] = line[ix]
 
                 row = {
                     "account.account": self.set_some_values_account,

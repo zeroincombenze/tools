@@ -239,6 +239,79 @@ class MigrateFile(object):
     def comparable_version(self, version):
         return ".".join(["%03d" % int(x) for x in version.split(".")])
 
+    def action_on_file(self, fqn, subrule, regex):
+        """Apply a rule on current file
+        Rule is (action, params, ...)
+        action may be: "/?([+-][0-9.]+)?(s|d|i|a|$|=)"
+
+        Args:
+            fqn (str): full qualified name
+            subrule (list): current rule to apply
+            regex (str): regex to match rule
+
+        Returns:
+            sts
+        """
+        action = subrule["action"]
+        args = subrule.get("args", [])
+        if action.startswith("/"):
+            not_expr = True
+            action = action[1:]
+        else:
+            not_expr = False
+            action = action
+        if (not_expr and regex) or (not not_expr and not regex):
+            return 1
+        if action.startswith("+"):
+            x = self.re_match(r"\+[0-9]+\.[0-9]", action)
+            if x:
+                ver = action[x.start(): x.end()]
+                if self.comparable_version(
+                    self.opt_args.python
+                ) < self.comparable_version(ver):
+                    return 1
+            else:
+                x = self.re_match(r"\+[0-9]+", action)
+                ver = int(action[x.start() + 1: x.end()])
+                if ver and ver < 6 and self.py23 < ver:
+                    return 1
+                if ver and ver >= 6 and self.to_major_version < ver:
+                    return 1
+            action = action[x.end():]
+        if action.startswith("-"):
+            x = self.re_match(r"-[0-9]+\.[0-9]", action)
+            if x:
+                ver = action[x.start(): x.end()]
+                if self.comparable_version(
+                    self.opt_args.python
+                ) > self.comparable_version(ver):
+                    return 1
+            else:
+                x = self.re_match(r"-[0-9]+", action)
+                ver = int(action[x.start() + 1: x.end()])
+                if ver and ver < 6 and self.py23 > ver:
+                    return 1
+                if ver and ver >= 6 and self.to_major_version > ver:
+                    return 1
+            action = action[x.end():]
+        if action == "mv":
+            # mv fqn new_fqn
+            rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(args[0])
+            if sre and re.search(sre, fqn):
+                return 1
+            if regex:
+                self.opt_args.output = re.sub(
+                    regex, args[1] % self.__dict__, fqn
+                )
+            return 0
+        elif action == "rm":
+            # Ignore current file
+            self.ignore_file = True
+            return 0
+        else:
+            self.raise_error("Invalid rule action %s" % action)
+        return 1
+
     def update_line(self, nro, subrule, regex):
         """Update current line self.lines[nro]
         Rule is (action, params, ...)
@@ -451,55 +524,76 @@ class MigrateFile(object):
         self.utf8_decl_nro = -1
         self.lines_2_rm = []
         # This statement is required for Duplicate test
+        self.rules = []
+        self.suppl_rules = []
         self.mig_rules = {}
-        self.mig_rules = self.load_config(
-            "globals_xml" if self.is_xml else "globals_py")
-        if self.opt_args.pypi_package:
-            if self.python_future:
-                self.mig_rules.update(self.load_config("to_pypi_future"))
+
+        if self.opt_args.rules:
+            for rule in self.opt_args.rules.split(","):
+                rule = rule.replace("+", "")
+                self.rules.append(rule)
+
+        if not self.opt_args.rules or "+" in self.opt_args.rules:
+            self.rules.append("globals_xml" if self.is_xml else "globals_py")
+            if self.opt_args.pypi_package:
+                if self.python_future:
+                    self.rules.append("to_pypi_future")
+                else:
+                    self.rules.append("to_pypi_py2"
+                                      if self.py23 == 2 else "to_pypi_py3")
+            elif self.is_xml:
+                self.rules.append("to_old_api_xml"
+                                  if self.to_major_version < 9 else "to_new_api_xml")
+            elif self.from_major_version:
+                if self.from_major_version < 8 and self.to_major_version >= 8:
+                    self.rules.append("to_new_api_py")
+                elif self.from_major_version >= 8 and self.to_major_version < 8:
+                    self.rules.append("to_old_api_py")
+                self.rules.append("to_odoo_py2"
+                                  if self.to_major_version <= 10 else "to_odoo_py3")
             else:
-                self.mig_rules.update(
-                    self.load_config("to_pypi_py2" if self.py23 == 2 else "to_pypi_py3")
-                )
-        elif self.is_xml:
-            self.mig_rules.update(
-                self.load_config(
-                    "to_old_api_xml" if self.to_major_version < 9 else "to_new_api_xml")
-            )
-        elif self.from_major_version:
-            if self.from_major_version < 8 and self.to_major_version >= 8:
-                self.mig_rules.update(self.load_config("to_new_api_py"))
-            elif self.from_major_version >= 8 and self.to_major_version < 8:
-                self.mig_rules.update(self.load_config("to_old_api_py"))
-            self.mig_rules.update(self.load_config(
-                "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3")
-            )
-        else:
-            self.mig_rules.update(self.load_config(
-                "to_odoo_py2" if self.to_major_version <= 10 else "to_odoo_py3")
-            )
-        if self.from_major_version and self.to_major_version:
-            fn = "odoo_from_%s_to_%s_xml" if self.is_xml else "odoo_from_%s_to_%s_py"
-            if self.from_major_version < self.to_major_version:
-                # Migration to newer Odoo version
-                from_major_version = self.from_major_version
-                to_major_version = from_major_version + 1
-                while to_major_version <= self.to_major_version:
-                    self.mig_rules.update(self.load_config(
-                        fn % (from_major_version, to_major_version),
-                        ignore_not_found=True))
-                    from_major_version += 1
+                self.rules.append("to_odoo_py2"
+                                  if self.to_major_version <= 10 else "to_odoo_py3")
+
+            if self.from_major_version and self.to_major_version:
+                fn = ("odoo_from_%s_to_%s_xml"
+                      if self.is_xml else "odoo_from_%s_to_%s_py")
+                if self.from_major_version < self.to_major_version:
+                    # Migration to newer Odoo version
+                    from_major_version = self.from_major_version
                     to_major_version = from_major_version + 1
-            elif self.from_major_version > self.to_major_version:
-                # Backport to older Odoo version
-                from_major_version = self.from_major_version
-                to_major_version = from_major_version - 1
-                while to_major_version >= self.to_major_version:
-                    self.mig_rules.update(self.load_config(
-                        fn % (from_major_version, to_major_version),
-                        ignore_not_found=True))
-                    from_major_version -= 1
+                    while to_major_version <= self.to_major_version:
+                        self.suppl_rules.append(
+                            fn % (from_major_version, to_major_version))
+                        from_major_version += 1
+                        to_major_version = from_major_version + 1
+                elif self.from_major_version > self.to_major_version:
+                    # Backport to older Odoo version
+                    from_major_version = self.from_major_version
                     to_major_version = from_major_version - 1
+                    while to_major_version >= self.to_major_version:
+                        self.suppl_rules.append(
+                            fn % (from_major_version, to_major_version))
+                        from_major_version -= 1
+                        to_major_version = from_major_version - 1
+
+        for rule in self.rules:
+            self.mig_rules = self.load_config(rule)
+        for rule in self.suppl_rules:
+            self.mig_rules = self.load_config(rule, ignore_not_found=True)
+
+    def run_sub_rules(self, rule, nro, regex, next_nro):
+        do_continue = do_break = False
+        for subrule in rule["do"]:
+            do_break, offset = self.update_line(nro, subrule, regex)
+            if offset:
+                next_nro = nro + 1 + offset
+                if offset < 0:
+                    do_continue = True
+                    break
+            elif do_break:
+                break
+        return do_continue, do_break, next_nro
 
     def do_process_source(self):
         if self.opt_args.git_merge_conflict:
@@ -515,21 +609,10 @@ class MigrateFile(object):
 
     def do_migrate_source(self):
 
-        def run_sub_rules(rule, nro, regex, next_nro):
-            do_continue = do_break = False
-            for subrule in rule["do"]:
-                do_break, offset = self.update_line(nro, subrule, regex)
-                if offset:
-                    next_nro = nro + 1 + offset
-                    if offset < 0:
-                        do_continue = True
-                        break
-                elif do_break:
-                    break
-            return do_continue, do_break, next_nro
-
         self.init_env()
-        keys = sorted([(v.get("prio", "5"), k) for (k, v) in self.mig_rules.items()])
+        keys = sorted([(v.get("prio", "5"), k)
+                       for (k, v) in self.mig_rules.items()
+                       if v.get("prio", "5") > "0"])
         nro = 0
         while nro < len(self.lines):
             x = re.match(r"[\s]*", self.lines[nro])
@@ -539,7 +622,7 @@ class MigrateFile(object):
             for (prio, key) in keys:
                 rule = self.mig_rules[key]
                 regex = self.rule_matches(rule["match"], nro)
-                do_continue, do_break, next_nro = run_sub_rules(
+                do_continue, do_break, next_nro = self.run_sub_rules(
                     rule, nro, regex, next_nro)
                 if do_continue or do_break:
                     break
@@ -751,6 +834,10 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
+    parser.add_argument(
+        '-R', '--rules',
+        help='Rules (comma separated): use + for adding to automatic rules'
+    )
     parser.add_argument("--string-normalization", action='store_true')
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)

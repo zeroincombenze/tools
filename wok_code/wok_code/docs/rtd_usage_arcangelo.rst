@@ -10,8 +10,8 @@ Digest of arcangelo
     usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-F FROM_VERSION] [-f]
                         [-G GIT_ORGID] [--git-merge-conflict left|right]
                         [--ignore-pragma] [-i] [-j PYTHON] [-n] [-o OUTPUT] [-P]
-                        [--string-normalization] [--test-res-msg TEST_RES_MSG]
-                        [-v] [-V] [-w]
+                        [-R RULES] [--string-normalization]
+                        [--test-res-msg TEST_RES_MSG] [-v] [-V] [-w]
                         [path [path ...]]
     
     Beautiful source file
@@ -35,6 +35,9 @@ Digest of arcangelo
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P, --pypi-package
+      -R RULES, --rules RULES
+                            Rules (comma separated): use + for adding to automatic
+                            rules
       --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose
