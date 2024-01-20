@@ -7,10 +7,10 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-F FROM_VERSION] [-f]
-                        [-G GIT_ORGID] [--git-merge-conflict left|right]
-                        [--ignore-pragma] [-i] [-j PYTHON] [-n] [-o OUTPUT] [-P]
-                        [-R RULES] [--string-normalization]
+    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES]
+                        [-F FROM_VERSION] [-f] [-G GIT_ORGID]
+                        [--git-merge-conflict left|right] [--ignore-pragma] [-i]
+                        [-j PYTHON] [-n] [-o OUTPUT] [-P] [--string-normalization]
                         [--test-res-msg TEST_RES_MSG] [-v] [-V] [-w]
                         [path [path ...]]
     
@@ -23,6 +23,9 @@ Digest of arcangelo
       -h, --help            show this help message and exit
       -a, --lint-anyway
       -b TO_VERSION, --to-version TO_VERSION
+      -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
+                            Rule categories (comma separated) to parse (use + for
+                            adding)
       -F FROM_VERSION, --from-version FROM_VERSION
       -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
                             skip-file'
@@ -35,9 +38,6 @@ Digest of arcangelo
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P, --pypi-package
-      -R RULES, --rules RULES
-                            Rules (comma separated): use + for adding to automatic
-                            rules
       --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose

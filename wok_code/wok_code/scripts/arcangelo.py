@@ -26,24 +26,135 @@ def get_pyver_4_odoo(odoo_ver):
     return pyver
 
 
-class MigrateFile(object):
-    def __init__(self, fqn, opt_args):
-        self.rule_ctr = 0
-        self.sts = 0
-        self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
-        if opt_args.verbose > 0:
-            print("Reading %s ..." % fqn)
-        self.fqn = fqn
-        base = pth.basename(fqn)
-        self.is_xml = fqn.endswith(".xml")
-        self.is_manifest = base in ("__manifest__.py", "__openerp__.py")
+class MigrateMeta(object):
+
+    def load_config(self, confname, ignore_not_found=False, prio=None):
+        configpath = pth.join(
+            pth.dirname(pth.abspath(pth.expanduser(__file__))),
+            "config",
+            confname + ".yml",
+        )
+        rules = {}
+        if pth.isfile(configpath):
+            with open(configpath, "r") as fd:
+                yaml_rules = yaml.safe_load(fd)
+                if isinstance(yaml_rules, (list, tuple)):
+                    # Old yaml syntax (deprecated)
+                    rules = {}
+                    for tmp_rules in yaml_rules:
+                        self.rule_ctr += 1
+                        name = "z%04d" % self.rule_ctr
+                        if name in self.mig_rules:
+                            self.raise_error(
+                                "Duplicate rule <%s> in configuration file %s!"
+                                % (name, configpath))
+                        match = tmp_rules[0]
+                        rules[name] = {"match": match, "do": []}
+                        for subrule in tmp_rules[1:]:
+                            if not isinstance(subrule, (list, tuple)):
+                                self.raise_error(
+                                    "Invalid rule <%s> in configuration file %s!"
+                                    % (subrule, configpath))
+                            action = subrule[0]
+                            args = subrule[1:]
+                            rules[name]["do"].append({"action": action, "args": args})
+                elif isinstance(yaml_rules, dict):
+                    rules = yaml_rules
+                elif yaml_rules is not None:
+                    self.raise_error("Invalid file %s!" % configpath)
+        elif not ignore_not_found:
+            self.raise_error("File %s not found!" % configpath)
+        rules_2_rm = []
+        for (name, subrule) in rules.items():
+            if not isinstance(subrule, dict):
+                self.raise_error("Invalid rule <%s> in configuration file %s!"
+                                 % (name, configpath))
+            if "match" not in subrule:
+                self.raise_error("Rule <%s> without 'match' in configuration file %s!"
+                                 % (name, configpath))
+            if "do" not in subrule:
+                self.raise_error("Rule <%s> without 'do' in configuration file %s!"
+                                 % (name, configpath))
+            if not isinstance(subrule["do"], (list, tuple)):
+                self.raise_error(
+                    "Rule <%s> does not have do_do list in configuration file %s!"
+                    % (subrule, configpath))
+            for todo in subrule["do"]:
+                if not isinstance(todo, dict):
+                    self.raise_error("Invalid rule <%s> in configuration file %s!"
+                                     % (name, configpath))
+                if "action" not in todo:
+                    self.raise_error("Rule <%s> without action, configuration file %s!"
+                                     % (name, configpath))
+            if (
+                (prio and prio != subrule.get("prio", "5"))
+                or (not prio and subrule.get("prio", "5") == "0")
+            ):
+                rules_2_rm.append(name)
+        for name in rules_2_rm:
+            del rules[name]
+        return rules
+
+    def split_py_re_rules(self, rule):
+        x = self.re_match(r"\{\{.*\}\}", rule)
+        if x:
+            expr = rule[x.start() + 2: x.end() - 2].strip()
+            rule = rule[x.end()]
+            try:
+                res = eval(expr)
+            except BaseException as e:
+                self.raise_error("Invalid expression %s" % expr)
+                self.raise_error(e)
+                res = False
+        else:
+            expr = ""
+            res = True
+
+        not_expr = False
+        sre = ""
+        if rule.startswith("!"):
+            self.re_match(r"!\([^)]+\)+", rule)
+            if x:
+                sre = rule[x.start() + 2: x.end() - 1].strip()
+                regex = rule[x.end():]
+            else:
+                regex = rule[1:]
+                not_expr = True
+        elif rule.startswith(r"\!"):
+            regex = rule[1:]
+        else:
+            regex = rule
+
+        return rule, expr, res, regex, not_expr, sre
+
+    def matches_rule(self, rule, item):
+        """Match python expression and extract REGEX from EREGEX
+        If python expression is False or REGEX does not match, return null regex"""
+        rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(rule)
+        if not res:
+            return res
+
+        if sre and re.search(sre, item):
+            return False
+
+        if (not not_expr and not self.re_match(regex, item)) or (
+            not_expr and self.re_match(regex, item)
+        ):
+            return False
+        return regex
+
+
+class MigrateEnv(MigrateMeta):
+    def __init__(self, opt_args):
+        self.def_python_future = False
         if opt_args.from_version:
+            self.from_version = opt_args.from_version
             self.from_major_version = int(opt_args.from_version.split('.')[0])
         else:
+            self.from_version = ""
             self.from_major_version = 0
-        self.def_python_future = False
+        branch = ""
         if not opt_args.to_version or opt_args.to_version == "0.0":
-            branch = ""
             sts, stdout, stderr = z0lib.run_traced(
                 "git branch", verbose=False, dry_run=False
             )
@@ -63,6 +174,7 @@ class MigrateFile(object):
                 opt_args.to_version = branch
             else:
                 opt_args.to_version = "12.0"
+        self.to_version = opt_args.to_version
         self.to_major_version = int(opt_args.to_version.split('.')[0])
         if not opt_args.pypi_package:
             if self.to_major_version <= 10:
@@ -72,11 +184,73 @@ class MigrateFile(object):
             self.python_version = opt_args.python
             self.py23 = int(opt_args.python.split(".")[0])
         else:
-            self.python_version = "3.7"
+            self.python_version = "3.9"
             self.py23 = 3
             if opt_args.pypi_package:
                 self.def_python_future = True
         self.opt_args = opt_args
+
+        self.rules = []
+        self.mig_rules = {}
+        if self.opt_args.rule_categories:
+            for rule in self.opt_args.rule_categories.split(","):
+                rule = rule.replace("+", "")
+                self.rules.append(rule)
+
+        if not self.opt_args.rule_categories or "+" in self.opt_args.rule_categories:
+            self.rules.append("globals_file")
+            if self.from_major_version and self.to_major_version:
+                fn = "odoo_from_%s_to_%s_file"
+                if self.from_major_version < self.to_major_version:
+                    # Migration to newer Odoo version
+                    from_major_version = self.from_major_version
+                    to_major_version = from_major_version + 1
+                    while to_major_version <= self.to_major_version:
+                        self.rules.append(
+                            fn % (from_major_version, to_major_version))
+                        from_major_version += 1
+                        to_major_version = from_major_version + 1
+                elif self.from_major_version > self.to_major_version:
+                    # Backport to older Odoo version
+                    from_major_version = self.from_major_version
+                    to_major_version = from_major_version - 1
+                    while to_major_version >= self.to_major_version:
+                        self.rules.append(
+                            fn % (from_major_version, to_major_version))
+                        from_major_version -= 1
+                        to_major_version = from_major_version - 1
+
+        for rule in self.rules:
+            self.mig_rules.update(self.load_config(rule,
+                                                   ignore_not_found=True,
+                                                   prio="0"))
+        self.mig_keys = sorted([(v.get("prio", "5"), k)
+                                for (k, v) in self.mig_rules.items()])
+
+
+class MigrateFile(MigrateMeta):
+    def __init__(self, fqn, opt_args, migrate_env):
+        self.rule_ctr = 0
+        self.sts = 0
+        self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
+        if opt_args.verbose > 0:
+            print("Reading %s ..." % fqn)
+        self.fqn = fqn
+        base = pth.basename(fqn)
+        self.is_xml = fqn.endswith(".xml")
+        self.is_manifest = base in ("__manifest__.py", "__openerp__.py")
+        for kk in (
+            "from_version",
+            "to_version",
+            "from_major_version",
+            "to_major_version",
+            "def_python_future",
+            "python_version",
+            "py23",
+            "opt_args",
+        ):
+            setattr(self, kk, getattr(migrate_env, kk))
+
         self.lines = []
         try:
             with open(fqn, "r", encoding="utf-8") as fd:
@@ -406,113 +580,6 @@ class MigrateFile(object):
             self.raise_error("Invalid rule action %s" % action)
         return False, 0
 
-    def split_py_re_rules(self, rule):
-        x = self.re_match(r"\{\{.*\}\}", rule)
-        if x:
-            expr = rule[x.start() + 2: x.end() - 2].strip()
-            rule = rule[x.end()]
-            try:
-                res = eval(expr)
-            except BaseException as e:
-                self.raise_error("Invalid expression %s" % expr)
-                self.raise_error(e)
-                res = False
-        else:
-            expr = ""
-            res = True
-
-        not_expr = False
-        sre = ""
-        if rule.startswith("!"):
-            self.re_match(r"!\([^)]+\)+", rule)
-            if x:
-                sre = rule[x.start() + 2: x.end() - 1].strip()
-                regex = rule[x.end():]
-            else:
-                regex = rule[1:]
-                not_expr = True
-        elif rule.startswith(r"\!"):
-            regex = rule[1:]
-        else:
-            regex = rule
-
-        return rule, expr, res, regex, not_expr, sre
-
-    def rule_matches(self, rule, nro):
-        """Match python expression and extract REGEX from EREGEX
-        If python expression is False or REGEX does not match, return null regex"""
-        rule, expr, res, regex, not_expr, sre = self.split_py_re_rules(rule)
-        if not res:
-            return res
-
-        if sre and re.search(sre, self.lines[nro]):
-            return False
-
-        if (not not_expr and not self.re_match(regex, self.lines[nro])) or (
-            not_expr and self.re_match(regex, self.lines[nro])
-        ):
-            return False
-        return regex
-
-    def load_config(self, confname, ignore_not_found=False):
-        configpath = pth.join(
-            pth.dirname(pth.abspath(pth.expanduser(__file__))),
-            "config",
-            confname + ".yml",
-        )
-        rules = {}
-        if pth.isfile(configpath):
-            with open(configpath, "r") as fd:
-                yaml_rules = yaml.safe_load(fd)
-                if isinstance(yaml_rules, (list, tuple)):
-                    # Old yaml syntax (deprecated)
-                    rules = {}
-                    for tmp_rules in yaml_rules:
-                        self.rule_ctr += 1
-                        name = "z%04d" % self.rule_ctr
-                        if name in self.mig_rules:
-                            self.raise_error(
-                                "Duplicate rule <%s> in configuration file %s!"
-                                % (name, configpath))
-                        match = tmp_rules[0]
-                        rules[name] = {"match": match, "do": []}
-                        for subrule in tmp_rules[1:]:
-                            if not isinstance(subrule, (list, tuple)):
-                                self.raise_error(
-                                    "Invalid rule <%s> in configuration file %s!"
-                                    % (subrule, configpath))
-                            action = subrule[0]
-                            args = subrule[1:]
-                            rules[name]["do"].append({"action": action, "args": args})
-                elif isinstance(yaml_rules, dict):
-                    rules = yaml_rules
-                elif yaml_rules is not None:
-                    self.raise_error("Invalid file %s!" % configpath)
-        elif not ignore_not_found:
-            self.raise_error("File %s not found!" % configpath)
-        for (name, subrule) in rules.items():
-            if not isinstance(subrule, dict):
-                self.raise_error("Invalid rule <%s> in configuration file %s!"
-                                 % (name, configpath))
-            if "match" not in subrule:
-                self.raise_error("Rule <%s> without 'match' in configuration file %s!"
-                                 % (name, configpath))
-            if "do" not in subrule:
-                self.raise_error("Rule <%s> without 'do' in configuration file %s!"
-                                 % (name, configpath))
-            if not isinstance(subrule["do"], (list, tuple)):
-                self.raise_error(
-                    "Rule <%s> does not have do_do list in configuration file %s!"
-                    % (subrule, configpath))
-            for todo in subrule["do"]:
-                if not isinstance(todo, dict):
-                    self.raise_error("Invalid rule <%s> in configuration file %s!"
-                                     % (name, configpath))
-                if "action" not in todo:
-                    self.raise_error("Rule <%s> without action, configuration file %s!"
-                                     % (name, configpath))
-        return rules
-
     def init_env(self):
         self.property_noupdate = False
         self.ctr_tag_data = 0
@@ -528,12 +595,12 @@ class MigrateFile(object):
         self.suppl_rules = []
         self.mig_rules = {}
 
-        if self.opt_args.rules:
-            for rule in self.opt_args.rules.split(","):
+        if self.opt_args.rule_categories:
+            for rule in self.opt_args.rule_categories.split(","):
                 rule = rule.replace("+", "")
                 self.rules.append(rule)
 
-        if not self.opt_args.rules or "+" in self.opt_args.rules:
+        if not self.opt_args.rule_categories or "+" in self.opt_args.rule_categories:
             self.rules.append("globals_xml" if self.is_xml else "globals_py")
             if self.opt_args.pypi_package:
                 if self.python_future:
@@ -578,9 +645,11 @@ class MigrateFile(object):
                         to_major_version = from_major_version - 1
 
         for rule in self.rules:
-            self.mig_rules = self.load_config(rule)
+            self.mig_rules.update(self.load_config(rule))
         for rule in self.suppl_rules:
-            self.mig_rules = self.load_config(rule, ignore_not_found=True)
+            self.mig_rules.update(self.load_config(rule, ignore_not_found=True))
+        self.mig_keys = sorted([(v.get("prio", "5"), k)
+                                for (k, v) in self.mig_rules.items()])
 
     def run_sub_rules(self, rule, nro, regex, next_nro):
         do_continue = do_break = False
@@ -610,18 +679,16 @@ class MigrateFile(object):
     def do_migrate_source(self):
 
         self.init_env()
-        keys = sorted([(v.get("prio", "5"), k)
-                       for (k, v) in self.mig_rules.items()
-                       if v.get("prio", "5") > "0"])
+
         nro = 0
         while nro < len(self.lines):
             x = re.match(r"[\s]*", self.lines[nro])
             self.indent = self.lines[nro][x.start():x.end()] if x else ""
             next_nro = nro + 1
             do_continue = False
-            for (prio, key) in keys:
+            for (prio, key) in self.mig_keys:
                 rule = self.mig_rules[key]
-                regex = self.rule_matches(rule["match"], nro)
+                regex = self.matches_rule(rule["match"], self.lines[nro])
                 do_continue, do_break, next_nro = self.run_sub_rules(
                     rule, nro, regex, next_nro)
                 if do_continue or do_break:
@@ -811,6 +878,10 @@ def main(cli_args=None):
     )
     parser.add_argument('-a', '--lint-anyway', action='store_true')
     parser.add_argument('-b', '--to-version')
+    parser.add_argument(
+        '-C', '--rule-categories',
+        help='Rule categories (comma separated) to parse (use + for adding)'
+    )
     parser.add_argument('-F', '--from-version')
     parser.add_argument(
         '-f',
@@ -834,10 +905,6 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--pypi-package', action='store_true')
-    parser.add_argument(
-        '-R', '--rules',
-        help='Rules (comma separated): use + for adding to automatic rules'
-    )
     parser.add_argument("--string-normalization", action='store_true')
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
@@ -866,16 +933,19 @@ def main(cli_args=None):
         sys.stderr.write('Path %s does not exist!' % pth.dirname(opt_args.output))
         sts = 2
     else:
+        migrate_env = MigrateEnv(opt_args)
+        # keys = sorted([k for k in migrate_env.mig_rules.keys()])
         for path in opt_args.path or ("./",):
             if pth.isdir(pth.expanduser(path)):
                 for root, dirs, files in os.walk(pth.expanduser(path)):
+
                     if 'setup' in dirs:
                         del dirs[dirs.index('setup')]
                     for fn in files:
                         if not file_is_processable(opt_args, fn):
                             continue
                         source = MigrateFile(
-                            pth.abspath(pth.join(root, fn)), opt_args
+                            pth.abspath(pth.join(root, fn)), opt_args, migrate_env
                         )
                         source.do_process_source()
                         source.close()
@@ -883,7 +953,7 @@ def main(cli_args=None):
                         if sts:
                             break
             elif pth.isfile(path):
-                source = MigrateFile(pth.abspath(path), opt_args)
+                source = MigrateFile(pth.abspath(path), opt_args, migrate_env)
                 source.do_process_source()
                 source.close()
                 sts = source.sts
