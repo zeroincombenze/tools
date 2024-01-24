@@ -10,8 +10,9 @@ Digest of arcangelo
     usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                        [-j PYTHON] [-n] [-o OUTPUT] [-P] [--string-normalization]
-                        [--test-res-msg TEST_RES_MSG] [-v] [-V] [-w]
+                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P]
+                        [--string-normalization] [--test-res-msg TEST_RES_MSG]
+                        [-v] [-V] [-w]
                         [path [path ...]]
     
     Beautiful source file
@@ -35,6 +36,7 @@ Digest of arcangelo
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
+      -l, --list-rules      list rule categories file (-ll list rules too)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P, --pypi-package
@@ -55,36 +57,47 @@ is running. Configuration files are yaml formatted.
 
 Every rule is list of following format:
 
-    EREGEX, (ACTION, PARAMETERS), ...
+    PYEREX, (ACTION, PARAMETERS), ...
 
     where
 
-    * EREGEX is an enhanced regular expression for applying the rule
-    * ACTION is the action to apply on current line (if EREX is matched)
-    * PARAMETERS are the values supplied to action
+    * PYEREX is (python expression + enhanced regular expression) for applying the rule
+    * ACTION is the action to apply on current item (if PYEREX is matched)
+    * PARAMETERS are the values supplying to action
 
-The list/tuple (ACTION, PARAMETERS) can be repeated more than once
-
-
-**EREGEX is an enhanced regular expression**; the format are
-
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| Pos | Example            | Note                                                      | Action                                                         |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| 1   | REGEX              | REGEX is a python re                                      | current line is processed if it matches REGEX                  |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| 2   | !REGEX             | REGEX is a python re                                      | current line is processes if it does not match REGEX           |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| 3   | \\!REGEX           | REGEX is a python re beginning with ! (exclamation point) | like case 1                                                    |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| 4   | !(RE)REGEX         | RE and REGEX are two python re                            | if current line does not match(by search) the RE, apply rule 1 |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
-| 5   | \{\{EXPR\}\}EREGEX | EXPR is double expression                                 | EREGEX is validated if pythonic EXPR is true                   |
-+-----+--------------------+-----------------------------------------------------------+----------------------------------------------------------------+
+The list/tuple (ACTION, PARAMETERS) can be repeated more than once under PYEREX
 
 
+**PYEREX is (python expression + enhanced regular expression)** is a set of 3
+distinct expressions, which are:
+
+    #. Python expression (in order to apply eregex): enclosed by double braces
+    #. Status eregex match (in order to apply eregex): enclosed by parens
+    #. Applicable eregex to match item
+
+    ACTION is applied if (python expression AND status eregex AND applicable eregex);
+    the undeclared python expression or undeclared status eregx returns always true.
+
+    eregex is a regular expression (python re) that may be negative if it starts with !
+    (exclamation mark)
 
     Examples:
+
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| Pos | Example            | Note                                                      | Action                                                  |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 1   | REGEX              | REGEX is a python re                                      | item is processed if it matches REGEX                   |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 2   | !REGEX             | REGEX is a python re                                      | item is processes if it does not match REGEX            |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 3   | \\!REGEX           | REGEX is a python re beginning with ! (exclamation point) | like case 1                                             |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 4   | !(RE)REGEX         | RE and REGEX are two python re                            | if item does not match (by search) the RE, apply rule 1 |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 5   | \{\{EXPR\}\}EREGEX | EXPR is double expression                                 | EREGEX is processed if pythonic EXPR is true            |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+
+
 
     * !(import xyz)import -> Rules is applied if matches the statemente "import" but not "import zyz"
     * \{\{self.to_major_version>10\}\}import something -> If target Odoo version is >10.0 matches statement "import something", otherwise ignore rule

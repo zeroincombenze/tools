@@ -8,22 +8,33 @@ is running. Configuration files are yaml formatted.
 
 Every rule is list of following format:
 
-    EREGEX, (ACTION, PARAMETERS), ...
+    PYEREX, (ACTION, PARAMETERS), ...
 
     where
 
-    * EREGEX is an enhanced regular expression for applying the rule
-    * ACTION is the action to apply on current line (if EREX is matched)
-    * PARAMETERS are the values supplied to action
+    * PYEREX is (python expression + enhanced regular expression) for applying the rule
+    * ACTION is the action to apply on current item (if PYEREX is matched)
+    * PARAMETERS are the values supplying to action
 
-The list/tuple (ACTION, PARAMETERS) can be repeated more than once
+The list/tuple (ACTION, PARAMETERS) can be repeated more than once under PYEREX
 
 
-**EREGEX is an enhanced regular expression**; the format are
+**PYEREX is (python expression + enhanced regular expression)** is a set of 3
+distinct expressions, which are:
 
-.. $include rules_usage_arcangelo.csv
+    #. Python expression (in order to apply eregex): enclosed by double braces
+    #. Status eregex match (in order to apply eregex): enclosed by parens
+    #. Applicable eregex to match item
+
+    ACTION is applied if (python expression AND status eregex AND applicable eregex);
+    the undeclared python expression or undeclared status eregx returns always true.
+
+    eregex is a regular expression (python re) that may be negative if it starts with !
+    (exclamation mark)
 
     Examples:
+
+.. $include rules_usage_arcangelo.csv
 
     * !(import xyz)import -> Rules is applied if matches the statemente "import" but not "import zyz"
     * \{\{self.to_major_version>10\}\}import something -> If target Odoo version is >10.0 matches statement "import something", otherwise ignore rule

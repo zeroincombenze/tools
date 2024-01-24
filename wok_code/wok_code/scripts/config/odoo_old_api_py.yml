@@ -1,0 +1,58 @@
+01_except_usererror:
+  match: 'from odoo.exceptions import UserError'
+  do:
+    - action: 's'
+      args:
+      - 'from odoo.exceptions import UserError'
+      - 'from openerp.osv.osv import except_osv'
+03_openerp_import:
+  match: '^from odoo import'
+  do:
+    - action: 's'
+      args:
+      - 'models'
+      - 'orm'
+    - action: 's'
+      args:
+      - 'odoo'
+      - 'openerp.osv'
+    - action: 's'
+      args:
+      - 'models.TransientModel'
+      - 'osv.osv_memory'
+04_from_openerp:
+  match: '^from odoo'
+  do:
+    - action: 's'
+      args:
+      - 'odoo'
+      - 'openerp'
+raise_except:
+  match: '^ *raise UserError'
+  do:
+    - action: 's'
+      args:
+      - 'UserError'
+      - 'except_osv'
+class_model:
+  match: '^ *class [^(]+\([^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - 'models.Model'
+      - 'orm.Model'
+def_cr_uid:
+  match: '^ *def [^(]+\(self, [^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(self,'
+      - '(self, cr, uid,'
+    - action: 's'
+      args:
+      - '\)'
+      - ', context=None)'
+no_api:
+  match: '^ *@api\.'
+  do:
+    - action: '-7d'

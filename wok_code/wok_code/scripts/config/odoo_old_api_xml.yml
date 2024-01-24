@@ -1,0 +1,36 @@
+matches_odoo_tag:
+  match: '^ *<odoo'
+  do:
+    - action: '$'
+      args:
+      - matches_odoo_tag
+matches_odoo_endtag:
+  match: '^ *</odoo>'
+  do:
+    - action: '$'
+      args:
+      - matches_odoo_endtag
+match_openerp_tag:
+  match: '^ *<openerp'
+  do:
+    - action: '$'
+      args:
+      - matches_openerp_tag
+match_openerp_endtag:
+  match: '^ *</openerp>'
+  do:
+    - action: '$'
+      args:
+      - matches_openerp_endtag
+matches_openerp_endtag:
+  match: '^ *<data'
+  do:
+    - action: '$'
+      args:
+      - matches_data_tag
+matches_data_endtag:
+  match: '^ *</data'
+  do:
+    - action: '$'
+      args:
+      - matches_data_endtag

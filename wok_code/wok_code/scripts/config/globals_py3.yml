@@ -1,0 +1,8 @@
+super:
+  match: '^ *super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super()'

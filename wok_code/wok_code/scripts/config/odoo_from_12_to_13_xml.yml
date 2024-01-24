@@ -1,10 +1,11 @@
--
-  - '^ *<field name="view_type">form</field>'
-  -
-    - 'd'
--
-  - '.*src_model="([^"]*)"'
-  -
-    - 's'
-    - 'src_model="([^"]*)"'
-    - 'binding_model="\1"'
+no_view_type:
+  match: '^ *<field name="view_type">form</field>'
+  do:
+    - action: 'd'
+replace_binding_model:
+  match: '.*src_model="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'src_model="([^"]*)"'
+      - 'binding_model="\1"'

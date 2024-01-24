@@ -1,46 +1,54 @@
 01_matches_end_utf8:
   match: '$'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_end_utf8
 02_matches_utf8:
   match: '^# -\*- coding: utf-8 -\*-'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_utf8
 03_matches_ignore:
   match: '^#!'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_ignore
 04_matches_lint:
   match: '^# (flake8|pylint):'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_lint
 05_matches_end_utf8:
   match: '!(coding|flake8|pylint|python|/bin/env)^#'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_end_utf8
 06_matches_end_utf8:
   match: '!^#'
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_end_utf8
 07_matches_class:
   match: '^ *class [^(]+\('
+  prio: '9'
   do:
     - action: '$'
       args:
       - matches_class
 08_remove_utf8:
   match: '^# -\*- encoding: utf-8 -\*-'
+  prio: '9'
   do:
     - action: 'd'
