@@ -63,6 +63,7 @@ class CvtCsvFile(object):
             "parent_id:id": {},
             "chart_template_id:id": {},
             "company_id:id": {},
+            "code_prefix": {},
             "_requirements": {},
         }
 
@@ -97,7 +98,12 @@ class CvtCsvFile(object):
         ]
 
     def set_hdr_out_group_account(self):
-        return []
+        return [
+            "id",
+            "code_prefix",
+            "name",
+            "parent_id:id"
+        ]
 
     def set_default_hdr_tax(self):
         return {
@@ -174,7 +180,13 @@ class CvtCsvFile(object):
     def set_hdr_out_group_tax(self):
         return []
 
+    def set_some_values_group(self, row):
+        row["id"] = row["code_prefix"]
+        return row
+
     def set_some_values_account(self, row):
+        if self.opt_args.action == "export-group":
+            return self.set_some_values_group(row)
         item = "user_type_id:id"
         if self.to_major_version > 9:
             if row["code"].startswith("121") or row["code"].startswith("123"):
@@ -374,6 +386,34 @@ class CvtCsvFile(object):
                 line = unicodes(row)
                 while len(line) < next_id:
                     line.append("")
+                name = "code"
+                ix = self.hdr[name]["ix"]
+                line[ix] = line[ix].replace(".", "")
+                if len(line[ix]) < 8:
+                    line[ix] = ("00000000" + line[ix])[-8:]
+                if self.opt_args.action == "export-group":
+                    if line[ix].startswith(("12", "15", "18", "26", "65", "68")):
+                        group = line[ix][:3]
+                    else:
+                        group = line[ix][:2]
+                    if group not in self.groups:
+                        self.groups.append(group)
+                        ix = self.hdr["code_prefix"]["ix"]
+                        line[ix] = group
+                        if len(group) == 3:
+                            ix = self.hdr["parent_id:id"]["ix"]
+                            line[ix] = group[:2]
+                    else:
+                        continue
+                else:
+                    if line[ix].startswith(("0202", "0701")):
+                        if line[ix] in ("0202____", "0701____"):
+                            line[ix] = line[ix].replace("_", "0")
+                        else:
+                            continue
+                    elif "_" in line[ix]:
+                        continue
+
                 row = {}
                 for name in self.hdr.keys():
                     ix = self.hdr[name]["ix"]
@@ -512,7 +552,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Manage csv file of Odoo CoA / Taxes",
-        epilog="© 2020-2023 by SHS-AV s.r.l.",
+        epilog="© 2020-2024 by SHS-AV s.r.l.",
     )
     parser.add_argument(
         "-A",
@@ -568,3 +608,5 @@ def main(cli_args=None):
     CsvFile.close()
 
 
+if __name__ == "__main__":
+    exit(main())

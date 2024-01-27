@@ -7,13 +7,11 @@
 """
 from __future__ import print_function, unicode_literals
 import os
-# import sys
+import sys
 from datetime import datetime, timedelta
-# import unittest
 
 from z0lib import z0lib
-# from zerobug import z0test
-from zerobug import z0testlib                                             # noqa: E402
+from zerobug import z0test
 
 
 __version__ = "2.0.13"
@@ -27,25 +25,15 @@ def version():
     return __version__
 
 
-# class RegressionTest:
-class PypiTest(z0testlib.PypiTest):
-    # def __init__(self, z0bug):
-    #     self.Z = z0bug
-    #     self.root = ''
-    #     self.odoo_datadir = os.path.join(self.Z.testdir, "data")
-    #     if not os.path.isdir(self.odoo_datadir):
-    #         os.mkdir(self.odoo_datadir)
-    #     self.odoo_testdir = os.path.join(self.Z.testdir, "res")
-    #     if not os.path.isdir(self.odoo_testdir):
-    #         os.mkdir(self.odoo_testdir)
+class RegressionTest:
 
-    def setUp(self):
-        super(PypiTest, self).setUp()
+    def setup(self):
+        # super(RegressionTest, self).setup()
         if os.path.basename(os.getcwd()) == "tests":
             self.testdir = os.getcwd()
             self.rundir = os.path.dirname(os.getcwd())
         else:
-            self.testdir = os.stat.join(os.getcwd(), "tests")
+            self.testdir = os.path.join(os.getcwd(), "tests")
             self.rundir = os.getcwd()
         self.odoo_datadir = os.path.join(self.testdir, "data")
         if not os.path.isdir(self.odoo_datadir):
@@ -57,7 +45,7 @@ class PypiTest(z0testlib.PypiTest):
             "build_cmd %s" % os.path.join(self.rundir, "scripts", "arcangelo.py")
         )
 
-    def get_fullname(self, fn):
+    def get_data_fullname(self, fn):
         ffn = os.path.join(self.odoo_datadir, fn)
         return ffn
 
@@ -97,88 +85,88 @@ class PypiTest(z0testlib.PypiTest):
             return False
         return True
 
-    def test_01(self):
+    def test_01_version(self):
         sts, stdout, stderr = z0lib.run_traced("arcangelo --version")
         self.assertEqual(sts, 0, msg_info="arcangelo --version")
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
-    def test_02(self):
-        src_ffn = self.get_fullname("old_api_02.py")
+    def test_02_api(self):
+        src_ffn = self.get_data_fullname("old_api_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("new_api_py3_02.py")))
 
-        src_ffn = self.get_fullname("new_api_py3_02.py")
+        src_ffn = self.get_data_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("old_api_02.py")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("old_api_02.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("old_api_02.py")))
 
-        src_ffn = self.get_fullname("new_api_py2_02.py")
+        src_ffn = self.get_data_fullname("new_api_py2_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F10.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("new_api_py3_02.py")))
 
-        src_ffn = self.get_fullname("new_api_py3_02.py")
+        src_ffn = self.get_data_fullname("new_api_py3_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py2_02.py")
         cmd = "arcangelo -fw -F12.0 -b10.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py2_02.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("new_api_py2_02.py")))
 
-        src_ffn = self.get_fullname("old_api_b_02.py")
+        src_ffn = self.get_data_fullname("old_api_b_02.py")
         tgt_ffn = self.get_test_fullname("new_api_py3_02.py")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("new_api_py3_02.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("new_api_py3_02.py")))
 
-    def test_03(self):
-        src_ffn = self.get_fullname("old_api_03.xml")
+    def test_03_api(self):
+        src_ffn = self.get_data_fullname("old_api_03.xml")
         tgt_ffn = self.get_test_fullname("new_api_03.xml")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_03.xml")))
+            self.compare_xmlfn(tgt_ffn, self.get_data_fullname("new_api_03.xml")))
 
-        src_ffn = self.get_fullname("new_api_03.xml")
+        src_ffn = self.get_data_fullname("new_api_03.xml")
         tgt_ffn = self.get_test_fullname("old_api_03.xml")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_03.xml")))
+            self.compare_xmlfn(tgt_ffn, self.get_data_fullname("old_api_03.xml")))
 
-    def test_04(self):
-        src_ffn = self.get_fullname("old_api_04.xml")
+    def test_04_api(self):
+        src_ffn = self.get_data_fullname("old_api_04.xml")
         tgt_ffn = self.get_test_fullname("new_api_04.xml")
         cmd = "arcangelo -fw -F7.0 -b12.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("new_api_04.xml")))
+            self.compare_xmlfn(tgt_ffn, self.get_data_fullname("new_api_04.xml")))
 
-        src_ffn = self.get_fullname("new_api_04.xml")
+        src_ffn = self.get_data_fullname("new_api_04.xml")
         tgt_ffn = self.get_test_fullname("old_api_04.xml")
         cmd = "arcangelo -fw -F12.0 -b7.0 %s -o %s" % (src_ffn, tgt_ffn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_xmlfn(tgt_ffn, self.get_fullname("old_api_04.xml")))
+            self.compare_xmlfn(tgt_ffn, self.get_data_fullname("old_api_04.xml")))
 
-    def test_05(self):
-        src_ffn = self.get_fullname("pkg_py2_05.py")
+    def test_05_api(self):
+        src_ffn = self.get_data_fullname("pkg_py2_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_05.py")
         cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
@@ -188,9 +176,9 @@ class PypiTest(z0testlib.PypiTest):
         self.assertEqual(sts, 0, msg_info=cmd)
         # With future result is like python2
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("pkg_py2_05.py")))
 
-        src_ffn = self.get_fullname("pkg_py3_05.py")
+        src_ffn = self.get_data_fullname("pkg_py3_05.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_05.py")
         cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
@@ -199,10 +187,10 @@ class PypiTest(z0testlib.PypiTest):
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_05.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("pkg_py2_05.py")))
 
-    def test_06(self):
-        src_ffn = self.get_fullname("pkg_py2_06.py")
+    def test_06_api(self):
+        src_ffn = self.get_data_fullname("pkg_py2_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py3_06.py")
         cmd = "arcangelo -fw --pypi-package %s -o %s" % (
             src_ffn,
@@ -212,9 +200,9 @@ class PypiTest(z0testlib.PypiTest):
         self.assertEqual(sts, 0, msg_info=cmd)
         # With future result is like python2
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("pkg_py2_06.py")))
 
-        src_ffn = self.get_fullname("pkg_py3_06.py")
+        src_ffn = self.get_data_fullname("pkg_py3_06.py")
         tgt_ffn = self.get_test_fullname("pkg_py2_06.py")
         cmd = "arcangelo -fw --pypi-package --python=2 %s -o %s" % (
             src_ffn,
@@ -223,11 +211,58 @@ class PypiTest(z0testlib.PypiTest):
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(tgt_ffn, self.get_fullname("pkg_py2_06.py")))
+            self.compare_fn(tgt_ffn, self.get_data_fullname("pkg_py2_06.py")))
+
+    def test_07_odoo_12_13(self):
+        src_ffn = self.get_data_fullname("odoo12.py")
+        tgt_ffn = self.get_test_fullname("odoo13.py")
+        cmd = "arcangelo -fw -F12.0 -b13.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_data_fullname("odoo13_migrated.py")))
+
+        src_ffn = self.get_data_fullname("odoo13.py")
+        tgt_ffn = self.get_test_fullname("odoo12.py")
+        cmd = "arcangelo -fw -F13.0 -b12.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_data_fullname("odoo12.py")))
+
+        src_ffn = self.get_data_fullname("odoo12_view.xml")
+        tgt_ffn = self.get_test_fullname("odoo13_view.xml")
+        cmd = "arcangelo -fw -F12.0 -b13.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(tgt_ffn, self.get_data_fullname("odoo13_view.xml")))
+
+        src_ffn = self.get_data_fullname("odoo13_view.xml")
+        tgt_ffn = self.get_test_fullname("odoo12_view.xml")
+        cmd = "arcangelo -fw -F13.0 -b12.0 %s -o %s" % (
+            src_ffn,
+            tgt_ffn,
+        )
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        # TODO>
+        self.assertTrue(
+            self.compare_fn(tgt_ffn,
+                            self.get_data_fullname("odoo12_view_migrated.xml")))
 
     def test_90(self):
-        src_ffn = self.get_fullname("CHANGELOG.rst")
-        tgt_ffn = self.get_fullname("history.rst")
+        src_ffn = self.get_data_fullname("CHANGELOG.rst")
+        tgt_ffn = self.get_data_fullname("history.rst")
         last_date = datetime.strftime((datetime.now() - timedelta(days=10)), "%Y-%m-%d")
         today = datetime.strftime(datetime.now(), "%Y-%m-%d")
         with open(src_ffn, "r") as fd:
@@ -261,8 +296,10 @@ class PypiTest(z0testlib.PypiTest):
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    # exit(unittest.main())
-    exit(z0testlib.main())
-
-
-
+    # # exit(unittest.main())
+    # exit(z0testlib.main())
+    exit(
+        z0test.main_local(
+            z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
+        )
+    )

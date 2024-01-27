@@ -5,14 +5,12 @@ Digest of arcangelo
 ===================
 
 
-arcangelo usage
-~~~~~~~~~~~~~~~
-
 ::
 
-    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-F FROM_VERSION] [-f]
-                        [-G GIT_ORGID] [--git-merge-conflict left|right]
-                        [--ignore-pragma] [-i] [-j PYTHON] [-n] [-o OUTPUT] [-P]
+    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES]
+                        [-F FROM_VERSION] [-f] [-G GIT_ORGID]
+                        [--git-merge-conflict left|right] [--ignore-pragma] [-i]
+                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P]
                         [--string-normalization] [--test-res-msg TEST_RES_MSG]
                         [-v] [-V] [-w]
                         [path [path ...]]
@@ -26,6 +24,9 @@ arcangelo usage
       -h, --help            show this help message and exit
       -a, --lint-anyway
       -b TO_VERSION, --to-version TO_VERSION
+      -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
+                            Rule categories (comma separated) to parse (use + for
+                            adding)
       -F FROM_VERSION, --from-version FROM_VERSION
       -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
                             skip-file'
@@ -35,6 +36,7 @@ arcangelo usage
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
+      -l, --list-rules      list rule categories file (-ll list rules too)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P, --pypi-package
@@ -47,6 +49,169 @@ arcangelo usage
     
     © 2021-2023 by SHS-AV s.r.l.
     
+
+
+
+**arcangelo** is based on rules files located in config directory where arcangelo
+is running. Configuration files are yaml formatted.
+
+Every rule is list of following format:
+
+    PYEREX, (ACTION, PARAMETERS), ...
+
+    where
+
+    * PYEREX is (python expression + enhanced regular expression) for applying the rule
+    * ACTION is the action to apply on current item (if PYEREX is matched)
+    * PARAMETERS are the values supplying to action
+
+The list/tuple (ACTION, PARAMETERS) can be repeated more than once under PYEREX
+
+
+**PYEREX is (python expression + enhanced regular expression)** is a set of 3
+distinct expressions, which are:
+
+    #. Python expression (in order to apply eregex): enclosed by double braces
+    #. Status eregex match (in order to apply eregex): enclosed by parens
+    #. Applicable eregex to match item
+
+    ACTION is applied if (python expression AND status eregex AND applicable eregex);
+    the undeclared python expression or undeclared status eregx returns always true.
+
+    eregex is a regular expression (python re) that may be negative if it starts with !
+    (exclamation mark)
+
+    Examples:
+
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| Pos | Example            | Note                                                      | Action                                                  |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 1   | REGEX              | REGEX is a python re                                      | item is processed if it matches REGEX                   |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 2   | !REGEX             | REGEX is a python re                                      | item is processes if it does not match REGEX            |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 3   | \\!REGEX           | REGEX is a python re beginning with ! (exclamation point) | like case 1                                             |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 4   | !(RE)REGEX         | RE and REGEX are two python re                            | if item does not match (by search) the RE, apply rule 1 |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+| 5   | \{\{EXPR\}\}EREGEX | EXPR is double expression                                 | EREGEX is processed if pythonic EXPR is true            |
++-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+
+
+
+    * !(import xyz)import -> Rules is applied if matches the statemente "import" but not "import zyz"
+    * \{\{self.to_major_version>10\}\}import something -> If target Odoo version is >10.0 matches statement "import something", otherwise ignore rule
+    * \{\{self.from_major_version<=10\}\}import something -> If original Odoo version is <=10.0 matches statement "import something", otherwise ignore rule
+    * \{\{self.python_version==3.10\}\}open -> If python version is 3.10, matches statemente import, otherwise ignore rule
+    * \{\{self.py23==3\}\}open -> If python major version is 3, matches statemente import, otherwise ignore rule
+
+**ACTION is the action will be executed** when EREGEX is True or when EREGEX fails if action begins with "/" (slash).
+
+    ACTION can submitted to Odoo or python version:
+
+    * +[0-9] means from Odoo/python major version
+    * -[0-9] means Odoo major version and older
+    * +[23]\.[0-9] means from python version
+    * -[23]\.[0-9] means python version and older
+
+    **ACTION values**:
+
+    * **s**: substitute REGEX REPLACE_TEXT
+    * **d**: delete line; stop immediately rule processing and re-read the line
+    * **i**: insert line before current line
+    * **a**: append line after current line
+    * **$**: execute FUNCTION
+    * **=**: execute python code
+
+**Python test and replacing macros**.
+
+Above you can find some simple example of python expression. The following table
+contains the list of values can used in python expression or in text replacement for
+substitute action. For example, the value classname can be used in following python
+expression:
+
+::
+
+    {\{self.classname=="MyClass"}}
+
+while in replacement text the form is:
+
+::
+
+    's' super() super(%(classname)s)
+
+Value list:
+
++----------------------+------------------------------------------------------------------+
+| Name                 | Description                                                      |
++----------------------+------------------------------------------------------------------+
+| classname            | Name of current class                                            |
++----------------------+------------------------------------------------------------------+
+| from_major_version   | Major version of project by -F switch                            |
++----------------------+------------------------------------------------------------------+
+| is_manifest          | True if current file is __manifest__.py or __openerp__.py        |
++----------------------+------------------------------------------------------------------+
+| is_xml               | True if current file is .xml                                     |
++----------------------+------------------------------------------------------------------+
+| to_major_version     | Major version of project by -b switch                            |
++----------------------+------------------------------------------------------------------+
+| py23                 | Value 2 if python2 else 3                                        |
++----------------------+------------------------------------------------------------------+
+
+
+
+Action **substitute**: "s REGEX REPLACE_TEXT"
+
+    * The 1.st item is the EREGEX to search for replace (negate is not applied)
+    * The 2.nd item is the text to replace which can contain macros like %(classname)s
+
+Action **delete**: "d"
+
+    * Delete current line
+    * Break rules analyzing
+
+Action **insert**: "i text"
+
+    * Insert text before current line
+
+Action **append**: "a text"
+
+    * Append text after current line
+
+Action **execute**: "$ FUNCTION"
+
+    * Function must return requires break and line offset
+    * If function requires break, no other rules will be processed
+    * The value 0 for offset means read next line, the value -1 re-read the current line, +1 skip next line, and so on
+
+    Function example:
+
+::
+
+    def FUNCTION(self, nro):
+        do_break = False
+        offset = 0
+        if self.lines[nro] == "<odoo>":
+            do_break = True
+            offset = 1
+        return do_break, offset
+
+Rules examples:
+
+Follow rule replace "@api.one" with "# @api.one" and adds comment line:
+
+::
+
+    no_api_mix:
+      match: '^ *@api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+      do:
+        - action: 's'
+          args:
+          - '@api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+          - '# @api.\1'
+        - action: 'a'
+          args:
+          - '# TODO> Update code to multi or add self.ensure_one()'
 
 |
 |

@@ -19,7 +19,7 @@ echo "  APT -> command to execute before build; examples:"
 echo "      $0 $1 'apt install libssl-dev libffi-dev libncurses5-dev libsqlite3-dev ' \\"
 echo "          'libreadline-dev libtk8.6 libgdm-dev libdb4o-cil-dev libpcap-dev libbz2-dev'"
 echo "      $0 $1 'wget --no-check-certificate https://www.openssl.org/source/openssl-1.1.0e.tar.gz'"
-echo "  WGET_OPTS -> options for wget; example $0 $1 '' --no-check-certificate"
+echo "  WGET_OPTS -> options for wget; example $0 $1 '' --no-check-certificate -4"
 echo "  CONFIG_OPTS -> options for ./configure; example $0 $1 '' ''  --with-openssl=DIR"
 echo "      cd /tmp/Python-$pyver/.configure --help     # for details"
 read -p "Press RET to continue ..."
@@ -48,6 +48,10 @@ echo "\$ make altinstall"
 make altinstall
 echo ""
 echo ""
+if [[ $1 =~ (3.6|3.5|3.4|2.7) ]]; then
+   wget $WGET_OPTS https://bootstrap.pypa.io/pip/$1/get-pip.py
+   python$1 get-pip.py
+fi
 py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
 python$py --version
 python$py -m pip list

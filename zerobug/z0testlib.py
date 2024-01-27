@@ -164,6 +164,14 @@ def sign_params(method):
         if sys.version_info[0] == 2 else list(signature(method).parameters))
 
 
+def print_flush(msg):
+    if sys.version_info[0] == 3:
+        print(msg, flush=True)
+    else:
+        print(msg)
+        sys.stdout.flush()
+
+
 def main():
     return unittest.main()
 
@@ -776,43 +784,9 @@ class Z0test(object):
             dest="opt_noctr",
             default=True,
         )
-        # parser.add_argument(
-        #     "-1",
-        #     "--coverage",
-        #     help="run tests for coverage (deprecated)",
-        #     action="store_true",
-        #     dest="run4cover",
-        #     default=True,
-        # )
-        # parser.add_argument(
-        #     "-2",
-        #     "--python2",
-        #     help="use python2 (deprecated)",
-        #     action="store_true",
-        #     dest="python2",
-        #     default=False,
-        # )
-        # parser.add_argument(
-        #     "-3",
-        #     "--python3",
-        #     help="use python3 (deprecated)",
-        #     action="store_true",
-        #     dest="python3",
-        #     default=False,
-        # )
         return parser
 
     def set_tlog_file(self, ctx):
-        # Old (deprecated) log management
-        # os0.set_tlog_file(
-        #     ctx.get('logfn', None),
-        #     new=ctx.get('opt_new', False),
-        #     echo=ctx.get('opt_echo', False),
-        # )
-        # Now set:
-        # - UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
-        # - UMLI (Unique Module Log Identifier):
-        #        format "{git_org}{major_version}.{repos}.{pkgname}"
         pass
 
     def _create_params_dict(self, ctx):
@@ -850,11 +824,13 @@ class Z0test(object):
         sts, stdout, stderr = z0lib.run_traced('coverage --version', verbose=0)
         ctx['run4cover'] = (sts == 0)
         if os.environ.get("COVERAGE_PROCESS_START", ""):
-            ctx['COVERAGE_PROCESS_START'] = os.environ["COVERAGE_PROCESS_START"]
+            ctx["COVERAGE_PROCESS_START"] = os.environ["COVERAGE_PROCESS_START"]
         elif ctx['run4cover']:                                      # pragma: no cover
-            ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
+            ctx["COVERAGE_PROCESS_START"] = os.path.abspath(
                 os.path.join(self.rundir, '.coveragerc')
             )
+        if os.environ.get("COVERAGE_DATA_FILE", ""):
+            ctx["COVERAGE_DATA_FILE"] = os.environ["COVERAGE_DATA_FILE"]
         return ctx
 
     def _create_def_params_dict(self, ctx):
@@ -1226,9 +1202,9 @@ class Z0test(object):
                         test_w_args = [sys.executable] + [testname] + opt4childs
                     if ctx.get("opt_verbose"):
                         if ctx.get('dry_run', False):
-                            print("    > " + " ".join(test_w_args))
+                            print_flush("    > " + " ".join(test_w_args))
                         else:
-                            print("    $ " + " ".join(test_w_args))
+                            print_flush("    $ " + " ".join(test_w_args))
                     try:
                         sts = subprocess.call(test_w_args)
                     except OSError:
@@ -1274,7 +1250,6 @@ class Z0test(object):
             unittest_list (list): Unit Test list (if None, search for files)
         """
         ctx = self._ready_opts(ctx)
-        # Execute sanity check on test library (no if zerobug testing itself)
         if (
             ctx['this'] != 'test_zerobug'
             and ctx.get('run_on_top', False)
@@ -1285,10 +1260,33 @@ class Z0test(object):
                     and ctx.get('run4cover', False)
                     and not ctx.get('dry_run', False)
             ):
-                sts, stdout, stderr = z0lib.run_traced(
-                    'coverage erase --rcfile=%s' % ctx['COVERAGE_PROCESS_START'])
+                if ctx["COVERAGE_DATA_FILE"]:
+                    with open(ctx["COVERAGE_PROCESS_START"], "r") as fd:
+                        coveragerc = fd.read()
+                    if "data_file" not in coveragerc:
+                        if ctx.get("opt_verbose"):
+                            cmd = (
+                                r"sed -E \"/^\[run\]/a\ndata_file=%s\""
+                                % ctx["COVERAGE_DATA_FILE"]
+                            )
+                            if ctx.get('dry_run', False):
+                                print_flush("    > " + cmd)
+                            else:
+                                print_flush("    $ " + cmd)
+                        coveragerc = coveragerc.replace(
+                            "[run]\n",
+                            "[run]\ndata_file=%s\n\n" % ctx["COVERAGE_DATA_FILE"])
+                        with open(ctx["COVERAGE_PROCESS_START"], "w") as fd:
+                            fd.write(coveragerc)
+                cmd = "coverage erase --rcfile=%s" % ctx["COVERAGE_PROCESS_START"]
+                if ctx.get("opt_verbose"):
+                    if ctx.get('dry_run', False):
+                        print_flush("    > " + cmd)
+                    else:
+                        print_flush("    $ " + cmd)
+                sts, stdout, stderr = z0lib.run_traced(cmd)
                 if sts:
-                    print('Coverage not found!')
+                    print_flush('Coverage not found!')
                     ctx['run4cover'] = False
         test_list = []
         if isinstance(unittest_list, (list, tuple)):
@@ -1307,7 +1305,7 @@ class Z0test(object):
                     t_list += glob.glob(
                         os.path.abspath(os.path.join(self.testdir, pattern + ".sh"))
                     )
-                for fn in sorted(t_list):
+                for fn in sorted(set(t_list)):
                     mime = magic.Magic(mime=True).from_file(os.path.realpath(fn))
                     if mime in ('text/x-python', 'text/x-shellscript'):
                         test_list.append(fn)
@@ -1322,18 +1320,22 @@ class Z0test(object):
         sts = self._exec_all_tests(test_list, ctx, Cls2Test)
         if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
             if sts == 0:
-                print(success_msg)
+                print_flush(success_msg)
                 if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
-                    sts, stdout, stderr = z0lib.run_traced(
-                        'coverage report --show-missing --rcfile=%s'
-                        % ctx['COVERAGE_PROCESS_START'],
-                        verbose=0)
+                    cmd = ("coverage report --show-missing --rcfile=%s"
+                           % ctx["COVERAGE_PROCESS_START"])
+                    if ctx.get("opt_verbose"):
+                        if ctx.get('dry_run', False):
+                            print_flush("    > " + cmd)
+                        else:
+                            print_flush("    $ " + cmd)
+                    sts, stdout, stderr = z0lib.run_traced(cmd, verbose=0)
+                    print_flush(stdout + stderr)
                     if sts:
-                        print('Coverage not found!')
                         ctx['run4cover'] = False
                     sts = 0
             else:
-                print(fail_msg)
+                print_flush(fail_msg)
         return sts
 
     def msg_test(self, ctx, msg):
@@ -1348,12 +1350,12 @@ class Z0test(object):
             if ctx.get('WLOGCMD', None):
                 if ctx['WLOGCMD'] == "echo" or ctx['WLOGCMD'] == "wecho-1":
                     if not ctx.get('opt_noctr', None):
-                        print(
+                        print_flush(
                             "%sTest %d/%d: %s"
                             % (prfx, ctx['ctr'], ctx['max_test'], msg)
                         )
                     else:
-                        print("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
+                        print_flush("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
 
     def test_result(self, ctx, msg, test_value, result_val, op=None):
         # This function is deprecated
@@ -1367,7 +1369,7 @@ class Z0test(object):
             raise KeyError("Invalid operator " + op)
         if not ctx.get('dry_run', False):
             if op == "=~" and not re.match(result_val, test_value):
-                print(
+                print_flush(
                     "Test '%s' failed: value '%s' does not match '%s'"
                     % (msg, test_value, result_val)
                 )
@@ -1377,7 +1379,7 @@ class Z0test(object):
                 else:
                     return TEST_FAILED
             elif op == "==" and test_value != result_val:  # pragma: no cover
-                print(
+                print_flush(
                     "Test '%s' failed: expected '%s', found '%s'"
                     % (msg, test_value, result_val)
                 )
@@ -1389,10 +1391,10 @@ class Z0test(object):
         return TEST_SUCCESS
 
     def test_failed(self, msg, first, second=None):
-        print(msg)
-        print("Value1='" + str(first) + "'")
+        print_flush(msg)
+        print_flush("Value1='" + str(first) + "'")
         if second:
-            print("Value2='" + str(second) + "'")
+            print_flush("Value2='" + str(second) + "'")
         self.successful = False
         if self.failfast:
             raise AssertionError
@@ -1400,21 +1402,21 @@ class Z0test(object):
     def assertTrue(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if not bool(expr):
             self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertFalse(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if bool(expr):
             self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first != second:
             self.test_failed(
                 msg or "Value <<%s>> is different from <<%s>>!" % (first, second),
@@ -1423,7 +1425,7 @@ class Z0test(object):
     def assertNotEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first == second:
             self.test_failed(
                 msg or "Value <<%s>> is equal to <<%s>>!" % (first, second),
@@ -1432,7 +1434,7 @@ class Z0test(object):
     def assertIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first not in second:
             self.test_failed(
                 msg or "Value <<%s>> is not in <<%s>>!" % (first, second),
@@ -1441,7 +1443,7 @@ class Z0test(object):
     def assertNotIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first in second:
             self.test_failed(
                 msg or "Value <<%s>> is in <<%s>>!" % (first, second),
@@ -1450,7 +1452,7 @@ class Z0test(object):
     def assertLess(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first >= second:
             self.test_failed(
                 msg or "Value <<%s>> is greater or equal to <<%s>>!" % (first, second),
@@ -1459,7 +1461,7 @@ class Z0test(object):
     def assertLessEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first > second:
             self.test_failed(
                 msg or "Value <<%s>> is greater than <<%s>>!" % (first, second),
@@ -1468,7 +1470,7 @@ class Z0test(object):
     def assertGreater(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first <= second:
             self.test_failed(
                 msg or "Value <<%s>> is less or equal to <<%s>>!" % (first, second),
@@ -1477,7 +1479,7 @@ class Z0test(object):
     def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if first < second:
             self.test_failed(
                 msg or "Value <<%s>> is less than <<%s>>!" % (first, second),
@@ -1486,7 +1488,7 @@ class Z0test(object):
     def assertMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if not re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> does not match <<%s>>!" % (first, second),
@@ -1495,41 +1497,11 @@ class Z0test(object):
     def assertNotMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
+            print_flush(("%d. " % self.assert_counter) + msg_info)
         if re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> matches <<%s>>!" % (first, second),
                 first, second)
-
-    # def _init_test_ctx(self, opt_echo, full={}):
-    #     """Set context value for autotest"""
-    #     z0ctx = {}
-    #     if full:  # just for tests
-    #         for p in 'min_test', 'max_test', 'opt_debug', 'opt_noctr', 'dry_run':
-    #             if p in full:
-    #                 z0ctx[p] = full[p]
-    #     # if opt_echo == '-e':
-    #     #     z0ctx['WLOGCMD'] = 'echo'
-    #     # elif opt_echo == '-q':
-    #     #     z0ctx['WLOGCMD'] = 'wecho-0'
-    #     z0ctx['this'] = self.module_id
-    #     z0ctx['this_fqn'] = './' + self.module_id
-    #     z0ctx['_run_autotest'] = True
-    #     # self.def_tlog_fn = '~/z0bug.log'
-    #     return z0ctx
-
-    # def sanity_check(self, opt_echo, full={}):
-    #     """Internal regression test
-    #     Module z0testlib is needed to run regression tests
-    #     This function run auto validation tests for z0testlib functions
-    #     """
-    #     z0ctx = self._init_test_ctx(opt_echo, full)
-    #     sts = self.main(z0ctx, SanityTest)
-    #     if full:
-    #         for p in 'min_test', 'max_test', 'ctr':
-    #             full[p] = z0ctx[p]
-    #     del z0ctx
-    #     return sts
 
     def build_os_tree(self, *args):
         """Create a filesytem tree to test"""
@@ -1844,4 +1816,3 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
-

@@ -14,6 +14,11 @@ except ImportError:
     from python_plus import _u
 
 COPY = {
+    "odoo": {
+        "author": "Odoo SA",
+        "website": "https://www.odoo.com",
+        "github-user": "odoo",
+    },
     "zero": {
         "author": "SHS-AV s.r.l.",
         "website": "https://www.zeroincombenze.it",
@@ -36,16 +41,9 @@ COPY = {
         "website": "https://www.odoo-italia.org",
         "github-user": "OCA",
     },
-    # "powerp": {
-    #     "author": "powERP enterprise network",
-    #     "website": "https://www.powerp.it",
-    #     "devman": "powERP enterprise network",
-    #     "github-user": "PowERP-cloud",
-    # },
     "librerp": {
         "author": "LibrERP enterprise network",
         "website": "https://www.librerp.it",
-        # "devman": "LibrERP enterprise network",
         "github-user": "LibrERP-network",
     },
     "didotech": {
@@ -69,6 +67,8 @@ ALIAS = {
     "powerp": "librerp",
     "powerp.it": "librerp",
     "Agile Business Group": "agilebg.com",
+    "openerp": "odoo",
+    "openerpsa": "odoo",
 }
 ALIAS_NAME = {
     "Antonio Maria Vigliotti":

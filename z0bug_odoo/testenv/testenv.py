@@ -326,7 +326,7 @@ char / text
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
 
-You can evalute the field value engaging a simple python expression inside tags like in
+You can evaluate the field value engaging a simple python expression inside tags like in
 following syntax:
 
     "<?odoo EXPRESSION ?>"
@@ -533,16 +533,16 @@ except ImportError:
     except ImportError:
         release = None
 if release:
-    if int(release.major_version.split('.')[0]) < 10:
-        if int(release.major_version.split('.')[0]) > 7:
-            from openerp import api                                        # noqa: F401
+    if int(release.major_version.split(".")[0]) < 10:
+        if int(release.major_version.split(".")[0]) > 7:
+            from openerp import api  # noqa: F401
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
-        from openerp.modules.module import get_module_resource             # noqa: F401
+        from openerp.modules.module import get_module_resource  # noqa: F401
     else:
-        from odoo import api                                               # noqa: F401
+        from odoo import api  # noqa: F401
         import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource                # noqa: F401
+        from odoo.modules.module import get_module_resource  # noqa: F401
         from odoo.tools.safe_eval import safe_eval
 
 import python_plus
@@ -645,7 +645,6 @@ def is_iterable(obj):
 
 
 class MainTest(test_common.TransactionCase):
-
     def setUp(self):
         super(MainTest, self).setUp()
         self.odoo_major_version = release.version_info[0] if release else 0
@@ -677,9 +676,7 @@ class MainTest(test_common.TransactionCase):
         self.module = None
         for item in self.__module__.split("."):
             if item not in ("odoo", "openerp", "addons"):
-                modules = self.env["ir.module.module"].search(
-                    [("name", "=", item)]
-                )
+                modules = self.env["ir.module.module"].search([("name", "=", item)])
                 if modules:
                     self.module = modules[0]
                     break
@@ -692,12 +689,11 @@ class MainTest(test_common.TransactionCase):
         }
 
     def tearDown(self):
-        if (
-                getattr(self, "odoo_commit_test", False)
-                and os.environ.get("ODOO_COMMIT_TEST", "")
-        ):                                                          # pragma: no cover
+        if getattr(self, "odoo_commit_test", False) and os.environ.get(
+            "ODOO_COMMIT_TEST", ""
+        ):  # pragma: no cover
             # Save test environment, so it is available to dump
-            self.env.cr.commit()                       # pylint: disable=invalid-commit
+            self.env.cr.commit()  # pylint: disable=invalid-commit
             _logger.info("✨ Test data available on database %s" % self.env.cr.dbname)
         super(MainTest, self).tearDown()
         self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
@@ -754,12 +750,15 @@ class MainTest(test_common.TransactionCase):
         for ix in range(10):
             if os.path.basename(stack[ix][1]).startswith("testenv"):
                 continue
-            self.log_lvl_2("🚧 %s(%s)/%s()\n%s" % (
-                os.path.basename(stack[ix][1]),
-                stack[ix][2],
-                stack[ix][3],
-                stack[ix][4]
-            ))
+            self.log_lvl_2(
+                "🚧 %s(%s)/%s()\n%s"
+                % (
+                    os.path.basename(stack[ix][1]),
+                    stack[ix][2],
+                    stack[ix][3],
+                    stack[ix][4],
+                )
+            )
             ctr += 1
             if ctr > 0:
                 break
@@ -780,7 +779,7 @@ class MainTest(test_common.TransactionCase):
         self.assert_counter += 1
         return super(MainTest, self).assertTrue(expr, msg=msg)
 
-    def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
+    def assertRaises(self, expected_exception, *args, **kwargs):  # pragma: no cover
         self.assert_counter += 1
         return super(MainTest, self).assertRaises(expected_exception, *args, **kwargs)
 
@@ -873,8 +872,10 @@ class MainTest(test_common.TransactionCase):
         if isinstance(convey, basestring):
             self.log_lvl_1("⚠ Convey %s.%s(%s)" % (resource, convey, field))
         else:
-            self.log_lvl_1("⚠ Convey %s[%s]: '%s' -> '%s'"
-                           % (resource, field, convey[0], convey[1]))
+            self.log_lvl_1(
+                "⚠ Convey %s[%s]: '%s' -> '%s'"
+                % (resource, field, convey[0], convey[1])
+            )
         if field == "all" and (
             not isinstance(convey, basestring)
             or convey != ("_cvt_%s" % resource.replace(".", "_"))
@@ -952,22 +953,24 @@ class MainTest(test_common.TransactionCase):
     # ------------------------------
 
     def is_none(self, value):
-        return (value is None or isinstance(value, basestring)
-                and value in ("None", r"\N"))
+        return (
+            value is None or isinstance(value, basestring) and value in ("None", r"\N")
+        )
 
     def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
         def get_default_data_dir():
             data_dir = get_module_resource(self.module.name, "tests", "data")
-            return data_dir if os.path.isdir(data_dir) else None
+            return data_dir if data_dir and os.path.isdir(data_dir) else None
 
-        if merge not in ("local", "zerobug"):                       # pragma: no cover
+        if merge not in ("local", "zerobug"):  # pragma: no cover
             self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
         self.source = merge
         self.data_dir = data_dir or getattr(self, "datadir", get_default_data_dir())
         self.z0bug_lib.declare_data_dir(
             self.data_dir,
             merge=(merge != "local"),
-            raise_if_not_found=raise_if_not_found)
+            raise_if_not_found=raise_if_not_found,
+        )
 
     def get_test_name(self, resource):
         return "TEST_%s" % self.z0bug_lib.get_pymodel(resource).upper()
@@ -1010,11 +1013,13 @@ class MainTest(test_common.TransactionCase):
                     candidate = self.struct[resource][field]["relation"]
                     if (
                         resource not in self.childs_name
-                        or _relation_prio(candidate) < _relation_prio(
-                            self.childs_resource[resource])
-                        or (_relation_prio(candidate) == _relation_prio(
-                            self.childs_resource[resource])
-                            and len(field) < len(self.childs_name[resource]))
+                        or _relation_prio(candidate)
+                        < _relation_prio(self.childs_resource[resource])
+                        or (
+                            _relation_prio(candidate)
+                            == _relation_prio(self.childs_resource[resource])
+                            and len(field) < len(self.childs_name[resource])
+                        )
                     ):
                         self.childs_name[resource] = field
                         self.childs_resource[resource] = candidate
@@ -1054,29 +1059,28 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _is_xref(self, xref):
-        return (
-            isinstance(xref, basestring)
-            and re.match(r"[\w]+\.[\w][^\s]+$", xref)
-        )
+        return isinstance(xref, basestring) and re.match(r"[\w]+\.[\w][^\s]+$", xref)
 
     @api.model
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
-        try:
-            xref, ln = xref.rsplit("_", 1)
-        except ValueError:
-            self.log_lvl_1(" 🌍 Invalid detail xref %s" % xref)
-            ln = ""
-        if ln.isdigit():
-            ln = int(ln) or False
-        elif isinstance(ln, basestring) and self._is_xref(ln):
-            ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
+        ln = ""
+        if "." in xref and "_" in xref.split(".", 1)[1]:
+            try:
+                xref, ln = xref.rsplit("_", 1)
+            except ValueError:
+                self.log_lvl_1(" 🌍 Invalid detail xref %s" % xref)
+                ln = ""
+            if ln.isdigit():
+                ln = int(ln) or False
+            elif isinstance(ln, basestring) and self._is_xref(ln):
+                ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
         return xref, ln
 
     @api.model
     def _is_transient(self, resource):
         if isinstance(resource, basestring):
-            return self.env[resource]._transient                     # pragma: no cover
+            return self.env[resource]._transient  # pragma: no cover
         return resource._transient
 
     @api.model
@@ -1134,11 +1138,13 @@ class MainTest(test_common.TransactionCase):
                 group, resource = self.setup_xrefs[name]
                 resource = self.childs_resource.get(resource, resource)
         if not resource:
-            resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
-                xref, raise_if_not_found=False)
+            resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
+                xref, raise_if_not_found=False
+            )
             if not resource and name and ln:
-                resource, res_id = self.env['ir.model.data'].xmlid_to_res_model_res_id(
-                    name, raise_if_not_found=False)
+                resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
+                    name, raise_if_not_found=False
+                )
                 resource = self.childs_resource.get(resource, resource)
             if resource:
                 self.setup_xrefs[xref] = (None, resource)
@@ -1191,9 +1197,7 @@ class MainTest(test_common.TransactionCase):
             if resource in KEY_OF_RESOURCE:
                 field = KEY_OF_RESOURCE[resource]
                 self.skeys[resource] = [field]
-                self.log_lvl_2(
-                    " 🌍 skeys[%s] = %s" % (resource, self.skeys[resource])
-                )
+                self.log_lvl_2(" 🌍 skeys[%s] = %s" % (resource, self.skeys[resource]))
             else:
                 multi_key = True if self.parent_name.get(resource) else False
                 hdr_key = True if self.childs_name.get(resource) else False
@@ -1201,7 +1205,8 @@ class MainTest(test_common.TransactionCase):
                 for field in KEY_CANDIDATE:
                     if (
                         field == self.parent_name.get(resource)
-                        or field in ("product_id", "partner_id") and hdr_key
+                        or field in ("product_id", "partner_id")
+                        and hdr_key
                         or (field == "sequence" and not multi_key)
                         or resource in KEY_INCANDIDATE.get(field, [])
                     ):
@@ -1228,13 +1233,16 @@ class MainTest(test_common.TransactionCase):
         ftype = self.struct[resource][field]["type"]
         if ftype not in ("text", "binary", "html"):
             value = self._get_conveyed_value(resource, field, value, fmt=fmt)
-        if ((isinstance(value, str) or (sys.version_info[0] == 2
-                                        and isinstance(value, unicode)))):
+        if isinstance(value, str) or (
+            sys.version_info[0] == 2 and isinstance(value, unicode)
+        ):
             x = re.match(r"(<\? *odoo)(.*)(\?>)", value)
             if x:
                 expr = x.groups()[1].strip()
                 if re.match(r"[\w]+\.[\w]+\.[\w]+$", expr):
-                    xref, field = [x.strip() for x in value[6: -2].rsplit(".", 1)]
+                    xref, field = [
+                        x.strip() for x in value[6:-2].rsplit(".", 1)       # noqa: F812
+                    ]
                     value = self.resource_browse(xref=xref)[field]
                 else:
                     value = eval(expr, self.params)
@@ -1247,11 +1255,7 @@ class MainTest(test_common.TransactionCase):
             and resource not in RESOURCE_WO_COMPANY
         ):
             value = self.default_company().id
-        elif (
-            field == "currency_id"
-            and self.is_none(value)
-            and fmt
-        ):
+        elif field == "currency_id" and self.is_none(value) and fmt:
             value = self.default_company().currency_id.id
         elif field == "id" or self.is_none(value):
             value = None
@@ -1356,12 +1360,14 @@ class MainTest(test_common.TransactionCase):
     def _cvt_to_datetime(self, value):
         if isinstance(value, date):
             if isinstance(value, datetime):
-                value = datetime(value.year,
-                                 value.month,
-                                 value.day,
-                                 value.hour,
-                                 value.minute,
-                                 value.second)
+                value = datetime(
+                    value.year,
+                    value.month,
+                    value.day,
+                    value.hour,
+                    value.minute,
+                    value.second,
+                )
             else:
                 value = datetime(value.year, value.month, value.day, 0, 0, 0)
         elif isinstance(value, basestring):
@@ -1376,7 +1382,7 @@ class MainTest(test_common.TransactionCase):
             value = self._cvt_to_datetime(self.compute_date(value[0], refdate=value[1]))
         else:
             value = self._cvt_to_datetime(self.compute_date(value))
-        if PY2 and isinstance(value, datetime) and fmt == "cmd":     # pragma: no cover
+        if PY2 and isinstance(value, datetime) and fmt == "cmd":  # pragma: no cover
             value = datetime.strftime(value, "%Y-%m-%d %H:%M:%S")
         return value
 
@@ -1404,7 +1410,7 @@ class MainTest(test_common.TransactionCase):
             value = self._cvt_to_date(self.compute_date(value[0], refdate=value[1]))
         else:
             value = self._cvt_to_date(self.compute_date(value))
-        if PY2 and isinstance(value, date) and fmt == "cmd":         # pragma: no cover
+        if PY2 and isinstance(value, date) and fmt == "cmd":  # pragma: no cover
             value = datetime.strftime(value, "%Y-%m-%d")
         return value
 
@@ -1419,9 +1425,9 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _get_binary_filename(self, xref, bin_types=[]):
-        return self.z0bug_lib.get_data_filename(xref,
-                                                bin_types=bin_types,
-                                                raise_if_not_found=False)
+        return self.z0bug_lib.get_data_filename(
+            xref, bin_types=bin_types, raise_if_not_found=False
+        )
 
     @api.model
     def _get_binary_contents(self, value):
@@ -1487,7 +1493,8 @@ class MainTest(test_common.TransactionCase):
     def _value2dict(self, resource, value, fmt=None, group=None, field2rm=None):
         if isinstance(value, dict):
             return self._purge_values(
-                self.cast_types(resource, value, fmt=fmt), fieldname=field2rm)
+                self.cast_types(resource, value, fmt=fmt), fieldname=field2rm
+            )
         elif isinstance(value, basestring):
             return self._purge_values(
                 self.cast_types(
@@ -1496,9 +1503,9 @@ class MainTest(test_common.TransactionCase):
                     fmt=fmt,
                     group=group,
                 ),
-                fieldname=field2rm
+                fieldname=field2rm,
             )
-        return value                                                 # pragma: no cover
+        return value  # pragma: no cover
 
     @api.model
     def _cast_2many(self, resource, field, value, fmt=None, group=None, levl=0):
@@ -1542,16 +1549,18 @@ class MainTest(test_common.TransactionCase):
         child_resource = self.struct[resource][field].get("relation", resource)
         if levl == 1:
             if (
-                    len(items) == 3
-                    and items[0] in (0, 1)
-                    and isinstance(items[1], (int, long))
+                len(items) == 3
+                and items[0] in (0, 1)
+                and isinstance(items[1], (int, long))
             ):
                 # (0|1,x,dict) -> (0|1,x,dict) / dict
                 # (0|1,x,xref) -> (0|1,x,dict) / dict
                 res1 = self._value2dict(
                     child_resource,
-                    items[2], fmt="id" if fmt else None,
-                    field2rm=self.parent_name.get(child_resource))
+                    items[2],
+                    fmt="id" if fmt else None,
+                    field2rm=self.parent_name.get(child_resource),
+                )
                 res = (items[0], items[1], res1) if fmt in ("cmd", None) else res1
                 is_cmd = True
                 items = []
@@ -1561,7 +1570,8 @@ class MainTest(test_common.TransactionCase):
                 res = (
                     items[0],
                     self._cast_field_many2one(
-                        resource, field, items[1], fmt="id" if fmt else None)
+                        resource, field, items[1], fmt="id" if fmt else None
+                    ),
                 )
                 is_cmd = True
                 items = []
@@ -1569,9 +1579,15 @@ class MainTest(test_common.TransactionCase):
                 # (6,0,ids)        -> as is
                 # (6,0,xref)       -> (6,0,[id]) / [id]
                 # (6,0,[xref,...]) -> (6,0,[ids])  / [ids]
-                res1 = mergelist(self._cast_2many(
-                    resource, field, items[2],
-                    fmt="id" if fmt else None, levl=levl + 1))
+                res1 = mergelist(
+                    self._cast_2many(
+                        resource,
+                        field,
+                        items[2],
+                        fmt="id" if fmt else None,
+                        levl=levl + 1,
+                    )
+                )
                 res = (items[0], items[1], res1) if fmt in ("cmd", None) else res1
                 is_cmd = True
                 items = []
@@ -1592,10 +1608,11 @@ class MainTest(test_common.TransactionCase):
                         child_resource,
                         item,
                         fmt="cmd" if fmt else None,
-                        field2rm=self.parent_name.get(child_resource))
+                        field2rm=self.parent_name.get(child_resource),
+                    )
                     if res1:
                         res.append((0, 0, res1) if fmt == "cmd" else res1)
-                elif xid == item and fmt:                            # pragma: no cover
+                elif xid == item and fmt:  # pragma: no cover
                     self.raise_error("Unknown value %s of %s" % (item, items))
                 elif xid:
                     res.append((6, 0, [xid]) if fmt == "cmd" else xid)
@@ -1613,12 +1630,18 @@ class MainTest(test_common.TransactionCase):
                 # [xref] (not exists)     -> (0,0,dict)       / dict
                 # [xref,...] (exists)     -> (6,0,[ids])      / [ids]
                 # [xref,...] (not exists) -> (0,0,dict),(...) / dict,...
-                res.append(self._cast_2many(
-                    resource, field, item, group=group, fmt=fmt, levl=levl + 1))
+                res.append(
+                    self._cast_2many(
+                        resource, field, item, group=group, fmt=fmt, levl=levl + 1
+                    )
+                )
             elif isinstance(item, (list, tuple)) and levl > 0:
                 # '§(6,0,§ ids )'         -> ids
-                res.append(self._cast_2many(
-                    resource, field, item, group=group, fmt="id", levl=levl + 1))
+                res.append(
+                    self._cast_2many(
+                        resource, field, item, group=group, fmt="id", levl=levl + 1
+                    )
+                )
             # elif isinstance(item, (int, long)) and levl == 0:
             #     res.append((4, item) if fmt == "cmd" else item)
             else:
@@ -1626,13 +1649,23 @@ class MainTest(test_common.TransactionCase):
 
         if len(res):
             if (
-                levl == 0 and fmt == "cmd" and not is_cmd
+                levl == 0
+                and fmt == "cmd"
+                and not is_cmd
                 and all([isinstance(x, (int, long)) for x in items])
             ):
                 res = [(6, 0, res)]
-            elif (levl == 0 and fmt == "cmd" and len(res) > 1
-                  and all([isinstance(x, (list, tuple)) and x[0] == 6 and x[1] == 0
-                           for x in res])):
+            elif (
+                levl == 0
+                and fmt == "cmd"
+                and len(res) > 1
+                and all(
+                    [
+                        isinstance(x, (list, tuple)) and x[0] == 6 and x[1] == 0
+                        for x in res
+                    ]
+                )
+            ):
                 res = [(6, 0, mergelist([x[2] for x in res]))]
             elif levl == 1 and not is_cmd:
                 if fmt == "cmd":
@@ -1675,15 +1708,22 @@ class MainTest(test_common.TransactionCase):
             field,
             value,
             fmt=fmt,
-            group=group
+            group=group,
         )
 
     @api.model
     def _convert_one2many_to_write(self, record, field, value):
         if value:
-            return [(6, 0, [
-                x.id if isinstance(x.id, (int, long)) else x.id.origin
-                for x in value])]
+            return [
+                (
+                    6,
+                    0,
+                    [
+                        x.id if isinstance(x.id, (int, long)) else x.id.origin
+                        for x in value
+                    ],
+                )
+            ]
         return False
 
     @api.model
@@ -1745,8 +1785,7 @@ class MainTest(test_common.TransactionCase):
         """
         if not isinstance(values, dict):
             self.raise_error(
-                "Invalid dict %s for %s!"
-                % (values, resource)  # pragma: no cover
+                "Invalid dict %s for %s!" % (values, resource)  # pragma: no cover
             )
         if values:
             self._load_field_struct(resource)
@@ -1755,14 +1794,16 @@ class MainTest(test_common.TransactionCase):
                 if field not in self.struct[resource]:
                     del values[field]
                     self.log_lvl_2(
-                        " 🕶️ field %s does not exist in %s" % (field, resource))
+                        " 🕶️ field %s does not exist in %s" % (field, resource)
+                    )
                     continue
 
                 value = self._cast_field(
                     resource, field, values[field], fmt=fmt, group=group
                 )
-                if value is None and (not keep_null
-                                      or field not in ("company_id", "currency_id")):
+                if value is None and (
+                    not keep_null or field not in ("company_id", "currency_id")
+                ):
                     del values[field]
                     if field != "id":
                         self.log_lvl_3(" 🕶️ del %s.vals[%s]" % (resource, field))
@@ -1777,10 +1818,7 @@ class MainTest(test_common.TransactionCase):
     def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
-            if (
-                field in BLACKLIST_COLUMNS
-                or record._fields[field].readonly
-            ):
+            if field in BLACKLIST_COLUMNS or record._fields[field].readonly:
                 continue
             value = self._convert_field_to_write(record, field)
             if value is None:  # pragma: no cover
@@ -1863,13 +1901,19 @@ class MainTest(test_common.TransactionCase):
                 record._origin = self.env[resource].with_context(ctx)
         else:
             if ctx:
-                record = self.env[resource].with_context(ctx).new(
-                    values=default,
-                    origin=origin or self.env[resource].with_context(ctx))
+                record = (
+                    self.env[resource]
+                    .with_context(ctx)
+                    .new(
+                        values=default,
+                        origin=origin or self.env[resource].with_context(ctx),
+                    )
+                )
             else:
                 record = self.env[resource].new(
                     values=default,
-                    origin=origin or self.env[resource].with_context(ctx))
+                    origin=origin or self.env[resource].with_context(ctx),
+                )
         if hasattr(record, "default_get"):
             self._upgrade_record(
                 record, record.default_get(record.fields_get_keys()), default
@@ -1901,8 +1945,9 @@ class MainTest(test_common.TransactionCase):
         return origin
 
     @api.model
-    def _exec_action(self, record, action, default={}, web_changes=[], origin=None,
-                     ctx={}):
+    def _exec_action(
+        self, record, action, default={}, web_changes=[], origin=None, ctx={}
+    ):
         resource_model = self._get_model_from_records(record)
         origin = origin or self.env[resource_model]
         if isinstance(record, basestring):
@@ -1972,7 +2017,7 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _get_src_model_from_act_windows(self, act_windows):
-        model_name = act_windows.get("src_model")
+        model_name = act_windows.get("binding_model", act_windows.get("src_model"))
         if not model_name and act_windows.get("binding_model_id"):
             model_name = self.env.ref(act_windows["binding_model_id"])["model"]
         if not model_name or self._is_transient(model_name):
@@ -2069,9 +2114,9 @@ class MainTest(test_common.TransactionCase):
                 act_windows["context"].update(
                     self._ctx_active_ids(records, ctx=act_windows["context"])
                 )
-            if not is_iterable(records):                             # pragma: no cover
+            if not is_iterable(records):  # pragma: no cover
                 records = [records]
-        if act_windows["type"] == "ir.actions.server":               # pragma: no cover
+        if act_windows["type"] == "ir.actions.server":  # pragma: no cover
             if not records:
                 self.raise_error("No any records supplied")
         else:
@@ -2150,8 +2195,7 @@ class MainTest(test_common.TransactionCase):
             act_windows = self.for_xml_id(module, action_name)
         except BaseException:
             # if not records or len(records) != 1:
-            self.raise_error(
-                "Invalid action_name %s" % action_name)
+            self.raise_error("Invalid action_name %s" % action_name)
         return self._wiz_launch(
             act_windows,
             default=default,
@@ -2185,8 +2229,8 @@ class MainTest(test_common.TransactionCase):
                     cur_vals[name] = getattr(wizard, name)
                 except BaseException:
                     self.raise_error(
-                        "Wrong compute for %s.%s! Forgot @multi?" % (wizard._name,
-                                                                     name))
+                        "Wrong compute for %s.%s! Forgot @multi?" % (wizard._name, name)
+                    )
         value = self._cast_field(resource, field, value, fmt="id")
         if value is not None:
             if wizard._fields[field].type in ("one2many", "many2many"):
@@ -2263,7 +2307,8 @@ class MainTest(test_common.TransactionCase):
         if resource_child:
             field_child = self.childs_name.get(resource)
             child_values = [
-                x for x in self.get_resource_data_list(resource_child, group=group)
+                x
+                for x in self.get_resource_data_list(resource_child, group=group)
                 if x.startswith(xref)
             ]
             if child_values:
@@ -2312,8 +2357,9 @@ class MainTest(test_common.TransactionCase):
         return python_plus.compute_date(self.u(date), refdate=self.u(refdate))
 
     @api.model
-    def resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None,
-                        no_warning=False):
+    def resource_browse(
+        self, xref, raise_if_not_found=True, resource=None, group=None, no_warning=False
+    ):
         """Bind record by xref or searching it or browsing it.
         This function returns a record using issued parameters. It works in follow ways:
 
@@ -2337,6 +2383,7 @@ class MainTest(test_common.TransactionCase):
         Raises:
             ValueError: if invalid parameters issued
         """
+
         def build_domain(domain, k1, values):
             kk = True
             for field in self.skeys[resource]:
@@ -2344,8 +2391,13 @@ class MainTest(test_common.TransactionCase):
                     domain.append((field, "=", k1))
                     kk = False
                 elif field in values:
-                    domain.append((field, "=", self._cast_field(
-                        resource, field, values[field], fmt="cmd")))
+                    domain.append(
+                        (
+                            field,
+                            "=",
+                            self._cast_field(resource, field, values[field], fmt="cmd"),
+                        )
+                    )
             # TODO> Remove early RESOURECE_WO_COMPANY
             if domain and "company_id" in self.struct[resource]:
                 domain.append("|")
@@ -2374,16 +2426,16 @@ class MainTest(test_common.TransactionCase):
         # Simulate external reference
         if not resource and not group:
             resource = self._get_model_of_xref(xref)
-        if not resource:                                             # pragma: no cover
+        if not resource:  # pragma: no cover
             if raise_if_not_found:
-                self.raise_error("No model issued for binding")
+                self.raise_error("Xref %s: no model issued for binding" % xref)
             return False
-        if resource not in self.env:                                 # pragma: no cover
+        if resource not in self.env:  # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("Model %s not found in the system" % resource)
             return False
         self._load_field_struct(resource)
-        if resource not in self.skeys:                               # pragma: no cover
+        if resource not in self.skeys:  # pragma: no cover
             if raise_if_not_found:
                 self.raise_error("Model %s without search key" % resource)
             self._logger.info("⚠ Model %s without search key" % resource)
@@ -2405,7 +2457,7 @@ class MainTest(test_common.TransactionCase):
                 raise_if_not_found=False,
                 group=group,
             )
-            if not parent_rec:                                       # pragma: no cover
+            if not parent_rec:  # pragma: no cover
                 msg = "Parent xref %s.%s not found for %s" % (module, name, resource)
                 if raise_if_not_found:
                     self.raise_error(msg)
@@ -2420,12 +2472,16 @@ class MainTest(test_common.TransactionCase):
             parent_rec = False
             ln = name if module == "external" else False
         domain = build_domain(domain, ln, values)
-        if not domain:                                               # pragma: no cover
+        if not domain:  # pragma: no cover
             if raise_if_not_found:
-                self.raise_error("No value %s supplied for search keys %s for model %s"
-                                 % (values, self.skeys[resource], resource))
-            self.log_lvl_2("⚠ No value %s supplied for search keys %s for model %s"
-                           % (values, self.skeys[resource], resource))
+                self.raise_error(
+                    "No value %s supplied for search keys %s for model %s"
+                    % (values, self.skeys[resource], resource)
+                )
+            self.log_lvl_2(
+                "⚠ No value %s supplied for search keys %s for model %s"
+                % (values, self.skeys[resource], resource)
+            )
             return False
         record = self.env[resource].search(domain, limit=3)
         if len(record) != 1 and parent_rec and isinstance(ln, (int, long)):
@@ -2467,8 +2523,9 @@ class MainTest(test_common.TransactionCase):
             values = self.get_resource_data(resource, xref, group=group)
             values = self._add_child_records(resource, xref, values, group=group)
         if not values:  # pragma: no cover
-            self.raise_error("No values supplied for xref %s on %s create"
-                             % (xref, resource))
+            self.raise_error(
+                "No values supplied for xref %s on %s create" % (xref, resource)
+            )
         self.log_lvl_3(
             "🐞%s.resource_create(%s,xref=%s)"
             % (resource, self.dict_2_print(values), xref)
@@ -2483,13 +2540,17 @@ class MainTest(test_common.TransactionCase):
                 )
             elif self.odoo_major_version <= 7:
                 res = self.registry(resource).browse(
-                    self.cr, self.uid,
-                    self.registry(resource).create(self.cr, self.uid, values))
+                    self.cr,
+                    self.uid,
+                    self.registry(resource).create(self.cr, self.uid, values),
+                )
             else:
                 res = self.env[resource].create(values)
         except BaseException as e:
-            self.raise_error("Resource '%s' create error '%s'\n%s"
-                             % (resource, e, self.dict_2_print(values)))
+            self.raise_error(
+                "Resource '%s' create error '%s'\n%s"
+                % (resource, e, self.dict_2_print(values))
+            )
             return None
         if self._is_xref(xref):
             self._add_xref(xref, res.id, resource)
@@ -2539,7 +2600,7 @@ class MainTest(test_common.TransactionCase):
         """
         self.log_stack()
         if resource is None or isinstance(resource, basestring):
-            if not xref and not values:                              # pragma: no cover
+            if not xref and not values:  # pragma: no cover
                 self.raise_error("%s.write() without values and xref" % resource)
             record = self.resource_browse(
                 xref,
@@ -2555,7 +2616,8 @@ class MainTest(test_common.TransactionCase):
                 values = self.unicodes(values)
             else:
                 values = self._purge_values(
-                    self.get_resource_data(resource, xref, group=group))
+                    self.get_resource_data(resource, xref, group=group)
+                )
             values = self._add_child_records(resource, xref, values, group=group)
             values = self.cast_types(resource, values, fmt="cmd", group=group)
             self.log_lvl_3(
@@ -2570,10 +2632,14 @@ class MainTest(test_common.TransactionCase):
                 else:
                     record.write(values)
             except BaseException as e:
-                self.raise_error("Resource '%s' write error '%s'\n%s"
-                                 % (resource, e, self.dict_2_print(values)))
+                self.raise_error(
+                    "Resource '%s' write error '%s'\n%s"
+                    % (resource, e, self.dict_2_print(values))
+                )
 
                 return None
+        if record and self._is_xref(xref):
+            self._add_xref(xref, record.id, resource)
         return record
 
     @api.model
@@ -2596,7 +2662,8 @@ class MainTest(test_common.TransactionCase):
         return record
 
     def declare_resource_data(
-            self, resource, data, name=None, group=None, merge="local"):
+        self, resource, data, name=None, group=None, merge="local"
+    ):
         """Declare data to load on setup_env().
 
         Args:
@@ -2609,14 +2676,17 @@ class MainTest(test_common.TransactionCase):
         Raises:
             TypeError: if invalid parameters issued
         """
-        if not isinstance(data, dict):                              # pragma: no cover
+        if not isinstance(data, dict):  # pragma: no cover
             self.raise_error("Dictionary expected")
         self.set_datadir(merge=merge)
+        if not data and merge == "local":
+            data = {k: {} for k in self.z0bug_lib.get_test_xrefs(resource)}
         data = self.unicodes(data)
         for xref in list(sorted(data.keys())):
             if merge in ("local", "zerobug"):
                 zerobug = self.z0bug_lib.get_test_values(
-                    resource, xref, raise_if_not_found=False)
+                    resource, xref, raise_if_not_found=False
+                )
                 for field in list(zerobug.keys()):
                     if field not in data[xref]:
                         if not self.is_none(zerobug[field]):
@@ -2634,7 +2704,7 @@ class MainTest(test_common.TransactionCase):
             )
 
     def declare_all_data(self, message, group=None, merge="local", data_dir=None):
-        """Declare all data to load on setup_env().
+        """Declare all data from message to load on setup_env().
 
         Args:
             message (dict): data message
@@ -2649,15 +2719,15 @@ class MainTest(test_common.TransactionCase):
             TypeError: if invalid parameters issued
         """
         self.log_stack()
-        if not isinstance(message, dict):                           # pragma: no cover
+        if not isinstance(message, dict):  # pragma: no cover
             self.raise_error("Dictionary expected")
-        if "TEST_SETUP_LIST" not in message:                        # pragma: no cover
+        if "TEST_SETUP_LIST" not in message:  # pragma: no cover
             self.raise_error("Key TEST_SETUP_LIST not found")
         group = group or "base"
         self.set_datadir(data_dir=data_dir, merge=merge)
         for resource in message["TEST_SETUP_LIST"]:
             item = self.get_test_name(resource)
-            if item not in message:                                 # pragma: no cover
+            if item not in message:  # pragma: no cover
                 self.raise_error("Key %s not found" % item)
         for resource in message["TEST_SETUP_LIST"]:
             self.log_lvl_1(" 🐜 declare_all_data(%s,group=%s)" % (resource, group))
@@ -2684,7 +2754,8 @@ class MainTest(test_common.TransactionCase):
         group = group or "base"
         if (
             group in self.setup_data
-            and resource and resource in self.setup_data[group]
+            and resource
+            and resource in self.setup_data[group]
             and xref in self.setup_data[group][resource]
         ):
             return self.setup_data[group][resource][xref]
@@ -2721,7 +2792,7 @@ class MainTest(test_common.TransactionCase):
             return self.setup_data_list[group]
         return []  # pragma: no cover
 
-    def set_locale(self, locale_name, raise_if_not_found=True):
+    def set_locale(self, locale_name, raise_if_not_found=True):      # pragma: no cover
         modules_model = self.env["ir.module.module"]
         modules = modules_model.search([("name", "=", locale_name)])
         if modules and modules[0].state != "uninstalled":
@@ -2746,13 +2817,13 @@ class MainTest(test_common.TransactionCase):
             if languages:
                 languages.write({"active": True})
                 load = True
-        if not languages or load:
+        if not languages or load:                                    # pragma: no cover
             vals = {
                 "lang": iso,
                 "overwrite": overwrite,
             }
             self.env["base.language.install"].create(vals).lang_install()
-        if force_translation:
+        if force_translation:                                        # pragma: no cover
             vals = {"lang": iso}
             self.env["base.update.translations"].create(vals).act_update()
 
@@ -2791,6 +2862,7 @@ class MainTest(test_common.TransactionCase):
         Returns:
             default company for user
         """
+
         def store_acc_alias(xref, acc_type, chart_name):
             if chart_name.endswith("_prefix"):
                 acc_code = getattr(chart_template, chart_name)
@@ -2810,43 +2882,53 @@ class MainTest(test_common.TransactionCase):
 
         self.log_stack()
         add_alias = True
+        res_company = "res.company"
+        res_partner = "res.partner"
         if not company:  # pragma: no cover
-            company = self.env["res.company"].create(values)
+            company = self.env[res_company].create(values)
             add_alias = True
         elif values:
-            company.write(self.cast_types("res.company", values, fmt="cmd"))
+            company.write(self.cast_types(res_company, values, fmt="cmd"))
         chart_template = self.env["account.chart.template"].search(
             [("id", "=", company.chart_template_id.id)]
         )
         if xref:
             if not add_alias:
-                self.add_xref(xref, "res.company", company.id)  # pragma: no cover
+                self.add_xref(xref, res_company, company.id)  # pragma: no cover
             elif not self.env.ref(xref, raise_if_not_found=False):
                 self.add_alias_xref(
-                    xref, "base.main_company", resource="res.company", group=group
+                    xref, "base.main_company", resource=res_company, group=group
                 )
+                # if values:
+                #     self.store_resource_data(res_company, xref, values, group=group)
         if partner_xref:
             if not add_alias:  # pragma: no cover
-                self.add_xref(partner_xref, "res.partner", company.partner_id.id)
+                self.add_xref(partner_xref, res_partner, company.partner_id.id)
             elif not self.env.ref(partner_xref, raise_if_not_found=False):
                 self.add_alias_xref(
                     partner_xref,
                     "base.main_partner",
-                    resource="res.partner",
+                    resource=res_partner,
                     group=group,
                 )
         if recv_xref:
-            store_acc_alias(recv_xref,
-                            "account.data_account_type_receivable",
-                            "property_account_receivable_id")
+            store_acc_alias(
+                recv_xref,
+                "account.data_account_type_receivable",
+                "property_account_receivable_id",
+            )
         if pay_xref:
-            store_acc_alias(pay_xref,
-                            "account.data_account_type_payable",
-                            "property_account_payable_id")
+            store_acc_alias(
+                pay_xref,
+                "account.data_account_type_payable",
+                "property_account_payable_id",
+            )
         if bnk1_xref:
-            store_acc_alias(bnk1_xref,
-                            "account.data_account_type_liquidity",
-                            "bank_account_code_prefix")
+            store_acc_alias(
+                bnk1_xref,
+                "account.data_account_type_liquidity",
+                "bank_account_code_prefix",
+            )
         if self.env.user.company_id != company:
             self.env.user.company_id = company  # pragma: no cover
         return self.default_company()
@@ -2885,10 +2967,11 @@ class MainTest(test_common.TransactionCase):
         Returns:
             None
         """
-        def init_resource_data(resource, data):
+
+        def init_resource_data(resource, data, ix):
             item = self.get_test_name(resource)
-            if item in inspect.stack()[1][0].f_globals:
-                data[item] = inspect.stack()[1][0].f_globals[item]
+            if ix is not False and item in inspect.stack()[ix][0].f_globals:
+                data[item] = inspect.stack()[ix][0].f_globals[item]
             elif self.data_dir:
                 data[item] = {}
                 for k in self.z0bug_lib.get_test_xrefs(resource):
@@ -2896,25 +2979,28 @@ class MainTest(test_common.TransactionCase):
             else:
                 self.raise_error("No data supplied for %s" % resource)
 
+        if not hasattr(self, "module"):
+            raise EnvironmentError("super().setUp() not called before test!")
         self.set_datadir(data_dir=data_dir, merge=merge)
-        if (
-                not self.setup_data
-                and "TEST_SETUP_LIST" in inspect.stack()[1][0].f_globals
-        ):
-            # No old API, load external data
-            data = {
-                "TEST_SETUP_LIST": inspect.stack()[1][0].f_globals["TEST_SETUP_LIST"]
-            }
-            for resource in data["TEST_SETUP_LIST"]:
-                init_resource_data(resource, data)
-            self.declare_all_data(data)
+        ix = found = False
+        for ix in range(10):
+            if "TEST_SETUP_LIST" in inspect.stack()[ix][0].f_globals:
+                found = True
+                break
+        if not setup_list:
+            if found:
+                data = {
+                    "TEST_SETUP_LIST":
+                        inspect.stack()[ix][0].f_globals["TEST_SETUP_LIST"]
+                }
+                for resource in data["TEST_SETUP_LIST"]:
+                    init_resource_data(resource, data, ix + 1)
+                self.declare_all_data(data)
         elif setup_list:
-            data = {
-                "TEST_SETUP_LIST": setup_list
-            }
+            data = {"TEST_SETUP_LIST": setup_list}
             for resource in setup_list:
-                init_resource_data(resource, data)
-            self.declare_all_data(data)
+                init_resource_data(resource, data, ix + 1 if found else ix)
+            self.declare_all_data(data, group=group)
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
             "🎺🎺🎺 Starting test v2.0.14 (debug_level=%s, commit=%s)"
@@ -2935,9 +3021,10 @@ class MainTest(test_common.TransactionCase):
             for xref in sorted(self.get_resource_data_list(resource, group=group)):
                 if resource_parent:
                     parent_xref, ln = self._unpack_xref(xref)
-                    if self.get_resource_data(resource_parent, parent_xref,
-                                              group=group):
-                        # Childs record alread loaded with header record
+                    if ln and self.get_resource_data(
+                        resource_parent, parent_xref, group=group
+                    ):
+                        # Childs record already loaded with header record
                         continue
                 self.resource_make(resource, xref, group=group)
         if self.odoo_major_version < 13:
@@ -2976,6 +3063,7 @@ class MainTest(test_common.TransactionCase):
         * Value to assign
         * Optional function to execute (i.e. specific onchange)
 
+        You can easily get the field name form GUI with developer mode active.
         If field is associate to an onchange function the relative onchange functions
         are execute after value assignment. If onchange set another field with another
         onchange the relative another onchange are executed until all onchange are
@@ -3000,9 +3088,12 @@ class MainTest(test_common.TransactionCase):
                                    issued record
             default (dict): default value to assign
             web_changes (list): list of tuples (field, value); see <wiz_edit>
+            actions (str or list or tuple): action to execute; if not supplied will be
+                                            execute "save" for existent record or
+                                            "create" if no record supplied.
 
         Returns:
-            windows action to execute or obj record
+            windows action to execute or obj record from [create, save] actions
         """
         self.log_stack()
         actions = actions or (
@@ -3023,8 +3114,12 @@ class MainTest(test_common.TransactionCase):
         origin = self._set_origin(resource, ctx=ctx)
         for action in actions:
             result = self._exec_action(
-                resource, action,
-                default=default, web_changes=web_changes, origin=origin, ctx=ctx
+                resource,
+                action,
+                default=default,
+                web_changes=web_changes,
+                origin=origin,
+                ctx=ctx,
             )
             # Web changes executed, clear them, same for default
             web_changes = []
@@ -3062,7 +3157,7 @@ class MainTest(test_common.TransactionCase):
         button_name=None,
         web_changes=[],
         button_ctx={},
-        field=None,
+        field="data",
     ):
         """Execute the data download.
         Engage the specific download wizard and return the downloaded data.
@@ -3118,11 +3213,24 @@ class MainTest(test_common.TransactionCase):
         )
 
     @api.model
-    def is_action(self, act_windows):
-        return isinstance(act_windows, dict) and act_windows.get("type") in (
-            "ir.actions.act_window",
-            "ir.actions.client",
-            "ir.actions.act_window_close"
+    def is_action(self, act_windows, no_report=False):
+        return (
+            isinstance(act_windows, dict)
+            and act_windows.get("type")
+            in (
+                (
+                    "ir.actions.act_window",
+                    "ir.actions.client",
+                    "ir.actions.act_window_close",
+                    "ir.actions.report",
+                )
+                if no_report
+                else (
+                    "ir.actions.act_window",
+                    "ir.actions.client",
+                    "ir.actions.act_window_close",
+                )
+            )
         )
 
     @api.model
@@ -3252,12 +3360,14 @@ class MainTest(test_common.TransactionCase):
                 for tmpl in template:
                     item += get_item(tmpl, match=match) + " "
                 return item.strip()
-            item = str(template.get("id", template.get("code", template.get(
-                "name", "<...>"))))
+            item = str(
+                template.get("id", template.get("code", template.get("name", "<...>")))
+            )
             if match and "_MATCH" in template:
                 item += "{"
                 item += ", ".join(
-                    ["%s=%d" % (k, v) for (k, v) in template["_MATCH"].items()])
+                    ["%s=%d" % (k, v) for (k, v) in template["_MATCH"].items()]
+                )
                 item += "}"
             return item
 
@@ -3266,12 +3376,7 @@ class MainTest(test_common.TransactionCase):
         return indent + "".join(
             [
                 "template(",
-                ", ".join(
-                    [
-                        get_item(x, match=match)
-                        for x in tmpl
-                    ]
-                ),
+                ", ".join([get_item(x, match=match) for x in tmpl]),
                 ")",
             ]
         )
@@ -3300,10 +3405,12 @@ class MainTest(test_common.TransactionCase):
                 ):
                     tmpl = tmpl[2]
                     template[ix] = tmpl
-                if not isinstance(tmpl, dict):                      # pragma: no cover
+                if not isinstance(tmpl, dict):  # pragma: no cover
                     self.raise_error(
-                        ("Function validate_records(): "
-                         "invalid structure: %s must be a dictionary!" % tmpl)
+                        (
+                            "Function validate_records(): "
+                            "invalid structure: %s must be a dictionary!" % tmpl
+                        )
                     )
                 if REC_KEY_NAME & set(tmpl.keys()):
                     if rec_parent:
@@ -3318,17 +3425,20 @@ class MainTest(test_common.TransactionCase):
                 merge_match(
                     match,
                     self.tmpl_init(
-                        tmpl, record, nr=nr, repr=repr, rec_parent=rec_parent))
+                        tmpl, record, nr=nr, repr=repr, rec_parent=rec_parent
+                    ),
+                )
             return match
 
         if len(record) > 1 or isinstance(record, (list, tuple)):
             for rec in record:
                 match = self.tmpl_init(
-                    template, rec, nr=nr, repr=repr, rec_parent=rec_parent)
+                    template, rec, nr=nr, repr=repr, rec_parent=rec_parent
+                )
             return match
 
         resource = self._get_model_from_records(record)
-        if not resource:                                            # pragma: no cover
+        if not resource:  # pragma: no cover
             self.raise_error("No valid record supplied for comparing!")
         self._load_field_struct(resource)
         childs_name = self.childs_name.get(resource)
@@ -3346,14 +3456,17 @@ class MainTest(test_common.TransactionCase):
             ) == self._convert_field_to_write(record, field):
                 template["_MATCH"][key] += 1
         if childs_name:
-            merge_match(template["_MATCH"],
-                        self.tmpl_init(
-                            template[childs_name],
-                            record[childs_name],
-                            nr=nr + 100,
-                            repr=repr,
-                            rec_parent=record),
-                        is_child=True)
+            merge_match(
+                template["_MATCH"],
+                self.tmpl_init(
+                    template[childs_name],
+                    record[childs_name],
+                    nr=nr + 100,
+                    repr=repr,
+                    rec_parent=record,
+                ),
+                is_child=True,
+            )
         return template["_MATCH"]
 
     def tmpl_purge_matrix(self, template, record, rec_parent=None):
@@ -3368,7 +3481,7 @@ class MainTest(test_common.TransactionCase):
         def get_best_score(template, record, rec_parent=None, matched=[], childs=False):
             resource = self._get_model_from_records(record)
             childs_name = self.childs_name.get(resource)
-            if childs and not childs_name:                          # pragma: no cover
+            if childs and not childs_name:  # pragma: no cover
                 return None, None
             ctr = -1
             match_key = match_tmpl = None
@@ -3377,7 +3490,8 @@ class MainTest(test_common.TransactionCase):
                     if (tmpl, (rec_parent, rec)) in matched:
                         continue
                     tmpl, key, ctr = get_score(
-                        tmpl, rec, ctr=ctr, rec_parent=rec_parent)
+                        tmpl, rec, ctr=ctr, rec_parent=rec_parent
+                    )
                     if key:
                         match_key = key
                         match_tmpl = tmpl
@@ -3403,8 +3517,8 @@ class MainTest(test_common.TransactionCase):
                                     if (child_tmpl, (rec, child_rec)) in matched:
                                         continue
                                     child_tmpl, child_key, ctr = get_score(
-                                        child_tmpl, child_rec,
-                                        ctr=ctr, rec_parent=rec)
+                                        child_tmpl, child_rec, ctr=ctr, rec_parent=rec
+                                    )
                                     if child_key:
                                         match_tmpl = child_tmpl
                                         match_key = child_key
@@ -3412,18 +3526,21 @@ class MainTest(test_common.TransactionCase):
                         break
                     matched.append((match_tmpl, match_key))
                     self.tmpl_purge_matrix(
-                        match_tmpl, match_key[1], rec_parent=match_key[0])
+                        match_tmpl, match_key[1], rec_parent=match_key[0]
+                    )
 
             max_recs = len(template) * len(record)
             matched = []
             while len(matched) < max_recs:
                 match_tmpl, match_key = get_best_score(
-                    template, record, rec_parent=rec_parent, matched=matched)
+                    template, record, rec_parent=rec_parent, matched=matched
+                )
                 if not match_key:
                     break
                 matched.append((match_tmpl, match_key))
                 self.tmpl_purge_matrix(
-                    match_tmpl, match_key[1], rec_parent=match_key[0])
+                    match_tmpl, match_key[1], rec_parent=match_key[0]
+                )
                 for tmpl in template:
                     if tmpl == match_tmpl:
                         continue
@@ -3454,24 +3571,24 @@ class MainTest(test_common.TransactionCase):
             for field in template.keys():
                 if field in (childs_name, "id") or field.startswith("_"):
                     continue
-                msg_id = ("🐞 ... assertEqual(%s.%s:'%s', %s:'%s')"
-                          % (
-                              self.tmpl_repr([template]),
-                              field,
-                              template[field],
-                              "rec(%d)" % record.id,
-                              record[field],
-                          ))
+                msg_id = "🐞 ... assertEqual(%s.%s:'%s', %s:'%s')" % (
+                    self.tmpl_repr([template]),
+                    field,
+                    template[field],
+                    "rec(%d)" % record.id,
+                    record[field],
+                )
                 self.log_lvl_2(msg_id)
                 self.assertEqual(
                     self._cast_field(resource, field, template[field], fmt="py"),
                     self._cast_field(resource, field, record[field], fmt="py"),
-                    msg_id
+                    msg_id,
                 )
                 ctr_assertion += 1
             if childs_name:
                 ctr_assertion += self.tmpl_validate_record(
-                    template[childs_name], record[childs_name])
+                    template[childs_name], record[childs_name]
+                )
         return ctr_assertion
 
     def validate_records(self, template, records, raise_if_not_match=True):
@@ -3523,4 +3640,3 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
-

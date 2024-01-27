@@ -428,10 +428,10 @@ gen_readme.py command line
 
     usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-D PATH] [-F FROM_VERSION] [-f]
                          [-G GIT_ORGID] [-g OPT_GPL] [-H] [-l ODOO_LAYER]
-                         [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n]
+                         [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n] [-O]
                          [-o OUTPUT_FILE] [-P PRODUCT_DOC] [-p PATH_NAME] [-q]
                          [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME]
-                         [-T] [-V] [-v] [-W] [-w] [-Y]
+                         [-T] [-V] [-v] [-W] [-w] [-X] [-Y]
     
     Generate README
     
@@ -455,6 +455,8 @@ gen_readme.py command line
       -M FORCE_MATURITY, --force-maturity FORCE_MATURITY
                             Alfa,Beta,Mature,Production/stable
       -n, --dry-run         do nothing (dry-run)
+      -O, --odoo_marketplace
+                            create index.html with Odoo marketplace rules
       -o OUTPUT_FILE, --output-file OUTPUT_FILE
                             filename
       -P PRODUCT_DOC, --product-doc PRODUCT_DOC
@@ -474,6 +476,7 @@ gen_readme.py command line
       -v, --verbose         verbose mode
       -W, --write-authinfo
       -w, --suppress-warning
+      -X, --write-office
       -Y, --write-man-page
     
     © 2018-2023 by SHS-AV s.r.l.

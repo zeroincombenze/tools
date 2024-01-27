@@ -1,0 +1,6 @@
+-
+  - '.*binding_model="([^"]*)"'
+  -
+    - 's'
+    - 'binding_model="([^"]*)"'
+    - 'src_model="\1"'

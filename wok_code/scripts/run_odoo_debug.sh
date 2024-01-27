@@ -81,14 +81,20 @@ check_for_modules() {
 }
 
 coverage_set() {
+    local m p coverage_tmpl opts
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
       export COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
       export COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
+      [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -E "/^ *.\/tests\/./d" -i $COVERAGE_PROCESS_START
       if [[ $opt_dry_run -eq 0 ]]; then
-        grep -Eq "^data_file *=" $COVERAGE_PROCESS_START || sed -E "/^\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
-        [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -e "/\/tests\//d" -i $COVERAGE_PROCESS_START
+        for m in ${opt_modules//,/ }; do
+          p=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*" -name $m)
+          sed -E "/    \*\.py/a\\    $p/*" -i $COVERAGE_PROCESS_START
+        done
+        sed -E "s/    \*\.py/#    *.py/" -i $COVERAGE_PROCESS_START
+        sed -E "/\[run\]/a\\\ndata_file=$COVERAGE_DATA_FILE\n" -i $COVERAGE_PROCESS_START
       fi
     fi
 }
@@ -96,18 +102,20 @@ coverage_set() {
 coverage_erase() {
     if [[ -n $COVERAGE_PROCESS_START ]]; then
         [[ -f $COVERAGE_DATA_FILE ]] && rm -f $COVERAGE_DATA_FILE
-        [[ $v -ge 6 ]] && run_traced "coverage erase --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE" || run_traced "coverage erase --rcfile=$COVERAGE_PROCESS_START"
+        run_traced "coverage erase --rcfile=$COVERAGE_PROCESS_START"
     fi
 }
 
 coverage_report() {
+    local v
      if [[ -n $COVERAGE_PROCESS_START ]]; then
-      opts="-i"
-      for m in ${opt_modules//,/ }; do
-        opts="$opts --include=$(find $odoo_root -type d -not -path "*/setup/*" -name $m)/*"
-      done
+#      local opts="-i"
+#      for m in ${opt_modules//,/ }; do
+#        opts="$opts --include=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*"  -name $m)/*"
+#      done
       v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      [[ $v -ge 6 ]] && coverage report --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $opts -m || coverage report --rcfile=$COVERAGE_PROCESS_START $opts -m
+      # [[ $v -ge 6 ]] && opts="--data-file=$COVERAGE_DATA_FILE"
+      run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
     fi
 }
 
@@ -290,27 +298,15 @@ run_odoo_server() {
     if [[ -n $COVERAGE_PROCESS_START ]]; then
         v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $opt_dae -eq 0 ]]; then
-            if [[ $v -ge 6 ]]; then
-                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
-            else
-                run_traced "export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-                [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
-            fi
+            run_traced "export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
+            [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         else
-            if [[ $v -ge 6 ]]; then
-                [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
-                [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &"
-                [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START --data-file=$COVERAGE_DATA_FILE $script $OPT_CONF $OPT_LLEV $OPTS &
-            else
-                run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-                [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
-                [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
-                [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
-            fi
+            run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
+            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
         fi
     else
         if [[ $opt_dae -eq 0 ]]; then
@@ -767,5 +763,3 @@ if [[ $opt_touch -eq 0 ]]; then
     fi
 fi
 exit $sts
-
-

@@ -1063,6 +1063,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
+You can easily get the field name form GUI with developer mode active.
 If field is associate to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
@@ -1088,9 +1089,12 @@ def resource_edit(self, resource, default={}, web_changes=[], actions=[], ctx={}
         if field is an obj simulate write web behavior on the issued record
         default (dict): default value to assign
         web_changes (list): list of tuples (field, value); see <wiz_edit>
+        actions (str or list or tuple): action to execute; if not supplied will be
+                                execute "save" for existent record or
+                                "create" if no record supplied.
 
     Returns:
-        windows action to execute or obj record
+        windows action to execute or obj record from [create, save] actions
 
 wizard
 ~~~~~~
@@ -1205,5 +1209,3 @@ def get_records_from_act_windows(self, act_windows):
 
     Raises:
         ValueError: if invalid parameters issued
-
-

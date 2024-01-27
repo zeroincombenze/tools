@@ -31,9 +31,14 @@ fi
 [[ $SRCPATH == $CMD ]] && chmod -c +x $SRCPATH
 echo "#!$PYTHON">$cmd
 echo "# -*- coding: utf-8 -*-">>$cmd
-echo "# Created for test use on $(date '+%Y-%m-%d %H:%M:%S')">>$cmd
+echo "# Created just for test use on $(date '+%Y-%m-%d %H:%M:%S')">>$cmd
 echo "import re">>$cmd
 echo "import sys">>$cmd
+echo "import coverage">>$cmd
+echo "try:">>$cmd
+echo "    coverage.process_startup()">>$cmd
+echo "except coverage.CoverageException as e:">>$cmd
+echo "    print(e)">>$cmd
 echo "sys.path.insert(0, '$PYPATH')">>$cmd
 echo "from $FROM import main">>$cmd
 echo "if __name__ == '__main__':">>$cmd

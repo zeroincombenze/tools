@@ -14,6 +14,8 @@ ChangeLog History
 * [IMP] TestEnv: empty currency_id is set with company currency
 * [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
 * [FIX] TestEnv: sometimes external.KEY did not work
+* [FIX] TestEnv: 3 level xref fails when module ha "_" in its name
+* [IMP] _check4deps.py: documentation clearing
 
 2.0.13 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~

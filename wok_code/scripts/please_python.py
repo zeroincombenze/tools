@@ -80,7 +80,7 @@ BUGS
         if not os.path.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
             return 127
-        valid_odoo_vers = ("2.7", "3,5", "3,6", "3.7", "3.8", "3.9", "3.10", "3.11")
+        valid_odoo_vers = ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11")
         if please.opt_args.python not in valid_odoo_vers:
             print("You must specify the python version: %s" % ",".join(valid_odoo_vers))
             return 1
@@ -106,5 +106,3 @@ BUGS
             )
             return 0
         return please.run_traced(cmd)
-
-
