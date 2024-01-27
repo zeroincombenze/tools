@@ -49,15 +49,21 @@
             <p class="oe_mt16" align="justify">{{description_i18n}}</p>
         </div>
     </div>
+</section>
 .. $if defined features
+
+<section>
     <div class="oe_row oe_spaced">
         <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Features | Caratteristiche</h3>
         <div class="oe_span12">
 {{features}}
         </div>
     </div>
+</section>
 .. $fi
 .. $if defined configuration
+
+<section>
     <div class="oe_row oe_spaced">
         <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Configuration | Configurazione</h3>
 .. $if configuration == configuration_i18n
@@ -80,8 +86,11 @@
         </div>
 .. $fi
     </div>
+</section>
 .. $fi
 .. $if defined usage
+
+<section>
     <div class="oe_row oe_spaced">
         <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Usage | Utilizzo</h3>
 .. $if usage == usage_i18n
@@ -104,29 +113,5 @@
         </div>
 .. $fi
     </div>
-.. $fi
-.. $if defined oca_diff
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">OCA comparation | Confronto con OCA</h3>
-        <div class="oe_span12">
-{{oca_diff}}
-        </div>
-    </div>
-.. $fi
-.. $if defined changelog
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">ChangeLog History | Cronologia modifiche</h3>
-        <div class="oe_span12">
-{{changelog}}
-        </div>
-    </div>
-.. $fi
-.. $if defined known_issues
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Known issues | Problemi conosciuti</h3>
-        <div class="oe_span12">
-{{known_issues}}
-        </div>
-    </div>
-.. $fi
 </section>
+.. $fi
