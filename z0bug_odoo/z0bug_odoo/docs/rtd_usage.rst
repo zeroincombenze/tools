@@ -1091,7 +1091,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.
@@ -1166,7 +1166,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.

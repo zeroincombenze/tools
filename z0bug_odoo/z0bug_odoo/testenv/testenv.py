@@ -326,7 +326,7 @@ char / text
 Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.
 
-You can evalute the field value engaging a simple python expression inside tags like in
+You can evaluate the field value engaging a simple python expression inside tags like in
 following syntax:
 
     "<?odoo EXPRESSION ?>"
@@ -1064,15 +1064,17 @@ class MainTest(test_common.TransactionCase):
     @api.model
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
-        try:
-            xref, ln = xref.rsplit("_", 1)
-        except ValueError:
-            self.log_lvl_1(" 🌍 Invalid detail xref %s" % xref)
-            ln = ""
-        if ln.isdigit():
-            ln = int(ln) or False
-        elif isinstance(ln, basestring) and self._is_xref(ln):
-            ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
+        ln = ""
+        if "." in xref and "_" in xref.split(".", 1)[1]:
+            try:
+                xref, ln = xref.rsplit("_", 1)
+            except ValueError:
+                self.log_lvl_1(" 🌍 Invalid detail xref %s" % xref)
+                ln = ""
+            if ln.isdigit():
+                ln = int(ln) or False
+            elif isinstance(ln, basestring) and self._is_xref(ln):
+                ln = self._get_xref_id(self._get_model_of_xref(xref), xref=ln, fmt="id")
         return xref, ln
 
     @api.model
@@ -2636,6 +2638,8 @@ class MainTest(test_common.TransactionCase):
                 )
 
                 return None
+        if record and self._is_xref(xref):
+            self._add_xref(xref, record.id, resource)
         return record
 
     @api.model
@@ -2975,6 +2979,8 @@ class MainTest(test_common.TransactionCase):
             else:
                 self.raise_error("No data supplied for %s" % resource)
 
+        if not hasattr(self, "module"):
+            raise EnvironmentError("super().setUp() not called before test!")
         self.set_datadir(data_dir=data_dir, merge=merge)
         ix = found = False
         for ix in range(10):
@@ -3015,7 +3021,7 @@ class MainTest(test_common.TransactionCase):
             for xref in sorted(self.get_resource_data_list(resource, group=group)):
                 if resource_parent:
                     parent_xref, ln = self._unpack_xref(xref)
-                    if self.get_resource_data(
+                    if ln and self.get_resource_data(
                         resource_parent, parent_xref, group=group
                     ):
                         # Childs record already loaded with header record
@@ -3057,6 +3063,7 @@ class MainTest(test_common.TransactionCase):
         * Value to assign
         * Optional function to execute (i.e. specific onchange)
 
+        You can easily get the field name form GUI with developer mode active.
         If field is associate to an onchange function the relative onchange functions
         are execute after value assignment. If onchange set another field with another
         onchange the relative another onchange are executed until all onchange are
@@ -3081,9 +3088,12 @@ class MainTest(test_common.TransactionCase):
                                    issued record
             default (dict): default value to assign
             web_changes (list): list of tuples (field, value); see <wiz_edit>
+            actions (str or list or tuple): action to execute; if not supplied will be
+                                            execute "save" for existent record or
+                                            "create" if no record supplied.
 
         Returns:
-            windows action to execute or obj record
+            windows action to execute or obj record from [create, save] actions
         """
         self.log_stack()
         actions = actions or (
@@ -3208,16 +3218,18 @@ class MainTest(test_common.TransactionCase):
             isinstance(act_windows, dict)
             and act_windows.get("type")
             in (
-                "ir.actions.act_window",
-                "ir.actions.client",
-                "ir.actions.act_window_close",
-                "ir.actions.report",
-            )
-            if no_report
-            else (
-                "ir.actions.act_window",
-                "ir.actions.client",
-                "ir.actions.act_window_close",
+                (
+                    "ir.actions.act_window",
+                    "ir.actions.client",
+                    "ir.actions.act_window_close",
+                    "ir.actions.report",
+                )
+                if no_report
+                else (
+                    "ir.actions.act_window",
+                    "ir.actions.client",
+                    "ir.actions.act_window_close",
+                )
             )
         )
 
