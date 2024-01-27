@@ -686,6 +686,9 @@ def get_actual_fqn(ctx, path, filename):
             fqn = pth.join(path, docdir, SECTION[: -5] + "." + ctx["lang"] + ext)
             if pth.isfile(fqn):
                 return fqn
+            fqn = pth.join(path, docdir, section[: -5] + "." + ctx["lang"] + ext)
+            if pth.isfile(fqn):
+                return fqn
         fqn = pth.join(path, docdir, SECTION + ".csv")
         if pth.isfile(fqn):
             return fqn
@@ -3270,7 +3273,7 @@ def generate_readme(ctx):
     # Check for old filename
     src_path = "./readme" if ctx["product_doc"] == "odoo" else "./egg-info"
     for sect in DEFINED_SECTIONS + DEFINED_TAG:
-        fn = "%s.rst" % sect.upper()
+        fn = "%s.rst" % (sect if sect in DEFINED_TAG else sect.upper())
         fqn = pth.join(src_path, fn)
         if not pth.isfile(fqn):
             cur_fqn = get_fqn(ctx, src_path, sect)

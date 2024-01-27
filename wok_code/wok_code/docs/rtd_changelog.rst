@@ -11,6 +11,12 @@ ChangeLog History
 * [FIX] Quality rating formula
 * [FIX] please install python --python=3.7
 * [IMP] please publish marketplace
+* [IMP] read-only repository
+* [IMP] arcangelo improvements
+* [IMP] gen_readme.py manifest rewrite improvements
+* [IMP] cvt_csv_coa.py improvements
+* [IMP] please test with new switch -D
+* [IMP] run_odoo_debug improvements
 
 2.0.13 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~

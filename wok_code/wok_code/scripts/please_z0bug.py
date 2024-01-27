@@ -192,11 +192,16 @@ class PleaseZ0bug(object):
                 sts = please.run_traced("pre-commit run", rtime=True)
             if sts == 0:
                 if "lint" in please.cli_args:
-                    sub_list = [("--no-verify", ""), ("--no-translate", "")]
+                    sub_list = [("--no-verify", ""),
+                                ("--no-translate", ""),
+                                ("-Z", ""),
+                                ("--zero", "")]
                 else:
                     sub_list = [("z0bug", "lint"),
                                 ("--no-verify", ""),
-                                ("--no-translate", "")]
+                                ("--no-translate", ""),
+                                ("-Z", ""),
+                                ("--zero", "")]
                 please.sh_subcmd = please.pickle_params(
                     rm_obj=True, slist=sub_list)
                 cmd = please.build_sh_me_cmd()
@@ -210,7 +215,9 @@ class PleaseZ0bug(object):
             else:
                 sub_list = [("z0bug", "lint"),
                             ("--no-verify", ""),
-                            ("--no-translate", "")]
+                            ("--no-translate", ""),
+                            ("-Z", ""),
+                            ("--zero", "")]
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")

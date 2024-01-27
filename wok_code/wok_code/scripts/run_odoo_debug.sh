@@ -374,6 +374,11 @@ if [[ $opt_help -gt 0 ]]; then
 fi
 
 [[ $opt_multi -lt 0 ]] && discover_multi
+[[ $opt_modules == "." ]] && opt_modules=$(basename $PWD) && opt_odir=$PWD
+SCOPE="gnu"
+[[ -z $opt_odir && $(basename $(dirname $PWD)) == "marketplace" ]] && SCOPE="marketplace"
+[[ -n $opt_odir && $(basename $(dirname $opt_odir)) == "marketplace" ]] && SCOPE="marketplace"
+[[ $SCOPE == "marketplace" ]] && GIT_ORGID="oca"
 CONFN=""
 opaths=""
 odoo_root=""
@@ -401,26 +406,27 @@ if [[ -n $opt_conf ]]; then
     fi
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
-    [[ ! -d $opt_dir ]] && echo "Path $opt_dir not found!" && exit 1
-    odoo_root=$(readlink -f $opt_odir)
-    check_path_n_branch "$opt_dir" "$opt_branch"
+    [[ ! -d $opt_odir ]] && echo "Path $opt_odir not found!" && exit 1
+    [[ -n $GIT_ORGID && -n $opt_branch ]] && odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID") || odoo_root=$(readlink -f $opt_odir "" "$GIT_ORGID")
+    check_path_n_branch "$opt_odir" "$opt_branch"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
-    GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID")
     opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
-    odoo_root=$(build_odoo_param ROOT "$opt_branch")
-    [[ -n $opt_modules ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
+    odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID")
+    [[ -n $opt_modules && $opt_modules == $(basename $PWD) ]] && opt_dir="$PWD"
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
-    GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID")
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 else
@@ -430,7 +436,7 @@ else
     PKGNAME=$(build_odoo_param PKGNAME "$PWD")
     PKGPATH=$(build_odoo_param PKGPATH "$PWD")
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
-    GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
+    [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
@@ -441,7 +447,9 @@ LCONFN=$(build_odoo_param LCONFN $odoo_fver)
 script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
 export ODOO_RUNDIR=$(dirname $script)
-export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+TEST_VDIR=""
+[[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
+[[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
 [[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
 [[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && echo "# Found $TEST_VDIR virtual directory"
 set_log_filename
