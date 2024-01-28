@@ -1186,7 +1186,7 @@ def rst2html(ctx, text, draw_button=False):
                         )[1: -1]] = lines[lineno][x.end():].strip()
                     del lines[lineno]
                     continue
-                lines.insert(lineno, get_tag_image(ctx))
+                # lines.insert(lineno, get_tag_image(ctx))
             elif re.match(r"^ *\+(-+\+)+ *$", lines[lineno]):
                 if ctx["html_state"]["tag"] != "table":
                     lines[lineno] = (
