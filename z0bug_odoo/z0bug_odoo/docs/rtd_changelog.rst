@@ -5,6 +5,21 @@ ChangeLog History
 =================
 
 
+2.0.15 (2024-01-27)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Documentation typo corrections
+* [IMP] Date range file .xlsx for TestEnv
+* [IMP] TestEnv: local data dir new rules
+* [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
+* [FIX] TestEnv: caller environment more than 1 level
+* [FIX] TestEnv: sometime is_action() fails
+* [IMP] TestEnv: binding model in view for Odoo 11.0+
+* [IMP] TestEnv: write with xref can update xref id
+* [IMP] TestEnv: warning if no setUp() declaration
+* [IMP] TestEnv: resource_download, now default filed name is "data"
+
+
 2.0.14 (2023-12-22)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -140,10 +155,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

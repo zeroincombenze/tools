@@ -1,4 +1,4 @@
-Test Environment v2.0.14
+Test Environment v2.0.15
 ========================
 
 Overview
@@ -1209,3 +1209,4 @@ def get_records_from_act_windows(self, act_windows):
 
     Raises:
         ValueError: if invalid parameters issued
+

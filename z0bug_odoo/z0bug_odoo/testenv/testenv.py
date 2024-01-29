@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.14
+"""Test Environment v2.0.15
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -645,6 +645,7 @@ def is_iterable(obj):
 
 
 class MainTest(test_common.TransactionCase):
+
     def setUp(self):
         super(MainTest, self).setUp()
         self.odoo_major_version = release.version_info[0] if release else 0
@@ -959,8 +960,14 @@ class MainTest(test_common.TransactionCase):
 
     def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
         def get_default_data_dir():
-            data_dir = get_module_resource(self.module.name, "tests", "data")
-            return data_dir if data_dir and os.path.isdir(data_dir) else None
+            for data_dir in (
+                get_module_resource(self.module.name, "tests", "data"),
+                get_module_resource(self.module.name, "data"),
+                get_module_resource(self.module.name, "tests")
+            ):
+                if data_dir and os.path.isdir(data_dir):
+                    return data_dir
+            return None
 
         if merge not in ("local", "zerobug"):  # pragma: no cover
             self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
@@ -1065,7 +1072,10 @@ class MainTest(test_common.TransactionCase):
     def _unpack_xref(self, xref):
         # This is a 3 level external reference for header/detail relationship
         ln = ""
-        if "." in xref and "_" in xref.split(".", 1)[1]:
+        if (
+                ("." in xref and "_" in xref.split(".", 1)[1])
+                # or ("." not in xref and "_" in xref)
+        ):
             try:
                 xref, ln = xref.rsplit("_", 1)
             except ValueError:
@@ -2449,8 +2459,7 @@ class MainTest(test_common.TransactionCase):
                 xref_parent = values[parent_name]
                 ln = False
             else:
-                name, ln = self._unpack_xref(name)
-                xref_parent = "%s.%s" % (module, name)
+                xref_parent, ln = self._unpack_xref(xref)
             parent_rec = self.resource_browse(
                 xref_parent,
                 resource=self.parent_resource[resource],
@@ -2554,7 +2563,8 @@ class MainTest(test_common.TransactionCase):
             return None
         if self._is_xref(xref):
             self._add_xref(xref, res.id, resource)
-            self.store_resource_data(resource, xref, values, group=group)
+            self.store_resource_data(
+                resource, xref, self._purge_values(values, timed=True), group=group)
             (
                 resource_child,
                 xref_child,
@@ -2862,7 +2872,6 @@ class MainTest(test_common.TransactionCase):
         Returns:
             default company for user
         """
-
         def store_acc_alias(xref, acc_type, chart_name):
             if chart_name.endswith("_prefix"):
                 acc_code = getattr(chart_template, chart_name)
@@ -2967,7 +2976,6 @@ class MainTest(test_common.TransactionCase):
         Returns:
             None
         """
-
         def init_resource_data(resource, data, ix):
             item = self.get_test_name(resource)
             if ix is not False and item in inspect.stack()[ix][0].f_globals:
@@ -3003,7 +3011,7 @@ class MainTest(test_common.TransactionCase):
             self.declare_all_data(data, group=group)
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.14 (debug_level=%s, commit=%s)"
+            "🎺🎺🎺 Starting test v2.0.15 (debug_level=%s, commit=%s)"
             % (self.debug_level, getattr(self, "odoo_commit_test", False))
         )
         self._logger.info(
@@ -3640,3 +3648,4 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
+

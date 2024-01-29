@@ -1,3 +1,18 @@
+2.0.15 (2024-01-27)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Documentation typo corrections
+* [IMP] Date range file .xlsx for TestEnv
+* [IMP] TestEnv: local data dir new rules
+* [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
+* [FIX] TestEnv: caller environment more than 1 level
+* [FIX] TestEnv: sometime is_action() fails
+* [IMP] TestEnv: binding model in view for Odoo 11.0+
+* [IMP] TestEnv: write with xref can update xref id
+* [IMP] TestEnv: warning if no setUp() declaration
+* [IMP] TestEnv: resource_download, now default filed name is "data"
+
+
 2.0.14 (2023-12-22)
 ~~~~~~~~~~~~~~~~~~~
 
