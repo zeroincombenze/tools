@@ -230,7 +230,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.13
+* z0bug_odoo PYPI package version 2.0.15
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -1247,7 +1247,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.
@@ -1322,7 +1322,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.

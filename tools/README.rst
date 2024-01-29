@@ -113,12 +113,50 @@ Current version via Git
 ChangeLog History
 -----------------
 
+z0bug_odoo: 2.0.15 (2024-01-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Documentation typo corrections
+* [IMP] Date range file .xlsx for TestEnv
+* [IMP] TestEnv: local data dir new rules
+* [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
+* [FIX] TestEnv: caller environment more than 1 level
+* [FIX] TestEnv: sometime is_action() fails
+* [IMP] TestEnv: binding model in view for Odoo 11.0+
+* [IMP] TestEnv: write with xref can update xref id
+* [IMP] TestEnv: warning if no setUp() declaration
+* [IMP] TestEnv: resource_download, now default filed name is "data"
+
+
+
+clodoo: 2.0.9 (2024-01-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] odoorc improvements
+
+
+z0bug_odoo: 2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: commit odoo data became internal feature
+* [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
+* [FIX] TestEnv: 3 level xref fails when module ha "_" in its name
+* [IMP] _check4deps.py: documentation clearing
+
+
 zerobug: 2.0.13 (2023-12-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] python2: argument signature
-[IMP] build_os_tree: compatible with unittest2
-[IMP] remove_os_tree: compatible with unittest2
+* [FIX] python2: argument signature
+* [IMP] build_os_tree: compatible with unittest2
+* [IMP] remove_os_tree: compatible with unittest2
+* [IMP] build_cmd: enable coverage on sub process
+* [FIX] Re-enable coverage statistics
+* [FIX] Printing message: right sequence
 
 
 wok_code: 2.0.13.1 (2023-12-05)
@@ -126,6 +164,13 @@ wok_code: 2.0.13.1 (2023-12-05)
 
 * [FIX] Quality rating formula
 * [FIX] please install python --python=3.7
+* [IMP] please publish marketplace
+* [IMP] read-only repository
+* [IMP] arcangelo improvements
+* [IMP] gen_readme.py manifest rewrite improvements
+* [IMP] cvt_csv_coa.py improvements
+* [IMP] please test with new switch -D
+* [IMP] run_odoo_debug improvements
 
 
 z0bug_odoo: 2.0.13 (2023-12-01)
@@ -168,16 +213,6 @@ wok_code: 2.0.13 (2023-11-27)
 * [IMP] please test now can update account.account.xlsx
 
 
-zerobug: 2.0.11 (2023-11-19)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Disabled sanity_check
-* [IMP] Disabled some deprecated switches
-* [FIX] Coverage data file
-* [IMP] zerobug: test function signature like unittest2
-* [IMP] zerobug: no more execution for count
-
-
 travis_emulator: 2.0.7 (2023-11-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -196,26 +231,10 @@ clodoo: 2.0.8 (2023-11-16)
 [FIX] Discard odoorpc 0.10 which does not work
 
 
-zerobug: 2.0.10 (2023-11-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring
-* [IMP] New functions assert* like unittest2
-* [IMP] New switch -f failfast
-* [IMP] Test signature like unittest2 and old zerobug signature
-* [IMP] Test flow without return status (like unitest2)
-
-
 z0lib: 2.0.8 (2023-10-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] parseopt
-
-
-clodoo: 2.0.7 (2023-09-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Some fixes due old wrong code (id -> name)
 
 
 zar: 2.0.4 (2023-09-08)

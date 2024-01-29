@@ -182,14 +182,13 @@ GROUPS = {
 DEFINED_TAG = [
     "__manifest__",
     "name",
-    # "nome"
     "summary",
-    # "summary_i18n",
     "maturity",
     "module_name",
     "repos_name",
     "today",
 ]
+LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
 TRANSLABLE_SECTIONS = [
     "description",
     "configuration",
@@ -247,11 +246,11 @@ ALTERNATE_NAMES = {
     "configuration": "configure",
     "known_issues": "roadmap",
     "summary_i18n": "sommario",
+    "sponsor": "credits",
 }
 ZERO_PYPI_PKGS = ("clodoo lisa odoo_score oerplib3 os0 python_plus travis_emulator"
                   "vatnumber3 wok_code z0bug_odoo z0lib zar zerobug")
 ZERO_PYPI_SECTS = "description usage"
-LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
 DEFINED_GRYMB_SYMBOLS = {
     "it": [
         "flags/it_IT.png",
@@ -530,10 +529,12 @@ def __init__(ctx):
     for section in MAGIC_SECTIONS + DEFINED_SECTIONS + DEFINED_TAG:
         ctx[section] = ""
         ctx[section + "_i18n"] = ""
+        ctx[section + "_hdr"] = ""
     for section in GROUPS:
         name = GROUPS[section]
         ctx[name] = ""
         ctx[name + "_i18n"] = ""
+        ctx[name + "_hdr"] = ""
     ctx["pre_pat"] = r"\.\. +"
 
     if ctx["product_doc"] == "odoo":
@@ -2947,7 +2948,7 @@ def item_2_set(item, field=None):
     return set([x[field] for x in item])
 
 
-def item_2_test(ctx, section):
+def item_2_text(ctx, section):
     def get_fmt(x):
         return "* `%s <%s>`__" if x[2] or x[3] else "* %s <%s>"
 
@@ -2963,9 +2964,41 @@ def item_2_test(ctx, section):
     else:
         ctx[section] = "\n".join(
             [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]])
+    if section == "acknowledges":
+        sect_hdr = section + "_hdr"
+        load_section_from_file(ctx, sect_hdr)
+        if ctx[sect_hdr]:
+            if ctx[sect_hdr].endswith("\n"):
+                ctx[section] = ctx[sect_hdr] + "\n" + ctx[section]
+            else:
+                ctx[section] = ctx[sect_hdr] + "\n\n" + ctx[section]
     if ctx[section] and not ctx[section].endswith("\n"):
         ctx[section] += "\n"
 
+def load_section_from_file(ctx, section, is_tag=None):
+    if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
+        ctx[section] = parse_local_file(
+            ctx, "%s.rst" % section, ignore_ntf=True, section=section
+        )
+    if "description" in section:
+        # Remove old header text
+        x = ctx[section].split("\n", 2)
+        if len(x) > 2 and re.match(r"^(=+|-+|~+)$", x[1]):
+            ctx[section] = x[2]
+            while ctx[section].startswith("\n"):
+                ctx[section] = ctx[section][1:]
+    if re.match(r"\s*$", ctx[section]):
+        ctx[section] = ""
+    if pth.isfile(pth.join("static", "description", "%s.png" % section)):
+        ctx["%s_png" % section] = """.. figure:: %s
+:alt: %s
+:width: 98%%""" % (
+            url_by_doc(
+                ctx,
+                "/%s/static/description/%s.png" % (ctx["module_name"], section)),
+            ctx["name"])
+    else:
+        ctx["%s_png" % section] = ""
 
 def write_rst_file(ctx, path, section):
     fqn = get_actual_fqn(ctx, path, section)
@@ -3170,31 +3203,6 @@ def generate_readme(ctx):
         if not ctx[section]:
             ctx[section] = "Sommario non disponibile"
 
-    def load_section_from_file(ctx, section, is_tag=None):
-        if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
-            ctx[section] = parse_local_file(
-                ctx, "%s.rst" % section, ignore_ntf=True, section=section
-            )
-        if "description" in section:
-            # Remove old header text
-            x = ctx[section].split("\n", 2)
-            if len(x) > 2 and re.match(r"^(=+|-+|~+)$", x[1]):
-                ctx[section] = x[2]
-                while ctx[section].startswith("\n"):
-                    ctx[section] = ctx[section][1:]
-        if re.match(r"\s*$", ctx[section]):
-            ctx[section] = ""
-        if pth.isfile(pth.join("static", "description", "%s.png" % section)):
-            ctx["%s_png" % section] = """.. figure:: %s
-  :alt: %s
-  :width: 98%%""" % (
-                url_by_doc(
-                    ctx,
-                    "/%s/static/description/%s.png" % (ctx["module_name"], section)),
-                ctx["name"])
-        else:
-            ctx["%s_png" % section] = ""
-
     def get_submodules(ctx):
         if pth.isdir("./egg-info"):
             files = os.listdir("./egg-info")
@@ -3331,7 +3339,7 @@ def generate_readme(ctx):
         read_dependecies_license(ctx)
     for section in LIST_TAG:
         if isinstance(ctx[section], (list, tuple)):
-            item_2_test(ctx, section)
+            item_2_text(ctx, section)
 
     if ctx["write_authinfo"]:
         write_egg_info(ctx)

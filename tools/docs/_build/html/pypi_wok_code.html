@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Wok_Code &#8212; tools 2.0.5 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
@@ -68,8 +68,13 @@ Digest of arcangelo
 </section>
 <section id="arcangelo-python-edit-utility">
 <h2>arcangelo: python edit utility<a class="headerlink" href="#arcangelo-python-edit-utility" title="Permalink to this heading"></a></h2>
-<p>arcangelo is a python source code automatic editor which Parse source file to meet pep8
-requirements and  makes some source transformation based on rules,
+<p><strong>arcangelo</strong> is an automatic editor for transforming python source code.
+<strong>arcangelo</strong> is used to perform basic text transformation based on user rules.
+While in some ways similar to an editor which permits scripted edits (such as
+ed or sed), <strong>arcangelo</strong> works by making editor command from rule files.
+Rule files are simple yaml files, read by arcangelo which try to apply all rules
+to all lines of files processed.</p>
+<p>In this way migration workflow is very simple, accurate, precise and fast.
 Digest of please
 ================</p>
 <p>please is an interactive developer shell aim to help development and testing software.
