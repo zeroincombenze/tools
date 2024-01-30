@@ -1880,8 +1880,10 @@ class MainTest(test_common.TransactionCase):
                     ctx["active_id"] = records[0].id
                 else:
                     ctx["active_id"] = False
+                ctx["active_model"] = records[0]._name
             else:
                 ctx["active_id"] = records.id
+                ctx["active_model"] = records._name
         return ctx
 
     def _finalize_ctx_act_windows(self, records, act_windows, ctx={}):
@@ -3244,7 +3246,7 @@ class MainTest(test_common.TransactionCase):
     @api.model
     def wizard(
         self,
-        module=None,
+        module=".",
         action_name=None,
         act_windows=None,
         records=None,

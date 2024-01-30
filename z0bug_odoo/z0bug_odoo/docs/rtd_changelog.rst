@@ -14,6 +14,8 @@ ChangeLog History
 * [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
 * [FIX] TestEnv: caller environment more than 1 level
 * [FIX] TestEnv: sometime is_action() fails
+* [FIX] TestEnv: wizard active model
+* [FIX] TestEnv: wizard module name is current module under test
 * [IMP] TestEnv: binding model in view for Odoo 11.0+
 * [IMP] TestEnv: write with xref can update xref id
 * [IMP] TestEnv: warning if no setUp() declaration
