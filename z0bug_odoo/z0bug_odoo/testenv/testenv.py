@@ -672,6 +672,8 @@ class MainTest(test_common.TransactionCase):
         self.childs_resource = {}
         self.uninstallable_modules = []
         self.convey_record = {}
+        # Enable commit data
+        self.odoo_commit_data = True
         if not hasattr(self, "assert_counter"):
             self.assert_counter = 0
         self.module = None
@@ -690,6 +692,10 @@ class MainTest(test_common.TransactionCase):
         }
 
     def tearDown(self):
+        _logger.info("self.odoo_commit_test=%s" % getattr(self, "odoo_commit_test", False)) #debug
+        _logger.info("os.environ.get('ODOO_COMMIT_TEST')=%s" % os.environ.get(
+            "ODOO_COMMIT_TEST", ""
+        ))  # debug
         if getattr(self, "odoo_commit_test", False) and os.environ.get(
             "ODOO_COMMIT_TEST", ""
         ):  # pragma: no cover
