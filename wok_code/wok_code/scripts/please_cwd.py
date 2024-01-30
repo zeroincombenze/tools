@@ -1142,7 +1142,7 @@ class PleaseCwd(object):
                             or fn.startswith("LICENSE")
                     ):
                         continue
-                    if fn in ("testenv.py", "testenv.rst"):
+                    if fn in ("testenv.py", "testenv.rst", "_check4deps_.py"):
                         rex = REGEX_TESTENV_VER
                     elif fn in ("__manifest__.py", "__openerp__.rst"):
                         rex = REGEX_DICT_VER

@@ -2158,7 +2158,7 @@ def read_file_rst_or_csv(ctx, fqn):
             fqn
         ]
         chain_python_cmd("cvt_csv_2_rst.py", args)
-    if ctx["opt_verbose"]:
+    if ctx["opt_verbose"] > 1:
         print("Reading %s" % fqn)
     with open(fqn, RMODE) as fd:
         source = _u(fd.read())
@@ -2975,6 +2975,7 @@ def item_2_text(ctx, section):
     if ctx[section] and not ctx[section].endswith("\n"):
         ctx[section] += "\n"
 
+
 def load_section_from_file(ctx, section, is_tag=None):
     if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
         ctx[section] = parse_local_file(
@@ -3000,6 +3001,7 @@ def load_section_from_file(ctx, section, is_tag=None):
     else:
         ctx["%s_png" % section] = ""
 
+
 def write_rst_file(ctx, path, section):
     fqn = get_actual_fqn(ctx, path, section)
     force_write = False
@@ -3024,7 +3026,10 @@ def write_rst_file(ctx, path, section):
                 dash = "~" * len(header)
                 line = "* [IMP] Created documentation directory"
                 ctx[section] = "%s\n%s\n\n%s\n" % (header, dash, line)
-            fd.write(_c(ctx[section.lower()]))
+            if section in ("authors", "contributors", "acknowledges"):
+                fd.write(_c(ctx[section.lower()].replace("`__", "").replace(" `", " ")))
+            else:
+                fd.write(_c(ctx[section.lower()]))
 
 
 def write_egg_info(ctx):
@@ -3032,6 +3037,7 @@ def write_egg_info(ctx):
     for section in (
         "authors",
         "contributors",
+        "acknowledges",
         "description",
         "description_i18n",
         "changelog",
@@ -3367,7 +3373,7 @@ def generate_readme(ctx):
             ctx["template_name"] = "soffice.rst"
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
         tmp_file = ctx["dst_file"].replace(".odt", ".rst")
-        if ctx["opt_verbose"]:
+        if ctx["opt_verbose"] > 1:
             print("Writing %s" % tmp_file)
         with open(tmp_file, "w") as fd:
             fd.write(_c(target))
@@ -3423,8 +3429,9 @@ def generate_readme(ctx):
         )
     if ctx["opt_verbose"]:
         if ctx["history-summary"]:
-            print("\nRecent History\n~~~~~~~~~~~~~~\n")
-            print_green_message(ctx["history-summary"])
+            if not ctx["write_index"]:
+                print("\nRecent History\n~~~~~~~~~~~~~~\n")
+                print_green_message(ctx["history-summary"][0:240])
         else:
             if ctx["odoo_layer"] == "module" and ctx["module_name"]:
                 item = ctx["module_name"]
