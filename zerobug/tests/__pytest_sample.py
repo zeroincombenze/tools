@@ -12,7 +12,7 @@ from zerobug import Z0BUG
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.13'
+__version__ = '2.0.14'
 
 
 def test_version_zerobug(version_to_test):
@@ -29,6 +29,7 @@ class TestClass(object):
 
     def test_version_z0testrc(self, version_to_test):
         version_to_test('z0testrc', __version__, mode='.')
+
 
 
 

@@ -1,12 +1,16 @@
+2.0.14 (2015-01-31)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] build_cmd: enable coverage on sub process
+* [FIX] Re-enable coverage statistics
+* [FIX] Printing message: right sequence
+
 2.0.13 (2023-12-21)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] python2: argument signature
 * [IMP] build_os_tree: compatible with unittest2
 * [IMP] remove_os_tree: compatible with unittest2
-* [IMP] build_cmd: enable coverage on sub process
-* [FIX] Re-enable coverage statistics
-* [FIX] Printing message: right sequence
 
 2.0.12 (2023-11-27)
 ~~~~~~~~~~~~~~~~~~~
