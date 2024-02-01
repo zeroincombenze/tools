@@ -918,7 +918,7 @@ get binary value. File must be located in <strong>tests/data</strong> directory.
 <td><p>model</p></td>
 <td><p>note</p></td>
 </tr>
-<tr class="row-even"><td><p>z0bug.bank</p></td>
+<tr class="row-even"><td><p>z0bug.coa_bank</p></td>
 <td><p>Bank</p></td>
 <td><p>account.account</p></td>
 <td><p>Default bank account</p></td>
@@ -943,15 +943,45 @@ get binary value. File must be located in <strong>tests/data</strong> directory.
 <td><p>account.journal</p></td>
 <td><p>Default bank journal</p></td>
 </tr>
+<tr class="row-odd"><td><p>account.account_payment_term_immediate</p></td>
+<td><p>Immediate Payment</p></td>
+<td><p>account.payment.term</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>account.account_payment_term_net</p></td>
+<td><p>30 Net Days</p></td>
+<td><p>account.payment.term</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>z0bug.tax_22a</p></td>
+<td><p>Purchase 22% VAT</p></td>
+<td><p>account.tax</p></td>
+<td><p>Italian default purchase VAT rate</p></td>
+</tr>
+<tr class="row-even"><td><p>z0bug.tax_22v</p></td>
+<td><p>Sale 22% VAT</p></td>
+<td><p>account.tax</p></td>
+<td><p>Italian default sale VAT rate</p></td>
+</tr>
 <tr class="row-odd"><td><p>base.main_company</p></td>
 <td><p>Default company</p></td>
 <td><p>res.company</p></td>
 <td><p>Default company for test</p></td>
 </tr>
-<tr class="row-even"><td><p>base.USD</p></td>
+<tr class="row-even"><td><p>product.product_category_1</p></td>
+<td><p>All / Saleable</p></td>
+<td><p>product.category</p></td>
+<td><p>Useful product category</p></td>
+</tr>
+<tr class="row-odd"><td><p>base.USD</p></td>
 <td><p>USD currency</p></td>
 <td><p>res.currency</p></td>
-<td><p>Test currency in test: US dollar</p></td>
+<td><p>Test currency during test execution: US dollar</p></td>
+</tr>
+<tr class="row-even"><td><p>base.user_root</p></td>
+<td><p>Administrator</p></td>
+<td><p>res.users</p></td>
+<td><p>User under test execution</p></td>
 </tr>
 </tbody>
 </table>

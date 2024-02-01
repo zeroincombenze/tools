@@ -48,8 +48,8 @@ Support / Supporto
 |
 |
 
-Credits / Didascalie
-====================
+Credits / Ringraziamenti
+========================
 
 Copyright
 ---------

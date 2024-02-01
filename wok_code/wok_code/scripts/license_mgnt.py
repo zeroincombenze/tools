@@ -71,6 +71,10 @@ COPY = {
         "author": "Innoviu Srl",
         "website": "http://www.innoviu.com",
     },
+    "abstract.it": {
+        "author": "Abstract",
+        "website": "https://www.abstract.it",
+    },
 }
 ALIAS = {
     "zeroincombenze": "zero",

@@ -140,8 +140,8 @@ FAQ | Domande & Risposte
 
 .. $fi
 
-Credits | Gratitutide e stima
-=============================
+Credits | Ringraziamenti
+========================
 
 Copyright
 ---------

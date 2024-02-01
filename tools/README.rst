@@ -175,15 +175,6 @@ wok_code: 2.0.13.1 (2023-12-05)
 * [IMP] run_odoo_debug improvements
 
 
-z0bug_odoo: 2.0.13 (2023-12-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: now you can declare you own source data directory
-* [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
-* [IMP] TestEnv: file account.tax.xlsx with some italian taxes for l10n_generic_oca
-* [IMP] TestEnv: simple expression for data value
-
-
 travis_emulator: 2.0.8 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
