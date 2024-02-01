@@ -1,4 +1,4 @@
-Test Environment v2.0.14
+Test Environment v2.0.15
 ========================
 
 Overview
@@ -1209,3 +1209,25 @@ def get_records_from_act_windows(self, act_windows):
 
     Raises:
         ValueError: if invalid parameters issued
+
+Useful External Reference
+-------------------------
+
++-------------------+-----------------------+-----------------+----------------------------------+
+| id                | name                  | model           | note                             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| z0bug.bank        | Bank                  | account.account | Default bank account             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.INV      | Sale journal          | account.journal | Default sale journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BILL     | Purchase journal      | account.journal | Default purchase journal         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.MISC     | Miscellaneous journal | account.journal | Default miscellaneous journal    |
++-------------------+-----------------------+-----------------+----------------------------------+
+| external.BNK1     | Bank journal          | account.journal | Default bank journal             |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.main_company | Default company       | res.company     | Default company for test         |
++-------------------+-----------------------+-----------------+----------------------------------+
+| base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
++-------------------+-----------------------+-----------------+----------------------------------+
+

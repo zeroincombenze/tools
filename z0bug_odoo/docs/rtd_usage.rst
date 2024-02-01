@@ -74,7 +74,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.14
+* z0bug_odoo PYPI package version 2.0.15
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -695,23 +695,35 @@ get binary value. File must be located in **tests/data** directory.
 Useful External Reference
 -------------------------
 
-+-------------------+-----------------------+-----------------+----------------------------------+
-| id                | name                  | model           | note                             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| z0bug.bank        | Bank                  | account.account | Default bank account             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.INV      | Sale journal          | account.journal | Default sale journal             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.BILL     | Purchase journal      | account.journal | Default purchase journal         |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.MISC     | Miscellaneous journal | account.journal | Default miscellaneous journal    |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.BNK1     | Bank journal          | account.journal | Default bank journal             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| base.main_company | Default company       | res.company     | Default company for test         |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
-+-------------------+-----------------------+-----------------+----------------------------------+
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| id                                     | name                  | model                | note                                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.coa_bank                         | Bank                  | account.account      | Default bank account                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.INV                           | Sale journal          | account.journal      | Default sale journal                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.BILL                          | Purchase journal      | account.journal      | Default purchase journal                       |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.MISC                          | Miscellaneous journal | account.journal      | Default miscellaneous journal                  |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.BNK1                          | Bank journal          | account.journal      | Default bank journal                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| account.account_payment_term_immediate | Immediate Payment     | account.payment.term |                                                |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| account.account_payment_term_net       | 30 Net Days           | account.payment.term |                                                |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.tax_22a                          | Purchase 22% VAT      | account.tax          | Italian default purchase VAT rate              |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.tax_22v                          | Sale 22% VAT          | account.tax          | Italian default sale VAT rate                  |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.main_company                      | Default company       | res.company          | Default company for test                       |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| product.product_category_1             | All / Saleable        | product.category     | Useful product category                        |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.USD                               | USD currency          | res.currency         | Test currency during test execution: US dollar |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.user_root                         | Administrator         | res.users            | User under test execution                      |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
 
 
 
@@ -1247,10 +1259,10 @@ def get_records_from_act_windows(self, act_windows):
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

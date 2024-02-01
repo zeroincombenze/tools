@@ -9,6 +9,6 @@ class ResPartner(models.Model):
         return super().unlink()
 
     # @api.one
-# Update code to multi or add self.ensure_one()
+    # TODO> Update code to multi or add self.ensure_one()
     def compute(self):
         return True

@@ -2,4 +2,4 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] example fixed
-* [QUA] Valid result 100% (14: 0+14) [10 TestPoint]
+* [QUA] Invalid result 0% (0: 0+0) [0 TestPoint]

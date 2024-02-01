@@ -447,6 +447,7 @@ gen_readme.py command line
       -G GIT_ORGID, --git-org GIT_ORGID
       -g OPT_GPL, --gpl-info OPT_GPL
       -H, -I, --write-index
+                            write index.html rather than README.rst
       -l ODOO_LAYER, --layer ODOO_LAYER
                             ocb|module|repository
       -L LANG, --lang LANG  iso code
@@ -476,10 +477,10 @@ gen_readme.py command line
       -v, --verbose         verbose mode
       -W, --write-authinfo
       -w, --suppress-warning
-      -X, --write-office
+      -X, --write-office    write openoffice/libreoffic fragment help
       -Y, --write-man-page
     
-    © 2018-2023 by SHS-AV s.r.l.
+    © 2018-2024 by SHS-AV s.r.l.
     
 
 |

@@ -59,6 +59,18 @@ COPY = {
         "author": "Apulia Software s.r.l.",
         "website": "https://www.apuliasoftware.it",
     },
+    "odoo-italia.net": {
+        "author": "Odoo Italia Network",
+        "website": "https://www.odoo-italia.net"
+    },
+    "linkgroup.it": {
+        "author": "LinkIt Spa",
+        "website": "http://http://www.linkgroup.it",
+    },
+    "innoviu.com": {
+        "author": "Innoviu Srl",
+        "website": "http://www.innoviu.com",
+    },
 }
 ALIAS = {
     "zeroincombenze": "zero",
@@ -69,6 +81,8 @@ ALIAS = {
     "Agile Business Group": "agilebg.com",
     "openerp": "odoo",
     "openerpsa": "odoo",
+    "linkit": "linkgroup.it",
+    "LinkIt Srl": "linkgroup.it",
 }
 ALIAS_NAME = {
     "Antonio Maria Vigliotti":
@@ -81,21 +95,22 @@ class License:
         self.org_ids = {}
         self.authors = {}
         self.contributors = {}
+        self.acknowledges = {}
         self.cur_year = datetime.today().year
         path = path or "."
-        for item in ("authors", "contributors", "acknowledges.txt"):
+        for section in ("authors", "contributors", "acknowledges"):
             for docdir in ("readme", "egg-info"):
-                fn = os.path.join(path, docdir, item.upper() + ".rst")
+                fn = os.path.join(path, docdir, section.upper() + ".rst")
                 if os.path.isfile(fn):
-                    self.parse_file(fn)
+                    self.parse_file(fn, section=section)
                     break
-                fn = os.path.join(path, docdir, item + ".rst")
+                fn = os.path.join(path, docdir, section + ".rst")
                 if os.path.isfile(fn):
-                    self.parse_file(fn)
+                    self.parse_file(fn, section=section)
                     break
-                fn = os.path.join(path, docdir, item + ".txt")
+                fn = os.path.join(path, docdir, section + ".txt")
                 if os.path.isfile(fn):
-                    self.parse_file(fn)
+                    self.parse_file(fn, section=section)
                     break
         self.gpl2license = {
             "agpl": "AGPL-3",
@@ -110,7 +125,7 @@ class License:
             "OEE-1": "oee",
         }
 
-    def add_copyright(self, org_id, name, website, email, years):
+    def add_copyright(self, org_id, name, website, email, years, section="authors"):
         if org_id and org_id not in self.org_ids:
             if org_id in COPY:
                 if not name:
@@ -118,13 +133,17 @@ class License:
                 if not website:
                     website = COPY[org_id]["website"]
             self.org_ids[org_id] = [name, website, email, years]
-        elif email and email not in self.contributors:
+        elif section == "contributors" and email and email not in self.contributors:
             self.contributors[email] = [name, email, years]
-        elif name and name not in self.authors:
+        elif section == "authors" and name and name not in self.authors:
             self.authors[name] = [name, website, years]
+        elif section == "acknowledges" and name and name not in self.acknowledges:
+            self.acknowledges[name] = [name, website, years]
+        elif section == "acknowledges" and email and email not in self.acknowledges:
+            self.acknowledges[name] = [name, email, years]
         self.purge_duplicate()
 
-    def parse_file(self, author_file):
+    def parse_file(self, author_file, section=None):
         with open(author_file, "r") as fd:
             for line in _u(fd.read().split("\n")):
                 self.add_copyright(
@@ -145,6 +164,20 @@ class License:
             for org_id in self.org_ids.keys():
                 if name == self.org_ids[org_id][0] or email == self.org_ids[org_id][2]:
                     del self.contributors[name]
+                    break
+        for name in self.acknowledges.copy().keys():
+            email = self.acknowledges[name][1]
+            for org_id in self.org_ids.keys():
+                if name == self.org_ids[org_id][0] or email == self.org_ids[org_id][2]:
+                    del self.acknowledges[name]
+                    break
+            website = self.acknowledges[name][1]
+            for org_id in self.org_ids.keys():
+                if (
+                    name == self.org_ids[org_id][0]
+                    or website == self.org_ids[org_id][1]
+                ):
+                    del self.acknowledges[name]
                     break
 
     def extract_info_from_line(self, line, force=False, add_copy=True):

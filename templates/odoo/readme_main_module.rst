@@ -140,8 +140,8 @@ FAQ | Domande & Risposte
 
 .. $fi
 
-Credits | Didascalie
-====================
+Credits | Ringraziamenti
+========================
 
 Copyright
 ---------
@@ -158,8 +158,8 @@ Authors | Autori
 .. $fi
 .. $if defined contributors
 
-Contributors | Contributi da
-----------------------------
+Contributors | Partecipanti
+---------------------------
 
 {{contributors}}
 
@@ -170,6 +170,17 @@ Acknowledges | Riconoscimenti
 -----------------------------
 
 {{acknowledges}}
+
+.. $fi
+.. $if defined sponsor
+.. $if defined acknowledges
+.. $else
+
+Acknowledges | Riconoscimenti
+-----------------------------
+
+.. $fi
+{{sponsor}}
 
 .. $fi
 .. $if defined translators

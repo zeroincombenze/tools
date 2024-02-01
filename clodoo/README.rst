@@ -50,15 +50,10 @@ where:
 Features
 --------
 
-+------------------------------------------------------------+-------------------------+
-| Function                                                   | Note                    |
-+------------------------------------------------------------+-------------------------+
-| Manage version depending names                             | transodoo.py            |
-+------------------------------------------------------------+-------------------------+
-| Odoo general purpose library                               | odoorc                  |
-+------------------------------------------------------------+-------------------------+
-| Examples                                                   | example*.py             |
-+------------------------------------------------------------+-------------------------+
+Function,Note
+Manage version depending names,transodoo.py
+Odoo general purpose library,odoorc
+Examples,example*.py
 
 
 
@@ -110,7 +105,6 @@ Stable version via Python Package
 
     pip install --upgrade clodoo
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -124,6 +118,11 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.9 (2024-01-27)
+~~~~~~~~~~~~~~~~~~
+
+[IMP] odoorc improvements
 
 2.0.8 (2023-11-16)
 ~~~~~~~~~~~~~~~~~~

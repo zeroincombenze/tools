@@ -230,7 +230,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.13
+* z0bug_odoo PYPI package version 2.0.15
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -851,23 +851,35 @@ get binary value. File must be located in **tests/data** directory.
 Useful External Reference
 -------------------------
 
-+-------------------+-----------------------+-----------------+----------------------------------+
-| id                | name                  | model           | note                             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| z0bug.bank        | Bank                  | account.account | Default bank account             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.INV      | Sale journal          | account.journal | Default sale journal             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.BILL     | Purchase journal      | account.journal | Default purchase journal         |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.MISC     | Miscellaneous journal | account.journal | Default miscellaneous journal    |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| external.BNK1     | Bank journal          | account.journal | Default bank journal             |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| base.main_company | Default company       | res.company     | Default company for test         |
-+-------------------+-----------------------+-----------------+----------------------------------+
-| base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
-+-------------------+-----------------------+-----------------+----------------------------------+
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| id                                     | name                  | model                | note                                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.coa_bank                         | Bank                  | account.account      | Default bank account                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.INV                           | Sale journal          | account.journal      | Default sale journal                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.BILL                          | Purchase journal      | account.journal      | Default purchase journal                       |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.MISC                          | Miscellaneous journal | account.journal      | Default miscellaneous journal                  |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| external.BNK1                          | Bank journal          | account.journal      | Default bank journal                           |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| account.account_payment_term_immediate | Immediate Payment     | account.payment.term |                                                |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| account.account_payment_term_net       | 30 Net Days           | account.payment.term |                                                |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.tax_22a                          | Purchase 22% VAT      | account.tax          | Italian default purchase VAT rate              |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| z0bug.tax_22v                          | Sale 22% VAT          | account.tax          | Italian default sale VAT rate                  |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.main_company                      | Default company       | res.company          | Default company for test                       |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| product.product_category_1             | All / Saleable        | product.category     | Useful product category                        |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.USD                               | USD currency          | res.currency         | Test currency during test execution: US dollar |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
+| base.user_root                         | Administrator         | res.users            | User under test execution                      |
++----------------------------------------+-----------------------+----------------------+------------------------------------------------+
 
 
 
@@ -1247,7 +1259,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.
@@ -1322,7 +1334,7 @@ Every element of the list is another list with 2 or 3 values:
 * Value to assign
 * Optional function to execute (i.e. specific onchange)
 
-If field is associate to an onchange function the relative onchange functions
+If field is associated to an onchange function the relative onchange functions
 are execute after value assignment. If onchange set another field with another
 onchange the relative another onchange are executed until all onchange are
 exhausted. This behavior is the same of the form editing.

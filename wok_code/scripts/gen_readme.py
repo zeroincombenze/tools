@@ -132,6 +132,7 @@ GREEN = "\033[1;32m"
 YELLOW = "\033[1;33m"
 CLEAR = "\033[0;m"
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
+
 GIT_USER = {
     "zero": "zeroincombenze",
     "oca": "OCA",
@@ -181,13 +182,18 @@ GROUPS = {
 DEFINED_TAG = [
     "__manifest__",
     "name",
-    # "nome"
     "summary",
-    # "summary_i18n",
     "maturity",
     "module_name",
     "repos_name",
     "today",
+]
+LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
+TRANSLABLE_SECTIONS = [
+    "description",
+    "configuration",
+    "usage",
+    "summary",
 ]
 DRAW_SECTIONS = [
     "description",
@@ -240,11 +246,11 @@ ALTERNATE_NAMES = {
     "configuration": "configure",
     "known_issues": "roadmap",
     "summary_i18n": "sommario",
+    "sponsor": "credits",
 }
 ZERO_PYPI_PKGS = ("clodoo lisa odoo_score oerplib3 os0 python_plus travis_emulator"
                   "vatnumber3 wok_code z0bug_odoo z0lib zar zerobug")
 ZERO_PYPI_SECTS = "description usage"
-LIST_TAG = ("authors", "contributors", "translators", "acknowledges", "maintainer")
 DEFINED_GRYMB_SYMBOLS = {
     "it": [
         "flags/it_IT.png",
@@ -372,6 +378,26 @@ RE_PAT_DATE = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 
 
 def __init__(ctx):
+    def data_from_url(url):
+        REV_SHORT_NAMES = {
+            "zeroincombenze": "zero",
+            "OCA": "oca",
+            "LibrERP-network": "librerp",
+            "LibrERP": "librerp",
+            "powerp1": "librerp",
+            "iw3hxn": "librerp",
+        }
+        read_only = False
+        if "git@github.com:" in url:
+            uri = url.split("@")[1].split(":")[1]
+            read_only = False
+        elif "https:" in url:
+            uri = url.split(":")[1]
+        else:
+            uri = url
+        git_org = pth.splitext(pth.basename(pth.dirname(uri)))[0]
+        return REV_SHORT_NAMES.get(git_org, git_org), read_only
+
     transodoo.read_stored_dict(ctx)
     ctx["home_devel"] = ctx["home_devel"] or os.environ.get(
         "home_devel", pth.expanduser("~/devel")
@@ -383,14 +409,46 @@ def __init__(ctx):
             ctx["product_doc"] = "pypi"
         else:
             ctx["product_doc"] = "odoo"
+
+    ctx["read_only"] = ctx.get("read_only", False)
+    sts, stdout, stderr = z0lib.run_traced("git branch", verbose=False)
+    if sts == 0 and stdout:
+        branch = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("*"):
+                branch = ln[2:]
+                break
+        if branch:
+            x = re.match(r"[0-9]+\.[0-9]+", branch)
+            if x:
+                ctx["branch"] = branch[x.start(): x.end()]
+    if not ctx["git_orgid"]:
+        url = ""
+        sts, stdout, stderr = z0lib.run_traced("git remote -v", verbose=False)
+        if sts == 0 and stdout:
+            for ln in stdout.split("\n"):
+                if not ln:
+                    continue
+                lns = ln.split()
+                if lns[0] == "origin":
+                    url = lns[1]
+                    break
+        if url:
+            ctx["git_orgid"], ctx["read_only"] = data_from_url(url)
+
     if ctx["product_doc"] == "pypi":
-        ctx["git_orgid"] = "zero"
-        ctx["branch"] = ctx["odoo_vid"] if ctx["odoo_vid"] != "." else ""
+        ctx["git_orgid"] = ctx["git_orgid"] or "zero"
+        ctx["branch"] = ctx.get("branch") or (
+            ctx["odoo_vid"] if ctx["odoo_vid"] != "." else "")
         ctx["odoo_majver"] = 0
     else:
-        ctx["branch"] = build_odoo_param(
+        ctx["git_orgid"] = ctx["git_orgid"] or build_odoo_param(
+            "GIT_ORGID", odoo_vid=".", multi=True
+        )
+        ctx["branch"] = ctx.get("branch") or build_odoo_param(
             "FULLVER", odoo_vid=".", multi=True
         )
+
         if ctx["branch"] not in (
             "17.0",
             "16.0",
@@ -412,18 +470,23 @@ def __init__(ctx):
                     % ctx["branch"]
                 )
         ctx["odoo_majver"] = int(ctx["branch"].split(".")[0])
-        if not ctx["git_orgid"]:
-            ctx["git_orgid"] = build_odoo_param(
-                "GIT_ORGID", odoo_vid=".", multi=True
-            )
 
     if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp", "didotech"):
-        ctx["git_orgid"] = "zero"
+        ctx["read_only"] = True
         if not ctx["suppress_warning"] and ctx["product_doc"] != "pypi":
             print_red_message(
-                "*** Invalid git-org: use -G %s or of zero|oca|librerp|didotech"
+                "*** Invalid git-org: use -G %s or of zero|oca|didotech"
                 % ctx["git_orgid"]
             )
+
+    if ctx["read_only"] and (ctx["force"]
+                             or ctx["write_authinfo"]
+                             or ctx["rewrite_manifest"]):
+        print_red_message(
+            "*** Read-only repository: you cannot use -f -w -R switches"
+        )
+        ctx["force"] = False
+        ctx["write_authinfo"] = False
 
     if ctx["odoo_layer"] not in ("ocb", "module", "repository"):
         if ctx["product_doc"] == "odoo":
@@ -466,10 +529,12 @@ def __init__(ctx):
     for section in MAGIC_SECTIONS + DEFINED_SECTIONS + DEFINED_TAG:
         ctx[section] = ""
         ctx[section + "_i18n"] = ""
+        ctx[section + "_hdr"] = ""
     for section in GROUPS:
         name = GROUPS[section]
         ctx[name] = ""
         ctx[name + "_i18n"] = ""
+        ctx[name + "_hdr"] = ""
     ctx["pre_pat"] = r"\.\. +"
 
     if ctx["product_doc"] == "odoo":
@@ -519,76 +584,85 @@ def print_green_message(text):
 
 
 def create_def___manifest__(ctx):
-    fn = "./readme/__manifest__.rst"
-    with open(fn, "w") as fd:
-        fd.write(".. $set lang %s\n" % ctx["lang"])
-        fd.write(".. $set name.%s %s\n" % (ctx["lang"], ctx["module_name"]))
-        fd.write(".. $set summary.%s Documentazione non disponibile\n" % ctx["lang"])
-        fd.write(".. $set no_section_oca_diff 0\n")
+    if not ctx["read_only"]:
+        fn = "./readme/__manifest__.rst"
+        with open(fn, "w") as fd:
+            fd.write(".. $set lang %s\n" % ctx["lang"])
+            fd.write(".. $set name.%s %s\n" % (ctx["lang"], ctx["module_name"]))
+            fd.write(".. $set summary.%s Documentazione non disponibile\n"
+                     % ctx["lang"])
+            fd.write(".. $set no_section_oca_diff 0\n")
 
 
 def create_def_changelog(ctx):
-    fn = "./readme/CHANGELOG.rst"
-    with open(fn, "w") as fd:
-        # Conventional date on Odoo Days (October, 1st Thursday)
-        fd.write(
-            "%s.0.1.0 (%s)\n" % (
-                ctx["branch"],
-                {
-                    6: "2012-10-04",
-                    7: "2013-10-03",
-                    8: "2014-10-02",
-                    9: "2015-10-01",
-                    10: "2016-10-06",
-                    11: "2017-10-05",
-                    12: "2018-10-04",
-                    13: "2019-10-03",
-                    14: "2020-10-01",
-                    15: "2021-10-07",
-                    16: "2022-10-06",
-                    17: "2023-10-05",
-                }[ctx["odoo_majver"]]
+    if not ctx["read_only"]:
+        fn = "./readme/CHANGELOG.rst"
+        with open(fn, "w") as fd:
+            # Conventional date on Odoo Days (October, 1st Thursday)
+            fd.write(
+                "%s.0.1.0 (%s)\n" % (
+                    ctx["branch"],
+                    {
+                        6: "2012-10-04",
+                        7: "2013-10-03",
+                        8: "2014-10-02",
+                        9: "2015-10-01",
+                        10: "2016-10-06",
+                        11: "2017-10-05",
+                        12: "2018-10-04",
+                        13: "2019-10-03",
+                        14: "2020-10-01",
+                        15: "2021-10-07",
+                        16: "2022-10-06",
+                        17: "2023-10-05",
+                    }[ctx["odoo_majver"]]
+                )
             )
-        )
-        fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
-        fd.write("\n")
-        fd.write("* Initial implementation / Implementazione iniziale\n")
+            fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
+            fd.write("\n")
+            fd.write("* Initial implementation / Implementazione iniziale\n")
 
 
 def create_def_description(ctx):
-    fn = "./readme/DESCRIPTION.rst"
-    with open(fn, "w") as fd:
-        fd.write("Missed description\n")
+    if not ctx["read_only"]:
+        fn = "./readme/DESCRIPTION.rst"
+        with open(fn, "w") as fd:
+            fd.write("Missed description\n")
 
 
 def create_def_description_i18n(ctx):
-    fn = "./readme/DESCRIPTION.%s.rst" % ctx["lang"]
-    with open(fn, "w") as fd:
-        fd.write("Descrizione non disponibile\n")
+    if not ctx["read_only"]:
+        fn = "./readme/DESCRIPTION.%s.rst" % ctx["lang"]
+        with open(fn, "w") as fd:
+            fd.write("Descrizione non disponibile\n")
 
 
 def create_def_configuration(ctx):
-    fn = "./readme/CONFIGURATION.rst"
-    with open(fn, "w") as fd:
-        fd.write("")
+    if not ctx["read_only"]:
+        fn = "./readme/CONFIGURATION.rst"
+        with open(fn, "w") as fd:
+            fd.write("")
 
 
 def create_def_configuration_i18n(ctx):
-    fn = "./readme/CONFIGURATION.%s.rst" % ctx["lang"]
-    with open(fn, "w") as fd:
-        fd.write("")
+    if not ctx["read_only"]:
+        fn = "./readme/CONFIGURATION.%s.rst" % ctx["lang"]
+        with open(fn, "w") as fd:
+            fd.write("")
 
 
 def create_def_usage(ctx):
-    fn = "./readme/USAGE.rst"
-    with open(fn, "w") as fd:
-        fd.write("")
+    if not ctx["read_only"]:
+        fn = "./readme/USAGE.rst"
+        with open(fn, "w") as fd:
+            fd.write("")
 
 
 def create_def_usage_i18n(ctx):
-    fn = "./readme/USAGE.%s.rst" % ctx["lang"]
-    with open(fn, "w") as fd:
-        fd.write("")
+    if not ctx["read_only"]:
+        fn = "./readme/USAGE.%s.rst" % ctx["lang"]
+        with open(fn, "w") as fd:
+            fd.write("")
 
 
 def get_actual_fqn(ctx, path, filename):
@@ -608,6 +682,7 @@ def get_actual_fqn(ctx, path, filename):
                 return fqn
         section, ext = pth.splitext(filename)
         SECTION = section.upper()
+        section = section.lower()
         if section.endswith("_i18n"):
             fqn = pth.join(path, docdir, SECTION[: -5] + "." + ctx["lang"] + ext)
             if pth.isfile(fqn):
@@ -621,7 +696,6 @@ def get_actual_fqn(ctx, path, filename):
         fqn = pth.join(path, docdir, SECTION + ".rst")
         if pth.isfile(fqn):
             return fqn
-        section = section.lower()
         fqn = pth.join(path, docdir, section + ".csv")
         if pth.isfile(fqn):
             return fqn
@@ -1113,7 +1187,7 @@ def rst2html(ctx, text, draw_button=False):
                         )[1: -1]] = lines[lineno][x.end():].strip()
                     del lines[lineno]
                     continue
-                lines.insert(lineno, get_tag_image(ctx))
+                # lines.insert(lineno, get_tag_image(ctx))
             elif re.match(r"^ *\+(-+\+)+ *$", lines[lineno]):
                 if ctx["html_state"]["tag"] != "table":
                     lines[lineno] = (
@@ -2084,7 +2158,7 @@ def read_file_rst_or_csv(ctx, fqn):
             fqn
         ]
         chain_python_cmd("cvt_csv_2_rst.py", args)
-    if ctx["opt_verbose"]:
+    if ctx["opt_verbose"] > 1:
         print("Reading %s" % fqn)
     with open(fqn, RMODE) as fd:
         source = _u(fd.read())
@@ -2874,7 +2948,7 @@ def item_2_set(item, field=None):
     return set([x[field] for x in item])
 
 
-def item_2_test(ctx, section):
+def item_2_text(ctx, section):
     def get_fmt(x):
         return "* `%s <%s>`__" if x[2] or x[3] else "* %s <%s>"
 
@@ -2890,8 +2964,42 @@ def item_2_test(ctx, section):
     else:
         ctx[section] = "\n".join(
             [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]])
+    if section == "acknowledges":
+        sect_hdr = section + "_hdr"
+        load_section_from_file(ctx, sect_hdr)
+        if ctx[sect_hdr]:
+            if ctx[sect_hdr].endswith("\n"):
+                ctx[section] = ctx[sect_hdr] + "\n" + ctx[section]
+            else:
+                ctx[section] = ctx[sect_hdr] + "\n\n" + ctx[section]
     if ctx[section] and not ctx[section].endswith("\n"):
         ctx[section] += "\n"
+
+
+def load_section_from_file(ctx, section, is_tag=None):
+    if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
+        ctx[section] = parse_local_file(
+            ctx, "%s.rst" % section, ignore_ntf=True, section=section
+        )
+    if "description" in section:
+        # Remove old header text
+        x = ctx[section].split("\n", 2)
+        if len(x) > 2 and re.match(r"^(=+|-+|~+)$", x[1]):
+            ctx[section] = x[2]
+            while ctx[section].startswith("\n"):
+                ctx[section] = ctx[section][1:]
+    if re.match(r"\s*$", ctx[section]):
+        ctx[section] = ""
+    if pth.isfile(pth.join("static", "description", "%s.png" % section)):
+        ctx["%s_png" % section] = """.. figure:: %s
+:alt: %s
+:width: 98%%""" % (
+            url_by_doc(
+                ctx,
+                "/%s/static/description/%s.png" % (ctx["module_name"], section)),
+            ctx["name"])
+    else:
+        ctx["%s_png" % section] = ""
 
 
 def write_rst_file(ctx, path, section):
@@ -2918,7 +3026,10 @@ def write_rst_file(ctx, path, section):
                 dash = "~" * len(header)
                 line = "* [IMP] Created documentation directory"
                 ctx[section] = "%s\n%s\n\n%s\n" % (header, dash, line)
-            fd.write(_c(ctx[section.lower()]))
+            if section in ("authors", "contributors", "acknowledges"):
+                fd.write(_c(ctx[section.lower()].replace("`__", "").replace(" `", " ")))
+            else:
+                fd.write(_c(ctx[section.lower()]))
 
 
 def write_egg_info(ctx):
@@ -2926,6 +3037,7 @@ def write_egg_info(ctx):
     for section in (
         "authors",
         "contributors",
+        "acknowledges",
         "description",
         "description_i18n",
         "changelog",
@@ -2962,16 +3074,8 @@ def generate_readme(ctx):
                 ctx["module_name"] = build_odoo_param(
                     "PKGNAME", odoo_vid=".", multi=True
                 )
-                if not ctx["module_name"]:
-                    ctx["module_name"] = build_odoo_param(
-                        "PKGNAME", odoo_vid=".", multi=True
-                    )
             if not ctx["repos_name"]:
                 ctx["repos_name"] = build_odoo_param("REPOS", odoo_vid=".", multi=True)
-                if not ctx["repos_name"]:
-                    ctx["repos_name"] = build_odoo_param(
-                        "REPOS", odoo_vid=".", multi=True
-                    )
             read_manifest(ctx)
 
     def set_description(ctx):
@@ -3105,31 +3209,6 @@ def generate_readme(ctx):
         if not ctx[section]:
             ctx[section] = "Sommario non disponibile"
 
-    def load_section_from_file(ctx, section, is_tag=None):
-        if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
-            ctx[section] = parse_local_file(
-                ctx, "%s.rst" % section, ignore_ntf=True, section=section
-            )
-        if "description" in section:
-            # Remove old header text
-            x = ctx[section].split("\n", 2)
-            if len(x) > 2 and re.match(r"^(=+|-+|~+)$", x[1]):
-                ctx[section] = x[2]
-                while ctx[section].startswith("\n"):
-                    ctx[section] = ctx[section][1:]
-        if re.match(r"\s*$", ctx[section]):
-            ctx[section] = ""
-        if pth.isfile(pth.join("static", "description", "%s.png" % section)):
-            ctx["%s_png" % section] = """.. figure:: %s
-  :alt: %s
-  :width: 98%%""" % (
-                url_by_doc(
-                    ctx,
-                    "/%s/static/description/%s.png" % (ctx["module_name"], section)),
-                ctx["name"])
-        else:
-            ctx["%s_png" % section] = ""
-
     def get_submodules(ctx):
         if pth.isdir("./egg-info"):
             files = os.listdir("./egg-info")
@@ -3205,6 +3284,28 @@ def generate_readme(ctx):
     ctx["license_mgnt"] = license_mgnt.License()
     ctx["license_mgnt"].add_copyright(ctx["git_orgid"], "", "", "", "")
 
+    # Check for old filename
+    src_path = "./readme" if ctx["product_doc"] == "odoo" else "./egg-info"
+    for sect in DEFINED_SECTIONS + DEFINED_TAG:
+        fn = "%s.rst" % (sect if sect in DEFINED_TAG else sect.upper())
+        fqn = pth.join(src_path, fn)
+        if not pth.isfile(fqn):
+            cur_fqn = get_fqn(ctx, src_path, sect)
+            if pth.isfile(cur_fqn):
+                if not ctx["suppress_warning"]:
+                    print("%s -> %s" % (cur_fqn, fqn))
+                os.rename(cur_fqn, fqn)
+        if sect not in TRANSLABLE_SECTIONS:
+            continue
+        fn = fn.replace(".rst", ".it_IT.rst")
+        fqn = pth.join(src_path, fn)
+        if not pth.isfile(fqn):
+            cur_fqn = get_fqn(ctx, src_path, sect + "_i18n.rst")
+            if pth.isfile(cur_fqn):
+                if not ctx["suppress_warning"]:
+                    print("%s -> %s" % (cur_fqn, fqn))
+                os.rename(cur_fqn, fqn)
+
     # Contents of sections are in rst format
     for section in DEFINED_SECTIONS:
         load_section_from_file(ctx, section)
@@ -3244,7 +3345,7 @@ def generate_readme(ctx):
         read_dependecies_license(ctx)
     for section in LIST_TAG:
         if isinstance(ctx[section], (list, tuple)):
-            item_2_test(ctx, section)
+            item_2_text(ctx, section)
 
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
@@ -3272,7 +3373,7 @@ def generate_readme(ctx):
             ctx["template_name"] = "soffice.rst"
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
         tmp_file = ctx["dst_file"].replace(".odt", ".rst")
-        if ctx["opt_verbose"]:
+        if ctx["opt_verbose"] > 1:
             print("Writing %s" % tmp_file)
         with open(tmp_file, "w") as fd:
             fd.write(_c(target))
@@ -3328,8 +3429,9 @@ def generate_readme(ctx):
         )
     if ctx["opt_verbose"]:
         if ctx["history-summary"]:
-            print("\nRecent History\n~~~~~~~~~~~~~~\n")
-            print_green_message(ctx["history-summary"])
+            if not ctx["write_index"]:
+                print("\nRecent History\n~~~~~~~~~~~~~~\n")
+                print_green_message(ctx["history-summary"][0:240])
         else:
             if ctx["odoo_layer"] == "module" and ctx["module_name"]:
                 item = ctx["module_name"]
@@ -3342,7 +3444,7 @@ def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Generate README", "© 2018-2023 by SHS-AV s.r.l.", version=__version__
+        "Generate README", "© 2018-2024 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument(
@@ -3361,7 +3463,10 @@ def main(cli_args=None):
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument("-g", "--gpl-info", action="store", dest="opt_gpl", default="")
     parser.add_argument(
-        "-H", "-I", "--write-index", action="store_true", dest="write_index"
+        "-H", "-I", "--write-index",
+        action="store_true",
+        dest="write_index",
+        help="write index.html rather than README.rst"
     )
     parser.add_argument(
         "-l", "--layer", action="store", help="ocb|module|repository", dest="odoo_layer"
@@ -3410,7 +3515,10 @@ def main(cli_args=None):
     parser.add_argument("-W", "--write-authinfo", action="store_true")
     parser.add_argument("-w", "--suppress-warning", action="store_true")
     parser.add_argument(
-        "-X", "--write-office", action="store_true", dest="write_office"
+        "-X", "--write-office",
+        action="store_true",
+        dest="write_office",
+        help="write openoffice/libreoffic fragment help"
     )
     parser.add_argument(
         "-Y", "--write-man-page", action="store_true", dest="write_man_page"

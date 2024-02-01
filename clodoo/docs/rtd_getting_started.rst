@@ -44,7 +44,6 @@ Stable version via Python Package
 
     pip install --upgrade clodoo
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 

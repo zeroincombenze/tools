@@ -192,11 +192,16 @@ class PleaseZ0bug(object):
                 sts = please.run_traced("pre-commit run", rtime=True)
             if sts == 0:
                 if "lint" in please.cli_args:
-                    sub_list = [("--no-verify", ""), ("--no-translate", "")]
+                    sub_list = [("--no-verify", ""),
+                                ("--no-translate", ""),
+                                ("-Z", ""),
+                                ("--zero", "")]
                 else:
                     sub_list = [("z0bug", "lint"),
                                 ("--no-verify", ""),
-                                ("--no-translate", "")]
+                                ("--no-translate", ""),
+                                ("-Z", ""),
+                                ("--zero", "")]
                 please.sh_subcmd = please.pickle_params(
                     rm_obj=True, slist=sub_list)
                 cmd = please.build_sh_me_cmd()
@@ -210,7 +215,9 @@ class PleaseZ0bug(object):
             else:
                 sub_list = [("z0bug", "lint"),
                             ("--no-verify", ""),
-                            ("--no-translate", "")]
+                            ("--no-translate", ""),
+                            ("-Z", ""),
+                            ("--zero", "")]
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
@@ -253,39 +260,49 @@ class PleaseZ0bug(object):
         please = self.please
         if please.is_odoo_pkg():
             branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
-            if (
-                    not please.opt_args.no_verify
-                    and pth.isdir("tests")
-                    and pth.isfile(pth.join("tests", "testenv.py"))
-            ):
+            if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
                 sts, branch = please.get_odoo_branch_from_git()
-                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                                   "testenv")
-                if branch and int(branch.split(".")[0]) <= 7:
+                if not please.opt_args.no_verify:
+                    srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                                       "testenv")
+                    if branch and int(branch.split(".")[0]) <= 7:
+                        please.run_traced(
+                            "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
+                            rtime=True)
+                    else:
+                        please.run_traced(
+                            "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
                     please.run_traced(
-                        "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
-                        rtime=True)
+                        "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
+                if (
+                    please.opt_args.debug_level
+                    and please.opt_args.debug_level.isdigit()
+                ):
+                    debug_level = please.opt_args.debug_level
                 else:
-                    please.run_traced(
-                        "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
+                    debug_level = "0"
+                if please.opt_args.debug_level or not please.opt_args.no_verify:
+                    for fn in os.listdir("tests/"):
+                        if fn.startswith("test_") and fn.endswith(".py"):
+                            with open(pth.join("tests", fn), "r") as fd:
+                                content = fd.read()
+                            do_rewrite = False
+                            new_content = ""
+                            for ln in content.split("\n"):
+                                new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
+                                                r"\1 %s\2" % debug_level,
+                                                ln)
+                                new_content += new_ln
+                                new_content += "\n"
+                                do_rewrite |= (new_ln != ln)
+                            if do_rewrite:
+                                with open(pth.join("tests", fn), "w") as fd:
+                                    fd.write(new_content)
+            if pth.isdir("tests") and pth.isfile(pth.join(".", "_check4deps_.py")):
+                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                                   "_check4deps_.py")
                 please.run_traced(
-                    "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
-                for fn in os.listdir("tests/"):
-                    if fn.startswith("test_") and fn.endswith(".py"):
-                        with open(pth.join("tests", fn), "r") as fd:
-                            content = fd.read()
-                        do_rewrite = False
-                        new_content = ""
-                        for ln in content.split("\n"):
-                            new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
-                                            r"\1 0\2",
-                                            ln)
-                            new_content += new_ln
-                            new_content += "\n"
-                            do_rewrite |= (new_ln != ln)
-                        if do_rewrite:
-                            with open(pth.join("tests", fn), "w") as fd:
-                                fd.write(new_content)
+                    "cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
             if (
                     not please.opt_args.no_verify
                     and pth.isdir("tests")
@@ -344,5 +361,3 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
-
-

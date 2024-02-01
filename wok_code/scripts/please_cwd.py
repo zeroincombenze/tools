@@ -378,7 +378,7 @@ class PleaseCwd(object):
             " FROM pg_database order by datmod"
         )
         rex = re.compile("^(test|template)_[a-z]+")
-        date_limit = datetime.strftime(datetime.now() - timedelta(30), "%Y-%m-%d")
+        date_limit = datetime.strftime(datetime.now() - timedelta(21), "%Y-%m-%d")
         for row in cr.fetchall():
             db_name, db_date, db_user = row[0], row[1], row[2]
             if (
@@ -1142,7 +1142,7 @@ class PleaseCwd(object):
                             or fn.startswith("LICENSE")
                     ):
                         continue
-                    if fn in ("testenv.py", "testenv.rst"):
+                    if fn in ("testenv.py", "testenv.rst", "_check4deps_.py"):
                         rex = REGEX_TESTENV_VER
                     elif fn in ("__manifest__.py", "__openerp__.rst"):
                         rex = REGEX_DICT_VER

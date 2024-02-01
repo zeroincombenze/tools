@@ -1119,8 +1119,9 @@ do_translate() {
 
 do_lint() {
     wlog "do_lint '$1' '$2' '$3'"
-    local sts=$STS_FAILED opts s x VDIR
-    [[ $PRJNAME == "Odoo" ]] && VDIR=$(build_odoo_param VDIR ./)
+    local sts=$STS_FAILED opts p s x VDIR
+    [[ $PRJNAME == "Odoo" && $(basename $(dirname $PWD)) == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && VDIR="$(dirname $p)/oca$x/venv_odoo"
+    [[ $PRJNAME == "Odoo" && -z $VDIR ]] && VDIR=$(build_odoo_param VDIR ./)
     [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
     if [[ -z $FLAKE8_CONFIG ]]; then
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
@@ -1128,6 +1129,7 @@ do_lint() {
     fi
     [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
     [[ $TRAVIS_PYTHON_VERSION =~ ^2 ]] && opts="--extend-ignore=B006,F812 --max-line-length=88" || opts="--extend-ignore=B006 --max-line-length=88"
+    [[ $opt_verbose -gt 1 ]] && opts="$opts -v"
     if [[ $PRJNAME == "Odoo" ]]; then
       x=$(build_odoo_param MAJVER ./)
       [[ $x -le 7 ]] && opts="$opts --per-file-ignores='__openerp__.py:E501,E128'"
@@ -1564,6 +1566,3 @@ else
   done
 fi
 exit $sts
-
-
-
