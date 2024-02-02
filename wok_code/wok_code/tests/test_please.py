@@ -105,7 +105,7 @@ class RegressionTest:
         # 7 "Test log file not found!"
         # 8 "> git add ./"
         # 9 "> <PYTHON> <SCRIPT>/odoo_translation.py <TMODARS> <DBARGS> -v -n"
-        # 10 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -e <TMODARS> <DBARGS> -v -n
+        # 10 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -e <TMODARS> <DBARGS> -q -n
         #
         os.chdir(self.odoo_moduledir)
         rdme_dir = os.path.join(self.odoo_moduledir, "readme")
@@ -153,7 +153,7 @@ class RegressionTest:
             msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[14],
-            ".*/run_odoo_debug.py -e %s %s -v -n" % (TMODARS, DBARGS),
+            ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)
@@ -286,7 +286,7 @@ class RegressionTest:
             msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[10],
-            ".*/run_odoo_debug.py -e %s %s -v -n" % (TMODARS, DBARGS),
+            ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
             msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)

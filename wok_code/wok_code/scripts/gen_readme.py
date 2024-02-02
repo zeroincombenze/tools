@@ -2322,7 +2322,7 @@ def adj_version(ctx, odoo_version):
         odoo_version = "0.1.0"
     if odoo_version[0].isdigit():
         if not odoo_version.startswith(ctx["branch"]):
-            odoo_version = (ctx["branch"] + "." + odoo_version.split(".", 2)[-1])
+            odoo_version = ctx["branch"] + "." + odoo_version
     return odoo_version
 
 

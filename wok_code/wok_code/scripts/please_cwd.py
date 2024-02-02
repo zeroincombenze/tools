@@ -136,13 +136,14 @@ class PleaseCwd(object):
             self.config = self.please.opt_args.odoo_config or build_odoo_param(
                 "CONFN", odoo_vid=".", multi=True)
         if not pth.isfile(self.config):
-            print("%sNo configuration file %s found!%s" % (RED, self.config, CLEAR))
+            self.please.log_error("No configuration file %s found!" % self.config)
             return 126
         Config = ConfigParser.RawConfigParser()
         Config.read(self.config)
         if not Config.has_section("options"):
-            print("%sInvalid Configuration file %s: missed [options] section!%s"
-                  % (RED, self.opt_args.config, CLEAR))
+            self.please.log_error(
+                "Invalid Configuration file %s: missed [options] section!"
+                % self.opt_args.config)
             return 33
         else:
             for k in (
@@ -201,7 +202,7 @@ class PleaseCwd(object):
             else:
                 response = True
         except psycopg2.OperationalError:
-            print("Error executing sql %s" % query)
+            self.please.log_error("Error executing sql %s" % query)
             response = False
         if not keep_cursor:
             try:
@@ -242,16 +243,18 @@ class PleaseCwd(object):
 
     def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
         if pkgtype not in ("odoo", "pypi"):
-            print("%sInvalid package type: use 'odoo' or 'pypi'!%s" % (RED, CLEAR))
+            self.please.log_error("Invalid package type: use 'odoo' or 'pypi'")
             return 33
         please = self.please
         if pkgtype == "pypi":
             docs_dir = "./docs"
             if not pth.isdir(docs_dir):
-                if please.opt_args.verbose:
-                    print("Directory %s not found!" % docs_dir)
                 if not please.opt_args.force and not please.opt_args.dry_run:
+                    if please.opt_args.verbose:
+                        self.please.log_error("Directory %s not found!" % docs_dir)
                     return 126
+                if please.opt_args.verbose:
+                    self.please.log_warning("Directory %s not found!" % docs_dir)
                 if not please.opt_args.dry_run:
                     os.mkdir(docs_dir)
             self.docs_dir = docs_dir
@@ -276,10 +279,12 @@ class PleaseCwd(object):
         ):
             docdir = pth.join(".", docdir)
         if not pth.isdir(docdir):
-            if please.opt_args.verbose:
-                print("Directory %s not found!" % docdir)
             if not please.opt_args.force and not please.opt_args.dry_run:
+                if please.opt_args.verbose:
+                    self.please.log_error("Directory %s not found!" % docdir)
                 return 126
+            if please.opt_args.verbose:
+                self.please.log_warning("Directory %s not found!" % docdir)
             if not please.opt_args.dry_run:
                 os.mkdir(docdir)
         self.docdir = docdir
@@ -395,12 +400,12 @@ class PleaseCwd(object):
         please = self.please
         sts = 126
         if not please.opt_args.message:
-            print("Missed commit message! Please use -m 'message'")
-            sts = 1
+            please.log_error("Missed commit message! Please use -m 'message'")
+            sts = 125
         elif please.is_pypi_pkg():
             sts = self.do_docs()
         else:
-            print("No PYPI directory found")
+            please.log_warning("No PYPI directory found")
         if sts == 0:
             for root, dirs, files in os.walk(self.cur_path_of_pkg()):
                 for fn in files:
@@ -409,13 +414,14 @@ class PleaseCwd(object):
                     cmd = "rm -f " + pth.join(root, fn)
                     sts = please.run_traced(cmd)
                     if sts:
-                        print("Cannot remove file %s!" % pth.join(root, fn))
+                        please.log_warning(
+                            "Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
             tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
-                print("Tools directory %s not found!" % tgtdir)
-                return 2
+                self.please.log_error("Tools directory %s not found!" % tgtdir)
+                return 33
 
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
@@ -481,7 +487,8 @@ class PleaseCwd(object):
         return please.do_iter_action("do_commit", act_all_pypi=True, act_tools=False)
 
     def do_defcon(self):
-        print("Missed sepcification:\nplease defcon precommit|gitignore")
+        self.please.log_error(
+            "Missed sepcification:\nplease defcon precommit|gitignore")
         return 126
 
     def _do_defcon(self, tmpl_fn, tgt_fn):
@@ -521,8 +528,8 @@ class PleaseCwd(object):
         else:
             srcpath = pth.join(srcpath, tmpl_fn)
         if not pth.isfile(srcpath):
-            print("File %s not found" % srcpath)
-            sts = 1
+            self.please.log_error("File %s not found" % srcpath)
+            sts = 123
         elif sts == 126:
             sts = 0
 
@@ -531,8 +538,8 @@ class PleaseCwd(object):
             while not pth.isdir(".git"):
                 max_ctr -= 1
                 if not max_ctr:
-                    print("Git repository not found!")
-                    sts = 1
+                    self.please.log_error("Git repository not found!")
+                    sts = 123
                     break
                 os.chdir(pth.dirname(os.getcwd()))
         if sts == 0:
@@ -579,11 +586,11 @@ class PleaseCwd(object):
 
             if not please.opt_args.dry_run:
                 if please.opt_args.verbose:
-                    print("File %s updated/created" % tgtpath)
+                    self.please.log_success("File %s updated/created" % tgtpath)
                 with open(tgtpath, "w") as fd:
                     fd.write(target)
             elif please.opt_args.verbose:
-                print("File %s should be updated/created" % tgtpath)
+                self.please.log_success("File %s should be updated/created" % tgtpath)
         return sts
 
     def do_defcon_precommit(self):
@@ -595,6 +602,10 @@ class PleaseCwd(object):
     def do_docs(self):
         please = self.please
         if please.is_odoo_pkg():
+            if not pth.isdir("readme"):
+                please.log_warning(
+                    "Module %s w/o documentation dir!" % pth.basename(os.getcwd()))
+                return 3
             sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if sts == 0:
                 self.branch = branch
@@ -643,7 +654,8 @@ class PleaseCwd(object):
             if sts:
                 return sts
             if not pth.isdir(self.docs_dir):
-                print("Document template directory %s not found!" % self.docs_dir)
+                please.log_error(
+                    "Document template directory %s not found!" % self.docs_dir)
                 return 33 if not self.please.opt_args.dry_run else 0
             args = self.build_gen_readme_base_args(branch=self.branch)
             sts = self.please.chain_python_cmd("gen_readme.py", args)
@@ -668,15 +680,16 @@ class PleaseCwd(object):
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
             return please.run_traced(cmd)
-        return 1
+        return 126
 
     def do_export(self):
         if self.please.is_odoo_pkg():
             return self._do_translate_export(action="export")
-        return 1
+        return 126
 
     def do_publish(self):
-        print("Missed specification:\nplease publish pypi|test_pypi|marketplace")
+        self.please.log_error(
+            "Missed specification:\nplease publish pypi|test_pypi|marketplace")
         return 126
 
     def do_publish_pypi(self):
@@ -698,19 +711,20 @@ class PleaseCwd(object):
             with open(manifest, "r") as fd:
                 contents = eval(fd.read())
             if not contents.get("application"):
-                print("You can only publish application module!")
-                print("Add:")
-                print("   \"application\": True")
-                print("in your manifest %s" % manifest)
-                return 3
+                self.please.log_error("You can only publish application module!")
+                print("  Add:")
+                print("     \"application\": True")
+                print("  in your manifest %s" % manifest)
+                return 33
             sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if sts == 0:
                 module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
                 target_dir = pth.expanduser(
                     pth.join("~", branch, "marketplace", module_name))
                 if not pth.isdir(pth.dirname(target_dir)):
-                    print("Path %s not found!" % pth.dirname(target_dir))
-                    return 2
+                    self.please.log_error(
+                        "Path %s not found!" % pth.dirname(target_dir))
+                    return 33
                 if pth.isdir(target_dir):
                     shutil.rmtree(target_dir)
                 shutil.copytree(os.getcwd(), target_dir)
@@ -736,7 +750,7 @@ class PleaseCwd(object):
 
     def do_replace(self):
         please = self.please
-        print("Deprecated action! Please use 'please commit'")
+        please.log_warning("Deprecated action! Please use 'please commit'")
         sts = 126
         if please.is_pypi_pkg():
             sts = self.do_docs()
@@ -748,13 +762,14 @@ class PleaseCwd(object):
                     cmd = "rm -f " + pth.join(root, fn)
                     sts = please.run_traced(cmd)
                     if sts:
-                        print("Cannot remove file %s!" % pth.join(root, fn))
+                        please.log_warning(
+                            "Cannot remove file %s!" % pth.join(root, fn))
                         break
         if sts == 0:
             tgtdir = please.get_pkg_tool_dir()
             if not pth.isdir(tgtdir):
-                print("Tools directory %s not found!" % tgtdir)
-                return 2
+                please.log_error("Tools directory %s not found!" % tgtdir)
+                return 33
 
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
@@ -816,7 +831,7 @@ class PleaseCwd(object):
     def do_translate(self):
         if self.please.is_odoo_pkg():
             return self._do_translate_export(action="all")
-        return 1
+        return 126
 
     def _do_translate_export(self, action="all"):
         def get_po_revision_date(pofile):
@@ -837,8 +852,9 @@ class PleaseCwd(object):
             if sts == 0:
                 if not pth.isdir("./i18n"):
                     if not please.opt_args.force:
-                        print("No directory i18n found! Use -f switch to create it")
-                        return 126
+                        please.log_warning(
+                            "No directory i18n found! Use -f switch to create it")
+                        return 3
                     os.mkdir("./i18n")
                 self.branch = branch
                 self.odoo_major_version = int(branch.split(".")[0])
@@ -846,8 +862,9 @@ class PleaseCwd(object):
                 pofile = "./i18n/it.po"
                 if not pth.isfile(pofile):
                     if not please.opt_args.force:
-                        print("No file %s found! Use -f switch to create it" % pofile)
-                        return 126
+                        please.log_warning(
+                            "No file %s found! Use -f switch to create it" % pofile)
+                        return 3
                     args = [
                         "-f",
                         "-m", module_name,
@@ -868,15 +885,15 @@ class PleaseCwd(object):
                 self.db_name = please.opt_args.database or (
                     "test_%s_%s" % (module_name, self.odoo_major_version))
                 if self.db_name not in [x[0] for x in response]:
-                    print("Database %s does not exist!" % self.db_name)
-                    return 33
+                    please.log_warning("Database %s does not exist!" % self.db_name)
+                    return 3
                 self.connect_db()
                 query = ("select state from ir_module_module where name = '%s'"
                          % module_name)
                 response = self.exec_sql(query, response=True, keep_cursor=True)
                 state = response[0][0]
                 if state != "installed":
-                    print("Module %s not installed!" % module_name)
+                    please.log_error("Module %s not installed!" % module_name)
                     return 33
                 query = ("select value from ir_config_parameter"
                          " where key='database.create_date'")
@@ -932,16 +949,18 @@ class PleaseCwd(object):
                     if self.db_name:
                         args.append("-d")
                         args.append(self.db_name)
-                    if please.opt_args.verbose:
-                        args.append("-" + ("v" * please.opt_args.verbose))
+                    if please.opt_args.verbose > 1:
+                        args.append("-" + ("v" * (please.opt_args.verbose - 1)))
+                    else:
+                        args.append("-q")
                     if please.opt_args.dry_run:
                         args.append("-n")
                     sts = please.chain_python_cmd("run_odoo_debug.py", args)
                     action_done = True
                 if not action_done:
-                    print("No transaction done")
+                    self.please.log_warning("No transaction done")
                 return sts
-        return 1
+        return 126
 
     def do_update(self):
         please = self.please
@@ -951,8 +970,8 @@ class PleaseCwd(object):
             else:
                 tgtdir = pth.expanduser("~/devel/venv")
             if not pth.isdir(tgtdir):
-                print("Tools directory %s not found!" % tgtdir)
-                return 2
+                please.log_error("Tools directory %s not found!" % tgtdir)
+                return 33
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
@@ -1073,7 +1092,7 @@ class PleaseCwd(object):
                         target += "\n"
                 except BaseException as e:
                     do_rewrite = False
-                    print("Error %s reading %s" % (e, fqn))
+                    please.log_error("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
                     if please.opt_args.verbose:
                         print(fqn, "=>", please.opt_args.branch)
@@ -1163,11 +1182,11 @@ class PleaseCwd(object):
             if not pth.isfile(fqn):
                 fqn = "__openerp__.py"
             if not pth.isfile(fqn):
-                print("Manifest file not found!")
+                please.log_warning("Manifest file not found!")
                 return 3
             search_last_history(pth.join("readme", "CHANGELOG.rst"))
             return update_version(fqn, REGEX_DICT_VER)
         elif (please.opt_args.branch or please.opt_args.from_version):
-            print("Version options are not applicable to all packages")
+            please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
