@@ -1,0 +1,16 @@
+super:
+  match: '^ *super\([^)]*\)'
+  prio: '6'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super()'
+    - action: 's'
+      args:
+      - '\(cr, *uid, *'
+      - '('
+    - action: 's'
+      args:
+      - ', *context=[^)]+'
+      - ''

@@ -1,6 +1,7 @@
--
-  - '.*binding_model="([^"]*)"'
-  -
-    - 's'
-    - 'binding_model="([^"]*)"'
-    - 'src_model="\1"'
+binding_model:
+  match: '.*binding_model="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'binding_model="([^"]*)"'
+      - 'src_model="\1"'

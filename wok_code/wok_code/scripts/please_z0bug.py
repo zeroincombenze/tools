@@ -188,6 +188,25 @@ class PleaseZ0bug(object):
             args.append("-n")
         return args
 
+    def check_4_test_dirs(self, full=None):
+        fqn = pth.join(os.getcwd(), "tests")
+        if not pth.isdir(fqn):
+            self.please.log_warning("Module %s w/o regression test!"
+                                    % pth.basename(os.getcwd()))
+            return "" if full else 3
+        if not full:
+            return 0
+        fqn = pth.join(os.getcwd(), "tests", "logs")
+        if not pth.isdir(fqn):
+            self.please.log_warning("Module %s w/o regression test result!"
+                                    % pth.basename(os.getcwd()))
+            return ""
+        fqn = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
+        if not pth.isfile(fqn):
+            self.please.log_error("Command %s not found!" % fqn)
+            return
+        return fqn
+
     def _do_lint(self):
         please = self.please
 
@@ -279,7 +298,8 @@ class PleaseZ0bug(object):
         with open(fqn, RMODE) as fd:
             for ln in fd.read().split("\n"):
                 if re.search(
-                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])",
+                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23]"
+                        r"| DAEMON )",
                         ln):
                     print(ln)
         return 0
@@ -295,9 +315,8 @@ class PleaseZ0bug(object):
                 "Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
 
-        cmd = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
-        if not pth.isfile(cmd):
-            self.please.log_error("Command %s not found!" % cmd)
+        cmd = self.check_4_test_dirs(full=True)
+        if not cmd:
             return 3
         with open(cmd, RMODE) as fd:
             fn = fd.read().split("\n")[0].split("/")[-1]
@@ -334,6 +353,9 @@ class PleaseZ0bug(object):
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
+        sts = self.check_4_test_dirs()
+        if please.is_fatal_sts(sts):
+            return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
             sts, branch = please.get_odoo_branch_from_git()
             if not please.opt_args.no_verify:

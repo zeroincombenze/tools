@@ -1,14 +1,8 @@
--
-  - '^ *super\([^)]*\)'
-  -
-    - 's'
-    - 'super\(\)'
-    - 'super(%(classname)s, self)'
-  -
-    - '-8s'
-    - '(\)\.[^(]+)\('
-    - '\1(cr, uid, '
-  -
-    - '-8s'
-    - '(super[^)]+\)[^)]+)'
-    - '\1, context=context'
+super:
+  match: '^ *super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'

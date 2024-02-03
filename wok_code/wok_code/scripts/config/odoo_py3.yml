@@ -1,14 +1,8 @@
--
-  - '^ *super\([^)]*\)'
-  -
-    - 's'
-    - 'super\([^)]*\)'
-    - 'super()'
-  -
-    - 's'
-    - '\(cr, *uid, *'
-    - '('
-  -
-    - 's'
-    - ', *context=[^)]+'
-    - ''
+super:
+  match: '^ *super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super()'
