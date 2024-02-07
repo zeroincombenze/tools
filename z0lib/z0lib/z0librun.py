@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 def nakedname(path):
@@ -592,4 +592,5 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
+
 

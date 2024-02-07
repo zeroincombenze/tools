@@ -1,5 +1,5 @@
 ===========
-z0lib 2.0.8
+z0lib 2.0.9
 ===========
 
 
@@ -31,17 +31,11 @@ The available libraries are:
 Features
 --------
 
-+--------------+------+--------+-----------------------------------------------------------------+
-| Description  | bash | python | Note(s)                                                         |
-+--------------+------+--------+-----------------------------------------------------------------+
-| run_traced   | ✅   | ✅     | Run os command with trace                                       |
-+--------------+------+--------+-----------------------------------------------------------------+
-| xuname       | ✅   | ❌     | OS indentity (python has native function)                       |
-+--------------+------+--------+-----------------------------------------------------------------+
-| parseoptargs | ✅   | ❌     | Command line parser (python has native function)                |
-+--------------+------+--------+-----------------------------------------------------------------+
-| link_cfg     | ✅   | ❌     | Get values from configuration file (python has native function) |
-+--------------+------+--------+-----------------------------------------------------------------+
+Description,bash,python,Note(s)
+run_traced,✅,✅,Run os command with trace
+xuname,✅,❌,OS indentity (python has native function)
+parseoptargs,✅,❌,Command line parser (python has native function)
+link_cfg,✅,❌,Get values from configuration file (python has native function)
 
 
 
@@ -93,7 +87,6 @@ Stable version via Python Package
 
     pip install --upgrade z0lib
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -107,6 +100,11 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.9 (2024-02-01)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Internal matadata
 
 2.0.8 (2023-10-16)
 ~~~~~~~~~~~~~~~~~~
@@ -219,10 +217,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
