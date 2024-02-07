@@ -35,7 +35,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 MAX_RECS = 100
 PUNCT = [' ', '.', ',', '!', ':']
@@ -777,5 +777,6 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 

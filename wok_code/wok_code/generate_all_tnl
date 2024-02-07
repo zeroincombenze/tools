@@ -40,7 +40,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.13
+__version__=2.0.14
 
 
 upgrade_oca_repo() {
@@ -256,5 +256,6 @@ for odoo_vid in $opt_branch; do
     run_traced "odoo_translation.py -mbase -b $odoo_fver -d $opt_db $opts"
   fi
 done
+
 
 

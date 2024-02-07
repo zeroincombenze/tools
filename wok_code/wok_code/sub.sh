@@ -31,7 +31,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.13
+__version__=2.0.14
 
 set +x
 
@@ -41,5 +41,6 @@ echo "  - HOME_DEV=$HOME_DEV"
 echo "  - PYTHON=$PYTHON ($(which $PYTHON))"
 echo "  - PYPATH=$PYPATH"
 exit 0
+
 
 

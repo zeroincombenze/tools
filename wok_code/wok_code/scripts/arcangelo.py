@@ -14,7 +14,7 @@ import yaml
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 
 def get_pyver_4_odoo(odoo_ver):
@@ -1133,3 +1133,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

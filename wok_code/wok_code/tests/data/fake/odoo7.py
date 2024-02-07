@@ -1,13 +1,13 @@
 # flake8: noqa - pylint: skip-file
-from odoo import api, models
+# -*- coding: utf-8 -*-
+from openerp.osv import osv
 
-class ResPartner(models.Model):
+
+class ResPartner(orm.osv):
     _inherit = "res.partner"
 
-    @api.multi
-    def unlink(self):
-        return super().unlink()
+    def unlink(self, cr, uid, param, context=None):
+        return super(ResPartner, self).unlink(cr, uid, param, context=context)
 
-    @api.one
-    def compute(self):
-        return True
+    def compute(self, cr, uid, param, context=None):
+        return super(ResPartner, self).unlink(cr, uid, param, context=context)
