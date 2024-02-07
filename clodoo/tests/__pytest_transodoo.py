@@ -12,7 +12,7 @@
 # import pytest
 from clodoo import transodoo
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 class TestClass:
@@ -28,4 +28,5 @@ class TestClass:
             ctx, model, item, src_ver, tgt_ver, ttype=ttype
         )
         assert tnl_item == "type"
+
 

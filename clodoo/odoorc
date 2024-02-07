@@ -64,7 +64,7 @@
 # ODOO_GIT_MULTI    -> multi version environment
 #
 
-__version__=2.0.8
+__version__=2.0.9
 
 
 ODOO_FVERS="18\.0|17\.0|16\.0|15\.0|14\.0|13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -487,6 +487,7 @@ build_odoo_param() {
     elif [[ $MULTIVER -ne 0 ]]; then
         DB_USER=${ODOO_DB_USER/\%(MAJVER)s/$MAJVER}
         DB_USER=${DB_USER/\%(ORGSFX)s/$ORGSFX}
+        [[ $GIT_ORGID == "oca" ]] && DB_USER=${DB_USER/odoo/oca}
     else
         DB_USER="odoo"
     fi
@@ -739,3 +740,4 @@ if [ "${BASH_SOURCE-}" == "$0" ]; then
     done
     build_odoo_param "$@"
 fi
+
