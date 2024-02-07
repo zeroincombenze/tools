@@ -11,7 +11,7 @@ import sys
 from zerobug import z0test
 from z0lib import z0lib
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -122,5 +122,6 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+
 
 
