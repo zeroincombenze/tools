@@ -56,7 +56,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 msg_time = time.time()
@@ -203,4 +203,5 @@ def init_n_connect(flavour=None):
         confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx
     )
     return oerp, uid, ctx
+
 

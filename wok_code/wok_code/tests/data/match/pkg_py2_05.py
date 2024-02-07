@@ -8,4 +8,4 @@ class ResExample(object):
         pass
 
     def my_fun(self, param):
-        super().my_fun(param)
+        super(ResExample, self).my_fun(param)

@@ -41,7 +41,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -2669,4 +2669,5 @@ if __name__ == "__main__":
         migrate_sel_tables(src_ctx, tgt_ctx)
     else:
         migrate_database(src_ctx, tgt_ctx)
+
 

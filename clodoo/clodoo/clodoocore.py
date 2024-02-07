@@ -68,7 +68,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 
 #############################################################################
@@ -1540,4 +1540,5 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
+
 

@@ -25,7 +25,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 ODOO_VERSION_TO_TEST = ("16.0", "12.0", "10.0", "8.0", "7.0")
 
@@ -246,4 +246,5 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
+
 

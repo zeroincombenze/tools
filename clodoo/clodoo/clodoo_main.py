@@ -292,7 +292,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -6560,4 +6560,5 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
