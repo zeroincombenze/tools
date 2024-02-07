@@ -2,7 +2,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -39,118 +39,31 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
-
-
-evaluate_params() {
-    local val prc minconn
-    [[ $opt_branch =~ ^1[123456789] ]] && minconn=64 || minconn=32
-    if [[ $opt_nopsql -ne 0 ]]; then
-        ((AVAI_MEM=(CUR_MEM*3)/4))
-    elif [[ $opt_huge -ne 0 ]]; then
-        ((AVAI_MEM=(CUR_MEM+2)/3))
-    else
-        ((AVAI_MEM=(CUR_MEM+3)/4))
-    fi
-    ((REQ_WRKS=(NUSER+WRKS4CPU-1)/WRKS4CPU))
-    ((MAX_WRKS=CUR_NCPU*2+opt_cw))
-    ((REQ_CPU=((REQ_WRKS+opt_cw)+1)/2))
-    [[ -n $QUEUE_JOB ]] && ((REQ_WRKS=REQ_WRKS+1))
-    [[ $REQ_WRKS -gt $MAX_WRKS ]] && WK_WORKERS=$MAX_WRKS || WK_WORKERS=$REQ_WRKS
-    [[ $no_workers -ne 0 ]] && WK_WORKERS=1
-    [[ -n $QUEUE_JOB && $no_workers -ne 0 ]] && echo "Configuration mismatch: queue_job requires workers"
-    ((MAX_HWRK=(MAX_WRKS+4)/5))
-    ((MAX_LWRK=MAX_WRKS-MAX_HWRK))
-    ((REQ_HWRK=(REQ_WRKS+4)/5))
-    ((REQ_LWRK=REQ_WRKS-REQ_HWRK))
-    ((HWRK=(WK_WORKERS+4)/5))
-    ((LWRK=WK_WORKERS-HWRK))
-    [[ $no_workers -eq 0 ]] && prc=2 || prc=$PRC4WRK
-    ((REQ_AVAI_MEM=REQ_HWRK*MEM4HWRK*prc+REQ_LWRK*MEM4LWRK*prc))
-    [[ $REQ_AVAI_MEM -gt $AVAI_MEM ]] && WK_AVAI_MEM=$AVAI_MEM || WK_AVAI_MEM=$REQ_AVAI_MEM
-    [[ $no_workers -ne 0 ]] && ((MAX_HLIMIT=AVAI_MEM)) || (((MAX_HLIMIT=AVAI_MEM+2)/3))
-    [[ $MAX_HLIMIT -lt $MEM4HWRK ]] && MAX_HLIMIT=$MEM4HWRK
-    [[ $MAX_HLIMIT -lt $MIN_HLIMIT ]] && MAX_HLIMIT=$MIN_HLIMIT
-    [[ $MAX_HLIMIT -gt $AVAI_MEM ]] && MAX_HLIMIT=$AVAI_MEM
-    ((MAX_LLIMIT=AVAI_MEM*2/MAX_WRKS))
-    ((val=MAX_HLIMIT*3/4))
-    [[ $MAX_LLIMIT -gt $val ]] && MAX_LLIMIT=$val
-    ((val=MAX_HLIMIT/2))
-    [[ $MAX_LLIMIT -lt $val ]] && MAX_LLIMIT=$val
-    [[ $no_workers -ne 0 ]] && ((REQ_HLIMIT=REQ_AVAI_MEM)) || (((REQ_HLIMIT=REQ_AVAI_MEM+2)/3))
-    [[ $REQ_HLIMIT -lt $MEM4HWRK ]] && REQ_HLIMIT=$MEM4HWRK
-    [[ $REQ_HLIMIT -lt $MIN_HLIMIT ]] && REQ_HLIMIT=$MIN_HLIMIT
-    ((REQ_LLIMIT=REQ_AVAI_MEM*2/REQ_WRKS))
-    ((val=REQ_HLIMIT*3/4))
-    [[ $REQ_LLIMIT -gt $val ]] && REQ_LLIMIT=$val
-    ((val=REQ_HLIMIT/2))
-    [[ $REQ_LLIMIT -lt $val ]] && REQ_LLIMIT=$val
-    if [[ $REQ_AVAI_MEM -gt $AVAI_MEM ]]; then
-        [[ $no_workers -ne 0 ]] && ((WK_HLIMIT=AVAI_MEM)) || (((WK_HLIMIT=AVAI_MEM+2)/3))
-        ((WK_LLIMIT=AVAI_MEM*2/WK_WORKERS))
-    else
-        [[ $no_workers -ne 0 ]] && ((WK_HLIMIT=REQ_AVAI_MEM)) || (((WK_HLIMIT=REQ_AVAI_MEM+2)/3))
-        ((WK_LLIMIT=REQ_AVAI_MEM*2/WK_WORKERS))
-    fi
-    [[ $WK_HLIMIT -lt $MEM4HWRK ]] && WK_HLIMIT=$MEM4HWRK
-    [[ $WK_HLIMIT -gt $AVAI_MEM ]] && WK_HLIMIT=$AVAI_MEM
-    [[ $WK_HLIMIT -lt $MIN_HLIMIT ]] && WK_HLIMIT=$MIN_HLIMIT
-    ((val=WK_HLIMIT*3/4))
-    [[ $WK_LLIMIT -gt $val ]] && WK_LLIMIT=$val
-    ((val=WK_HLIMIT/2))
-    [[ $WK_LLIMIT -lt $val ]] && WK_LLIMIT=$val
-    [[ $no_workers -eq 0 ]] && ((MAX_PG_DBCONN=(NUSER/16+1)*32)) || ((MAX_PG_DBCONN=(NUSER/16+1)*16))
-    ((MAX_DBCONN=MAX_PG_DBCONN))
-    [[ $MAX_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((MAX_DBCONN=CUR_PG_DBCONN))
-    [[ $MAX_DBCONN -gt $max_dbconn ]] && MAX_DBCONN=$max_dbconn
-    [[ $MAX_DBCONN -lt $minconn ]] && MAX_DBCONN=$minconn
-    [[ $no_workers -eq 0 ]] && ((REQ_PG_DBCONN=(NUSER/16+1)*32)) || ((REQ_PG_DBCONN=(NUSER/16+1)*16))
-    ((REQ_DBCONN=REQ_PG_DBCONN))
-    [[ $REQ_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((REQ_DBCONN=CUR_PG_DBCONN))
-    [[ $no_workers -eq 0 ]] && ((WK_PG_DBCONN=(NUSER/16+1)*32)) || ((WK_PG_DBCONN=(NUSER/16+1)*16))
-    [[ $REQ_DBCONN -lt $minconn ]] && REQ_DBCONN=$minconn
-    ((WK_DBCONN=WK_PG_DBCONN))
-    [[ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ]] && ((WK_DBCONN=CUR_PG_DBCONN))
-    [[ $WK_PG_DBCONN -gt $CUR_PG_DBCONN ]] && WK_PG_DBCONN=$CUR_PG_DBCONN
-    [[ $WK_DBCONN -lt $minconn ]] && WK_DBCONN=$minconn
-    [[ $WK_WORKERS -lt 2 ]] && WK_WORKERS=0
-    [[ $WK_WORKERS -gt 0 ]] && PROXY_MODE="True" || PROXY_MODE="False"
-    [[ $WK_WORKERS -le 1 ]] && TIME_CPU=4800 || TIME_CPU=2400
-    [[ $WK_WORKERS -le 1 ]] && TIME_REAL=9600 || TIME_REAL=4800
-    [[ $opt_ltime -ne 0 ]] && ((TIME_CPU=TIME_CPU*2)) && ((TIME_REAL=TIME_REAL*2))
-    ((MAX_NUSER=MAX_WRKS*WRKS4CPU))
-    if [[ $opt_nopsql -ne 0 ]]; then
-        ((RAM=REQ_AVAI_MEM/3*4))
-    elif [[ $opt_huge -ne 0 ]]; then
-        ((RAM=REQ_AVAI_MEM*3))
-    else
-        ((RAM=REQ_AVAI_MEM*4))
-    fi
-}
+__version__=2.0.7
 
 OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          t         V           v)
 OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_ltime opt_version opt_verbose)
 OPTACTI=("+"      "="        "="      "=>"   "="        "="      1        "="        "="     1         1           1          1          1          1         "*>"        "+")
-OPTDEFL=(0        "12.0"     ""       ""     100        1        0        ""         ""      0         0           0          0          0          0         ""          -1)
+OPTDEFL=(0        ""         ""       ""     100        1        0        ""         ""      0         0           0          0          0          0         ""          -1)
 OPTMETA=("help"   "branch"   "number" "file" "number"   "number" ""       "port"     "MB"    ""        ""          ""         ""         ""         ""        ""          "")
 OPTHELP=("this help"\
- "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 or 16.0"
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 16.0 or 17.0"
  "# of cpu to evaluate (def current host)"
  "odoo configuration file"
  "max odoo db connection"
  "# of cron workers (def=1)"
- "huge database"
+ "huge database (prefer time over workers)"
  "long polling port (def=8072)"
- "MB of memory to evaluate"
+ "MB of memory to evaluate (def current RAM size)"
  "multi-instance odoo environment"
  "do nothing (dry-run)"
  "disable workers"
  "psql server run in separate machine"
- "multi sparse db"
+ "multi sparse db (developer machine)"
  "long time processes"
  "show version"
  "verbose mode")
-OPTARGS=(NUSER)
+OPTARGS=(REQ_NUSER)
 
 parseoptargs "$@"
 if [[ "$opt_version" ]]; then
@@ -160,145 +73,287 @@ fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 discover_multi
+# -------------------------------------------------------------------------------
+# Odoo constants and expressions from
+# https://www.odoo.com/documentation/17.0/administration/install/deploy.html
+#
+# Value meaning:
+#
+# MAX_* -> Max value for current host/configuration
+# CUR_* -> Current value from configuration
+# WK_* -> Optimal evaluate value
+# REQ_* -> Required value by user
+# STS_* -> Text about param evaluation
+#
+# NUSER: # of users/processes
+# NCPU: # of CPUs
+# MEM: size of RAM in MB
+# WRKS: # of workers
+# VWRKS: # of workers or cron workers (if not workers); used to evaluate values
+# TIME_CPU: limit time CPU (see Odoo documentation) - No REQ-*
+# TIME_REAL: limit time real (see Odoo documentation) - No REQ-*
+# HLIMIT: Odoo memory hard limit in MB, warning! UoM in config is bytes
+# SLIMIT: Odoo memory soft limit in MB, warning! UoM in config is bytes
+# DBCONN: postgres # of connections
+# LPPORT: long polling port
+#
+# PRC4WRK: # of processes for worker
+# MEM4HWRKS: memory size for hard worker in MB
+# MEM4SWRKS: memory size for soft worker in MB
+# -------------------------------------------------------------------------------
 odoo_root=""
 for p in $(echo ""|grep "^addons_path *=.*" $confn|tr -d " "|awk -F= '{print $2}'|tr "," " "); do
   [[ -x $p/../odoo-bin ]] && odoo_root=$p && break
+  [[ -x $p/../openerp-server ]] && odoo_root=$p && break
 done
 [[ -z $odoo_root ]] && echo "No Odoo executable found!" && exit 1
 odoo_vid=$(build_odoo_param FULLVER $odoo_root)
-# [[ -z $odoo_branch ]] && odoo_branch=$odoo_ver
-# [[ $(build_odoo_param MAJVER $odoo_branch) -ne $odooo_ver ]] && echo "Odoo version mismatch ($odoo_branch!=$odoo_ver)!" && exit 1
-
-
-CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep --color=never -Eo "[0-9]+"|tail -n1)
-[[ -z "$CUR_NUSER" ]] && CUR_NUSER=0
-if [[ -n "$NUSER" && ! $NUSER =~ ^[0-9]+$ ]]; then
+[[ -z $opt_branch ]] && opt_branch="$odoo_vid"
+if [[ -n "$REQ_NUSER" && ! $REQ_NUSER =~ ^[0-9]+$ ]]; then
     echo "Invalid # of user supplied. Please issue a valid number or leave empty to get current value!!"
     exit 1
 fi
-# Odoo constants
-MIN_HLIMIT=1792
+[[ -z "$REQ_NUSER" ]] && REQ_NUSER=0
+
+# -------------------------------------------------------------------------------
+# Evaluate some parameters
+# -------------------------------------------------------------------------------
+# Evaluate # of user per worker: 1 worker ~= 6 concurrent users
+PRC4WRK=6
+[[ $opt_huge -ne 0 && $opt_sparse -eq 0 ]] && PRC4WRK=8
+[[ $opt_sparse -ne 0 && $opt_huge -eq 0 ]] && PRC4WRK=10
+[[ $no_workers -ne 0 ]] && PRC4WRK=16
+# Memory for worker (MB)
+# A heavy worker, when all computed field are well designed, SQL requests …
+# is estimated to consume around 1GB of RAM
+# A lighter worker, in the same scenario, is estimated to consume around 150MB of RAM
+# Memorry limits depends on Odoo version
+odoo_majver=$(echo $opt_branch|grep -Eo "[0-9]+"|head -n1)
+if [[ $odoo_majver -gt 14 ]]; then
+  MEM4HWRKS=2560
+  MEM4SWRKS=2048
+elif [[ $odoo_majver -gt 10 ]]; then
+  MEM4HWRKS=1792
+  MEM4SWRKS=1240
+elif [[ $odoo_majver -ge 6 ]]; then
+  MEM4HWRKS=768
+  MEM4SWRKS=640
+else
+  MEM4HWRKS=2560
+  MEM4SWRKS=2048
+fi
 if [[ $opt_sparse -ne 0 ]]; then
-    WRKS4CPU=10
-elif [[ $opt_huge -ne 0 ]]; then
-    WRKS4CPU=8
-else
-    WRKS4CPU=6
-fi
-MEM4WRK=640
-if [[ $opt_huge -ne 0 ]]; then
-    ((MEM4HWRK=MEM4WRK*17/7))
-    ((MEM4LWRK=MEM4WRK/2))
-else
-    ((MEM4HWRK=MEM4WRK*8/5))
-    ((MEM4LWRK=MEM4WRK/4))
-fi
-if [[ $no_workers -eq 0 ]]; then
-    PRC4WRK=64
+  ((MEM4HWRKS=MEM4HWRKS*8/10))
+  ((MEM4SWRKS=MEM4SWRKS*7/10))
 elif [[ $opt_huge -eq 0 ]]; then
-    PRC4WRK=8
-elif [[ $opt_sparse -ne 0 ]]; then
-    PRC4WRK=4
-else
-    PRC4WRK=6
+  ((MEM4HWRKS=MEM4HWRKS*13/10))
+  ((MEM4SWRKS=MEM4SWRKS*12/10))
 fi
-# Detected or simulated
+
+# -------------------------------------------------------------------------------
+# Read current values
+# -------------------------------------------------------------------------------
 QUEUE_JOB=$(echo ""|grep "^server_wide_modules =.*" $confn|grep --color=never -Eo "queue_job")
+CUR_PROXY_MODE=$(echo ""|grep "^proxy_mode *=.*" $confn|awk -F= '{print $2}')
+[[ -z "$CUR_PROXY_MODE" ]] && CUR_PROXY_MODE="False"
+# Get # of cron workers
+[[ $opt_cw -lt 1 ]] && opt_cw=1
+[[ $opt_cw -gt 2 ]] && opt_cw=2
+[[ -n $QUEUE_JOB ]] && ((opt_cw++))
+
+STS_NUSER=""
+CUR_NUSER=$(echo ""|grep -E "^# .antoniov.*Workers are set for [0-9]+ users" $confn|grep --color=never -Eo "[0-9]+"|tail -n1)
+[[ -z "$CUR_NUSER" ]] && CUR_NUSER=0
+
+# Detect # of CPU or get supplied value
+STS_NCPU=""
+[[ -n "$opt_cpu" ]] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
+
+# Detect RAM size or get supplied value (MB)
+STS_MEM=""
+[[ -n "$opt_mem" ]] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')
+# here max memory because is physical limit
+MAX_MEM=$CUR_MEM
+# RAM for psql is they are in the host (MB)
+PSQL_MEM=0
+[[ $opt_nopsql -eq 0 ]] && ((PSQL_MEM=(CUR_MEM*3)/4)) && ((CUR_MEM=CUR_MEM/2))
+# Developer host, multiprocess running, cut available memory size
+[[ $opt_sparse -ne 0 || $opt_multi -ne 0 ]] && ((CUR_MEM=CUR_MEM*2/3)) && STS_MEM="$STS_MEM Odoo multi-instance"
+
+# Get # of workers
+[[ $no_workers -ne 0 ]] && STS_WRKS="No workers configuration" || STS_WRKS=""
+[[ -n $QUEUE_JOB ]] && STS_KWRKS="(1 queue job cron worker)" || STS_KWRKS=""
+CUR_WRKS=$(echo ""|grep "^workers *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_WRKS" ]] && CUR_WRKS=0
+[[ $CUR_WRKS -ne 0 ]] && CUR_VWRKS=$CUR_WRKS || ((CUR_VWRKS=opt_cw+1))
+
+# Get limit times
+CUR_TIME_CPU=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_TIME_CPU" ]] && CUR_TIME_CPU=60
+CUR_TIME_REAL=$(echo ""|grep "^limit_time_real *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_TIME_REAL" ]] && CUR_TIME_REAL=120
+
+# Get memory limits
+CUR_HLIMIT=$(echo ""|grep "^limit_memory_hard *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_HLIMIT" ]] && CUR_HLIMIT=0 || ((CUR_HLIMIT=CUR_HLIMIT/1024/1024))
+CUR_SLIMIT=$(echo ""|grep "^limit_memory_soft *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_SLIMIT" ]] && CUR_SLIMIT=0 || ((CUR_SLIMIT=CUR_SLIMIT/1024/1024))
+STS_HLIMIT=""
+STS_SLIMIT=""
+# Get default value, if needed
+[[ $CUR_HLIMIT -eq 0 ]] && ((CUR_HLIMIT=MEM4HWRKS*CUR_VWRKS))
+[[ $CUR_SLIMIT -eq 0 ]] && ((CUR_SLIMIT=MEM4SWRKS*CUR_VWRKS))
+
 CUR_LPPORT=$(echo ""|grep "^longpolling_port *=.*" $confn|awk -F= '{print $2}'|grep --color=never -Eo "[0-9]+")
+
+CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep --color=never -Eo "[0-9]+")
+[[ -z "$CUR_DBCONN" ]] && CUR_DBCONN=64
+
+CUR_LOGROTATE=$(echo ""|grep "^logrotate *=.*" $confn|awk -F= '{print $2}')
+[[ -z "$CUR_LOGROTATE" ]] && CUR_LOGROTATE="False"
+
+# -------------------------------------------------------------------------------
+# Evaluate required values depending on supplied values
+# -------------------------------------------------------------------------------
+[[ $REQ_NUSER -eq 0 && $opt_huge -ne 0 && $opt_sparse -eq 0 ]] && REQ_NUSER=64
+[[ $REQ_NUSER -eq 0 && $opt_sparse -ne 0 ]] && REQ_NUSER=8
+[[ $REQ_NUSER -eq 0 && $CUR_NUSER -ne 0 ]] && REQ_NUSER=$CUR_NUSER
+[[ $REQ_NUSER -eq 0 ]] && REQ_NUSER=32
+[[ $REQ_NUSER -lt 2 ]] && REQ_NUSER=2
+[[ $REQ_NUSER -lt $CUR_VWRKS ]] && ((REQ_NUSER=CUR_VWRKS+1))
+
+((REQ_WRKS=(REQ_NUSER+PRC4WRK-1)/PRC4WRK))
+[[ $REQ_WRKS -lt 2 ]] && REQ_WRKS=2
+REQ_VWRKS=$REQ_WRKS
+[[ $no_workers -ne 0 ]] && REQ_WRKS=0 && REQ_VWRKS=$opt_cw
+
+((REQ_NCPU=(REQ_VWRKS-opt_cw+1)/2))
+[[ $REQ_CPU -eq 0 ]] && REQ_NCPU=1
+
+# We consider 20% of the requests are heavy requests, while 80% are simpler ones
+# Needed RAM = #worker * ( (light_worker_ratio * light_worker_ram_estimation)
+#   + (heavy_worker_ratio * heavy_worker_ram_estimation) )
+((REQ_MEM=REQ_VWRKS*((MEM4SWRKS*8) + (MEM4HWRKS*2)) / 10))
+((REQ_HLIMIT=MEM4HWRKS*REQ_VWRKS))
+((REQ_SLIMIT=MEM4SWRKS*REQ_VWRKS))
+
+((REQ_DBCONN=REQ_VWRKS*PRC4WRK*2))
+[[ $REQ_DBCONN -lt 32 ]] && REQ_DBCONN=32
+
+# -------------------------------------------------------------------------------
+# Evaluate limits (max values)
+# -------------------------------------------------------------------------------
+# Evaluate max # of workers - Rule of thumb : (#CPU * 2) + 1
+((MAX_WRKS=CUR_NCPU*2+opt_cw))
+MAX_VWRKS=$MAX_WRKS
+
+((MAX_NUSER=MAX_VWRKS*PRC4WRK))
+MAX_TIME_CPU=4800
+MAX_TIME_REAL=9600
+((MAX_MEM=MAX_VWRKS*((MEM4SWRKS*8) + (MEM4HWRKS*2)) / 10))
+((MAX_HLIMIT=MAX_VWRKS*MEM4HWRKS))
+((MAX_SLIMIT=MAX_VWRKS*MEM4SWRKS))
+# Here max CPU in order to show how CPU coulb be needed
+((MAX_NCPU=(MAX_WRKS-opt_cw)/2))
+
+((MAX_DBCONN=MAX_WRKS*PRC4WRK*2))
+[[ $MAX_DBCONN -lt 100 ]] && MAX_DBCONN=100
+
+# -------------------------------------------------------------------------------
+# Finally we evaluate optimal values
+# -------------------------------------------------------------------------------
+WK_NUSER=$REQ_NUSER
+[[ $MAX_NUSER -lt $REQ_NUSER ]] && WK_NUSER=$MAX_NUSER && STS_NUSER="Limited by # of CPU"
+[[ $MAX_NCPU -lt $REQ_NCPU ]] && WK_NCPU=$MAX_NCPU || WK_NCPU=$REQ_NCPU
+[[ $REQ_NCPU -gt $CUR_NCPU ]] && STS_NCPU="*<CPU>* Warning! You should increase the # of CPU to $REQ_NCPU! ***"
+WK_MEM=$CUR_MEM
+[[ $REQ_MEM -gt $WK_MEM ]] && STS_MEM="$STS_MEM - Low RAM: add memory or use DB svr!"
+((WK_WRKS=(WK_NUSER+PRC4WRK-1)/PRC4WRK))
+[[ $WK_WRKS -lt 2 && $no_workers -eq 0 ]] && WK_WRKS=2 && STS_WRKS="$STS_WRKS Could set --no_workers -N switch"
+((x=WK_WRKS*PRC4WRK))
+[[ $x -lt 2 ]] && x=2
+[[ $WK_USER -gt x ]] && WK_USER=$x && STS_NUSER="$STS_NUSER Limited by RAM size" && ((WK_WRKS=(WK_NUSER+PRC4WRK-1)/PRC4WRK))
+WK_VWRKS=$WK_WRKS
+[[ $no_workers -ne 0 ]] && WK_WRKS=0 && WK_VWRKS=$opt_cw
+
+((WK_HLIMIT=WK_VWRKS*MEM4HWRKS))
+((WK_SLIMIT=WK_VWRKS*MEM4SWRKS))
+echo "$WK_HLIMIT > $CUR_MEM"   #debug
+if [[ $WK_HLIMIT -gt $CUR_MEM ]]; then
+  WK_HLIMIT=$MEM4HWRKS
+  WK_SLIMIT=$MEM4SWRKS
+[[ $CUR_SLIMIT -eq 0 ]] && ((CUR_SLIMIT=MEM4SWRKS*CUR_VWRKS))
+fi
+[[ $REQ_HLIMIT -gt $WK_HLIMIT ]] && STS_HLIMIT="Limited high performance: you should increase RAM!"
+[[ $REQ_SLIMIT -gt $WK_SLIMIT ]] && STS_SLIMIT="Trouble performance: you should increase RAM!"
+
+[[ $WK_WRKS -gt 0 ]] && WK_PROXY_MODE="True" || WK_PROXY_MODE="False"
+[[ $WK_WRKS -le 1 ]] && WK_TIME_CPU=2400 || WK_TIME_CPU=1200
+[[ $WK_WRKS -le 1 ]] && WK_TIME_REAL=4800 || WK_TIME_REAL=2400
+[[ $opt_ltime -ne 0 ]] && ((WK_TIME_CPU=WK_TIME_CPU*2)) && ((WK_TIME_REAL=WK_TIME_REAL*2))
+[[ $opt_huge -ne 0 || $opt_sparse -ne 0 ]] && ((WK_TIME_CPU=WK_TIME_CPU*2)) && ((WK_TIME_REAL=WK_TIME_REAL*2))
+notes=""
+[[ $WK_TIME_CPU -gt MAX_TIME_CPU ]] && WK_TIME_CPU=$MAX_TIME_CPU
+[[ $WK_TIME_REAL -gt MAX_TIME_REAL ]] && WK_TIME_REAL=$MAX_TIME_REAL
+[[ $opt_huge -ne 0 && $opt_sparse -eq 0 ]] && notes="Configuration optimized for production"
+[[ $opt_sparse -ne 0 && $opt_huge -eq 0 ]] && notes="Development target configuration"
+[[ $opt_sparse -ne 0 && $opt_huge -ne 0 ]] && notes="Configuration for development with large DB"
+
+((WK_DBCONN=WK_WRKS*PRC4WRK*2))
+[[ $WK_DBCONN -lt 64 ]] && WK_DBCONN=64
+
+[[ $no_workers -ne 0 ]] && WK_LOGROTATE="True" || WK_LOGROTATE="False"
+
 [[ -n $opt_lpport ]] && WK_LPPORT=$opt_lpport || WK_LPPORT=$CUR_LPPORT
 [[ -z $WK_LPPORT || $WK_LPPORT == "0" ]] && WK_LPPORT=$(build_odoo_param LPPORT $odoo_vid)
 [[ -z "$WK_LPPORT" ]] && WK_LPPORT=8072
-[[ -z "$NUSER" && $CUR_NUSER -ne 0 ]] && NUSER=$CUR_NUSER
-[[ -z "$NUSER" ]] && NUSER=16
-[[ $NUSER -lt 2 ]] && NUSER=2
-[[ -n "$opt_cpu" ]] && CUR_NCPU=$opt_cpu || CUR_NCPU="$(lscpu|grep "^CPU.s.:"|awk -F: '{print $2}')"
-CUR_NCPU=${CUR_NCPU// /}
-[[ -n "$opt_mem" ]] && CUR_MEM=$opt_mem || CUR_MEM=$(free -m|grep "Mem:"|awk '{print $2}')
-CUR_PG_DBCONN=$(pg_db_active -s)
-[[ -z "$CUR_PG_DBCONN" ]] && CUR_PG_DBCONN=100
-[[ $opt_cw -lt 1 ]] && opt_cw=1
-[[ $opt_cw -gt 2 ]] && opt_cw=2
-CUR_PROXY_MODE=$(echo ""|grep "^proxy_mode *=.*" $confn|awk -F= '{print $2}')
-[[ -z "$CUR_PROXY_MODE" ]] && CUR_PROXY_MODE="False"
-cur_time_cpu=$(echo ""|grep "^limit_time_cpu *=.*" $confn|grep --color=never -Eo "[0-9]+")
-[[ -z "$cur_time_cpu" ]] && cur_time_cpu=60
-cur_time_real=$(echo ""|grep "^limit_time_real *=.*" $confn|grep --color=never -Eo "[0-9]+")
-[[ -z "$cur_time_real" ]] && cur_time_real=120
-CUR_HWRK=$(echo "2147483648"|grep "^limit_memory_hard *=.*" $confn|grep --color=never -Eo "[0-9]+")
-((CUR_HLIMIT=(CUR_HWRK+1048575)/1048576))
-CUR_LWRK=$(echo "1610612736"|grep "^limit_memory_soft *=.*" $confn|grep --color=never -Eo "[0-9]+")
-((CUR_LLIMIT=(CUR_LWRK+1048575)/1048576))
-CUR_WRKS=$(echo ""|grep "^workers *=.*" $confn|grep --color=never -Eo "[0-9]+")
-[[ -z "$CUR_WRKS" ]] && CUR_WRKS=0
-CUR_DBCONN=$(echo ""|grep "^db_maxconn *=.*" $confn|grep --color=never -Eo "[0-9]+")
-[[ -z "$CUR_DBCONN" ]] && CUR_DBCONN=64
-CUR_LOGROTATE=$(echo ""|grep "^logrotate *=.*" $confn|awk -F= '{print $2}')
-[[ -z "$CUR_LOGROTATE" ]] && CUR_LOGROTATE="False"
-[[ $NUSER -eq 0 || $no_workers -ne 0 ]] && LOGROTATE="True" || LOGROTATE="False"
-#
-evaluate_params
-#
-[[ $CUR_NCPU -lt $REQ_CPU ]] && STS_NCPU="  <-- <CPU>"
-[[ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ]] && STS_MEM="<-- <RAM>"
-[[ $CUR_PG_DBCONN -lt $REQ_PG_DBCONN ]] && STS_DBC="   <-- <CONN>"
-[[ $WK_HLIMIT -gt $AVAI_MEM ]] && STS_HL="<-- <MEM>"
-#
-printf "                      Detected      Max Required  Applied\n"
-printf "# concurrent users.:  %8d %8d %8d\n" $CUR_NUSER $MAX_NUSER $NUSER
-printf "# CPU..............:  %8d          %8d           %s\n" $CUR_NCPU $REQ_CPU "$STS_NCPU"
-printf "Available memory...:  %8d %8d %8d %8d MB %s\n" $CUR_MEM $AVAI_MEM $REQ_AVAI_MEM $WK_AVAI_MEM "$STS_MEM"
-printf "High limit memory..:  %8d %8d %8d %8d MB %s\n" $CUR_HLIMIT $MAX_HLIMIT $REQ_HLIMIT $WK_HLIMIT "$STS_HL"
-printf "Low limit memory...:  %8d %8d %8d %8d MB\n" $CUR_LLIMIT $MAX_LLIMIT $REQ_LLIMIT $WK_LLIMIT
-printf "# workers..........:  %8d %8d %8d %8d\n" $CUR_WRKS $MAX_WRKS $REQ_WRKS $WK_WORKERS
-printf "# hard workers.....:           %8d %8d %8d\n" $MAX_HWRK $REQ_HWRK $HWRK
-printf "# soft workers.....:           %8d %8d %8d\n" $MAX_LWRK $REQ_LWRK $LWRK
-printf "# DB connections...:  %8d %8d %8d %8d\n" $CUR_DBCONN $MAX_DBCONN $REQ_DBCONN $WK_DBCONN
-printf "# psql connections.:  %8d %8d %8d %8d  %s\n" $CUR_PG_DBCONN $MAX_PG_DBCONN $REQ_PG_DBCONN $WK_PG_DBCONN "$STS_DBC"
-printf "longpolling_port...:  %8d                   %8d\n" $CUR_LPPORT $WK_LPPORT
-printf "Proxy mode.........:  %8.8s                   %8.8s\n" $CUR_PROXY_MODE $PROXY_MODE
-printf "Log rotate.........:  %8.8s                   %8.8s\n" $CUR_LOGROTATE $LOGROTATE
-printf "limit time CPU.....:  %8d                   %8d\n" $cur_time_cpu $TIME_CPU
-printf "limit time real....:  %8d                   %8d\n" $cur_time_real $TIME_REAL
-if [[ $opt_nopsql -eq 0 ]]; then
-((PSQL_MEM=(CUR_MEM*3)/4))
-printf "Memory reserved to postgresql server...........: %8d\n" $PSQL_MEM
-fi
-if [[ $CUR_NCPU -lt $REQ_CPU ]]; then
-    echo "*<CPU>* Warning! You should increase the # of CPU to $REQ_CPU! ***"
-fi
-if [[ $WK_AVAI_MEM -lt $REQ_AVAI_MEM ]]; then
-    echo "*<RAM>* Warning! You should increase the physical memory to $RAM! ***"
-fi
-if [[ $WK_HLIMIT -gt $AVAI_MEM ]]; then
-    echo "*<MEM>* Warning! System could crash with big data! ***"
-fi
-if [[ $CUR_PG_DBCONN -lt $REQ_PG_DBCONN ]]; then
-   echo "*<CONN>* Warning! You should increase postgresql max connections to $REQ_PG_DBCONN! ***"
-fi
+
+echo ""
+printf "                       Detected Required      Max  Applied\n"
+printf "# concurrent users..:  %8d %8d %8d %8d %s\n" $CUR_NUSER $REQ_NUSER $MAX_NUSER $WK_NUSER "$STS_NUSER"
+printf "# CPU...............:  %8d %8d %8d %8d %s\n" $CUR_NCPU $REQ_NCPU $MAX_NCPU $WK_NCPU "$STS_NCPU"
+printf "RAM memory..........:  %8d %8d %8d %8d MB %s\n" $CUR_MEM $REQ_MEM $MAX_MEM $WK_MEM "$STS_MEM"
+printf "Memory reserved to postgresql server............: %8d MB\n" $PSQL_MEM
+printf "# workers...........:  %8d %8d %8d %8d %s\n" $CUR_WRKS $REQ_WRKS $MAX_WRKS $WK_WRKS "$STS_WRKS"
+printf "# cron workers......:                             %8d %s\n" $opt_cw "$STS_KWRKS"
+printf "limit time CPU......:  %8d          %8d %8d %s\n" $CUR_TIME_CPU $MAX_TIME_CPU $WK_TIME_CPU "$STS_TIME_CPU"
+printf "limit time real.....:  %8d          %8d %8d %s\n" $CUR_TIME_REAL $MAX_TIME_REAL $WK_TIME_REAL "$STS_TIME_REAL"
+printf "High limit memory...:  %8d %8d %8d %8d MB %s\n" $CUR_HLIMIT $REQ_HLIMIT $MAX_HLIMIT $WK_HLIMIT "$STS_HLIMIT"
+printf "Soft limit memory...:  %8d %8d %8d %8d MB %s\n" $CUR_SLIMIT $REQ_SLIMIT $MAX_SLIMIT $WK_SLIMIT "$STS_SLIMIT"
+echo ""
+printf "Memory per H.worker.:                             %8d MB\n" $MEM4HWRKS
+printf "Memory per S.worker.:                             %8d MB\n" $MEM4SWRKS
+printf "Processes per worker:                             %8d\n" $PRC4WRK
+printf "# DB connections....:  %8d %8d %8d %8d\n" $CUR_DBCONN $REQ_DBCONN $MAX_DBCONN $WK_DBCONN
+printf "Proxy mode..........:  %8.8s                   %8.8s\n" $CUR_PROXY_MODE $WK_PROXY_MODE
+printf "Log rotate..........:  %8.8s                   %8.8s\n" $CUR_LOGROTATE $WK_LOGROTATE
+printf "longpolling_port....:  %8.8s                   %8.8s\n" $CUR_LPPORT $WK_LPPORT
+echo "$notes"
 
 ((MEM_HARD=WK_HLIMIT*1024*1024))
-((MEM_SOFT=WK_LLIMIT*1024*1024))
-if [[ -n "$confn" ]]; then
+((MEM_SOFT=WK_SLIMIT*1024*1024))
+if [[ -n "$confn" && $opt_dry_run -eq 0 ]]; then
     echo "Update file $confn ..."
     grep -E "^# .*Workers are set for [0-9]+ users" $confn
     if [ $? -ne 0 ]; then
-        run_traced "sed \"/^workers *=.*/i # [antoniov: $(date +%Y-%m-%d)] Workers are set for $NUSER users\" -i $confn"
+        run_traced "sed \"/^workers *=.*/i # [antoniov: $(date +%Y-%m-%d)] Workers are set for $REQ_NUSER users\" -i $confn"
     else
-        run_traced "sed -re \"s/^# .*Workers are set for [0-9]+ users/# [antoniov: $(date +%Y-%m-%d)] Workers are set for $NUSER users/\" -i $confn"
+        run_traced "sed -re \"s/^# .*Workers are set for [0-9]+ users/# [antoniov: $(date +%Y-%m-%d)] Workers are set for $REQ_NUSER users/\" -i $confn"
     fi
     run_traced "sed -e \"s/^limit_memory_hard *=.*/limit_memory_hard = $MEM_HARD/\" -i $confn"
     run_traced "sed -e \"s/^limit_memory_soft *=.*/limit_memory_soft = $MEM_SOFT/\" -i $confn"
-    run_traced "sed -e \"s/^workers *=.*/workers = $WK_WORKERS/\" -i $confn"
+    run_traced "sed -e \"s/^workers *=.*/workers = $WK_WRKS/\" -i $confn"
     run_traced "sed -e \"s/^db_maxconn *=.*/db_maxconn = $WK_DBCONN/\" -i $confn"
-    run_traced "sed -e \"s/^proxy_mode *=.*/proxy_mode = $PROXY_MODE/\" -i $confn"
+    run_traced "sed -e \"s/^proxy_mode *=.*/proxy_mode = $WK_PROXY_MODE/\" -i $confn"
     run_traced "sed -e \"s/^longpolling_port *=.*/longpolling_port = $WK_LPPORT/\" -i $confn"
-    run_traced "sed -e \"s/^limit_time_cpu *=.*/limit_time_cpu = $TIME_CPU/\" -i $confn"
-    run_traced "sed -e \"s/^limit_time_real *=.*/limit_time_real = $TIME_REAL/\" -i $confn"
-    run_traced "sed -e \"s/^logrotate *=.*/logrotate = $LOGROTATE/\" -i $confn"
+    run_traced "sed -e \"s/^limit_time_cpu *=.*/limit_time_cpu = $WK_TIME_CPU/\" -i $confn"
+    run_traced "sed -e \"s/^limit_time_real *=.*/limit_time_real = $WK_TIME_REAL/\" -i $confn"
+    run_traced "sed -e \"s/^logrotate *=.*/logrotate = $WK_LOGROTATE/\" -i $confn"
     echo "You should restart odoo with a command like this one"
     echo "sudo systemctl restart odoo"
 fi
+
