@@ -28,7 +28,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.13",
+    version="2.0.14",
     description="Python developers tools",
     long_description=long_description,
     classifiers=[
@@ -101,4 +101,5 @@ setup(
     },
     zip_safe=False,
 )
+
 

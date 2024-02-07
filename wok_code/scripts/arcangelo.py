@@ -14,7 +14,7 @@ import yaml
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 
 def get_pyver_4_odoo(odoo_ver):
@@ -232,7 +232,7 @@ class MigrateMeta(object):
 
         return rule, pyres, regex, not_re, sre
 
-    def matches_rule(self, rule, item, partial=False):
+    def match_rule(self, rule, item, partial=False):
         """Match python expression and extract REGEX from EREGEX
         If python expression is False or REGEX does not match, return null regex"""
         rule, pyres, regex, not_re, sre = self.split_pyrex_rules(rule)
@@ -255,7 +255,7 @@ class MigrateMeta(object):
         do_continue = False
         for (prio, key) in self.mig_keys:
             rule = self.mig_rules[key]
-            regex = self.matches_rule(rule["match"], item)
+            regex = self.match_rule(rule["match"], item)
             do_continue, do_break, next_nro = self.run_sub_rules(
                 rule, regex, item, nro, next_nro)
             if do_continue or do_break:
@@ -501,15 +501,15 @@ class MigrateFile(MigrateMeta):
             return self.lines[nro][x.start(): x.end()]
         return ""
 
-    def matches_ignore(self, nro):
+    def match_ignore(self, nro):
         return True, 0
 
-    def matches_class(self, nro):
+    def match_class(self, nro):
         x = self.re_match(r"^ *class [^(]+", self.lines[nro])
         self.classname = self.lines[nro][x.start() + 6: x.end()].strip()
         return False, 0
 
-    def matches_odoo_tag(
+    def match_odoo_tag(
         self,
         nro,
     ):
@@ -525,7 +525,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_odoo += 1
         return True, 0
 
-    def matches_openerp_tag(self, nro):
+    def match_openerp_tag(self, nro):
         if self.to_major_version >= 8 and self.ctr_tag_odoo == 0:
             self.lines[nro] = "<odoo>"
             self.ctr_tag_odoo += 1
@@ -533,7 +533,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_openerp += 1
         return True, 0
 
-    def matches_data_tag(self, nro):
+    def match_data_tag(self, nro):
         offset = 0
         if self.ctr_tag_data == 0:
             property_noupdate = self.get_noupdate_property(nro)
@@ -551,7 +551,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_data += 1
         return True, offset
 
-    def matches_data_endtag(self, nro):
+    def match_data_endtag(self, nro):
         offset = 0
         if self.ctr_tag_data == 0 and self.ctr_tag_odoo == 1:
             del self.lines[nro]
@@ -560,7 +560,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_data -= 1
         return True, offset
 
-    def matches_openerp_endtag(self, nro):
+    def match_openerp_endtag(self, nro):
         if self.ctr_tag_openerp == 0 and self.ctr_tag_odoo == 1:
             self.lines[nro] = "</odoo>"
             self.ctr_tag_odoo -= 1
@@ -568,7 +568,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_openerp -= 1
         return True, 0
 
-    def matches_odoo_endtag(self, nro):
+    def match_odoo_endtag(self, nro):
         offset = 0
         if self.ctr_tag_odoo == 0 and self.ctr_tag_openerp == 1:
             self.lines[nro] = "</openerp>"
@@ -581,7 +581,7 @@ class MigrateFile(MigrateMeta):
             self.ctr_tag_odoo -= 1
         return True, offset
 
-    def matches_utf8(self, nro):
+    def match_utf8(self, nro):
         offset = 0
         if (
             (self.python_future
@@ -595,7 +595,7 @@ class MigrateFile(MigrateMeta):
             offset = -1
         return False, offset
 
-    def matches_end_utf8(self, nro):
+    def match_end_utf8(self, nro):
         offset = 0
         if self.utf8_decl_nro < 0 and (self.py23 == 2 or self.python_future):
             if not self.opt_args.ignore_pragma:
@@ -603,7 +603,7 @@ class MigrateFile(MigrateMeta):
                 self.utf8_decl_nro = nro
         return False, offset
 
-    def matches_lint(self, nro):
+    def match_lint(self, nro):
         offset = 0
         if self.utf8_decl_nro >= 0:
             del self.lines[self.utf8_decl_nro]
@@ -674,7 +674,7 @@ class MigrateFile(MigrateMeta):
             # rule, pyres, regex, not_re, sre = self.split_pyrex_rules(args[0])
             # if sre and re.search(sre, self.lines[nro]):
             #     return False, 0
-            regex = self.matches_rule(args[0], self.lines[nro], partial=True)
+            regex = self.match_rule(args[0], self.lines[nro], partial=True)
             if regex:
                 self.lines[nro] = re.sub(regex,
                                          args[1] % self.__dict__,
@@ -1041,6 +1041,7 @@ def main(cli_args=None):
     if opt_args.list_rules > 0:
         migrate_env = MigrateEnv(opt_args)
         if opt_args.list_rules > 1:
+            # List rules
             migrate_env.store_mig_rules(scope="path")
             for rule in migrate_env.rule_categ:
                 migrate_env.load_config(rule, ignore_not_found=True)
@@ -1093,38 +1094,43 @@ def main(cli_args=None):
         and not pth.isdir(opt_args.output)
         and not pth.isdir(pth.dirname(opt_args.output))
     ):
-        sys.stderr.write('Path %s does not exist!' % pth.dirname(opt_args.output))
+        sys.stderr.write('Path %s does not exist!\n' % pth.dirname(opt_args.output))
         sts = 2
     else:
         migrate_env = MigrateEnv(opt_args)
-        for path in opt_args.path or ("./",):
-            if pth.isdir(pth.expanduser(path)):
-                for root, dirs, files in os.walk(pth.expanduser(path)):
+        if not opt_args.path:
+            sys.stderr.write('No path supplied!\n')
+            sts = 2
+        else:
+            for path in opt_args.path or ("./",):
+                if pth.isdir(pth.expanduser(path)):
+                    for root, dirs, files in os.walk(pth.expanduser(path)):
 
-                    if 'setup' in dirs:
-                        del dirs[dirs.index('setup')]
-                    for fn in files:
-                        fqn = pth.abspath(pth.join(root, fn))
-                        migrate_env.apply_rules_on_item(fn, root=root)
+                        if 'setup' in dirs:
+                            del dirs[dirs.index('setup')]
+                        for fn in files:
+                            fqn = pth.abspath(pth.join(root, fn))
+                            migrate_env.apply_rules_on_item(fn, root=root)
 
-                        if not file_is_processable(opt_args, fn):
-                            continue
-                        source = MigrateFile(fqn, opt_args, migrate_env)
-                        source.do_process_source()
-                        source.close()
-                        sts = source.sts
-                        if sts:
-                            break
-            elif pth.isfile(path):
-                source = MigrateFile(pth.abspath(path), opt_args, migrate_env)
-                source.do_process_source()
-                source.close()
-                sts = source.sts
-            else:
-                sys.stderr.write('Path %s does not exist!' % path)
-                sts = 2
+                            if not file_is_processable(opt_args, fn):
+                                continue
+                            source = MigrateFile(fqn, opt_args, migrate_env)
+                            source.do_process_source()
+                            source.close()
+                            sts = source.sts
+                            if sts:
+                                break
+                elif pth.isfile(path):
+                    source = MigrateFile(pth.abspath(path), opt_args, migrate_env)
+                    source.do_process_source()
+                    source.close()
+                    sts = source.sts
+                else:
+                    sys.stderr.write('Path %s does not exist!\n' % path)
+                    sts = 2
     return sts
 
 
 if __name__ == "__main__":
     exit(main())
+

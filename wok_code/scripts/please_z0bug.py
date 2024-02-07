@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 import os
 import os.path as pth
+import sys
 
 import re
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
+
+RMODE = "rU" if sys.version_info[0] == 2 else "r"
+RED = "\033[1;31m"
+CLEAR = "\033[0;m"
 
 
 class PleaseZ0bug(object):
@@ -183,31 +188,74 @@ class PleaseZ0bug(object):
             args.append("-n")
         return args
 
+    def check_4_test_dirs(self, full=None):
+        fqn = pth.join(os.getcwd(), "tests")
+        if not pth.isdir(fqn):
+            self.please.log_warning("Module %s w/o regression test!"
+                                    % pth.basename(os.getcwd()))
+            return "" if full else 3
+        if not full:
+            return 0
+        fqn = pth.join(os.getcwd(), "tests", "logs")
+        if not pth.isdir(fqn):
+            self.please.log_warning("Module %s w/o regression test result!"
+                                    % pth.basename(os.getcwd()))
+            return ""
+        fqn = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
+        if not pth.isfile(fqn):
+            self.please.log_error("Command %s not found!" % fqn)
+            return
+        return fqn
+
+    def _do_lint(self):
+        please = self.please
+
+        branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
+        manifest_path = ("__openerp__.py"
+                         if branch and int(branch.split(".")[0]) <= 9
+                         else "__manifest__.py")
+        manifest = please.read_manifest_file(manifest_path)
+        if not manifest["installable"]:
+            please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
+            return 3
+
+        sts = 0
+        if not please.opt_args.no_verify:
+            please.run_traced("git add ./", rtime=True)
+            sts = please.run_traced("pre-commit run", rtime=True)
+        if sts == 0:
+            if "lint" in please.cli_args:
+                sub_list = [("--no-verify", ""),
+                            ("--no-translate", ""),
+                            ("-Z", ""),
+                            ("--zero", "")]
+            else:
+                sub_list = [("z0bug", "lint"),
+                            ("--no-verify", ""),
+                            ("--no-translate", ""),
+                            ("-Z", ""),
+                            ("--zero", "")]
+            please.sh_subcmd = please.pickle_params(
+                rm_obj=True, slist=sub_list)
+            cmd = please.build_sh_me_cmd()
+            return please.run_traced(cmd, rtime=True)
+        return sts
+
     def do_lint(self):
         please = self.please
         if please.is_odoo_pkg():
+            return self._do_lint()
+        elif please.is_repo_odoo() or please.is_repo_ocb():
             sts = 0
-            if not please.opt_args.no_verify:
-                sts = please.run_traced("git add ./", rtime=True)
-                sts = please.run_traced("pre-commit run", rtime=True)
-            if sts == 0:
-                if "lint" in please.cli_args:
-                    sub_list = [("--no-verify", ""),
-                                ("--no-translate", ""),
-                                ("-Z", ""),
-                                ("--zero", "")]
-                else:
-                    sub_list = [("z0bug", "lint"),
-                                ("--no-verify", ""),
-                                ("--no-translate", ""),
-                                ("-Z", ""),
-                                ("--zero", "")]
-                please.sh_subcmd = please.pickle_params(
-                    rm_obj=True, slist=sub_list)
-                cmd = please.build_sh_me_cmd()
-                return please.run_traced(cmd, rtime=True)
+            for path in please.get_next_module_path():
+                print("")
+                sts = please.run_traced("cd " + path)
+                if sts == 0:
+                    sts = self._do_lint()
+                if please.is_fatal_sts(sts):
+                    break
             return sts
-        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+        elif please.is_pypi_pkg():
             if not please.opt_args.no_verify:
                 sts = please.run_traced("pre-commit run", rtime=True)
             if "lint" in please.cli_args:
@@ -243,97 +291,161 @@ class PleaseZ0bug(object):
             return please.run_traced(cmd)
         return 126
 
+    def _do_show_summary(self, fqn):
+        if not pth.isfile(fqn):
+            self.please.log_error("File %s not found!" % fqn)
+            return 3
+        with open(fqn, RMODE) as fd:
+            for ln in fd.read().split("\n"):
+                if re.search(
+                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23]"
+                        r"| DAEMON )",
+                        ln):
+                    print(ln)
+        return 0
+
+    def _do_show_summary_odoo(self):
+        branch = self.please.get_odoo_branch_from_git(try_by_fs=True)[1]
+        manifest_path = ("__openerp__.py"
+                         if branch and int(branch.split(".")[0]) <= 9
+                         else "__manifest__.py")
+        manifest = self.please.read_manifest_file(manifest_path)
+        if not manifest["installable"]:
+            self.please.log_warning(
+                "Module %s not installable!" % pth.basename(os.getcwd()))
+            return 3
+
+        cmd = self.check_4_test_dirs(full=True)
+        if not cmd:
+            return 3
+        with open(cmd, RMODE) as fd:
+            fn = fd.read().split("\n")[0].split("/")[-1]
+            fqn = pth.join(os.getcwd(), "tests", "logs", fn)
+            return self._do_show_summary(fqn)
+
     def do_summary(self):
         please = self.please
         if please.is_odoo_pkg():
-            cmd = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
-            sts = please.run_traced(cmd)
-            return 0 if please.opt_args.ignore_status else sts
-        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+            return self._do_show_summary_odoo()
+        elif please.is_repo_odoo() or please.is_repo_ocb():
+            sts = 0
+            for path in please.get_next_module_path():
+                sts = please.run_traced("cd " + path, verbose=False)
+                if sts == 0:
+                    sts = self._do_show_summary_odoo()
+                if please.is_fatal_sts(sts):
+                    break
+            return sts
+        elif please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
             sts = please.run_traced(cmd)
-            return 0 if please.opt_args.ignore_status else sts
+            return 0 if please.opt_args.ignore_status else 126
         return please.do_iter_action("do_summary", act_all_pypi=True, act_tools=False)
+
+    def _do_test_odoo_pkg(self):
+        please = self.please
+        branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
+        manifest_path = ("__openerp__.py"
+                         if branch and int(branch.split(".")[0]) <= 9
+                         else "__manifest__.py")
+        manifest = please.read_manifest_file(manifest_path)
+        if not manifest["installable"]:
+            please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
+            return 3
+        sts = self.check_4_test_dirs()
+        if please.is_fatal_sts(sts):
+            return sts
+        if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
+            sts, branch = please.get_odoo_branch_from_git()
+            if not please.opt_args.no_verify:
+                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                                   "testenv")
+                if branch and int(branch.split(".")[0]) <= 7:
+                    please.run_traced(
+                        "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
+                        rtime=True)
+                else:
+                    please.run_traced(
+                        "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
+                please.run_traced(
+                    "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
+            if (
+                    please.opt_args.debug_level
+                    and please.opt_args.debug_level.isdigit()
+            ):
+                debug_level = please.opt_args.debug_level
+            else:
+                debug_level = "0"
+            if please.opt_args.debug_level or not please.opt_args.no_verify:
+                for fn in os.listdir("tests/"):
+                    if fn.startswith("test_") and fn.endswith(".py"):
+                        with open(pth.join("tests", fn), "r") as fd:
+                            content = fd.read()
+                        do_rewrite = False
+                        new_content = ""
+                        for ln in content.split("\n"):
+                            new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
+                                            r"\1 %s\2" % debug_level,
+                                            ln)
+                            new_content += new_ln
+                            new_content += "\n"
+                            do_rewrite |= (new_ln != ln)
+                        if do_rewrite:
+                            with open(pth.join("tests", fn), "w") as fd:
+                                fd.write(new_content)
+        if pth.isdir("tests") and pth.isfile(pth.join(".", "_check4deps_.py")):
+            srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                               "_check4deps_.py")
+            please.run_traced(
+                "cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
+        if (
+                not please.opt_args.no_verify
+                and pth.isdir("tests")
+                and pth.isdir(pth.join("tests", "data"))
+        ):
+            srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
+                               "testenv")
+            for fn in [x for x in os.listdir(srcpath) if x.endswith(".xlsx")]:
+                if pth.isfile(pth.join("tests", "data", fn)):
+                    please.run_traced(
+                        "cp %s/%s tests/data/%s" % (srcpath, fn, fn), rtime=True)
+
+        args = self.build_run_odoo_base_args(branch=branch)
+        print("#### Running Tests ... ####")
+        sts = please.chain_python_cmd("run_odoo_debug.py", args)
+        if please.is_fatal_sts(sts):
+            return sts
+        if not please.opt_args.no_verify and not please.opt_args.debug:
+            print("## Update documentation ... ##")
+            sts = please.do_docs()
+        if please.is_fatal_sts(sts):
+            return sts
+        if not please.opt_args.no_verify and not please.opt_args.debug:
+            print("## Git sync ... ##")
+            sts = please.run_traced("git add ./", rtime=True)
+        if sts:
+            return sts
+        if not please.opt_args.no_translate:
+            print("## Update translation ... ##")
+            sts = please.do_translate()
+        return sts
 
     def do_test(self):
         please = self.please
         if please.is_odoo_pkg():
-            branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
-            if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
-                sts, branch = please.get_odoo_branch_from_git()
-                if not please.opt_args.no_verify:
-                    srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                                       "testenv")
-                    if branch and int(branch.split(".")[0]) <= 7:
-                        please.run_traced(
-                            "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
-                            rtime=True)
-                    else:
-                        please.run_traced(
-                            "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
-                    please.run_traced(
-                        "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
-                if (
-                    please.opt_args.debug_level
-                    and please.opt_args.debug_level.isdigit()
-                ):
-                    debug_level = please.opt_args.debug_level
-                else:
-                    debug_level = "0"
-                if please.opt_args.debug_level or not please.opt_args.no_verify:
-                    for fn in os.listdir("tests/"):
-                        if fn.startswith("test_") and fn.endswith(".py"):
-                            with open(pth.join("tests", fn), "r") as fd:
-                                content = fd.read()
-                            do_rewrite = False
-                            new_content = ""
-                            for ln in content.split("\n"):
-                                new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
-                                                r"\1 %s\2" % debug_level,
-                                                ln)
-                                new_content += new_ln
-                                new_content += "\n"
-                                do_rewrite |= (new_ln != ln)
-                            if do_rewrite:
-                                with open(pth.join("tests", fn), "w") as fd:
-                                    fd.write(new_content)
-            if pth.isdir("tests") and pth.isfile(pth.join(".", "_check4deps_.py")):
-                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                                   "_check4deps_.py")
-                please.run_traced(
-                    "cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
-            if (
-                    not please.opt_args.no_verify
-                    and pth.isdir("tests")
-                    and pth.isdir(pth.join("tests", "data"))
-            ):
-                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                                   "testenv")
-                for fn in [x for x in os.listdir(srcpath) if x.endswith(".xlsx")]:
-                    if pth.isfile(pth.join("tests", "data", fn)):
-                        please.run_traced(
-                            "cp %s/%s tests/data/%s" % (srcpath, fn, fn), rtime=True)
-            args = self.build_run_odoo_base_args(branch=branch)
-            print("")
-            sts = please.chain_python_cmd("run_odoo_debug.py", args)
-            if sts:
-                return sts
-            if not please.opt_args.no_verify and not please.opt_args.debug:
+            return self._do_test_odoo_pkg()
+        elif please.is_repo_odoo() or please.is_repo_ocb():
+            sts = 0
+            for path in please.get_next_module_path():
                 print("")
-                sts = please.do_docs()
-            if sts:
-                return sts
-            if not please.opt_args.no_verify and not please.opt_args.debug:
-                print("")
-                sts = please.run_traced("git add ./", rtime=True)
-            if sts:
-                return sts
-            if not please.opt_args.no_translate:
-                print("")
-                sts = please.do_translate()
+                sts = please.run_traced("cd " + path)
+                if sts == 0:
+                    sts = self._do_test_odoo_pkg()
+                if please.is_fatal_sts(sts):
+                    break
             return sts
-        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+        elif please.is_pypi_pkg():
             if "test" in please.cli_args:
                 sub_list = [("--no-verify", ""), ("--no-translate", "")]
             else:
@@ -348,12 +460,12 @@ class PleaseZ0bug(object):
 
     def do_zerobug(self):
         please = self.please
-        if please.is_odoo_pkg():
+        if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_repo_ocb():
             sts = self.do_lint()
-            if sts == 0:
+            if not please.is_fatal_sts(sts):
                 sts = self.do_test()
             return sts
-        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
+        elif please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(
                 cmd_subst="emulate",
                 rm_obj=True,
@@ -361,3 +473,4 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
+

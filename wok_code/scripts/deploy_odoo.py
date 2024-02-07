@@ -31,7 +31,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -187,6 +187,7 @@ class OdooDeploy(object):
         for repo in self.repo_list:
             path = self.repo_info[repo]["PATH"]
             git_org = self.opt_args.git_orgs[0] if self.opt_args.git_orgs else "oca"
+            rgit_org = None
             if os.path.isdir(path):
                 z0lib.run_traced("cd %s" % path, verbose=False, dry_run=False)
                 sts, repo_branch, git_url, stash_list = self.get_remote_info(
@@ -1172,5 +1173,6 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 

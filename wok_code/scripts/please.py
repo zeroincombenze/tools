@@ -13,6 +13,14 @@ DESCRIPTION
     The parameter action is one of: %(actions)s
     The optional obj may be on of %(objs)s
 
+    Return sts:
+    1: generic error
+    3: component not found (warning)
+    33: component not found (fatal error)
+    123: invalid environment
+    125: invalid paramater supplied
+    126: invalid action
+
 OPTIONS
   %(options)s
 
@@ -31,7 +39,6 @@ import sys
 import argparse
 import re
 from subprocess import call
-# import re
 import itertools
 
 from z0lib import z0lib
@@ -53,7 +60,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 KNOWN_ACTIONS = [
     "help",
@@ -69,6 +76,11 @@ KNOWN_ACTIONS = [
     "replica",
     "version",
 ]
+RMODE = "rU" if sys.version_info[0] == 2 else "r"
+RED = "\033[1;31m"
+YELLOW = "\033[1;33m"
+GREEN = "\033[1;32m"
+CLEAR = "\033[0;m"
 
 
 class Please(object):
@@ -91,16 +103,17 @@ class Please(object):
         self.main_action = None
         if not self.magic.startswith("-"):
             if not self.actions and not self.magic:
-                print("No action declared for %s" % self.objname)
+                self.log_error("No action declared for %s" % self.objname)
                 sys.exit(126)
             for action in self.actions or [self.magic]:
                 if action not in self.known_actions:
-                    print("Unknown action %s" % action)
+                    self.log_error("Unknown action %s" % action)
                     sys.exit(126)
                 if action != "help" and not self.objname:
-                    print("Missed object for action %s" % "+".join(self.actions))
+                    self.log_error(
+                        "Missed object for action %s" % "+".join(self.actions))
                     if self.main_action:
-                        print(
+                        self.log_warning(
                             "Please specify one of %s"
                             % self.default_obj[self.main_action]
                         )
@@ -110,7 +123,7 @@ class Please(object):
                     break
             for action in self.actions:
                 if action != "help" and self.objname not in self.default_obj[action]:
-                    print("Invalid action %s for %s" % (action, self.objname))
+                    self.log_error("Invalid action %s for %s" % (action, self.objname))
                     sys.exit(126)
             self.opt_args = self.get_parser().parse_args(self.cli_args)
             # TODO: workaround due to sub-commands?
@@ -126,6 +139,21 @@ class Please(object):
         self.odoo_root = pth.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
         self.sh_subcmd = self.pickle_params()
+
+    def log_info(self, msg):
+        print(msg)
+
+    def log_warning(self, msg):
+        print(YELLOW + "  " + msg + CLEAR)
+
+    def log_error(self, msg):
+        print(RED + "  " + msg + CLEAR)
+
+    def log_success(self, msg):
+        print(GREEN + msg + CLEAR)
+
+    def is_fatal_sts(selfself, sts):
+        return sts in (1, 2) or sts > 9
 
     def get_actfunctions_of_cls(self, cls, ignore_def=False, ret_action=False):
         excl = ["do_external_cmd", "do_action_pypipkg", "do_iter_action"]
@@ -179,7 +207,7 @@ class Please(object):
             if clsname.startswith("Please"):
                 clsname = clsname[6:].lower()
                 if param != clsname:
-                    print("Invalid configuration %s" % fn)
+                    self.log_warning("Invalid configuration %s" % fn)
                     continue
 
             self.known_objs.append(param)
@@ -245,7 +273,8 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def run_traced(self, cmd, disable_output=False, rtime=False):
+    def run_traced(self, cmd, verbose=None, disable_output=False, rtime=False):
+        verbose = verbose if verbose is not None else self.opt_args.verbose
         if rtime:
             if self.opt_args.dry_run:
                 if self.opt_args.verbose:
@@ -255,7 +284,7 @@ class Please(object):
                 print("$ " + cmd)
             return os.system(cmd)
         sts, stdout, stderr = z0lib.run_traced(
-            cmd, verbose=self.opt_args.verbose, dry_run=self.opt_args.dry_run
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run
         )
         if not disable_output:
             print(stdout + stderr)
@@ -597,6 +626,51 @@ class Please(object):
                 return True
         return self.is_repo_ocb(pth.dirname(path))
 
+    def get_next_module_path(self, path=None):
+        path = path or os.getcwd()
+        if (
+                pth.isdir(pth.join(path, "odoo", "addons"))
+                and pth.isdir(pth.join(path, "addons"))
+        ):
+            paths = (
+                os.listdir(pth.isdir(pth.join(path, "odoo", "addons")))
+                + os.listdir(pth.isdir(pth.join(path, "addons")))
+            )
+        elif (
+                pth.isdir(pth.join(path, "openerp", "addons"))
+                and pth.isdir(pth.join(path, "addons"))
+        ):
+            paths = (
+                os.listdir(pth.isdir(pth.join(path, "openerp", "addons")))
+                + os.listdir(pth.isdir(pth.join(path, "addons")))
+            )
+        else:
+            paths = os.listdir(path)
+        for fn in paths:
+            subpath = pth.join(path, fn)
+            if pth.isdir(subpath) and self.is_odoo_pkg(path=subpath):
+                yield subpath
+
+    def adj_version(self, module_version, branch=None):
+        branch = branch or self.branch
+        if not module_version:
+            module_version = "0.1.0"
+        if module_version[0].isdigit():
+            if not module_version.startswith(branch):
+                module_version = branch + "." + module_version
+        return module_version
+
+    def read_manifest_file(self, manifest_path, force_version=None):
+        try:
+            with open(manifest_path, RMODE) as fd:
+                manifest = eval(fd.read())
+        except (ImportError, IOError, SyntaxError):
+            raise Exception("Wrong manifest file %s" % manifest_path)
+        if force_version:
+            manifest["version"] = self.adj_version(manifest.get("version", ""))
+        manifest["installable"] = manifest.get("installable", True)
+        return manifest
+
     def get_odoo_version(self, path=None):
         path = path or pth.abspath(os.getcwd())
         home = pth.expanduser("~/")
@@ -624,7 +698,7 @@ class Please(object):
             "git branch", verbose=False, dry_run=False
         )
         if sts == 0 and stdout:
-            sts = 1
+            sts = 123
             for ln in stdout.split("\n"):
                 if ln.startswith("*"):
                     branch = ln[2:]
@@ -634,8 +708,8 @@ class Please(object):
             x = re.match(r"[0-9]+\.[0-9]+", branch)
             if not x:
                 if raise_if_not_found:
-                    print("Unrecognized git branch")
-                sts = 1
+                    self.log_error("Unrecognized git branch")
+                sts = 123
         if sts == 0:
             branch = branch[x.start(): x.end()]
         elif try_by_fs:
@@ -650,7 +724,7 @@ class Please(object):
         if not pth.isfile(setup):
             setup = pth.join(pth.dirname(path), "setup.py")
         if not pth.isfile(setup):
-            print("No file %s found!" % setup)
+            self.log_error("No file %s found!" % setup)
             return "2.0.0"
         sts, stdout, stderr = self.call_chained_python_cmd(setup, ["--version"])
         if sts:
@@ -687,7 +761,7 @@ class Please(object):
                 cmd = pth.split(cmd)
                 cmd = pth.join(pth.dirname(cmd[0]), cmd[1])
             if not pth.isfile(cmd):
-                print("Internal package error: file %s not found!" % cmd)
+                self.log_error("Internal package error: file %s not found!" % cmd)
                 return ""
         cmd += " " + (params or self.sh_subcmd)
         return cmd
@@ -703,7 +777,7 @@ class Please(object):
                 log_fqn = pth.join("tests", "logs", ln.split("/")[-1])
                 break
         if not log_fqn or not pth.isfile(log_fqn):
-            print("Test log file %s not found!" % log_fqn)
+            self.log_warning("Test log file %s not found!" % log_fqn)
             return 3
         with open(log_fqn, "r") as fd:
             contents = fd.read()
@@ -723,7 +797,7 @@ class Please(object):
                     items = ln[x.start(): x.end()].split()
                     params["testpoints"] = int(items[0])
         if "total" not in params:
-            print("No stats found in %s" % log_fqn)
+            self.log_warning("No stats found in %s" % log_fqn)
             return 3
         # Q-rating = coverage (60%) + # testpoints*4/total (40%)
         params["qrating"] = int((params["cover"] / params["total"] * 60)
@@ -737,7 +811,7 @@ class Please(object):
         if not pth.isfile(changelog_fqn):
             changelog_fqn = pth.join("egg-info", "CHANGELOG.rst")
         if not pth.isfile(changelog_fqn):
-            print("Changelog history file not found!")
+            self.log_warning("Changelog history file not found!")
             return 3
         sts = self.chain_python_cmd(
             "arcangelo.py",
@@ -911,5 +985,6 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
 

@@ -125,7 +125,7 @@ except ImportError:
 # standard_library.install_aliases()
 
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -2322,7 +2322,7 @@ def adj_version(ctx, odoo_version):
         odoo_version = "0.1.0"
     if odoo_version[0].isdigit():
         if not odoo_version.startswith(ctx["branch"]):
-            odoo_version = (ctx["branch"] + "." + odoo_version.split(".", 2)[-1])
+            odoo_version = ctx["branch"] + "." + odoo_version
     return odoo_version
 
 
@@ -3529,3 +3529,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
