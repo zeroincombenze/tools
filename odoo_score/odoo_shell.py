@@ -38,7 +38,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.6'
+__version__ = '2.0.7'
 
 
 MAX_DEEP = 20
@@ -296,6 +296,48 @@ def all_addr_same_customer(ctx):
             print('so.number=%s' % so.name)
             ctr += 1
     print('%d sale orders updated' % ctr)
+
+
+def hide_invoice_delivery_address(ctx):
+    print('Hide invoice and/od delivery addresses on partners')
+    if ctx['param_1'] == 'help':
+        print(
+            'def hide_invoice_delivery_address (auto|invoice|delivery|bosth)'
+        )
+        return
+    resource_part = 'res.partner'
+    ctr = 0
+    for partner in clodoo.browseL8(
+        ctx, resource_part, clodoo.searchL8(
+            ctx, resource_part, [])):
+        msg_burst('%s ...' % partner.name)
+        childs = {}
+        for partype in ("invoice", "delivery"):
+            childs[partype] = []
+        for child in partner.child_ids:
+            if child.type not in childs:
+                childs[child.type] = []
+            childs[child.type].append(child)
+        if ctx['param_1'] in ("invoice", "delivery"):
+            if ctx['param_1'] in childs:
+                for child in childs[ctx['param_1']]:
+                    clodoo.writeL8(ctx, resource_part, child.id, {"active": False})
+                    ctr += 1
+        elif ctx['param_1'] == "both":
+            for partype in ("invoice", "delivery"):
+                for child in childs[partype]:
+                    clodoo.writeL8(ctx, resource_part, child.id, {"active": False})
+                    ctr += 1
+        else:
+            for partype in ("invoice", "delivery"):
+                for child in childs[partype]:
+                    if len(childs[partype]) != 1:
+                        continue
+                    if partner.name == child.name and partner.street == child.street:
+                        clodoo.writeL8(
+                            ctx, resource_part, child.id, {"active": False})
+                        ctr += 1
+    print('%d partner hided' % ctr)
 
 
 def order_inv_group_by_partner(ctx):
@@ -1097,7 +1139,7 @@ def create_RA_config(ctx):
     paycode = clodoo.searchL8(ctx, model_paycode, [('code', '=', 'R')])
     paycode = paycode[0] if paycode else False
     vals = {
-        'name': '1040 - 23% su 100% (R)',
+        'name': '1040 - 23% su 100% ®',
         'account_receivable_id': credit_acc_id,
         'account_payable_id': debit_acc_id,
         'rate_ids': [(5, 0), (0, 0, {'tax': 23, 'base': 1})],
@@ -1114,7 +1156,7 @@ def create_RA_config(ctx):
     ctr_rec += 1
 
     vals = {
-        'name': '1040 - 23% su 50% (R) (ex 1038)',
+        'name': '1040 - 23% su 50% ® (ex 1038)',
         'account_receivable_id': credit_acc_id,
         'account_payable_id': debit_acc_id,
         'rate_ids': [(5, 0), (0, 0, {'tax': 23, 'base': 0.5})],
@@ -4695,3 +4737,4 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
