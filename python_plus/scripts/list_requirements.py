@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -126,7 +126,7 @@ REQVERSION = {
     "psutil": {"6.1": "==2.1.1", "7.0": "==2.2.0", "8.0": "==4.3.1"},
     "psycogreen": {"6.1": "==1.0"},
     "psycopg2-binary": {
-        "6.1": ">=2.0.0,<2.8.0",
+        "6.1": ">=2.0.0,<2.7.3.3",
         "8.0": ">=2.5.4,<2.8.0",
         "10.0": ">=2.7.4",
         "12.0": ">=2.8.3",
@@ -149,9 +149,9 @@ REQVERSION = {
     "pylint-odoo": {
         "6.1": "<3.0.0",        # to match lxml
         "11.0": "PYVER",
-        "16.0": ">=7.0.0",      # from pypi documentation
-        "15.0": ">=5.0.1",      # from pypi documentation
         "13.0": ">=3.3.1",      # from pypi documentation
+        "15.0": ">=5.0.1",      # from pypi documentation
+        "16.0": ">=7.0.0",      # from pypi documentation
         "3.5": "<=8.0.0",
         "3.8": ">=3.5.0,<=8.0.0",
     },
@@ -160,7 +160,7 @@ REQVERSION = {
         "3.5": "==0.5",
         "3.6": ">=0.7",
     },
-    "pyOpenSSL": {"0": ">=16.2.0,<19.0"},
+    "pyOpenSSL": {"0": ">=16.2.0,<19.0", "3.9": ">=16.2.0,<23.0"},
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
@@ -183,7 +183,7 @@ REQVERSION = {
     "pytz": {"6.1": ">=2014.10", "10.0": ">=2016.7"},
     # check for: Odoo requires >=1.0.0b1, but it does conflict with other packges
     "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "16.0": ">=1.0.0b1"},
-    "pyxb": {"6.1": "==1.2.5", "12.0": "==1.2.6"},
+    "pyxb": {"6.1": "==1.2.4", "8.0": "==1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
     "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13", "3.9": "==6.0"},
     "qrcode": {"6.1": "==5.0.1", "7.0": "==5.1", "10.0": "==5.3"},
@@ -1131,7 +1131,7 @@ def get_pyver_4_odoo(odoo_ver):
     if odoo_major <= 10:
         pyver = "2.7"
     else:
-        pyver = "3.%d" % (int((odoo_major - 10) / 2) + 6)
+        pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
     return pyver
 
 
@@ -1647,4 +1647,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

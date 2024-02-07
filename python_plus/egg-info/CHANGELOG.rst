@@ -1,3 +1,14 @@
+2.0.12 (2024-02-05)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Show right python version if 3.10+
+* [IMP] list_requirements.py improvements
+
+2.0.11 (2023-11-17)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] new python version assignment from odoo version
+
 2.0.10 (2023-07-18)
 ~~~~~~~~~~~~~~~~~~~
 

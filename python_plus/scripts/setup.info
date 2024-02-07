@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.10",
+    version="2.0.11",
     description="python useful function",
     long_description=long_description,
     classifiers=[

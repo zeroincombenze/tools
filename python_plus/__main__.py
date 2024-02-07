@@ -11,7 +11,7 @@ import sys
 
 from zerobug import Z0BUG
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -45,4 +45,3 @@ if __name__ == "__main__":
         for text in __doc__.split('\n'):
             print(text)
     sys.exit(0)
-

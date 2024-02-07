@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.10
+__version__=2.0.11
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -880,12 +880,12 @@ find_cur_py() {
       [[ -z "$PYTHON" && $opt_pyver =~ ^2 ]] && PYTHON=python2
       PYTHON=$(which $PYTHON 2>/dev/null)
       [[ -z "$PYTHON" ]] && PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
       PIP=$(which pip$opt_pyver 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     else
       PYTHON=$(which python 2>/dev/null)
-      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]" | head -n1)
+      opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
       PIP=$(which pip 2>/dev/null)
       [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     fi
@@ -1236,7 +1236,7 @@ do_venv_create() {
   PYTHON=""
   if [[ -x $opt_pyver ]]; then
     PYTHON=$opt_pyver
-    opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]" | head -n1)
+    opt_pyver=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
     PIP=$(which pip$opt_pyver 2>/dev/null)
     [[ -z $PIP ]] && PIP="$PYTHON -m pip"
     [[ -n "$PIP" ]] && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
@@ -1415,7 +1415,7 @@ pypi_requrements() {
 OPTOPTS=(h        a        B         C      D       d        E          f         F      g       k        I           i         l        n           O         o          p         q           r           s                    t          V           v           y)
 OPTLONG=(help     ""       ""        ""     devel   dep-path distro     force     ""     global  keep     indipendent isolated  lang     dry_run     odoo-ver  odoo-path  python    quiet       requirement system-site-packages travis     version     verbose     yes)
 OPTDEST=(opt_help opt_bins opt_debug opt_cc opt_dev opt_deps opt_distro opt_force opt_FH opt_gbl opt_keep opt_alone   opt_alone opt_lang opt_dry_run opt_oever opt_oepath opt_pyver opt_verbose opt_rfile   opt_spkg             opt_travis opt_version opt_verbose opt_yes)
-OPTACTI=('+'      "="      "+"       1      1       "="      "="        1         "="    1       1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
+OPTACTI=("+"      "="      "+"       1      1       "="      "="        1         "="    1       1        2           1         "="      1           "="       "="        "="       0           "="         1                    1          "*>"        "+"         1)
 OPTDEFL=(1        ""       0         0      0       ""       ""         0         ""     0       0        0           0         ""       0           ""        ""         ""        0           ""          0                    0          ""          -1          0)
 OPTMETA=("help"   "list"   ""        ""     ""      "paths"  "distro"   ""        "name" ""      ""       ""          ""        "iso"    ""          "version" "dir"      "pyver"   ""          "file"      ""                   ""         "version"   "verbose"   "")
 OPTHELP=("this help"
@@ -1435,7 +1435,7 @@ OPTHELP=("this help"
   "do nothing (dry-run)"
   "install pypi required by odoo version (amend or create)"
   "odoo path used to search odoo requirements"
-  "python version"
+  "python version (deprecated)"
   "silent mode"
   "after created v.environment install from the given requirements file"
   "create v.environment with access to the global site-packages"
@@ -1490,7 +1490,7 @@ fi
 [[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
 [[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze(R)\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [[ $action =~ (help|create|python) ]]; then
@@ -1635,4 +1635,3 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
-
