@@ -21,6 +21,10 @@
       - 'from odoo import'
     - action: 's'
       args:
+      - 'osv'
+      - 'models'
+    - action: 's'
+      args:
       - 'orm'
       - 'models'
 04_from_openerp:
@@ -42,6 +46,10 @@ class_model:
   do:
     - action: 's'
       args:
+      - 'osv.Model'
+      - 'models.Model'
+    - action: 's'
+      args:
       - 'orm.Model'
       - 'models.Model'
     - action: 's'
@@ -59,3 +67,9 @@ def_cr_uid:
       args:
       - ', *context=[^)]+'
       - ''
+from_odoo_import:
+  match: '^from odoo import [\w, ]+'
+  do:
+    - action: '$'
+      args:
+      - 'match_from_odoo_import'

@@ -11,7 +11,7 @@
     - action: 's'
       args:
       - 'models'
-      - 'orm'
+      - 'osv'
     - action: 's'
       args:
       - 'odoo'
@@ -20,6 +20,10 @@
       args:
       - 'models.TransientModel'
       - 'osv.osv_memory'
+    - action: 's'
+      args:
+      - 'models.Model'
+      - 'osv.osv'
 04_from_openerp:
   match: '^from odoo'
   do:
@@ -40,9 +44,9 @@ class_model:
     - action: 's'
       args:
       - 'models.Model'
-      - 'orm.Model'
+      - 'osv.Model'
 def_cr_uid:
-  match: '^ *def [^(]+\(self, [^)]*\)'
+  match: '!([, ]cr, *uid)^ *def [^(]+\(self, [^)]*\)'
   do:
     - action: 's'
       args:

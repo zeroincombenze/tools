@@ -1,0 +1,5 @@
+no_setup:
+  match: '.*/setup/'
+  prio: '0'
+  do:
+    - action: 'rm'

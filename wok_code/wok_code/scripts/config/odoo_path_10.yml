@@ -1,0 +1,8 @@
+manifest:
+  match: '.*/__openerp__.py'
+  prio: '0'
+  do:
+    - action: 'mv'
+      args:
+      - '__openerp__.py'
+      - '__manifest__.py'

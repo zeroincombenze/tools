@@ -7,10 +7,10 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES]
+    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P]
+                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                         [--string-normalization] [--test-res-msg TEST_RES_MSG]
                         [-v] [-V] [-w]
                         [path [path ...]]
@@ -27,6 +27,7 @@ Digest of arcangelo
       -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
                             Rule categories (comma separated) to parse (use + for
                             adding)
+      -c, --copyright-check
       -F FROM_VERSION, --from-version FROM_VERSION
       -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
                             skip-file'
@@ -39,7 +40,7 @@ Digest of arcangelo
       -l, --list-rules      list rule categories file (-ll list rules too)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
-      -P, --pypi-package
+      -P PACKAGE_NAME, --package-name PACKAGE_NAME
       --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose

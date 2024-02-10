@@ -129,6 +129,22 @@ class License:
             "OEE-1": "oee",
         }
 
+    def odoo_version_born(self, odoo_major_version):
+        return {
+            6: "2012-10-04",
+            7: "2013-10-03",
+            8: "2014-10-02",
+            9: "2015-10-01",
+            10: "2016-10-06",
+            11: "2017-10-05",
+            12: "2018-10-04",
+            13: "2019-10-03",
+            14: "2020-10-01",
+            15: "2021-10-07",
+            16: "2022-10-06",
+            17: "2023-10-05",
+        }.get(odoo_major_version, "")
+
     def add_copyright(self, org_id, name, website, email, years, section="authors"):
         if org_id and org_id not in self.org_ids:
             if org_id in COPY:
@@ -184,7 +200,9 @@ class License:
                     del self.acknowledges[name]
                     break
 
-    def extract_info_from_line(self, line, force=False, add_copy=True):
+    def extract_info_from_line(
+            self, line, force=False, add_copy=True,
+            odoo_major_version=None, force_from=False):
         """ "Return org_id, name, website, email, years from line"""
 
         def split_name_url(line):
@@ -276,7 +294,7 @@ class License:
                     }
             return org_id, name, website, email, ""
 
-        def from_comment_line(line):
+        def from_comment_line(line, odoo_major_version=None, force_from=False):
             head = r"^ *([Cc]opyright|\([Cc]\)|©)"
             rex = "%s%s" % (head[0:-1], r"|http:|https:|\w+\@[a-zA-z0-9-.]+)")
             org_id = False
@@ -288,29 +306,31 @@ class License:
                 ipos = 1
                 loom = re.match(r"^ *([Cc]opyright|\([Cc]\)|©)", line)
                 if loom:
-                    ipos += loom.end() + 1
-                    loom = re.match("^ *[0-9]+", line[ipos:])
+                    ipos += loom.end()
+                    loom = re.match("^ *[0-9-]+", line[ipos:])
                     if loom:
                         ii = ipos + loom.end()
-                        years = line[ipos:ii]
-                        if line[ii] == "-":
-                            ipos = ii + 1
-                            loom = re.match("[0-9]+", line[ipos:])
-                            if loom:
-                                ii = loom.end()
-                                if ii == 4:
-                                    ipos += 2
-                                    ii = ipos + ii - 2
-                                else:
-                                    ii += ipos
-                                if line[ipos:ii] == str(self.cur_year)[2:]:
-                                    years = "%s-%s" % (years, line[ipos:ii])
-                                else:
-                                    years = "%s-%s" % (years, str(self.cur_year)[-2:])
-                            elif years != str(self.cur_year):
-                                years = "%s-%s" % (years, str(self.cur_year)[-2:])
-                        elif years != str(self.cur_year):
-                            years = "%s-%s" % (years, str(self.cur_year)[-2:])
+                        years = line[ipos:ii].strip()
+                        if "-" in years:
+                            from_year, to_year = years.split("-")
+                        else:
+                            from_year, to_year = years
+                        if len(from_year) == 2:
+                            from_year = "20" + from_year
+                        if len(to_year) == 4:
+                            to_year = to_year[-2:]
+                        if odoo_major_version:
+                            born_date = self.odoo_version_born(
+                                odoo_major_version).split("-")[0]
+                            if force_from or from_year < born_date:
+                                from_year = born_date
+                            cur_year = int(to_year) + 2000
+                            if (self.cur_year - cur_year) < 3:
+                                to_year = str(self.cur_year)[-2:]
+                        if from_year[-2:] != to_year:
+                            years = "%s-%s" % (from_year, to_year)
+                        else:
+                            years = from_year
                 org_id, name, website, email, dummy = from_rst_line(line[ipos:].strip())
             return org_id, name, website, email, years
 
@@ -318,7 +338,9 @@ class License:
         if line.startswith("*"):
             res = from_rst_line(line[1:].strip())
         elif line.startswith("#"):
-            res = from_comment_line(line[1:].strip())
+            res = from_comment_line(line[1:].strip(),
+                                    odoo_major_version=odoo_major_version,
+                                    force_from=force_from)
         elif force:
             res = from_rst_line(line.strip())
         else:
@@ -392,7 +414,7 @@ class License:
         return maintainer
 
     def get_license(self, odoo_majver=None):
-        odoo_majver = odoo_majver or 12.0
+        odoo_majver = odoo_majver or 17.0
         if odoo_majver <= 8:
             license = "agpl"
         else:

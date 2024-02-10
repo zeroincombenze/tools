@@ -1,5 +1,19 @@
+00_match_ignore:
+  match: '^#!'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_ignore
 01_match_end_utf8:
   match: '$'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_end_utf8
+02_match_end_utf8:
+  match: '^[^#].*'
   prio: '9'
   do:
     - action: '$'
@@ -12,13 +26,6 @@
     - action: '$'
       args:
       - match_utf8
-03_match_ignore:
-  match: '^#!'
-  prio: '9'
-  do:
-    - action: '$'
-      args:
-      - match_ignore
 04_match_lint:
   match: '^# (flake8|pylint):'
   prio: '9'
