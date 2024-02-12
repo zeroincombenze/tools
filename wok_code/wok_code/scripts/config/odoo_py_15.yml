@@ -1,5 +1,5 @@
 include_odoo_no_api_multi:
-  ctx: 'final or migrate_multi'
+  ctx: 'final'
   include: 'odoo_py_no_api_multi'
 sort_from_odoo_import:
   match: '^from (odoo|openerp) import [\w, ]+'
@@ -7,4 +7,4 @@ sort_from_odoo_import:
   do:
     - action: '$'
       args:
-      - 'sort_from_odoo_import'
+        - 'sort_from_odoo_import'

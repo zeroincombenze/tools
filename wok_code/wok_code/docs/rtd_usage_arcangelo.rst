@@ -7,7 +7,7 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES] [-c]
+    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_CATEGORIES] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
@@ -22,22 +22,25 @@ Digest of arcangelo
     
     optional arguments:
       -h, --help            show this help message and exit
-      -a, --lint-anyway
+      -a, --lint-anyway     set to True when migrate software
+      -B, --debug           add comment with applied rule: do not use in
+                            production
       -b TO_VERSION, --to-version TO_VERSION
       -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
-                            Rule categories (comma separated) to parse (use + for
-                            adding)
+                            Rule classes (comma separated) to parse (use + for
+                            adding) use switch -l to see default classes list
       -c, --copyright-check
       -F FROM_VERSION, --from-version FROM_VERSION
-      -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
-                            skip-file'
+      -f, --force           Parse file even containing '# flake8: noqa' or '#
+                            pylint: skip-file'
       -G GIT_ORGID, --git-org GIT_ORGID
       --git-merge-conflict left|right
                             Keep left or right side code after git merge conflict
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
-      -l, --list-rules      list rule categories file (-ll list rules too)
+      -l, --list-rules      list default rule classe (-ll list rules too. -lll to
+                            full list)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
@@ -48,7 +51,7 @@ Digest of arcangelo
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
     
-    © 2021-2023 by SHS-AV s.r.l.
+    © 2021-2024 by SHS-AV s.r.l.
     
 
 
@@ -108,13 +111,6 @@ distinct expressions, which are:
 
 **ACTION is the action will be executed** when EREGEX is True or when EREGEX fails if action begins with "/" (slash).
 
-    ACTION can submitted to Odoo or python version:
-
-    * +[0-9] means from Odoo/python major version
-    * -[0-9] means Odoo major version and older
-    * +[23]\.[0-9] means from python version
-    * -[23]\.[0-9] means python version and older
-
     **ACTION values**:
 
     * **s**: substitute REGEX REPLACE_TEXT
@@ -122,6 +118,8 @@ distinct expressions, which are:
     * **i**: insert line before current line
     * **a**: append line after current line
     * **$**: execute FUNCTION
+    * **+**: set trigger TRIGGER_NAME (from 1st group of matching regex)
+    * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
 **Python test and replacing macros**.
@@ -143,21 +141,17 @@ while in replacement text the form is:
 
 Value list:
 
-+----------------------+------------------------------------------------------------------+
-| Name                 | Description                                                      |
-+----------------------+------------------------------------------------------------------+
-| classname            | Name of current class                                            |
-+----------------------+------------------------------------------------------------------+
-| from_major_version   | Major version of project by -F switch                            |
-+----------------------+------------------------------------------------------------------+
-| is_manifest          | True if current file is __manifest__.py or __openerp__.py        |
-+----------------------+------------------------------------------------------------------+
-| is_xml               | True if current file is .xml                                     |
-+----------------------+------------------------------------------------------------------+
-| to_major_version     | Major version of project by -b switch                            |
-+----------------------+------------------------------------------------------------------+
-| py23                 | Value 2 if python2 else 3                                        |
-+----------------------+------------------------------------------------------------------+
++-----------------------------+----------------------------------------------------------+
+| Name                        | Description                                              |
++-----------------------------+----------------------------------------------------------+
+| classname                   | Name of current class                                    |
++-----------------------------+----------------------------------------------------------+
+| from_major_version          | Major version of project by -F switch                    |
++-----------------------------+----------------------------------------------------------+
+| to_major_version            | Major version of project by -b switch                    |
++-----------------------------+----------------------------------------------------------+
+| py23                        | Value 2 if python2 else 3                                |
++-----------------------------+----------------------------------------------------------+
 
 
 

@@ -1,7 +1,7 @@
 # flake8: noqa - pylint: skip-file
 # -*- coding: utf-8 -*-
 # Copyright 2014-24, SHS-AV s.r.l. <https://www.zeroincombenze.it>
-from odoo import fields, models
+from openerp import fields, models
 
 
 class ResPartner(models.Model):

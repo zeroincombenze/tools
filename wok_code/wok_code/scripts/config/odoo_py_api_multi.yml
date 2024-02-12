@@ -1,0 +1,14 @@
+set_api_multi:
+  match: '^ *# @api\.multi'
+  do:
+    - action: 's'
+      args:
+      - '# @api\.multi'
+      - '@api.multi'
+set_api_mix:
+  match: '^ *# @api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+  do:
+    - action: 's'
+      args:
+      - '# @api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+      - '@api.\1'

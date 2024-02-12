@@ -44,13 +44,6 @@ distinct expressions, which are:
 
 **ACTION is the action will be executed** when EREGEX is True or when EREGEX fails if action begins with "/" (slash).
 
-    ACTION can submitted to Odoo or python version:
-
-    * +[0-9] means from Odoo/python major version
-    * -[0-9] means Odoo major version and older
-    * +[23]\.[0-9] means from python version
-    * -[23]\.[0-9] means python version and older
-
     **ACTION values**:
 
     * **s**: substitute REGEX REPLACE_TEXT
@@ -58,6 +51,8 @@ distinct expressions, which are:
     * **i**: insert line before current line
     * **a**: append line after current line
     * **$**: execute FUNCTION
+    * **+**: set trigger TRIGGER_NAME (from 1st group of matching regex)
+    * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
 **Python test and replacing macros**.
