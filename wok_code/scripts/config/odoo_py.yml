@@ -1,0 +1,7 @@
+found_api:
+  match: '.*'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'match_found_api'

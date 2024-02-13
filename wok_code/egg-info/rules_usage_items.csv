@@ -1,7 +1,15 @@
 Name,Description
+backport_multi,Processing a backported version (multiple version path)
 classname,Name of current class
+dedent,Dedent statement level
+final,Processing final version (multiple version path)
+first_line,True if current line is the 1st of source
 from_major_version,Major version of project by -F switch
-is_manifest,True if current file is __manifest__.py or __openerp__.py
-is_xml,True if current file is .xml
+header,Current line is in header file (comments and empty lines)
+indent,Space indentation of current line
+migration_multi,Processing a migrate version (multiple version path)
+mime,Current file mime
+open_stmt,"# of open parens; if > 0, current line is a continuation line"
+stmt_indent,Space indentation of current statement
 to_major_version,Major version of project by -b switch
-py23,Value 2 if python2 else 3
+py23,Value 2 if python2 else 3 (int)

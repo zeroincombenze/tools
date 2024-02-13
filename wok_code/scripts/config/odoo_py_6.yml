@@ -1,0 +1,4 @@
+include_openerp_py_old_api:
+  ctx: 'final'
+  include: 'openerp_py_old_api'
+

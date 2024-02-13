@@ -7,10 +7,10 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-b TO_VERSION] [-C RULE_CATEGORIES]
+    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_CATEGORIES] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P]
+                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                         [--string-normalization] [--test-res-msg TEST_RES_MSG]
                         [-v] [-V] [-w]
                         [path [path ...]]
@@ -22,24 +22,28 @@ Digest of arcangelo
     
     optional arguments:
       -h, --help            show this help message and exit
-      -a, --lint-anyway
+      -a, --lint-anyway     set to True when migrate software
+      -B, --debug           add comment with applied rule: do not use in
+                            production
       -b TO_VERSION, --to-version TO_VERSION
       -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
-                            Rule categories (comma separated) to parse (use + for
-                            adding)
+                            Rule classes (comma separated) to parse (use + for
+                            adding) use switch -l to see default classes list
+      -c, --copyright-check
       -F FROM_VERSION, --from-version FROM_VERSION
-      -f, --force           Parse file containing '# flake8: noqa' or '# pylint:
-                            skip-file'
+      -f, --force           Parse file even containing '# flake8: noqa' or '#
+                            pylint: skip-file'
       -G GIT_ORGID, --git-org GIT_ORGID
       --git-merge-conflict left|right
                             Keep left or right side code after git merge conflict
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
-      -l, --list-rules      list rule categories file (-ll list rules too)
+      -l, --list-rules      list default rule classe (-ll list rules too. -lll to
+                            full list)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
-      -P, --pypi-package
+      -P PACKAGE_NAME, --package-name PACKAGE_NAME
       --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose
@@ -47,7 +51,7 @@ Digest of arcangelo
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
     
-    © 2021-2023 by SHS-AV s.r.l.
+    © 2021-2024 by SHS-AV s.r.l.
     
 
 
@@ -107,13 +111,6 @@ distinct expressions, which are:
 
 **ACTION is the action will be executed** when EREGEX is True or when EREGEX fails if action begins with "/" (slash).
 
-    ACTION can submitted to Odoo or python version:
-
-    * +[0-9] means from Odoo/python major version
-    * -[0-9] means Odoo major version and older
-    * +[23]\.[0-9] means from python version
-    * -[23]\.[0-9] means python version and older
-
     **ACTION values**:
 
     * **s**: substitute REGEX REPLACE_TEXT
@@ -121,6 +118,8 @@ distinct expressions, which are:
     * **i**: insert line before current line
     * **a**: append line after current line
     * **$**: execute FUNCTION
+    * **+**: set trigger TRIGGER_NAME (from 1st group of matching regex)
+    * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
 **Python test and replacing macros**.
@@ -142,21 +141,37 @@ while in replacement text the form is:
 
 Value list:
 
-+----------------------+------------------------------------------------------------------+
-| Name                 | Description                                                      |
-+----------------------+------------------------------------------------------------------+
-| classname            | Name of current class                                            |
-+----------------------+------------------------------------------------------------------+
-| from_major_version   | Major version of project by -F switch                            |
-+----------------------+------------------------------------------------------------------+
-| is_manifest          | True if current file is __manifest__.py or __openerp__.py        |
-+----------------------+------------------------------------------------------------------+
-| is_xml               | True if current file is .xml                                     |
-+----------------------+------------------------------------------------------------------+
-| to_major_version     | Major version of project by -b switch                            |
-+----------------------+------------------------------------------------------------------+
-| py23                 | Value 2 if python2 else 3                                        |
-+----------------------+------------------------------------------------------------------+
++---------------------+-------------------------------------------------------------------+
+| Name                | Description                                                       |
++---------------------+-------------------------------------------------------------------+
+| backport_multi      | Processing a backported version (multiple version path)           |
++---------------------+-------------------------------------------------------------------+
+| classname           | Name of current class                                             |
++---------------------+-------------------------------------------------------------------+
+| dedent              | Dedent statement level                                            |
++---------------------+-------------------------------------------------------------------+
+| final               | Processing final version (multiple version path)                  |
++---------------------+-------------------------------------------------------------------+
+| first_line          | True if current line is the 1st of source                         |
++---------------------+-------------------------------------------------------------------+
+| from_major_version  | Major version of project by -F switch                             |
++---------------------+-------------------------------------------------------------------+
+| header              | Current line is in header file (comments and empty lines)         |
++---------------------+-------------------------------------------------------------------+
+| indent              | Space indentation of current line                                 |
++---------------------+-------------------------------------------------------------------+
+| migration_multi     | Processing a migrate version (multiple version path)              |
++---------------------+-------------------------------------------------------------------+
+| mime                | Current file mime                                                 |
++---------------------+-------------------------------------------------------------------+
+| open_stmt           | # of open parens; if > 0, current line is a continuation line     |
++---------------------+-------------------------------------------------------------------+
+| stmt_indent         | Space indentation of current statement                            |
++---------------------+-------------------------------------------------------------------+
+| to_major_version    | Major version of project by -b switch                             |
++---------------------+-------------------------------------------------------------------+
+| py23                | Value 2 if python2 else 3 (int)                                   |
++---------------------+-------------------------------------------------------------------+
 
 
 
@@ -226,10 +241,10 @@ Follow rule replace "@api.one" with "# @api.one" and adds comment line:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

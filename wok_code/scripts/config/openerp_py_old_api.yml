@@ -1,0 +1,64 @@
+openerp_import:
+  match: '^from (odoo|openerp) import'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+      - 'from (odoo|openerp) import'
+      - 'from openerp.osv import'
+    - action: 's'
+      args:
+      - 'models'
+      - 'osv'
+except_usererror:
+  match: '^from (openerp|odoo)\.exceptions import UserError'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+        - 'from (openerp|odoo)\.exceptions import UserError'
+        - 'from openerp.osv.orm import except_orm'
+raise_user_error:
+  match: '^ *raise UserError'
+  do:
+    - action: 's'
+      args:
+      - 'UserError\('
+      - 'except_orm("Error", '
+class_model:
+  match: '^ *class [^(]+\([^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - 'models.Model'
+      - 'osv.Model'
+    - action: 's'
+      args:
+      - 'models.TransientModel'
+      - 'osv.osv_memory'
+def_cr_uid:
+  match: '!([, ]cr, *uid)^ *def [^(]+\(self, [^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(self,'
+      - '(self, cr, uid,'
+    - action: 's'
+      args:
+      - '\)'
+      - ', context=None)'
+from_openerp:
+  match: '^from odoo'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'odoo'
+      - 'openerp'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - sort_from_odoo_import

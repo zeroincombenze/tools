@@ -1,8 +1,3 @@
-super:
-  match: '^ *super\([^)]*\)'
-  prio: '9'
-  do:
-    - action: 's'
-      args:
-      - 'super\(\)'
-      - 'super(%(classname)s, self)'
+include_global_py:
+  include: 'globals_py2'
+

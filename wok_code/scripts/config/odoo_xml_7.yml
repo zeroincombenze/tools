@@ -1,0 +1,2 @@
+include_odoo_xml_old_api:
+  include: 'odoo_xml_old_api'

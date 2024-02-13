@@ -1,0 +1,9 @@
+include_odoo_xml_new_api:
+  include: 'odoo_xml_new_api'
+binding_model:
+  match: '.*binding_model="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'binding_model="([^"]*)"'
+      - 'src_model="\1"'
