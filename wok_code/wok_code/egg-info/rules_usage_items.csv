@@ -5,7 +5,8 @@ dedent,Dedent statement level
 final,Processing final version (multiple version path)
 first_line,True if current line is the 1st of source
 from_major_version,Major version of project by -F switch
-indent,Space indentation of previous not empty line
+header,Current line is in header file (comments and empty lines)
+indent,Space indentation of current line
 migration_multi,Processing a migrate version (multiple version path)
 mime,Current file mime
 open_stmt,"# of open parens; if > 0, current line is a continuation line"

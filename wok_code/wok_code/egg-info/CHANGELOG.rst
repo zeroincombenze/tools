@@ -1,3 +1,11 @@
+2.0.14.1 (2024-02-13)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
+* [IMP] arcangelo switch -lll
+* [IMP] arcaneglo: rules reorganization
+* [IMP] arcangelo: trigger management and new param ctx
+
 2.0.14 (2024-02-07)
 ~~~~~~~~~~~~~~~~~~~
 

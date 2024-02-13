@@ -141,17 +141,37 @@ while in replacement text the form is:
 
 Value list:
 
-+-----------------------------+----------------------------------------------------------+
-| Name                        | Description                                              |
-+-----------------------------+----------------------------------------------------------+
-| classname                   | Name of current class                                    |
-+-----------------------------+----------------------------------------------------------+
-| from_major_version          | Major version of project by -F switch                    |
-+-----------------------------+----------------------------------------------------------+
-| to_major_version            | Major version of project by -b switch                    |
-+-----------------------------+----------------------------------------------------------+
-| py23                        | Value 2 if python2 else 3                                |
-+-----------------------------+----------------------------------------------------------+
++---------------------+-------------------------------------------------------------------+
+| Name                | Description                                                       |
++---------------------+-------------------------------------------------------------------+
+| backport_multi      | Processing a backported version (multiple version path)           |
++---------------------+-------------------------------------------------------------------+
+| classname           | Name of current class                                             |
++---------------------+-------------------------------------------------------------------+
+| dedent              | Dedent statement level                                            |
++---------------------+-------------------------------------------------------------------+
+| final               | Processing final version (multiple version path)                  |
++---------------------+-------------------------------------------------------------------+
+| first_line          | True if current line is the 1st of source                         |
++---------------------+-------------------------------------------------------------------+
+| from_major_version  | Major version of project by -F switch                             |
++---------------------+-------------------------------------------------------------------+
+| header              | Current line is in header file (comments and empty lines)         |
++---------------------+-------------------------------------------------------------------+
+| indent              | Space indentation of current line                                 |
++---------------------+-------------------------------------------------------------------+
+| migration_multi     | Processing a migrate version (multiple version path)              |
++---------------------+-------------------------------------------------------------------+
+| mime                | Current file mime                                                 |
++---------------------+-------------------------------------------------------------------+
+| open_stmt           | # of open parens; if > 0, current line is a continuation line     |
++---------------------+-------------------------------------------------------------------+
+| stmt_indent         | Space indentation of current statement                            |
++---------------------+-------------------------------------------------------------------+
+| to_major_version    | Major version of project by -b switch                             |
++---------------------+-------------------------------------------------------------------+
+| py23                | Value 2 if python2 else 3 (int)                                   |
++---------------------+-------------------------------------------------------------------+
 
 
 
@@ -221,10 +241,10 @@ Follow rule replace "@api.one" with "# @api.one" and adds comment line:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

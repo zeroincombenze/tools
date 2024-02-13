@@ -19,7 +19,7 @@ try:
 except ImportError:
     from wok_code.scripts import license_mgnt
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -236,7 +236,7 @@ class MigrateMeta(object):
             expr = rule[x.start() + 2: x.end() - 2].strip()
             rule = rule[x.end()]
             try:
-                pyres = eval(expr)
+                pyres = eval(expr, self.__dict__)
             except BaseException as e:
                 self.raise_error("Invalid expression %s" % expr)
                 self.raise_error(e)
@@ -323,7 +323,7 @@ class MigrateEnv(MigrateMeta):
             self.from_version = ""
             self.from_major_version = 0
         branch = ""
-        if not opt_args.to_version or opt_args.to_version == "0.0":
+        if (not opt_args.to_version or opt_args.to_version == "0.0") and opt_args.path:
             curcwd = os.getcwd()
             if pth.isdir(opt_args.path[0]):
                 os.chdir(opt_args.path[0])
@@ -352,8 +352,15 @@ class MigrateEnv(MigrateMeta):
             else:
                 opt_args.to_version = "0.0"
         self.to_version = opt_args.to_version
-        self.to_major_version = int(opt_args.to_version.split('.')[0])
-        if opt_args.package_name == "odoo" and not opt_args.python:
+        if opt_args.to_version and "." in opt_args.to_version:
+            self.to_major_version = int(opt_args.to_version.split('.')[0])
+        else:
+            self.to_major_version = 0
+        if (
+                opt_args.package_name == "odoo"
+                and not opt_args.python
+                and opt_args.to_version
+        ):
             opt_args.python = get_pyver_4_odoo(opt_args.to_version)
         if opt_args.python:
             self.python_version = opt_args.python
@@ -364,6 +371,7 @@ class MigrateEnv(MigrateMeta):
             if opt_args.package_name == "pypi":
                 self.def_python_future = True
         self.first_line = False
+        self.header = True
         self.opt_args = opt_args
 
         self.store_mig_rules(mime="path")
@@ -461,6 +469,7 @@ class MigrateFile(MigrateMeta):
             print("Reading %s ..." % fqn)
         for trigger in ("first_line", "migrate_multi", "backport_multi"):
             setattr(self, trigger, False)
+        self.header = True
         self.fqn = fqn
         base = pth.basename(fqn)
         self.out_fn = migrate_env.out_fn or base
@@ -884,10 +893,13 @@ class MigrateFile(MigrateMeta):
         if not self.keep_as_is:
             lineno = parens = brackets = braces = quotes = angles = 0
             self.open_stmt = False
+            self.header = True
             self.indent = self.stmt_indent = ""
             while lineno < len(self.lines):
                 self.first_line = lineno == 0
                 if self.lines[lineno]:
+                    if not re.match("^ *#", self.lines[lineno]):
+                        self.header = False
                     x = re.match(r"[\s]*", self.lines[lineno])
                     self.indent = self.lines[lineno][x.start():x.end()] if x else ""
                     if not self.open_stmt:
@@ -1135,6 +1147,7 @@ def list_rules(opt_args):
     migrate_env = MigrateEnv(opt_args)
     for trigger in ("first_line", "migrate_multi", "backport_multi"):
         setattr(migrate_env, trigger, True)
+    opt_args.header = True
     for mime in ("path", "py", "manifest", "history", "xml"):
         if opt_args.list_rules > 1:
             print_rule_mime(migrate_env, opt_args, mime)
@@ -1224,6 +1237,7 @@ def main(cli_args=None):
         print("Invalid value for switch --git-merge-conflict")
         print("Please use --git-merge-conflict=left or --git-merge-conflict=right")
         return 3
+
     sts = 0
     migrate_env = MigrateEnv(opt_args)
     if not migrate_env.opt_args.path:
@@ -1241,6 +1255,7 @@ def main(cli_args=None):
     for path in migrate_env.opt_args.path:
         if pth.isdir(path):
             for root, dirs, files in os.walk(path):
+                dirs[:] = [d for d in dirs if not d.startswith("_")]
                 for fn in dirs:
                     fqn = pth.abspath(pth.join(root, fn)) + "/"
                     migrate_env.apply_rules_on_item(fqn)
@@ -1260,4 +1275,5 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 

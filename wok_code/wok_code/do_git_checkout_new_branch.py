@@ -9,13 +9,15 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 
 class RepoCheckout(object):
     def __init__(self, opt_args):
         self.opt_args = opt_args
         if opt_args.odoo_branch not in (
+            "18.0",
+            "17.0",
             "16.0",
             "15.0",
             "14.0",
@@ -360,7 +362,7 @@ class RepoCheckout(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Create new repo branch", epilog="© 2022-2023 by SHS-AV s.r.l."
+        description="Create new repo branch", epilog="© 2022-2024 by SHS-AV s.r.l."
     )
     parser.add_argument(
         "-b", "--odoo-branch", dest="odoo_branch", help="New Odoo branch"
@@ -403,6 +405,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main(None))
+
 
 
 
