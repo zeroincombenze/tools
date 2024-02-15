@@ -1540,12 +1540,13 @@ class MainTest(test_common.TransactionCase):
         def mergelist(value):
             # itertool.chain.from_iterable cannot work with [int, int, ...]
             res = []
-            for item in value:
-                if hasattr(item, "__iter__"):
-                    for x in mergelist(item):
-                        res.append(x)
-                else:
-                    res.append(item)
+            if value:
+                for item in value:
+                    if hasattr(item, "__iter__"):
+                        for x in mergelist(item):
+                            res.append(x)
+                    else:
+                        res.append(item)
             return res
 
         def value2list(value):
@@ -1809,9 +1810,12 @@ class MainTest(test_common.TransactionCase):
                         " 🕶️ field %s does not exist in %s" % (field, resource)
                     )
                     continue
-
                 value = self._cast_field(
-                    resource, field, values[field], fmt=fmt, group=group
+                    resource,
+                    field,
+                    values[field],
+                    fmt=fmt if fmt != "id" else "cmd",
+                    group=group
                 )
                 if value is None and (
                     not keep_null or field not in ("company_id", "currency_id")

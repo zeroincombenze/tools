@@ -9,6 +9,7 @@
 * [FIX] TestEnv: sometime is_action() fails
 * [FIX] TestEnv: wizard active model
 * [FIX] TestEnv: wizard module name is current module under test
+* [FIX] TestEnv: nested +multi fields with Odoo cmd
 * [IMP] TestEnv: binding model in view for Odoo 11.0+
 * [IMP] TestEnv: write with xref can update xref id
 * [IMP] TestEnv: warning if no setUp() declaration

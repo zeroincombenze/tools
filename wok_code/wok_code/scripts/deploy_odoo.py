@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-23 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-24 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -35,19 +35,24 @@ __version__ = "2.0.15"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
-ODOO_VALID_VERSIONS = (
-    "16.0",
-    "15.0",
-    "14.0",
-    "13.0",
-    "12.0",
-    "11.0",
-    "10.0",
-    "9.0",
-    "8.0",
-    "7.0",
-    "6.1",
-)
+ODOO_VALID_VERSIONS = ("18.0", "17.0", "16.0", "15.0",
+                       "14.0", "13.0", "12.0", "11.0",
+                       "10.0", "9.0", "8.0", "7.0", "6.1")
+
+XTRA_PREFIX = [
+    "connector",
+    "edi",
+    "hr",
+    "l10n",
+    "maintainer",
+    "manufacture",
+    "mis-builder",
+    "oca",
+    "odoo",
+    "project",
+    "vertical",
+    "website",
+]
 
 ODOO_VALID_GITORGS = ("oca", "librerp", "zero")
 
@@ -177,7 +182,7 @@ class OdooDeploy(object):
         if not self.repo_list and not self.opt_args.target_path:
             self.get_repo_from_config()
 
-        if not self.repo_list:
+        if not self.repo_list and self.opt_args.target_path:
             self.target_path = os.path.expanduser(self.opt_args.target_path)
             self.get_repo_from_path()
 
@@ -189,7 +194,7 @@ class OdooDeploy(object):
             git_org = self.opt_args.git_orgs[0] if self.opt_args.git_orgs else "oca"
             rgit_org = None
             if os.path.isdir(path):
-                z0lib.run_traced("cd %s" % path, verbose=False, dry_run=False)
+                self.run_traced("cd %s" % path, verbose=False)
                 sts, repo_branch, git_url, stash_list = self.get_remote_info(
                     verbose=False
                 )
@@ -401,27 +406,19 @@ class OdooDeploy(object):
                 del self.repo_list[self.repo_list.index("OCB")]
                 self.repo_list = ["OCB"] + self.repo_list
 
-    def get_repo_from_github(self, git_org=None, branch=None, only_ocb=None):
+    def repo_list_from_github(self, git_org=None, branch=None, only_ocb=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
-        if self.opt_args.target_path:
-            self.target_path = os.path.expanduser(self.opt_args.target_path)
-        else:
-            self.target_path = build_odoo_param(
-                "ROOT", odoo_vid=branch, git_org=git_org, multi=self.opt_args.multi
-            )
-        hash_key = git_org + branch.split(".")[0]
         opts = []
         if self.opt_args.verbose:
             opts.append("-v")
         if self.opt_args.dry_run:
-            opts.append("-D")
+            opts.append("-n")
         if branch:
             opts.append("-b")
             opts.append(branch)
         opts.append("-l")
         opts.append(self.opt_args.local_reps)
-        # opts.append("l10n-italy,l10n-italy-supplemental")
         opts.append("-G")
         opts.append(SHORT_NAMES.get(git_org, git_org))
         if self.opt_args.extra_repo:
@@ -432,6 +429,20 @@ class OdooDeploy(object):
             content = ["OCB"]
         else:
             content = get_list_from_url(opts)
+        return content
+
+    def get_repo_from_github(self, git_org=None, branch=None, only_ocb=None):
+        git_org = git_org or self.git_org
+        branch = branch or self.opt_args.odoo_branch
+        if self.opt_args.target_path:
+            self.target_path = os.path.expanduser(self.opt_args.target_path)
+        else:
+            self.target_path = build_odoo_param(
+                "ROOT", odoo_vid=branch, git_org=git_org, multi=self.opt_args.multi
+            )
+        hash_key = git_org + branch.split(".")[0]
+        content = self.repo_list_from_github(
+            git_org=git_org, branch=branch, only_ocb=only_ocb)
         for repo in content:
             if repo not in self.repo_list:
                 url = DEFAULT_DATA.get(hash_key, {}).get(repo)
@@ -486,7 +497,12 @@ class OdooDeploy(object):
 
         self.repo_list = []
         self.repo_info = {}
-        if self.opt_args.config and os.path.isfile(self.opt_args.config):
+        if (
+                not self.opt_args.update_addons_conf
+                and self.opt_args.target_path
+                and self.opt_args.config
+                and os.path.isfile(self.opt_args.config)
+        ):
             HOME = os.environ["HOME"]
             config = ConfigParser.ConfigParser()
             config.read(self.opt_args.config)
@@ -1009,12 +1025,21 @@ class OdooDeploy(object):
         print("Odoo main version..........: %s" % self.master_branch)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
+        if self.opt_args.clean_repo:
+            std_repositories = self.repo_list_from_github()
         for repo in self.repo_list:
-            self.download_single_repo(repo)
+            if (
+                    self.opt_args.clean_repo
+                    and repo != "OCB"
+                    and repo not in std_repositories
+            ):
+                tgtdir = self.get_path_of_repo(repo)
+                if os.path.isdir(tgtdir):
+                    self.run_traced("rm -fR %s" % tgtdir)
+            else:
+                self.download_single_repo(repo)
         if self.opt_args.verbose and self.addons_path:
             print("addons_path = %s" % ",".join(self.addons_path))
-        if self.opt_args.update_addons_conf:
-            self.update_conf()
         if self.opt_args.verbose:
             self.action_status()
 
@@ -1022,7 +1047,7 @@ class OdooDeploy(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Manage Odoo repositories", epilog="© 2021-2023 by SHS-AV s.r.l."
+        description="Manage Odoo repositories", epilog="© 2021-2024 by SHS-AV s.r.l."
     )
     parser.add_argument(
         "-A",
@@ -1042,6 +1067,12 @@ def main(cli_args=None):
         dest="odoo_branch",
         default="12.0",
         help="Default Odoo version",
+    )
+    parser.add_argument(
+        "-C",
+        "--clean-repo",
+        action="store_true",
+        help="Remove repositories out of boundaries",
     )
     parser.add_argument("-c", "--config", help="Odoo configuration file")
     parser.add_argument("-D", "--default-gitorg", default="zero")
@@ -1079,9 +1110,6 @@ def main(cli_args=None):
         help="Keep OCB/odoo organization owner",
     )
     parser.add_argument(
-        "-L", "--list", action="store_true", help="Deprecated: use 'list' action!"
-    )
-    parser.add_argument(
         "-l",
         "--local-reps",
         default="l10n-italy,l10n-italy-supplemental",
@@ -1090,12 +1118,6 @@ def main(cli_args=None):
     parser.add_argument(
         "-m", "--multi", action="store_true", help="Multi version environment"
     )
-    parser.add_argument(
-        "-N",
-        "--clone",
-        action="store_true",
-        help="Deprecated: use 'clone' action!",
-    )
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument("-o", "--origin", help="Declare origin repo for 'merge' action")
     parser.add_argument(
@@ -1103,26 +1125,14 @@ def main(cli_args=None):
     )
     parser.add_argument("-p", "--target-path", help="Local directory")
     parser.add_argument(
-        "-R", "--reclone", action="store_true", help="Deprecated: use 'reclone' action!"
-    )
-    parser.add_argument(
         "-r", "--repos", help="Declare specific repositories to manage, comma separated"
-    )
-    parser.add_argument(
-        "-S", "--status", action="store_true", help="Deprecated: use 'status' action!"
-    )
-    parser.add_argument(
-        "-U",
-        "--only-update",
-        action="store_true",
-        help="Deprecated: use 'update' action!",
     )
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
     parser.add_argument(
         "-x",
         "--extra-repo",
-        help="May be: all,none,connector,devel,maintainer,oca,odoo,vertical",
+        help="may be: all,%s" % ",".join(XTRA_PREFIX),
     )
     parser.add_argument("-y", "--assume-yes", action="store_true")
     parser.add_argument(
@@ -1131,18 +1141,6 @@ def main(cli_args=None):
         help="May be clone,git-push,list,reclone,status,unstaged,update",
     )
     opt_args = parser.parse_args(cli_args)
-
-    if not opt_args.action:
-        if opt_args.clone:
-            opt_args.action = "clone"
-        elif opt_args.list:
-            opt_args.action = "list"
-        elif opt_args.reclone:
-            opt_args.action = "reclone"
-        elif opt_args.status:
-            opt_args.action = "status"
-        elif opt_args.only_update:
-            opt_args.action = "update"
     opt_args.git_orgs = opt_args.git_orgs.split(",") if opt_args.git_orgs else []
 
     if opt_args.action not in (
@@ -1158,7 +1156,12 @@ def main(cli_args=None):
         exit(1)
 
     if opt_args.repos and not opt_args.target_path:
-        print("No path issued for declared repositories")
+        print("No path issued for declared repository %s!" % opt_args.repos)
+        exit(1)
+
+    if opt_args.update_addons_conf and (not opt_args.target_path
+                                        or not opt_args.config):
+        print("Cannot update addons_path w/o config file or target path!")
         exit(1)
 
     deploy = OdooDeploy(opt_args)
@@ -1168,6 +1171,13 @@ def main(cli_args=None):
         deploy.action_status()
     else:
         deploy.action_download_or_pull_repo()
+    if (
+            opt_args.update_addons_conf
+            and deploy.opt_args.config
+            and os.path.isfile(deploy.opt_args.config)
+    ):
+        deploy.update_conf()
+
     return 0
 
 

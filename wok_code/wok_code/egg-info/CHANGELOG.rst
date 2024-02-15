@@ -1,5 +1,11 @@
-2.0.14.1 (2024-02-13)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.15.1 (2024-02-13)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] do_git_checkout_new_branch: ingore symboli links
+* [IMP] New repositories selection
+
+2.0.15 (2024-02-13)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
 * [IMP] arcangelo switch -lll

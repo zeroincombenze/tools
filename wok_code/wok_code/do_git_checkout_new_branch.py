@@ -88,7 +88,7 @@ class RepoCheckout(object):
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
-            git_repo = self.git_url + "/" + repo
+            git_repo = self.git_url + "/" + repo + ".git"
             if os.path.isdir(target_path):
                 z0lib.run_traced(
                     "rm -fR %s" % target_path,
@@ -215,6 +215,8 @@ class RepoCheckout(object):
                     ):
                         continue
                     src = os.path.join(origin_path, p)
+                    if os.path.islink(src):
+                        continue
                     if os.path.isfile(src):
                         z0lib.run_traced(
                             "cp %s %s" % (src, target_path),
@@ -228,7 +230,7 @@ class RepoCheckout(object):
                             verbose=self.opt_args.verbose,
                             dry_run=self.opt_args.dry_run,
                         )
-            else:
+            elif not os.path.islink(origin_path):
                 z0lib.run_traced(
                     "rsync -avz --delete %s %s/ %s/"
                     % (exclude_opt, origin_path, target_path),
@@ -312,8 +314,8 @@ class RepoCheckout(object):
 
         target_path = (
             self.opt_args.target_path
-            if repo == "OCB"
-            else os.path.join(self.opt_args.target_path, repo)
+            if repo == "OCN" or repo == os.path.basename(self.opt_args.target_path)
+            else os.path.dirname(self.opt_args.target_path)
         )
         if os.path.isdir(target_path):
             if not self.opt_args.update:
@@ -343,7 +345,13 @@ class RepoCheckout(object):
     def do_git_checkout(self):
         path = self.opt_args.origin_path
         if self.is_git_repo(path):
-            sts = self.build_new_repo("OCB", path)
+            if (
+                    os.path.isfile(os.path.join(path, "odoo-bin"))
+                    or os.path.isfile(os.path.join(path, "openerp-server"))
+            ):
+                sts = self.build_new_repo("OCB", path)
+            else:
+                sts = self.build_new_repo(os.path.basename(path), path)
         if sts == 0:
             for repo in sorted(os.listdir(self.opt_args.origin_path)):
                 path = os.path.join(self.opt_args.origin_path, repo)
