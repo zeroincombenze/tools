@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Usage &#8212; z0bug_odoo 2.0.15 documentation</title>
+    <title>Usage &#8212; z0bug_odoo 2.0.16 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=601dbdee" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=6de4e095"></script>
+    <script src="_static/documentation_options.js?v=2239d98b"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting started" href="rtd_getting_started.html" />
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="rtd_features.html" title="Features"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.15 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.16 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>  
@@ -46,9 +46,9 @@
   <div class="toctree-wrapper compound">
 </div>
 <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
 <section id="usage-details">
-<h2>Usage Details<a class="headerlink" href="#usage-details" title="Permalink to this heading"></a></h2>
+<h2>Usage Details<a class="headerlink" href="#usage-details" title="Link to this heading"></a></h2>
 <p>You can locate the recent testenv.py in testenv directory of module
 <a class="reference external" href="https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv">z0bug_odoo</a></p>
 <p>For full documentation visit:
@@ -106,11 +106,11 @@ self.odoo_commit_data = True and you have to set global bash environment</p>
 <p>Ths TestEnv software requires:</p>
 <ul class="simple">
 <li><p>python_plus PYPI package</p></li>
-<li><p>z0bug_odoo PYPI package version 2.0.15</p></li>
+<li><p>z0bug_odoo PYPI package version 2.0.16</p></li>
 <li><p>python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10</p></li>
 </ul>
 <section id="model-data-declaration">
-<h3>Model data declaration<a class="headerlink" href="#model-data-declaration" title="Permalink to this heading"></a></h3>
+<h3>Model data declaration<a class="headerlink" href="#model-data-declaration" title="Link to this heading"></a></h3>
 <p>Each model is declared in a csv file or xlsx file in <strong>test/data</strong> directory of the
 module. The file name is the same of model name with dots replaced by undescore.</p>
 <p>i.e. below the contents of <strong>res_parter.csv</strong> file:</p>
@@ -146,7 +146,7 @@ expecially when used in “python expression”.</p>
 </div>
 </section>
 <section id="magic-relationship">
-<h3>Magic relationship<a class="headerlink" href="#magic-relationship" title="Permalink to this heading"></a></h3>
+<h3>Magic relationship<a class="headerlink" href="#magic-relationship" title="Link to this heading"></a></h3>
 <p>Some models/tables should be managed together, i.e. <strong>account.move</strong> and <strong>account.move.line</strong>.
 TestEnv manages these models/tables, called header/detail, just as a single object.
 When header record is created, all detail lines are created with header.
@@ -257,7 +257,7 @@ uses “_template” magic text.</p>
 </div>
 </section>
 <section id="external-reference">
-<h3>External reference<a class="headerlink" href="#external-reference" title="Permalink to this heading"></a></h3>
+<h3>External reference<a class="headerlink" href="#external-reference" title="Link to this heading"></a></h3>
 <p>Every record tagged by an external reference may be:</p>
 <blockquote>
 <div><ul class="simple">
@@ -315,9 +315,9 @@ TestEnv inherit <strong>product.product</strong> (variant) external reference
 </section>
 </section>
 <section id="module-test-execution-session">
-<h2>Module test execution session<a class="headerlink" href="#module-test-execution-session" title="Permalink to this heading"></a></h2>
+<h2>Module test execution session<a class="headerlink" href="#module-test-execution-session" title="Link to this heading"></a></h2>
 <section id="introduction">
-<h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h3>
+<h3>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h3>
 <p>Module test execution workflow should be:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -445,7 +445,7 @@ wizard:</p>
 </section>
 </section>
 <section id="data-values">
-<h2>Data values<a class="headerlink" href="#data-values" title="Permalink to this heading"></a></h2>
+<h2>Data values<a class="headerlink" href="#data-values" title="Link to this heading"></a></h2>
 <p>Data values may be raw data (string, number, dates, etc.) or external reference
 or some macro.
 You can declare data value on your own but you can discover the full test environment
@@ -491,7 +491,7 @@ following syntax:</p>
 </tbody>
 </table>
 <section id="company-id">
-<h3>company_id<a class="headerlink" href="#company-id" title="Permalink to this heading"></a></h3>
+<h3>company_id<a class="headerlink" href="#company-id" title="Link to this heading"></a></h3>
 <p>If value is empty, user company is used.
 This behavior is not applied on
 <strong>res.users</strong>, <strong>res.partner</strong>, <strong>product.template</strong> and <strong>product.product</strong> models.
@@ -501,7 +501,7 @@ the <strong>company_id</strong> field is automatically added to search domain, u
 company_id null and company_id equal to supplied value or current user company.</p>
 </section>
 <section id="boolean">
-<h3>boolean<a class="headerlink" href="#boolean" title="Permalink to this heading"></a></h3>
+<h3>boolean<a class="headerlink" href="#boolean" title="Link to this heading"></a></h3>
 <p>You can declare boolean value:</p>
 <ul class="simple">
 <li><p>by python boolean False or True</p></li>
@@ -524,7 +524,7 @@ company_id null and company_id equal to supplied value or current user company.<
 </div>
 </section>
 <section id="char-text">
-<h3>char / text<a class="headerlink" href="#char-text" title="Permalink to this heading"></a></h3>
+<h3>char / text<a class="headerlink" href="#char-text" title="Link to this heading"></a></h3>
 <p>Char and Text values are python string; please use unicode whenever is possible
 even when you test Odoo 10.0 or less.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
@@ -545,7 +545,7 @@ even when you test Odoo 10.0 or less.</p>
 </div>
 </section>
 <section id="integer-float-monetary">
-<h3>integer / float / monetary<a class="headerlink" href="#integer-float-monetary" title="Permalink to this heading"></a></h3>
+<h3>integer / float / monetary<a class="headerlink" href="#integer-float-monetary" title="Link to this heading"></a></h3>
 <p>Integer, Floating and Monetary values are python integer or float.
 If numeric value is issued as string, it is internally converted
 as integer/float.</p>
@@ -565,7 +565,7 @@ as integer/float.</p>
 </div>
 </section>
 <section id="date-datetime">
-<h3>date / datetime<a class="headerlink" href="#date-datetime" title="Permalink to this heading"></a></h3>
+<h3>date / datetime<a class="headerlink" href="#date-datetime" title="Link to this heading"></a></h3>
 <p>Date and Datetime value are managed in special way.
 They are processed by <code class="docutils literal notranslate"><span class="pre">compute_date()</span></code> function (read below).
 You can issue a single value or a 2 values list, 1st is the date,
@@ -589,7 +589,7 @@ You can issue a single value or a 2 values list, 1st is the date,
 </div>
 </section>
 <section id="many2one">
-<h3>many2one<a class="headerlink" href="#many2one" title="Permalink to this heading"></a></h3>
+<h3>many2one<a class="headerlink" href="#many2one" title="Link to this heading"></a></h3>
 <p>You can issue an integer (if you know exactly the ID)
 or an external reference. Read above about external reference.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
@@ -609,7 +609,7 @@ or an external reference. Read above about external reference.</p>
 </div>
 </section>
 <section id="one2many-many2many">
-<h3>one2many / many2many<a class="headerlink" href="#one2many-many2many" title="Permalink to this heading"></a></h3>
+<h3>one2many / many2many<a class="headerlink" href="#one2many-many2many" title="Link to this heading"></a></h3>
 <p>The one2many and many2many field may contains one or more ID;
 every ID use the same above many2one notation with external reference.
 Value may be a string (just 1 value) or a list.</p>
@@ -646,7 +646,7 @@ You can integrate classic Odoo syntax with <strong>z0bug_odoo external</strong> 
 </ul>
 </section>
 <section id="binary">
-<h3>binary<a class="headerlink" href="#binary" title="Permalink to this heading"></a></h3>
+<h3>binary<a class="headerlink" href="#binary" title="Link to this heading"></a></h3>
 <p>Binary file are supplied with os file name. Test environment load file and
 get binary value. File must be located in <strong>tests/data</strong> directory.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">resource_create</span><span class="p">(</span>
@@ -664,7 +664,7 @@ get binary value. File must be located in <strong>tests/data</strong> directory.
 </section>
 </section>
 <section id="useful-external-reference">
-<h2>Useful External Reference<a class="headerlink" href="#useful-external-reference" title="Permalink to this heading"></a></h2>
+<h2>Useful External Reference<a class="headerlink" href="#useful-external-reference" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p>id</p></td>
@@ -741,9 +741,9 @@ get binary value. File must be located in <strong>tests/data</strong> directory.
 </table>
 </section>
 <section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
 <section id="cast-types">
-<h3>cast_types<a class="headerlink" href="#cast-types" title="Permalink to this heading"></a></h3>
+<h3>cast_types<a class="headerlink" href="#cast-types" title="Link to this heading"></a></h3>
 <p><strong>cast_types(self, resource, values, fmt=None, group=None, not_null=False)</strong></p>
 <p>Convert resource fields in appropriate type, based on Odoo type.</p>
 <div class="line-block">
@@ -805,7 +805,7 @@ id of xref is returned.</p>
 </div>
 </section>
 <section id="store-resource-data">
-<h3>store_resource_data<a class="headerlink" href="#store-resource-data" title="Permalink to this heading"></a></h3>
+<h3>store_resource_data<a class="headerlink" href="#store-resource-data" title="Link to this heading"></a></h3>
 <p><strong>store_resource_data(self, resource, xref, values, group=None, name=None)</strong></p>
 <p>Store a record data definition for furthermore use.</p>
 <div class="line-block">
@@ -826,7 +826,7 @@ id of xref is returned.</p>
 </ul>
 </section>
 <section id="compute-date">
-<h3>compute_date<a class="headerlink" href="#compute-date" title="Permalink to this heading"></a></h3>
+<h3>compute_date<a class="headerlink" href="#compute-date" title="Link to this heading"></a></h3>
 <p><strong>compute_date(self, date, refdate=None)</strong></p>
 <p>Compute date or datetime against today or a reference date.</p>
 <div class="line-block">
@@ -877,7 +877,7 @@ Here, in following examples, are used python iso date convention:</p>
 </dl>
 </section>
 <section id="resource-browse">
-<h3>resource_browse<a class="headerlink" href="#resource-browse" title="Permalink to this heading"></a></h3>
+<h3>resource_browse<a class="headerlink" href="#resource-browse" title="Link to this heading"></a></h3>
 <p><strong>resource_browse(self, xref, raise_if_not_found=True, resource=None, group=None)</strong></p>
 <p>Bind record by xref, searching it or browsing it.
 This function returns a record using issued parameters. It works in follow ways:</p>
@@ -917,7 +917,7 @@ This function returns a record using issued parameters. It works in follow ways:
 </div>
 </section>
 <section id="resource-create">
-<h3>resource_create<a class="headerlink" href="#resource-create" title="Permalink to this heading"></a></h3>
+<h3>resource_create<a class="headerlink" href="#resource-create" title="Link to this heading"></a></h3>
 <p>Create a test record and set external ID to next tests.
 This function works as standard Odoo create() with follow improvements:</p>
 <ul class="simple">
@@ -941,7 +941,7 @@ This function works as standard Odoo create() with follow improvements:</p>
 </div>
 </section>
 <section id="resource-write">
-<h3>resource_write<a class="headerlink" href="#resource-write" title="Permalink to this heading"></a></h3>
+<h3>resource_write<a class="headerlink" href="#resource-write" title="Link to this heading"></a></h3>
 <p>Update a test record.
 This function works as standard Odoo write() with follow improvements:</p>
 <ul class="simple">
@@ -966,13 +966,13 @@ group (str): used to manager group data; default is “base”</p>
 </div></blockquote>
 </section>
 <section id="resource-make">
-<h3>resource_make<a class="headerlink" href="#resource-make" title="Permalink to this heading"></a></h3>
+<h3>resource_make<a class="headerlink" href="#resource-make" title="Link to this heading"></a></h3>
 <p>Create or write a test record.
 This function is a hook to resource_write() or resource_create().</p>
 <p>def resource_make(self, resource, xref, values=None, group=None):</p>
 </section>
 <section id="declare-resource-data">
-<h3>declare_resource_data<a class="headerlink" href="#declare-resource-data" title="Permalink to this heading"></a></h3>
+<h3>declare_resource_data<a class="headerlink" href="#declare-resource-data" title="Link to this heading"></a></h3>
 <p>Declare data to load on setup_env().</p>
 <div class="line-block">
 <div class="line">Args:</div>
@@ -991,7 +991,7 @@ This function is a hook to resource_write() or resource_create().</p>
 </div>
 </section>
 <section id="declare-all-data">
-<h3>declare_all_data<a class="headerlink" href="#declare-all-data" title="Permalink to this heading"></a></h3>
+<h3>declare_all_data<a class="headerlink" href="#declare-all-data" title="Link to this heading"></a></h3>
 <p>Declare all data to load on setup_env()</p>
 <div class="line-block">
 <div class="line">Args:</div>
@@ -1016,7 +1016,7 @@ This function is a hook to resource_write() or resource_create().</p>
 </div>
 </section>
 <section id="get-resource-data">
-<h3>get_resource_data<a class="headerlink" href="#get-resource-data" title="Permalink to this heading"></a></h3>
+<h3>get_resource_data<a class="headerlink" href="#get-resource-data" title="Link to this heading"></a></h3>
 <p>Get declared resource data; may be used to test compare</p>
 <div class="line-block">
 <div class="line">Args:</div>
@@ -1034,7 +1034,7 @@ This function is a hook to resource_write() or resource_create().</p>
 </div>
 </section>
 <section id="get-resource-data-list">
-<h3>get_resource_data_list<a class="headerlink" href="#get-resource-data-list" title="Permalink to this heading"></a></h3>
+<h3>get_resource_data_list<a class="headerlink" href="#get-resource-data-list" title="Link to this heading"></a></h3>
 <p>Get declared resource data list.</p>
 <p>def get_resource_data_list(self, resource, group=None):</p>
 <blockquote>
@@ -1048,7 +1048,7 @@ group (str): if supplied select specific group data; default is “base”</p>
 </div></blockquote>
 </section>
 <section id="get-resource-list">
-<h3>get_resource_list<a class="headerlink" href="#get-resource-list" title="Permalink to this heading"></a></h3>
+<h3>get_resource_list<a class="headerlink" href="#get-resource-list" title="Link to this heading"></a></h3>
 <p>Get declared resource list.</p>
 <p>def get_resource_list(self, group=None):</p>
 <blockquote>
@@ -1059,7 +1059,7 @@ group (str): if supplied select specific group data; default is “base”</p>
 </div></blockquote>
 </section>
 <section id="setup-company">
-<h3>setup_company<a class="headerlink" href="#setup-company" title="Permalink to this heading"></a></h3>
+<h3>setup_company<a class="headerlink" href="#setup-company" title="Link to this heading"></a></h3>
 <p>Setup company values for current user.</p>
 <p>This function assigns company to current user and / or can create xref aliases
 and /or can update company values.
@@ -1089,7 +1089,7 @@ You can also create more companies and assign one of them to test by group.</p>
 </div>
 </section>
 <section id="setup-env">
-<h3>setup_env<a class="headerlink" href="#setup-env" title="Permalink to this heading"></a></h3>
+<h3>setup_env<a class="headerlink" href="#setup-env" title="Link to this heading"></a></h3>
 <p>Create all record from declared data.</p>
 <p>This function starts the test workflow creating the test environment.
 Test data must be declared before engage this function by file .csv or
@@ -1121,7 +1121,7 @@ In this way you can create functional tests not only regression tests.</p>
 </div>
 </section>
 <section id="resource-edit">
-<h3>resource_edit<a class="headerlink" href="#resource-edit" title="Permalink to this heading"></a></h3>
+<h3>resource_edit<a class="headerlink" href="#resource-edit" title="Link to this heading"></a></h3>
 <p>Server-side web form editing.</p>
 <p>Ordinary Odoo test use the primitive create() and write() function to manage
 test data. These methods create an update records, but they do not properly
@@ -1173,7 +1173,7 @@ web_changes (list): list of tuples (field, value); see &lt;wiz_edit&gt;</p>
 </div></blockquote>
 </section>
 <section id="wizard">
-<h3>wizard<a class="headerlink" href="#wizard" title="Permalink to this heading"></a></h3>
+<h3>wizard<a class="headerlink" href="#wizard" title="Link to this heading"></a></h3>
 <p>Execute a full wizard.</p>
 <p>Engage the specific wizard, simulate user actions and return the wizard result,
 usually a windows action.</p>
@@ -1236,7 +1236,7 @@ button_ctx (dict): context to pass to button_name function</p>
 </div></blockquote>
 </section>
 <section id="validate-record">
-<h3>validate_record<a class="headerlink" href="#validate-record" title="Permalink to this heading"></a></h3>
+<h3>validate_record<a class="headerlink" href="#validate-record" title="Link to this heading"></a></h3>
 <p>Validate records against template values.
 During the test will be necessary to check result record values.
 This function aim to validate all the important values with one step.
@@ -1264,7 +1264,7 @@ records (list or set): records to validate values</p>
 </div></blockquote>
 </section>
 <section id="get-records-from-act-windows">
-<h3>get_records_from_act_windows<a class="headerlink" href="#get-records-from-act-windows" title="Permalink to this heading"></a></h3>
+<h3>get_records_from_act_windows<a class="headerlink" href="#get-records-from-act-windows" title="Link to this heading"></a></h3>
 <p>Get records from a windows message.</p>
 <p>def get_records_from_act_windows(self, act_windows):</p>
 <blockquote>
@@ -1393,13 +1393,13 @@ records (list or set): records to validate values</p>
         <li class="right" >
           <a href="rtd_features.html" title="Features"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.15 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">z0bug_odoo 2.0.16 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
     &#169; Copyright 2019-23, SHS-AV s.r.l..
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>

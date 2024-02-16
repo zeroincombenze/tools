@@ -1,4 +1,9 @@
-2.0.14 (2015-01-31)
+2.0.15 (2024-02-31)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] build_cmd: command not in scripts directory
+
+2.0.14 (2024-01-31)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] build_cmd: enable coverage on sub process

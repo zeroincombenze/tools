@@ -1,8 +1,14 @@
-2.0.15.1 (2024-02-13)
+2.0.16 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 
-* [FIX] do_git_checkout_new_branch: ingore symboli links
+* [FIX] do_git_checkout_new_branch: ignore symbolic links
+* [FIX] deploy_odoo: minor fixes
+* [IMP] do_git_checkout_new_branch: oddo 17.0
+* [IMP] deploy_odoo: new action amend
+* [IMP] deploy_odoo: new switch to link repositories
+* [IMP] deploy_odoo: removed deprecated switches
 * [IMP] New repositories selection
+* [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
 
 2.0.15 (2024-02-13)
 ~~~~~~~~~~~~~~~~~~~

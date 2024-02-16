@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'zar'
-copyright = '2019-23, Antonio Maria Vigliotti'
+copyright = '2019-24, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version

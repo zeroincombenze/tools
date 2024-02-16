@@ -99,6 +99,8 @@ def cache_load():
 
 def cache_save(cache):
     fqn = cache_fqn()
+    if not os.path.isdir(os.path.dirname(fqn)):
+        os.makedirs(os.path.dirname(fqn))
     with open(fqn, "w") as fd:
         fd.write(str(cache))
 
@@ -438,6 +440,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

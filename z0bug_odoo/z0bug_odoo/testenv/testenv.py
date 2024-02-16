@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.15
+"""Test Environment v2.0.16
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -3019,7 +3019,7 @@ class MainTest(test_common.TransactionCase):
             self.declare_all_data(data, group=group)
         setup_list = setup_list or self.get_resource_list(group=group)
         self._logger.info(
-            "🎺🎺🎺 Starting test v2.0.15 (debug_level=%s, commit=%s)"
+            "🎺🎺🎺 Starting test v2.0.16 (debug_level=%s, commit=%s)"
             % (self.debug_level, getattr(self, "odoo_commit_test", False))
         )
         self._logger.info(
@@ -3656,4 +3656,5 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
+
 

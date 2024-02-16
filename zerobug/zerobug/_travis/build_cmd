@@ -1,26 +1,46 @@
 #! /bin/bash
 # This script replaces or creates a command to test
-# \$1: source file to test
+# \$1: fqn source file to test
 # \$2: fqn bin command (if not default or it does not exist)
+[[ -z $1 || $1 == -h ]] && echo "$0 src [bin]" && exit 1
 PYTHON=$(which python)
 PYVER=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
+OPTS=""
+CMD=""
+while [[ $1 =~ ^-[a-z]* ]]; do
+    OPTS="$OPTS $1"
+    shift
+done
+[[ $2 =~ ^-[a-z]* ]] && OPTS="$OPTS $2" || CMD="$2"
+[[ -n $3 ]] && OPTS="$OPTS $3"
+OPTS=$(echo $OPTS)
+[[ $OPTS =~ ^-.*vv ]] && set -x
 SRCPATH=$(readlink -f "$1")
-CMD="$2"
 BASE=$(basename "$1")
 [[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
 [[ $BASE =~ .py$ ]] && BASE=${BASE:0: -3}
 [[ -z $CMD ]] && CMD=$(which "$BASE" 2>/dev/null)
 [[ -z $CMD ]] && cmd="$SRCPATH" || cmd="$CMD"
+if [[ ! $PWD =~ ^$(dirname $(dirname $cmd)) ]]; then
+    x=$(dirname $PWD)
+    while [[ -n $x && $x =~ ^$HOME && ! -d $x/bin ]]; do
+        x=$(dirname $x)
+    done
+    [[ -d $x/bin ]] && cmd="$x/bin/$BASE"
+fi
 x=$(dirname $SRCPATH)
-FROM="$(basename $x).$BASE"
+FROM="$BASE"
 PYPATH=""
 valid=0
 while [[ -n "$x" ]]; do
-    x=$(dirname $x)
-    FROM="$(basename $x).$FROM"
-    [[ -f $x/__init__.py ]] && valid=1 && PYPATH=$(dirname $x) && break
     [[ $x == $HOME ]] && break
+    [[ ! -f $x/__init__.py || $(basename $x) == "scripts" ]] && FROM="$(basename $x).$FROM" && x=$(dirname $x) && continue
+    valid=1
+    PYPATH=$(dirname $x)
+    FROM="$(basename $x).$FROM"
+    break
 done
+[[ $OPTS =~ ^-.*v ]] && echo "$0 $SRCPATH $cmd # from $FROM import main"
 
 if [[ $valid -eq 0 ]]; then
     echo -e "\e[1mNo command $1 found!!\e[0m"
@@ -45,3 +65,4 @@ echo "if __name__ == '__main__':">>$cmd
 echo "    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])">>$cmd
 echo "    sys.exit(main())">>$cmd
 chmod +x $cmd
+hash -r
