@@ -263,12 +263,17 @@ class RepoCheckout(object):
                                 verbose=self.opt_args.verbose,
                                 dry_run=self.opt_args.dry_run,
                             )
-            if repo == "OCB":
-                z0lib.run_traced(
-                    "do_gitignore ./",
-                    verbose=self.opt_args.verbose,
-                    dry_run=self.opt_args.dry_run,
-                )
+
+            z0lib.run_traced(
+                "please defcon gitignore",
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
+            z0lib.run_traced(
+                "please defcon precommit",
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
             if os.getcwd() != origin_path:
                 z0lib.run_traced(
                     "cd %s" % origin_path,

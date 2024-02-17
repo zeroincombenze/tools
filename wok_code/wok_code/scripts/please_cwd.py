@@ -1144,6 +1144,7 @@ class PleaseCwd(object):
                                       "migrations",
                                       "redhat",
                                       "reference",
+                                      "tests",
                                       "tmp",
                                       "Trash",
                                       "venv_odoo",

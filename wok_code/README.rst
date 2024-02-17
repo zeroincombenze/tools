@@ -1,5 +1,5 @@
 ===============
-wok_code 2.0.16
+wok_code 2.0.15
 ===============
 
 
@@ -199,7 +199,7 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.16 (2024-02-17)
+2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] do_git_checkout_new_branch: ignore symbolic links
@@ -210,10 +210,6 @@ ChangeLog History
 * [IMP] deploy_odoo: removed deprecated switches
 * [IMP] New repositories selection
 * [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
-
-2.0.15 (2024-02-13)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
 * [IMP] arcangelo switch -lll
 * [IMP] arcaneglo: rules reorganization
@@ -440,10 +436,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
