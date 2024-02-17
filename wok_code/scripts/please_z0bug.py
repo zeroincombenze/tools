@@ -6,7 +6,7 @@ import sys
 
 import re
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 RED = "\033[1;31m"
@@ -473,5 +473,6 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
+
 
 

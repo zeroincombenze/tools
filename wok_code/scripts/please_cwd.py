@@ -19,7 +19,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -1190,5 +1190,6 @@ class PleaseCwd(object):
             please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
+
 
 

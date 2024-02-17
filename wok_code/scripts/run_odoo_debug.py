@@ -17,7 +17,7 @@ except ImportError:
 
 import psycopg2
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 
@@ -488,5 +488,6 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 

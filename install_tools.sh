@@ -43,7 +43,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo "  -2  create virtual environment with python2"
-    echo -e "\n(C) 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo -e "\n(C) 2015-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -143,6 +143,7 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+[[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)

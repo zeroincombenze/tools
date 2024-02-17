@@ -9,7 +9,7 @@ import argparse
 
 from z0lib import z0lib
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 
 class RepoCheckout(object):
@@ -88,7 +88,7 @@ class RepoCheckout(object):
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
-            git_repo = self.git_url + "/" + repo
+            git_repo = self.git_url + "/" + repo + ".git"
             if os.path.isdir(target_path):
                 z0lib.run_traced(
                     "rm -fR %s" % target_path,
@@ -105,6 +105,9 @@ class RepoCheckout(object):
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
+                if self.opt_args.dry_run and not os.path.isdir(target_path):
+                    # With dry-run no action is executed so we simulate creating dir
+                    os.mkdir(target_path)
             else:
                 z0lib.run_traced(
                     "git clone %s --depth=1 --no-single-branch" % git_repo,
@@ -215,6 +218,8 @@ class RepoCheckout(object):
                     ):
                         continue
                     src = os.path.join(origin_path, p)
+                    if os.path.islink(src):
+                        continue
                     if os.path.isfile(src):
                         z0lib.run_traced(
                             "cp %s %s" % (src, target_path),
@@ -228,35 +233,36 @@ class RepoCheckout(object):
                             verbose=self.opt_args.verbose,
                             dry_run=self.opt_args.dry_run,
                         )
-            else:
+            elif not os.path.islink(origin_path):
                 z0lib.run_traced(
                     "rsync -avz --delete %s %s/ %s/"
                     % (exclude_opt, origin_path, target_path),
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
-            for p in os.listdir(target_path):
-                if (
-                    p.startswith(".")
-                    or p.startswith("_")
-                    or p in ("egg-info", "readme")
-                    or os.path.isdir(os.path.join(origin_path, p, ".git"))
-                ):
-                    continue
-                src = os.path.join(target_path, p)
-                if not os.path.exists(os.path.join(origin_path, p)):
-                    if os.path.isfile(src):
-                        z0lib.run_traced(
-                            "rm -f %s" % src,
-                            verbose=self.opt_args.verbose,
-                            dry_run=self.opt_args.dry_run,
-                        )
-                    else:
-                        z0lib.run_traced(
-                            "rm -fR %s" % src,
-                            verbose=self.opt_args.verbose,
-                            dry_run=self.opt_args.dry_run,
-                        )
+            if os.path.isdir(target_path):
+                for p in os.listdir(target_path):
+                    if (
+                        p.startswith(".")
+                        or p.startswith("_")
+                        or p in ("egg-info", "readme")
+                        or os.path.isdir(os.path.join(origin_path, p, ".git"))
+                    ):
+                        continue
+                    src = os.path.join(target_path, p)
+                    if not os.path.exists(os.path.join(origin_path, p)):
+                        if os.path.isfile(src):
+                            z0lib.run_traced(
+                                "rm -f %s" % src,
+                                verbose=self.opt_args.verbose,
+                                dry_run=self.opt_args.dry_run,
+                            )
+                        else:
+                            z0lib.run_traced(
+                                "rm -fR %s" % src,
+                                verbose=self.opt_args.verbose,
+                                dry_run=self.opt_args.dry_run,
+                            )
             if repo == "OCB":
                 z0lib.run_traced(
                     "do_gitignore ./",
@@ -312,7 +318,7 @@ class RepoCheckout(object):
 
         target_path = (
             self.opt_args.target_path
-            if repo == "OCB"
+            if repo == "OCB" or repo == os.path.basename(self.opt_args.target_path)
             else os.path.join(self.opt_args.target_path, repo)
         )
         if os.path.isdir(target_path):
@@ -322,7 +328,7 @@ class RepoCheckout(object):
         if self.opt_args.repos and repo not in self.opt_args.repos.split(","):
             return 0
         git_clone(repo, target_path)
-        if not os.path.isdir(target_path):
+        if not os.path.isdir(target_path) and not self.opt_args.dry_run:
             print("Directory %s not created" % target_path)
             return 0
         git_checkout(target_path)
@@ -343,7 +349,13 @@ class RepoCheckout(object):
     def do_git_checkout(self):
         path = self.opt_args.origin_path
         if self.is_git_repo(path):
-            sts = self.build_new_repo("OCB", path)
+            if (
+                    os.path.isfile(os.path.join(path, "odoo-bin"))
+                    or os.path.isfile(os.path.join(path, "openerp-server"))
+            ):
+                sts = self.build_new_repo("OCB", path)
+            else:
+                sts = self.build_new_repo(os.path.basename(path), path)
         if sts == 0:
             for repo in sorted(os.listdir(self.opt_args.origin_path)):
                 path = os.path.join(self.opt_args.origin_path, repo)
@@ -405,7 +417,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main(None))
-
-
-
 
