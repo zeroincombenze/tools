@@ -663,6 +663,67 @@ class OdooDeploy(object):
                 url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
         return sts, branch, url, stash_list
 
+    def set_upstream(self, origin_path):
+        target_path = os.getcwd()
+        if not os.path.isfile(".gitignore"):
+            z0lib.run_traced(
+                "please defcon gitignore",
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
+        if not os.path.isfile(".pre-commit-config.yaml"):
+            z0lib.run_traced(
+                "please defcon precommit",
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
+        if os.getcwd() != origin_path:
+            z0lib.run_traced(
+                "cd %s" % origin_path,
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
+        sts, stdout, stderr = z0lib.run_traced(
+            "git remote -v",
+            verbose=self.opt_args.verbose,
+            dry_run=self.opt_args.dry_run,
+        )
+        url = ""
+        if sts == 0 and stdout:
+            for ln in stdout.split("\n"):
+                lns = ln.split()
+                if len(lns) < 2:
+                    continue
+                elif lns[0] == "origin":
+                    url = lns[1]
+                    break
+        if url:
+            if os.getcwd() != target_path:
+                z0lib.run_traced(
+                    "cd %s" % target_path,
+                    verbose=self.opt_args.verbose,
+                    dry_run=self.opt_args.dry_run,
+                )
+            url_upstream = ""
+            for ln in stdout.split("\n"):
+                lns = ln.split()
+                if len(lns) < 2:
+                    continue
+                elif lns[0] == "upstream":
+                    url_upstream = lns[1]
+                    break
+            if url_upstream:
+                z0lib.run_traced(
+                    "git remote remove upstream",
+                    verbose=self.opt_args.verbose,
+                    dry_run=self.opt_args.dry_run,
+                )
+            z0lib.run_traced(
+                "git remote add upstream %s" % url,
+                verbose=self.opt_args.verbose,
+                dry_run=self.opt_args.dry_run,
+            )
+
     def ask_4_confirm(self, title, question):
         if not self.opt_args.assume_yes:
             if title:
@@ -734,13 +795,13 @@ class OdooDeploy(object):
             self.addons_path.append(tgtdir)
 
     def git_clone(
-        self,
-        git_url,
-        tgtdir,
-        branch,
-        master_branch=None,
-        compact=None,
-        repo=None,
+            self,
+            git_url,
+            tgtdir,
+            branch,
+            master_branch=None,
+            compact=None,
+            repo=None,
     ):
         root = os.path.dirname(tgtdir)
         base = os.path.basename(tgtdir)
@@ -748,6 +809,7 @@ class OdooDeploy(object):
             if os.getcwd() != root:
                 self.run_traced("cd %s" % root)
         except FileNotFoundError:  # noqa: F821
+            # Please do not remove following code: here where current dir was removed
             self.run_traced("cd %s" % root)
         remote_branch = branch
         alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
@@ -766,13 +828,20 @@ class OdooDeploy(object):
             if sts == 0 or self.opt_args.dry_run and "devel" in branch:
                 remote_branch = alt_branch
                 break
+            if sts and self.opt_args.verbose:
+                print(stdout + stderr)
         if sts and repo in self.opt_args.link_upstream:
-            srcdir = os.path.join(self.opt_args.origin, repo)
-            if os.path.isdir(srcdir):
-                sts, stdout, stderr = self.run_traced("ln -s %s %s" % (srcdir, tgtdir))
+            origin_path = os.path.join(self.opt_args.origin, repo)
+            if os.path.isdir(origin_path):
+                sts, stdout, stderr = self.run_traced("ln -s %s %s" % (origin_path,
+                                                                       tgtdir))
                 remote_branch = branch
         if sts:
             print("Invalid branch %s" % branch)
+        if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
+            origin_path = os.path.join(self.opt_args.origin, repo)
+            if os.path.isdir(origin_path):
+                self.set_upstream(origin_path)
         return sts, remote_branch
 
     def git_pull(self, tgtdir, branch, master_branch=None):
@@ -866,7 +935,7 @@ class OdooDeploy(object):
         if not git_url:
             return 127
         bakdir = ""
-        sts = 0
+        # sts = 0
         if (
                 os.path.isdir(tgtdir)
                 and self.opt_args.action not in ("amend", "update", "git-push")
