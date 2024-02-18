@@ -123,7 +123,7 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
-            " cd %s.*git branch.*git checkout 16.0.*git pull" % odoo_root,
+            " cd %s.*git branch.*git remote.*git pull" % odoo_root,
             stdout)
 
     def test_04_amend(self):

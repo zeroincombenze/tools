@@ -95,7 +95,31 @@ DEFAULT_DATA = {
         "zerobug-test": "",
     },
 }
-INVALID_NAMES = ["addons", "debian", "doc", "egg-info"]
+INVALID_NAMES = [
+    "addons",
+    "build",
+    "debian",
+    "dist",
+    "doc",
+    "docs",
+    "egg-info",
+    "filestore",
+    "history",
+    "howtos",
+    "images" "migrations",
+    "readme",
+    "redhat",
+    "reference",
+    "scripts",
+    "server",
+    "setup",
+    "static",
+    "tests",
+    "tmp",
+    "tools",
+    "venv_odoo",
+    "win32",
+]
 SHORT_NAMES = {
     "zero": "zeroincombenze",
     "oca": "OCA",
@@ -228,6 +252,9 @@ class OdooDeploy(object):
             if opt_args.action in ("list", "status", "unstaged"):
                 self.add_addons_path(path, repo)
 
+        if self.opt_args.target_path:
+            self.run_traced("cd %s" % os.path.dirname(self.opt_args.target_path),
+                            verbose=False)
         self.git_org = opt_args.git_orgs[0] if opt_args.git_orgs else "oca"
         if self.repo_list:
             if "OCB" in self.repo_list and self.repo_list[0] != "OCB":
@@ -372,28 +399,7 @@ class OdooDeploy(object):
                         and not d.startswith("_")
                         and not d.endswith("~")
                         and d
-                        not in (
-                            "build",
-                            "debian",
-                            "dist",
-                            "doc",
-                            "docs",
-                            "egg-info",
-                            "filestore",
-                            "history",
-                            "howtos",
-                            "images" "migrations",
-                            "redhat",
-                            "reference",
-                            "scripts",
-                            "server",
-                            "setup",
-                            "static",
-                            "tests",
-                            "tmp",
-                            "venv_odoo",
-                            "win32",
-                        )
+                        not in INVALID_NAMES
                         and not os.path.islink(os.path.join(root, d))
                     )
                 ]
@@ -1183,7 +1189,7 @@ def main(cli_args=None):
         help="Remove repositories out of boundaries",
     )
     parser.add_argument("-c", "--config", help="Odoo configuration file")
-    parser.add_argument("-D", "--default-gitorg", default="zero")
+    parser.add_argument("-D", "--default-gitorg", default="oca")
     # parser.add_argument("-d", "--deployment-mode", help="may be tree,server,odoo")
     parser.add_argument(
         "-e",
@@ -1219,7 +1225,7 @@ def main(cli_args=None):
     )
     parser.add_argument(
         "-L", "--link-upstream",
-        help="Create link to origin upstream (requires -o)"
+        help="Create link to origin upstream (requires -o and -g)"
     )
     parser.add_argument(
         "-l",
