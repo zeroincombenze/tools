@@ -292,7 +292,8 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
     if touch:
         hash_name = cache_hash_name(git_org, branch)
         if "lst" not in cache[hash_name]:
-            ts_expire = (datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+            ts_expire = (datetime.now()
+                         + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
             cache[hash_name]["expire"] = ts_expire
     return cache
 

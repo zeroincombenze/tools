@@ -292,7 +292,8 @@ class OdooDeploy(object):
 
     def get_repo_from_config(self):
         opt_args = self.opt_args
-        self.master_branch = build_odoo_param("FULLVER", odoo_vid=opt_args.odoo_branch)
+        self.master_branch = build_odoo_param("FULLVER",
+                                              odoo_vid=opt_args.odoo_branch)
         if not opt_args.git_orgs:
             opt_args.git_orgs = [
                 build_odoo_param(
@@ -688,41 +689,42 @@ class OdooDeploy(object):
             verbose=self.opt_args.verbose,
             dry_run=self.opt_args.dry_run,
         )
-        url = ""
+        url_upstream = ""
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 lns = ln.split()
                 if len(lns) < 2:
                     continue
                 elif lns[0] == "origin":
-                    url = lns[1]
+                    url_upstream = lns[1]
                     break
-        if url:
+        if url_upstream:
             if os.getcwd() != target_path:
                 z0lib.run_traced(
                     "cd %s" % target_path,
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
-            url_upstream = ""
+            cur_upstream = ""
             for ln in stdout.split("\n"):
                 lns = ln.split()
                 if len(lns) < 2:
                     continue
                 elif lns[0] == "upstream":
-                    url_upstream = lns[1]
+                    cur_upstream = lns[1]
                     break
-            if url_upstream:
+            if cur_upstream != url_upstream:
+                if cur_upstream:
+                    z0lib.run_traced(
+                        "git remote remove upstream",
+                        verbose=self.opt_args.verbose,
+                        dry_run=self.opt_args.dry_run,
+                    )
                 z0lib.run_traced(
-                    "git remote remove upstream",
+                    "git remote add upstream %s" % url_upstream,
                     verbose=self.opt_args.verbose,
                     dry_run=self.opt_args.dry_run,
                 )
-            z0lib.run_traced(
-                "git remote add upstream %s" % url,
-                verbose=self.opt_args.verbose,
-                dry_run=self.opt_args.dry_run,
-            )
 
     def ask_4_confirm(self, title, question):
         if not self.opt_args.assume_yes:
@@ -909,6 +911,7 @@ class OdooDeploy(object):
     def download_single_repo(self, repo, git_org=None, branch=None):
         git_org = git_org or self.git_org
         branch = branch or self.opt_args.odoo_branch
+        remote_branch = branch
         odoo_master_branch = build_odoo_param("FULLVER", odoo_vid=branch)
         git_url = stash_list = ""
         tgtdir = self.get_path_of_repo(repo)
@@ -964,6 +967,10 @@ class OdooDeploy(object):
             sts, remote_branch = self.git_pull(
                 tgtdir, branch, master_branch=odoo_master_branch
             )
+            if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
+                origin_path = os.path.join(self.opt_args.origin, repo)
+                if os.path.isdir(origin_path):
+                    self.set_upstream(origin_path)
         elif os.path.isdir(tgtdir) and self.opt_args.action == "git-push":
             sts, remote_branch = self.git_push(repo, tgtdir)
         elif os.path.isdir(tgtdir) and self.opt_args.action == "amend":
