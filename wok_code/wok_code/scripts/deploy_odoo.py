@@ -740,6 +740,7 @@ class OdooDeploy(object):
         branch,
         master_branch=None,
         compact=None,
+        repo=None,
     ):
         root = os.path.dirname(tgtdir)
         base = os.path.basename(tgtdir)
@@ -765,11 +766,8 @@ class OdooDeploy(object):
             if sts == 0 or self.opt_args.dry_run and "devel" in branch:
                 remote_branch = alt_branch
                 break
-        if sts and self.opt_args.link_oca:
-            git_org = "oca"
-            srcdir = build_odoo_param(
-                "ROOT", odoo_vid=branch, multi=self.opt_args.multi, git_org=git_org
-            )
+        if sts and repo in self.opt_args.link_upstream:
+            srcdir = os.path.join(self.opt_args.origin, repo)
             if os.path.isdir(srcdir):
                 sts, stdout, stderr = self.run_traced("ln -s %s %s" % (srcdir, tgtdir))
                 remote_branch = branch
@@ -912,6 +910,7 @@ class OdooDeploy(object):
                 branch,
                 master_branch=odoo_master_branch,
                 compact=True if git_org in ("odoo", "oca") else False,
+                repo=repo,
             )
         if sts == 0 and not os.path.isdir(tgtdir) and not self.opt_args.dry_run:
             sts = 1

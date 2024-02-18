@@ -284,12 +284,16 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
                 for repobranch in ODOO_BRANCHES:
                     if repobranch not in branches:
                         hash_name = cache_hash_name(git_org, repobranch)
+                        # Weird bug
+                        if hash_name in cache and "lst" not in cache[hash_name]:
+                            cache[hash_name]["lst"] = []
                         if hash_name in cache and repo in cache[hash_name]["lst"]:
                             del cache[hash_name]["lst"]
     if touch:
         hash_name = cache_hash_name(git_org, branch)
-        ts_expire = (datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
-        cache[hash_name]["expire"] = ts_expire
+        if "lst" not in cache[hash_name]:
+            ts_expire = (datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+            cache[hash_name]["expire"] = ts_expire
     return cache
 
 
