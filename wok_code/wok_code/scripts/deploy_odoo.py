@@ -96,7 +96,6 @@ DEFAULT_DATA = {
     },
 }
 INVALID_NAMES = [
-    "addons",
     "build",
     "debian",
     "dist",
@@ -167,7 +166,7 @@ class OdooDeploy(object):
         self.opt_args = opt_args
         self.opt_args.git_orgs = self.opt_args.git_orgs or []
         self.opt_args.link_upstream = self.opt_args.link_upstream or []
-        self.addons_path = []
+        self.addons_path = self.repo_list = []
         self.master_branch = ""
         if self.opt_args.target_path:
             self.target_path = os.path.expanduser(self.opt_args.target_path)
@@ -213,7 +212,8 @@ class OdooDeploy(object):
             print("***** No repositories found!")
 
         if self.opt_args.link_upstream:
-            self.repolist += [x for x in self.opt_args.link_upstream if x not in self]
+            self.repo_list += [x for x in self.opt_args.link_upstream
+                               if x not in self.repo_list]
 
         for repo in self.repo_list:
             path = self.repo_info[repo]["PATH"]
@@ -362,13 +362,13 @@ class OdooDeploy(object):
             self.get_addons_from_config_file()
 
     def get_repo_from_path(self):
-        def analyze_path(path, dir):
+        def analyze_path(path, repo):
             if self.path_is_ocb(path):
                 self.repo_info["OCB"] = {"PATH": path, "#": 0}
             elif self.is_git_repo(path=path):
-                self.repo_info[dir] = {"PATH": path, "#": 0}
+                self.repo_info[repo] = {"PATH": path, "#": 0}
                 if os.path.islink(path):
-                    self.repo_info[dir]["#"] = 1
+                    self.repo_info[repo]["#"] = 1
             elif self.is_module(path):
                 repo = os.path.basename(root)
                 if repo == "addons":
@@ -507,7 +507,7 @@ class OdooDeploy(object):
         self.repo_info = {}
         if (
                 not self.opt_args.update_addons_conf
-                and self.opt_args.target_path
+                # and self.opt_args.target_path
                 and self.opt_args.config
                 and os.path.isfile(self.opt_args.config)
         ):
@@ -589,7 +589,11 @@ class OdooDeploy(object):
         res = bool(repo)
         if repo:
             res = False
-            if repo.startswith(".") or repo.startswith("_") or repo in INVALID_NAMES:
+            if (
+                    repo.startswith(".")
+                    or repo.startswith("_")
+                    or repo in INVALID_NAMES + ["addons"]
+            ):
                 path = None
             elif not path:
                 path = self.get_path_of_repo(repo)
@@ -670,7 +674,9 @@ class OdooDeploy(object):
                 url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
         return sts, branch, url, stash_list
 
-    def set_upstream(self, origin_path):
+    def set_upstream(self, origin_path, repo):
+        if repo != "OCB":
+            origin_path = os.path.join(origin_path, repo)
         target_path = os.getcwd()
         if not os.path.isfile(".gitignore"):
             z0lib.run_traced(
@@ -684,53 +690,54 @@ class OdooDeploy(object):
                 verbose=self.opt_args.verbose,
                 dry_run=self.opt_args.dry_run,
             )
-        if os.getcwd() != origin_path:
-            z0lib.run_traced(
-                "cd %s" % origin_path,
+        if os.path.isdir(origin_path):
+            if os.getcwd() != origin_path:
+                z0lib.run_traced(
+                    "cd %s" % origin_path,
+                    verbose=self.opt_args.verbose,
+                    dry_run=self.opt_args.dry_run,
+                )
+            sts, stdout, stderr = z0lib.run_traced(
+                "git remote -v",
                 verbose=self.opt_args.verbose,
                 dry_run=self.opt_args.dry_run,
             )
-        sts, stdout, stderr = z0lib.run_traced(
-            "git remote -v",
-            verbose=self.opt_args.verbose,
-            dry_run=self.opt_args.dry_run,
-        )
-        url_upstream = ""
-        if sts == 0 and stdout:
-            for ln in stdout.split("\n"):
-                lns = ln.split()
-                if len(lns) < 2:
-                    continue
-                elif lns[0] == "origin":
-                    url_upstream = lns[1]
-                    break
-        if url_upstream:
-            if os.getcwd() != target_path:
-                z0lib.run_traced(
-                    "cd %s" % target_path,
-                    verbose=self.opt_args.verbose,
-                    dry_run=self.opt_args.dry_run,
-                )
-            cur_upstream = ""
-            for ln in stdout.split("\n"):
-                lns = ln.split()
-                if len(lns) < 2:
-                    continue
-                elif lns[0] == "upstream":
-                    cur_upstream = lns[1]
-                    break
-            if cur_upstream != url_upstream:
-                if cur_upstream:
+            url_upstream = ""
+            if sts == 0 and stdout:
+                for ln in stdout.split("\n"):
+                    lns = ln.split()
+                    if len(lns) < 2:
+                        continue
+                    elif lns[0] == "origin":
+                        url_upstream = lns[1]
+                        break
+            if url_upstream:
+                if os.getcwd() != target_path:
                     z0lib.run_traced(
-                        "git remote remove upstream",
+                        "cd %s" % target_path,
                         verbose=self.opt_args.verbose,
                         dry_run=self.opt_args.dry_run,
                     )
-                z0lib.run_traced(
-                    "git remote add upstream %s" % url_upstream,
-                    verbose=self.opt_args.verbose,
-                    dry_run=self.opt_args.dry_run,
-                )
+                cur_upstream = ""
+                for ln in stdout.split("\n"):
+                    lns = ln.split()
+                    if len(lns) < 2:
+                        continue
+                    elif lns[0] == "upstream":
+                        cur_upstream = lns[1]
+                        break
+                if cur_upstream != url_upstream:
+                    if cur_upstream:
+                        z0lib.run_traced(
+                            "git remote remove upstream",
+                            verbose=self.opt_args.verbose,
+                            dry_run=self.opt_args.dry_run,
+                        )
+                    z0lib.run_traced(
+                        "git remote add upstream %s" % url_upstream,
+                        verbose=self.opt_args.verbose,
+                        dry_run=self.opt_args.dry_run,
+                    )
 
     def ask_4_confirm(self, title, question):
         if not self.opt_args.assume_yes:
@@ -847,9 +854,7 @@ class OdooDeploy(object):
         if sts:
             print("Invalid branch %s" % branch)
         if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
-            origin_path = os.path.join(self.opt_args.origin, repo)
-            if os.path.isdir(origin_path):
-                self.set_upstream(origin_path)
+            self.set_upstream(self.opt_args.origin, repo)
         return sts, remote_branch
 
     def git_pull(self, tgtdir, branch, master_branch=None):
@@ -974,9 +979,7 @@ class OdooDeploy(object):
                 tgtdir, branch, master_branch=odoo_master_branch
             )
             if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
-                origin_path = os.path.join(self.opt_args.origin, repo)
-                if os.path.isdir(origin_path):
-                    self.set_upstream(origin_path)
+                self.set_upstream(self.opt_args.origin, repo)
         elif os.path.isdir(tgtdir) and self.opt_args.action == "git-push":
             sts, remote_branch = self.git_push(repo, tgtdir)
         elif os.path.isdir(tgtdir) and self.opt_args.action == "amend":
@@ -1257,6 +1260,8 @@ def main(cli_args=None):
     )
     opt_args = parser.parse_args(cli_args)
     opt_args.git_orgs = opt_args.git_orgs.split(",") if opt_args.git_orgs else []
+    opt_args.link_upstream = (opt_args.link_upstream.split(",")
+                              if opt_args.link_upstream else [])
 
     if opt_args.action not in (
             "amend",

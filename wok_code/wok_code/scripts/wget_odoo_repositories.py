@@ -109,11 +109,14 @@ def cache_hash_name(git_org, branch):
     return git_org + "/" + branch
 
 
-def cache_add_entry(cache, git_org, branch):
+def cache_add_entry(cache, git_org, branch, force=None):
     hash_name = cache_hash_name(git_org, branch)
     if hash_name not in cache:
         cache[hash_name] = {
-            "expire": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "expire": (
+                (datetime.now() + timedelta(1)).strftime("%Y-%m-%dT%H:%M:%S.000")
+                if force
+                else datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")),
             # "lst": []
         }
     # Weird bug
@@ -292,9 +295,8 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
     if touch:
         hash_name = cache_hash_name(git_org, branch)
         if "lst" not in cache[hash_name]:
-            ts_expire = (datetime.now()
-                         + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
-            cache[hash_name]["expire"] = ts_expire
+            cache[hash_name]["expire"] = (
+                datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
     return cache
 
 
@@ -307,11 +309,11 @@ def cache_load_default(cache, git_org, branch):
 
 
 def cache_get_repolist(
-        cache, git_org, branch, verbose=0, ignore_cache=False, ignore_github=False):
-    cache = cache_add_entry(cache, git_org, branch)
+        cache, git_org, branch, verbose=0, force=False, ignore_github=False):
+    cache = cache_add_entry(cache, git_org, branch, force=force)
     hash_name = cache_hash_name(git_org, branch)
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")
-    if cache[hash_name]["expire"] < now or ignore_cache:
+    if cache[hash_name]["expire"] < now or force:
         cache = cache_load_default(cache, git_org, branch)
         if not ignore_github:
             cache = cache_load_from_github(cache, git_org, branch, verbose=verbose)
@@ -358,7 +360,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-D",
         "--default",
-        help="Deprecated",
+        help="Default repositories (no from github)",
         action="store_true",
         dest="def_repo",
     )
@@ -431,7 +433,7 @@ def main(cli_args=None):
             for repo in cache_get_repolist(
                 cache, git_org, opt_args.branch,
                 verbose=opt_args.verbose,
-                ignore_cache=opt_args.force,
+                force=opt_args.force or opt_args.def_repo,
                 ignore_github=opt_args.dry_run or opt_args.def_repo)
             if repo_is_valid(opt_args, repo)
         ]
