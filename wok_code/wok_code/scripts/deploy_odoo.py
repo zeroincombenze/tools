@@ -912,7 +912,7 @@ class OdooDeploy(object):
                     break
             cmd = "git push --set-upstream origin %s" % repo_branch
             sts, stdout, stderr = self.run_traced(cmd, verbose=self.opt_args.verbose)
-        sleep(1)
+        sleep(3)
         if sts == 0:
             sts, repo_branch, git_url, stash_list = self.get_remote_info()
         if sts:
@@ -1156,8 +1156,8 @@ class OdooDeploy(object):
                 print("addons_path = %s" % ",".join(self.addons_path))
             if self.opt_args.verbose:
                 self.action_status()
-            # Avoid github lock due excessive download rate
-            sleep(1)
+        # Avoid github lock due excessive download rate
+        sleep(3)
         return sts
 
 
