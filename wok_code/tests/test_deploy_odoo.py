@@ -13,7 +13,7 @@ from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -123,7 +123,7 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
-            " cd %s.*git branch.*git checkout 16.0.*git pull" % odoo_root,
+            " cd %s.*git branch.*git remote.*git pull" % odoo_root,
             stdout)
 
     def test_04_amend(self):

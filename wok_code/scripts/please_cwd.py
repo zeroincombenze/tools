@@ -19,7 +19,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -1144,6 +1144,7 @@ class PleaseCwd(object):
                                       "migrations",
                                       "redhat",
                                       "reference",
+                                      "tests",
                                       "tmp",
                                       "Trash",
                                       "venv_odoo",

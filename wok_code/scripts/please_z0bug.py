@@ -6,7 +6,7 @@ import sys
 
 import re
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 RED = "\033[1;31m"

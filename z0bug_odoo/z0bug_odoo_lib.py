@@ -28,7 +28,7 @@ __version__ = "2.0.16"
 
 class Z0bugOdoo(object):
     def __init__(self, release=None):
-        try:
+        try:                                                        # pragma: no cover
             import odoo.release as release
 
             self.release = release

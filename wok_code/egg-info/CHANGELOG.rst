@@ -1,4 +1,4 @@
-2.0.16 (2024-02-17)
+2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] do_git_checkout_new_branch: ignore symbolic links
@@ -9,10 +9,6 @@
 * [IMP] deploy_odoo: removed deprecated switches
 * [IMP] New repositories selection
 * [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
-
-2.0.15 (2024-02-13)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
 * [IMP] arcangelo switch -lll
 * [IMP] arcaneglo: rules reorganization

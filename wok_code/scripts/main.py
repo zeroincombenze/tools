@@ -24,7 +24,7 @@ import gzip
 import shutil
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 
 def fake_setup(**kwargs):

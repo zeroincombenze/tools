@@ -18,7 +18,7 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen as urlopen
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 
 ODOO_BRANCHES = ("18.0", "17.0", "16.0", "15.0",
@@ -109,11 +109,14 @@ def cache_hash_name(git_org, branch):
     return git_org + "/" + branch
 
 
-def cache_add_entry(cache, git_org, branch):
+def cache_add_entry(cache, git_org, branch, keep_cache=None):
     hash_name = cache_hash_name(git_org, branch)
     if hash_name not in cache:
         cache[hash_name] = {
-            "expire": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "expire": (
+                (datetime.now() + timedelta(1)).strftime("%Y-%m-%dT%H:%M:%S.000")
+                if keep_cache
+                else datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")),
             # "lst": []
         }
     # Weird bug
@@ -231,6 +234,7 @@ def cache_default_repositories(git_org, branch):
     if git_org == "zeroincombenze":
         data.append("grymb")
         data.append("l10n-italy-supplemental")
+        data.append("marketplace")
         data.append("Odoo-samples")
         data.append("profiles")
         data.append("tools")
@@ -284,12 +288,31 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
                 for repobranch in ODOO_BRANCHES:
                     if repobranch not in branches:
                         hash_name = cache_hash_name(git_org, repobranch)
+                        # Weird bug
+                        if hash_name in cache and "lst" not in cache[hash_name]:
+                            cache[hash_name]["lst"] = []
                         if hash_name in cache and repo in cache[hash_name]["lst"]:
                             del cache[hash_name]["lst"]
     if touch:
         hash_name = cache_hash_name(git_org, branch)
-        ts_expire = (datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
-        cache[hash_name]["expire"] = ts_expire
+        if "lst" not in cache[hash_name]:
+            cache[hash_name]["expire"] = (
+                datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+    return cache
+
+
+def cache_validate_repos(cache, git_org, branch, verbose=0):
+    if verbose:
+        print("Validating repo cache ...")
+    pageurl = "https://github.com/%s/%s/tree/%s"
+    hash_name = cache_hash_name(git_org, branch)
+    for repo in cache[hash_name]["lst"]:
+        try:
+            urlopen(pageurl % (git_org, repo, branch))
+        except BaseException:
+            del cache[hash_name]["lst"][cache[hash_name]["lst"].index(repo)]
+    cache[hash_name]["expire"] = (
+        datetime.now() + timedelta(7)).strftime("%Y-%m-%dT%H:%M:%S.000")
     return cache
 
 
@@ -302,14 +325,17 @@ def cache_load_default(cache, git_org, branch):
 
 
 def cache_get_repolist(
-        cache, git_org, branch, verbose=0, ignore_cache=False, ignore_github=False):
-    cache = cache_add_entry(cache, git_org, branch)
+        cache, git_org, branch, verbose=0, force=False, ignore_github=False):
+    cache = cache_add_entry(
+        cache, git_org, branch, keep_cache=not force or not ignore_github)
     hash_name = cache_hash_name(git_org, branch)
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")
-    if cache[hash_name]["expire"] < now or ignore_cache:
+    if cache[hash_name]["expire"] < now or force:
         cache = cache_load_default(cache, git_org, branch)
         if not ignore_github:
             cache = cache_load_from_github(cache, git_org, branch, verbose=verbose)
+        elif cache[hash_name]["expire"] < now or force:
+            cache = cache_validate_repos(cache, git_org, branch)
     if (
             "mgmtsystem" in cache[hash_name]["lst"]
             and "management-system" in cache[hash_name]["lst"]
@@ -353,7 +379,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-D",
         "--default",
-        help="Deprecated",
+        help="Default repositories (no from github)",
         action="store_true",
         dest="def_repo",
     )
@@ -426,7 +452,7 @@ def main(cli_args=None):
             for repo in cache_get_repolist(
                 cache, git_org, opt_args.branch,
                 verbose=opt_args.verbose,
-                ignore_cache=opt_args.force,
+                force=opt_args.force or opt_args.def_repo,
                 ignore_github=opt_args.dry_run or opt_args.def_repo)
             if repo_is_valid(opt_args, repo)
         ]

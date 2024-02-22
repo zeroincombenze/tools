@@ -20,7 +20,7 @@ except ImportError:
 
 # from python_plus import unicodes
 
-__version__ = "2.0.16"
+__version__ = "2.0.15"
 
 
 MODULE_SEP = "\ufffa"

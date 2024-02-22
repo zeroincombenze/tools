@@ -17,7 +17,7 @@ import re
 
 from string import Template
 from subprocess import PIPE, Popen
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:                                        # pragma: no cover
     from inspect import getargspec
 else:
     from inspect import signature
@@ -165,7 +165,7 @@ def sign_params(method):
 
 
 def print_flush(msg):
-    if sys.version_info[0] == 3:
+    if sys.version_info[0] == 3:                                     # pragma: no cover
         print(msg, flush=True)
     else:
         print(msg)
@@ -173,168 +173,168 @@ def print_flush(msg):
 
 
 def main():
-    return unittest.main()
+    return unittest.main()                                           # pragma: no cover
 
-
-class RunPypiTest(unittest.TextTestRunner):
-
-    def startTest(self, test):
-        super(RunPypiTest, self).startTest(test)
-        print("self.startTest(test)")
-        if not hasattr(test, "assert_counter"):
-            test.assert_counter = 0
-
-    def stopTest(self, test):
-        super(RunPypiTest, self).stopTest(test)
-        # self.testsRun
-        print("self.stopTest(test)")
-        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
-        print("%d tests SUCCESSFULLY completed" % test.assert_counter)
-
-    def startTestRun(self):
-        super(RunPypiTest, self).startTestRun()
-        print("self.startTestRun()")
-        if not hasattr(self, "assert_counter"):
-            self.assert_counter = 0
-
-    def stopTestRun(self):
-        super(RunPypiTest, self).stopTestRun()
-        #  self.testsRun
-        print("self.stopTestRun()")
-        # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
-        print("%d tests SUCCESSFULLY completed" % self.assert_counter)
-
-
-class PypiTest(unittest.TestCase):
-
-    assert_counter = 0
-
-    def _makeResult(self):
-        super(PypiTest, self)._makeResult()
-
-    def doCleanups(self):
-        pass
-
-    def version(self):
-        return __version__
-
-    # ----------------------------------
-    # --  Counted assertion functions --
-    # ----------------------------------
-
-    def assertTrue(self, expr, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertTrue(expr, msg=msg)
-
-    def assertFalse(self, expr, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertFalse(expr, msg=msg)
-
-    def assertRaises(self, expected_exception, *args, **kwargs):     # pragma: no cover
-        self.assert_counter += 1
-        return super(PypiTest, self).assertRaises(expected_exception, *args, **kwargs)
-
-    def assertEqual(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertEqual(first, second, msg=msg)
-
-    def assertNotEqual(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertNotEqual(first, second, msg=msg)
-
-    def assertIn(self, member, container, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIn(member, container, msg=msg)
-
-    def assertNotIn(self, member, container, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertNotIn(member, container, msg=msg)
-
-    def assertIs(self, expr1, expr2, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIs(expr1, expr2, msg=msg)
-
-    def assertIsNot(self, expr1, expr2, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsNot(expr1, expr2, msg=msg)
-
-    def assertLess(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertLess(first, second, msg=msg)
-
-    def assertLessEqual(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertLessEqual(first, second, msg=msg)
-
-    def assertGreater(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertGreater(first, second, msg=msg)
-
-    def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertGreaterEqual(first, second, msg=msg)
-
-    def assertIsNone(self, obj, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsNone(obj, msg=msg)
-
-    def assertIsNotNone(self, obj, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsNotNone(obj, msg=msg)
-
-    def assertIsInstance(self, obj, cls, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsInstance(obj, cls, msg=msg)
-
-    def assertNotIsInstance(self, obj, cls, msg=None, msg_info=None):
-        self.assert_counter += 1
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertNotIsInstance(obj, cls, msg=msg)
-
-    def assertMatch(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        msg = msg or ("Value <<%s>> does not match <<%s>>!" % (first, second))
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsNotNone(re.match(second, first), msg=msg)
-
-    def assertNotMatch(self, first, second, msg=None, msg_info=None):
-        self.assert_counter += 1
-        msg = msg or ("Value <<%s>> does match <<%s>>!" % (first, second))
-        if msg_info:
-            print(("%d. " % self.assert_counter) + msg_info)
-        return super(PypiTest, self).assertIsNone(re.match(second, first), msg=msg)
+#
+# class RunPypiTest(unittest.TextTestRunner):
+#
+#     def startTest(self, test):
+#         super(RunPypiTest, self).startTest(test)
+#         print("self.startTest(test)")
+#         if not hasattr(test, "assert_counter"):
+#             test.assert_counter = 0
+#
+#     def stopTest(self, test):
+#         super(RunPypiTest, self).stopTest(test)
+#         # self.testsRun
+#         print("self.stopTest(test)")
+#         # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+#         print("%d tests SUCCESSFULLY completed" % test.assert_counter)
+#
+#     def startTestRun(self):
+#         super(RunPypiTest, self).startTestRun()
+#         print("self.startTestRun()")
+#         if not hasattr(self, "assert_counter"):
+#             self.assert_counter = 0
+#
+#     def stopTestRun(self):
+#         super(RunPypiTest, self).stopTestRun()
+#         #  self.testsRun
+#         print("self.stopTestRun()")
+#         # print("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+#         print("%d tests SUCCESSFULLY completed" % self.assert_counter)
+#
+#
+# class PypiTest(unittest.TestCase):
+#
+#     assert_counter = 0
+#
+#     def _makeResult(self):
+#         super(PypiTest, self)._makeResult()
+#
+#     def doCleanups(self):
+#         pass
+#
+#     def version(self):
+#         return __version__
+#
+#     # ----------------------------------
+#     # --  Counted assertion functions --
+#     # ----------------------------------
+#
+#     def assertTrue(self, expr, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertTrue(expr, msg=msg)
+#
+#     def assertFalse(self, expr, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertFalse(expr, msg=msg)
+#
+#     def assertRaises(self, expected_exception, *args, **kwargs):   # pragma: no cover
+#         self.assert_counter += 1
+#         return super(PypiTest, self).assertRaises(expected_exception, *args, **kwargs)
+#
+#     def assertEqual(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertEqual(first, second, msg=msg)
+#
+#     def assertNotEqual(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertNotEqual(first, second, msg=msg)
+#
+#     def assertIn(self, member, container, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIn(member, container, msg=msg)
+#
+#     def assertNotIn(self, member, container, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertNotIn(member, container, msg=msg)
+#
+#     def assertIs(self, expr1, expr2, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIs(expr1, expr2, msg=msg)
+#
+#     def assertIsNot(self, expr1, expr2, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsNot(expr1, expr2, msg=msg)
+#
+#     def assertLess(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertLess(first, second, msg=msg)
+#
+#     def assertLessEqual(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertLessEqual(first, second, msg=msg)
+#
+#     def assertGreater(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertGreater(first, second, msg=msg)
+#
+#     def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertGreaterEqual(first, second, msg=msg)
+#
+#     def assertIsNone(self, obj, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsNone(obj, msg=msg)
+#
+#     def assertIsNotNone(self, obj, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsNotNone(obj, msg=msg)
+#
+#     def assertIsInstance(self, obj, cls, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsInstance(obj, cls, msg=msg)
+#
+#     def assertNotIsInstance(self, obj, cls, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertNotIsInstance(obj, cls, msg=msg)
+#
+#     def assertMatch(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         msg = msg or ("Value <<%s>> does not match <<%s>>!" % (first, second))
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsNotNone(re.match(second, first), msg=msg)
+#
+#     def assertNotMatch(self, first, second, msg=None, msg_info=None):
+#         self.assert_counter += 1
+#         msg = msg or ("Value <<%s>> does match <<%s>>!" % (first, second))
+#         if msg_info:
+#             print(("%d. " % self.assert_counter) + msg_info)
+#         return super(PypiTest, self).assertIsNone(re.match(second, first), msg=msg)
 
 
 class Macro(Template):
