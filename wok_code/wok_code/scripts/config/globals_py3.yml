@@ -6,3 +6,19 @@ super:
       args:
       - 'super\([^)]*\)'
       - 'super()'
+base64_encode:
+  match: '.*base64\.encodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.encodestring'
+      - 'base64.encodebytes'
+base64_decode:
+  match: '.*base64\.decodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.decodestring'
+      - 'base64.decodebytes'
