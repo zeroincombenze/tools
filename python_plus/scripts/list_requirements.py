@@ -35,7 +35,8 @@ python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 REQVERSION = {
     "acme_tiny": {"6.1": ">=4.0.3"},
     "argparse": {"0": "==1.2.1"},
-    "astroid": {"2.7": "==1.6.5", "3.5": "==2.2.0"},  # Version by test pkgs
+    # "astroid": {"2.7": "==1.6.5", "3.5": "==2.2.0"},  # Version by test pkgs
+    "astroid": {"2.7": "==1.6.5", "3.5": "==2.11.7"},  # Version by test pkgs
     "autopep8": {"0": "==1.2"},
     "Babel": {"6.1": "==1.3", "8.0": "==2.3.4", "16.0": ">=2.6.0,<=2.9.1"},
     "beautifulsoup": {"6.1": "==3.2.1"},

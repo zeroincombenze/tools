@@ -13,6 +13,7 @@
 * [IMP] arcangelo switch -lll
 * [IMP] arcaneglo: rules reorganization
 * [IMP] arcangelo: trigger management and new param ctx
+* [IMP] arcangelo: new switch -R to select rules to apply
 
 2.0.14 (2024-02-07)
 ~~~~~~~~~~~~~~~~~~~

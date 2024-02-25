@@ -7,12 +7,12 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_CATEGORIES] [-c]
+    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [--string-normalization] [--test-res-msg TEST_RES_MSG]
-                        [-v] [-V] [-w]
+                        [-R RULES] [--string-normalization]
+                        [--test-res-msg TEST_RES_MSG] [-v] [-V] [-w]
                         [path ...]
     
     Beautiful source file
@@ -26,9 +26,10 @@ Digest of arcangelo
       -B, --debug           add comment with applied rule: do not use in
                             production
       -b TO_VERSION, --to-version TO_VERSION
-      -C RULE_CATEGORIES, --rule-categories RULE_CATEGORIES
-                            Rule classes (comma separated) to parse (use + for
-                            adding) use switch -l to see default classes list
+      -C RULE_GROUPS, --rule-groups RULE_GROUPS
+                            Rule groups (comma separated) to parse (use + for
+                            adding, - for removing) use switch -l to see default
+                            groups list
       -c, --copyright-check
       -F FROM_VERSION, --from-version FROM_VERSION
       -f, --force           Parse file even containing '# flake8: noqa' or '#
@@ -39,11 +40,14 @@ Digest of arcangelo
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
-      -l, --list-rules      list default rule classe (-ll list rules too. -lll to
+      -l, --list-rules      list default rule groups (-ll list rules too, -lll to
                             full list)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
+      -R RULES, --rules RULES
+                            Rules (comma separated) to parse (use - for removing)
+                            use switch -ll to see default rules list
       --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose

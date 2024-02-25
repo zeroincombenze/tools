@@ -26,6 +26,19 @@ YELLOW = "\033[1;33m"
 GREEN = "\033[1;32m"
 CLEAR = "\033[0;m"
 
+INVALID_NAMES = [
+    "build",
+    "debian",
+    "dist",
+    "filestore",
+    "migrations",
+    "setup",
+    "tests",
+    "tmp",
+    "venv_odoo",
+    "win32",
+]
+
 
 def get_pyver_4_odoo(odoo_ver):
     odoo_major = int(odoo_ver.split(".")[0])
@@ -37,6 +50,11 @@ def get_pyver_4_odoo(odoo_ver):
 
 
 class MigrateMeta(object):
+
+    def raise_error(self, message):
+        sys.stderr.write(message)
+        sys.stderr.write("\n")
+        self.sts = 3
 
     def populate_default_rule_categ(self, mime):
         self.rule_categ.append("globals_" + mime)
@@ -92,11 +110,11 @@ class MigrateMeta(object):
         self.rule_categ = []
         self.mig_rules = {}
 
-        if self.opt_args.rule_categories:
-            if "-" in self.opt_args.rule_categories:
+        if self.opt_args.rule_groups:
+            if "-" in self.opt_args.rule_groups:
                 self.populate_default_rule_categ(mime)
 
-            for rule in self.opt_args.rule_categories.split(","):
+            for rule in self.opt_args.rule_groups.split(","):
                 if "-" in rule:
                     rule = rule.replace("-", "")
                     if rule in self.rule_categ:
@@ -106,7 +124,7 @@ class MigrateMeta(object):
                     rule = rule.replace("+", "")
                     self.rule_categ.append(rule)
 
-        if not self.opt_args.rule_categories or "+" in self.opt_args.rule_categories:
+        if not self.opt_args.rule_groups or "+" in self.opt_args.rule_groups:
             self.populate_default_rule_categ(mime)
 
     def load_config(self, confname, ignore_not_found=True, prio=1, no_store=False):
@@ -152,7 +170,20 @@ class MigrateMeta(object):
             self.raise_error("File %s not found!" % configpath)
         rules_2_rm = []
         rules_2_load = []
+        valid_rules = []
+        invalid_rules = []
+        if self.opt_args.rules and prio > 0:
+            if "-" in self.opt_args.rules:
+                invalid_rules = self.opt_args.rules.replace("-", "").split(",")
+            else:
+                valid_rules = self.opt_args.rules.split(",")
         for (name, item) in rules.items():
+            if invalid_rules and name in invalid_rules:
+                rules_2_rm.append(name)
+                continue
+            if valid_rules and name not in valid_rules:
+                rules_2_rm.append(name)
+                continue
             if not isinstance(item, dict):
                 self.raise_error("Invalid rule <%s> in configuration file %s!"
                                  % (name, configpath))
@@ -170,6 +201,7 @@ class MigrateMeta(object):
                 item["prio"] = 199 + prio
             elif prio > 0:
                 item["prio"] = item["prio"] + (prio - 1) * 10
+
             if name in self.mig_rules and item["prio"] > self.mig_rules[name]["prio"]:
                 continue
             if "match" not in item:
@@ -401,38 +433,6 @@ class MigrateEnv(MigrateMeta):
             action = action
         if (not_re and regex) or (not not_re and not regex):
             return 1
-        # if action.startswith("+"):
-        #     x = self.re_match(r"\+[0-9]+\.[0-9]", action)
-        #     if x:
-        #         ver = action[x.start(): x.end()]
-        #         if self.comparable_version(
-        #             self.opt_args.python
-        #         ) < self.comparable_version(ver):
-        #             return 1
-        #     else:
-        #         x = self.re_match(r"\+[0-9]+", action)
-        #         ver = int(action[x.start() + 1: x.end()])
-        #         if ver and ver < 6 and self.py23 < ver:
-        #             return 1
-        #         if ver and ver >= 6 and self.to_major_version < ver:
-        #             return 1
-        #     action = action[x.end():]
-        # if action.startswith("-"):
-        #     x = self.re_match(r"-[0-9]+\.[0-9]", action)
-        #     if x:
-        #         ver = action[x.start(): x.end()]
-        #         if self.comparable_version(
-        #             self.opt_args.python
-        #         ) > self.comparable_version(ver):
-        #             return 1
-        #     else:
-        #         x = self.re_match(r"-[0-9]+", action)
-        #         ver = int(action[x.start() + 1: x.end()])
-        #         if ver and ver < 6 and self.py23 > ver:
-        #             return 1
-        #         if ver and ver >= 6 and self.to_major_version > ver:
-        #             return 1
-        #     action = action[x.end():]
         if action == "mv":
             # mv fqn new_fqn
             subrule, pyres, regex, not_re, sre = self.split_pyrex_rules(args[0])
@@ -502,11 +502,6 @@ class MigrateFile(MigrateMeta):
         self.lines = self.source.split('\n')
         self.analyze_source()
 
-    def raise_error(self, message):
-        sys.stderr.write(message)
-        sys.stderr.write("\n")
-        self.sts = 3
-
     def analyze_source(self):
         self.python_future = self.def_python_future
         self.exception_osv = False
@@ -538,7 +533,7 @@ class MigrateFile(MigrateMeta):
 
     def get_noupdate_property(self, lineno):
         if "noupdate" in self.lines[lineno]:
-            x = re.search("noupdate *=\"[01]\"", self.lines[lineno])
+            x = re.search("noupdate *=\"(0|1|True|False)\"", self.lines[lineno])
             return self.lines[lineno][x.start(): x.end()]
         return ""
 
@@ -555,11 +550,6 @@ class MigrateFile(MigrateMeta):
         else:
             self.api_multi = False
         return False, 0
-
-    # def match_class(self, lineno):
-    #     x = self.re_match(r"^ *class ([^(]+)", self.lines[lineno])
-    #     self.classname = x.groups()[0]
-    #     return False, 0
 
     def sort_from_odoo_import(self, lineno):
         # Sort import
@@ -708,38 +698,6 @@ class MigrateFile(MigrateMeta):
             action = action
         if (not_re and regex) or (not not_re and not regex):
             return False, 0
-        # if action.startswith("+"):
-        #     x = self.re_match(r"\+[0-9]+\.[0-9]", action)
-        #     if x:
-        #         ver = action[x.start(): x.end()]
-        #         if self.comparable_version(
-        #             self.opt_args.python
-        #         ) < self.comparable_version(ver):
-        #             return False, 0
-        #     else:
-        #         x = self.re_match(r"\+[0-9]+", action)
-        #         ver = int(action[x.start() + 1: x.end()])
-        #         if ver and ver < 6 and self.py23 < ver:
-        #             return False, 0
-        #         if ver and ver >= 6 and self.to_major_version < ver:
-        #             return False, 0
-        #     action = action[x.end():]
-        # if action.startswith("-"):
-        #     x = self.re_match(r"-[0-9]+\.[0-9]", action)
-        #     if x:
-        #         ver = action[x.start(): x.end()]
-        #         if self.comparable_version(
-        #             self.opt_args.python
-        #         ) > self.comparable_version(ver):
-        #             return False, 0
-        #     else:
-        #         x = self.re_match(r"-[0-9]+", action)
-        #         ver = int(action[x.start() + 1: x.end()])
-        #         if ver and ver < 6 and self.py23 > ver:
-        #             return False, 0
-        #         if ver and ver >= 6 and self.to_major_version > ver:
-        #             return False, 0
-        #     action = action[x.end():]
         if action == "s":
             regex = self.match_rule(args[0], self.lines[lineno], partial=True)
             if regex:
@@ -1181,9 +1139,10 @@ def main(cli_args=None):
     )
     parser.add_argument('-b', '--to-version')
     parser.add_argument(
-        '-C', '--rule-categories',
-        help=('Rule classes (comma separated) to parse (use + for adding)'
-              '\nuse switch -l to see default classes list')
+        '-C', '--rule-groups',
+        help=('Rule groups (comma separated) to parse'
+              ' (use + for adding, - for removing)'
+              ' use switch -l to see default groups list')
     )
     parser.add_argument('-c', '--copyright-check', action='count', default=0)
     parser.add_argument('-F', '--from-version')
@@ -1205,7 +1164,7 @@ def main(cli_args=None):
         '-l', '--list-rules',
         action='count',
         default=0,
-        help='list default rule classe (-ll list rules too. -lll to full list)')
+        help='list default rule groups (-ll list rules too, -lll to full list)')
     parser.add_argument(
         "-n",
         "--dry-run",
@@ -1214,6 +1173,11 @@ def main(cli_args=None):
     )
     parser.add_argument('-o', '--output')
     parser.add_argument('-P', '--package-name', default='odoo')
+    parser.add_argument(
+        '-R', '--rules',
+        help=('Rules (comma separated) to parse (use - for removing)'
+              ' use switch -ll to see default rules list')
+    )
     parser.add_argument("--string-normalization", action='store_true')
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
@@ -1255,7 +1219,18 @@ def main(cli_args=None):
     for path in migrate_env.opt_args.path:
         if pth.isdir(path):
             for root, dirs, files in os.walk(path):
-                dirs[:] = [d for d in dirs if not d.startswith("_")]
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if (
+                        not d.startswith(".")
+                        and not d.startswith("_")
+                        and not d.endswith("~")
+                        and d
+                        not in INVALID_NAMES
+                        and not os.path.islink(pth.join(root, d))
+                    )
+                ]
                 for fn in dirs:
                     fqn = pth.abspath(pth.join(root, fn)) + "/"
                     migrate_env.apply_rules_on_item(fqn)
