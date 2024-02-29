@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "python_plus"
-copyright = "2019-23, SHS-AV s.r.l."
+copyright = "2019-24, SHS-AV s.r.l."
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version

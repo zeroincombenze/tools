@@ -284,6 +284,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.11.1 (2024-02-29)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function str2bool()
+
 2.0.11 (2024-02-05)
 ~~~~~~~~~~~~~~~~~~~
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2024 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Python-plus Regression Test Suite
@@ -24,19 +24,17 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         for (res, text_date) in (
             (None, None),
             (False, False),
             ('2021-06-22', '2021-06-22'),
             (str(date.today()), '####-##-##'),
         ):
-            self.Z.test_result(
-                z0ctx, "compute_date(%s)" % text_date, res, compute_date(text_date)
-            )
+            self.assertEqual(res,
+                             compute_date(text_date),
+                             msg_info="compute_date(%s)" % text_date)
         refdate = datetime.strptime('2022-01-02', '%Y-%m-%d')
         for (res, text_date) in (
             (None, None),
@@ -64,12 +62,9 @@ class RegressionTest:
             ('2021-12-31 00:00:00', '####-<1-99 00:00:00'),
             ('2021-12-31T23:59:59', '####-<1-99T23:59:59'),
         ):
-            self.Z.test_result(
-                z0ctx,
-                "compute_date(%s)" % text_date,
-                res,
-                compute_date(text_date, refdate=refdate),
-            )
+            self.assertEqual(res,
+                             compute_date(text_date, refdate=refdate),
+                             msg_info="compute_date(%s)" % text_date)
 
 
 # Run main if executed as a script
