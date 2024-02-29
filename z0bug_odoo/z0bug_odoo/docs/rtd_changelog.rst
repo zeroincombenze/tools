@@ -5,6 +5,13 @@ ChangeLog History
 =================
 
 
+2.0.16.1 (2024-02-27)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: minor improvements
+* [FIX] TestEnv: crash if no account.journal in data
+* [IMP] Data with date range 2024
+
 2.0.16 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 
