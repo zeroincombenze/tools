@@ -5,7 +5,7 @@
     Python-plus Regression Test Suite
 """
 from __future__ import print_function
-from future.utils import PY2, PY3
+from future.utils import PY2
 
 import sys
 import os
@@ -66,7 +66,7 @@ class RegressionTest:
             msg_info="bstrings([b'abc',b'def'])"
         )
 
-        utext = [u'abc', u'def'] if Py2 else ['abc', 'def']
+        utext = [u'abc', u'def'] if PY2 else ['abc', 'def']
         self.assertEqual(
             [b'abc', b'def'],
             bstrings(utext),
@@ -95,7 +95,7 @@ class RegressionTest:
 
         utext = {u'1': u'abc', u'2': u'def'} if PY2 else {'1': 'abc', '2': 'def'}
         self.assertEqual(
-            {u'1': u'abc', u'2': u'def'},
+            {b'1': b'abc', b'2': b'def'},
             bstrings(utext),
             msg_info="bstrings({u'1': u'abc', u'2': u'def'})"
         )
@@ -108,77 +108,76 @@ class RegressionTest:
 
     def test_04(self):
         self.assertEqual(
-            [b'abc', b'def'],
+            ['abc', 'def'] if PY2 else [b'abc', b'def'],
             qsplit(b'abc,def', b','),
             msg_info="qsplit(b'abc,def', b',')"
         )
 
         self.assertEqual(
-            [b'a,b', b'def'],
+            ['a,b', 'def'] if PY2 else [b'a,b', b'def'],
             qsplit(b'"a,b",def', b','),
             msg_info="qsplit(b'\"a,b\",def', b',')"
         )
 
         self.assertEqual(
-            [b'\'a\',b', b'def'],
+            ['\'a\',b', 'def'] if PY2 else [b'\'a\',b', b'def'],
             qsplit(b'"\'a\',b",def', b','),
             msg_info="qsplit(b'\"\'a\',b\",def', b',')"
         )
 
     def test_05(self):
         self.assertEqual(
-            [b'abc', b'def'],
+            ['abc', 'def'] if PY2 else [b'abc', b'def'],
             qsplit(b'abc,def', b',', enquote=True),
             msg_info="qsplit(b'abc,def', b','), enquote=True"
         )
 
         self.assertEqual(
-            [b'"a,b"', b'def'],
+            ['"a,b"', 'def'] if PY2 else [b'"a,b"', b'def'],
             qsplit(b'"a,b",def', b',', enquote=True),
             msg_info="qsplit(b'\"a,b\",def', b','), enquote=True"
         )
 
         self.assertEqual(
-            [b'"\'a\',b"', b'def'],
+            ['"\'a\',b"', 'def'] if PY2 else [b'"\'a\',b"', b'def'],
             qsplit(b'"\'a\',b",def', b',', enquote=True),
             msg_info="qsplit(b'\"\'a\',b\",def', b','), enquote=True"
         )
 
-
     def test_06(self):
         self.assertEqual(
-            [b'"abc"', b'def'],
+            ['"abc"', 'def'] if PY2 else [b'"abc"', b'def'],
             qsplit(b'"\\\"abc\\\"",def', b',', escape='\\'),
             msg_info="qsplit(b'\"\\\"abc\\\"\",def', b','), escape='\\'"
         )
 
         self.assertEqual(
-            [b'abc', b'def'],
+            ['abc', 'def'] if PY2 else [b'abc', b'def'],
             qsplit(b'abc, def', b',', strip=True),
             msg_info="qsplit(b'abc, def', b','), strip=True"
         )
 
         self.assertEqual(
-            [b'abc', b'def,ghi'],
+            ['abc', 'def,ghi'] if PY2 else [b'abc', b'def,ghi'],
             qsplit(b'abc,def,ghi', b',', 1),
             msg_info="qsplit(b'abc,def', b',', 1)"
         )
 
     def test_07(self, z0ctx):
         self.assertEqual(
-            ['abc', 'def'],
+            [u'abc', u'def'] if PY2 else ['abc', 'def'],
             qsplit('abc,def', ','),
             msg_info="qsplit(u'abc,def', u',')"
         )
 
         self.assertEqual(
-            ['a,b', 'def'],
+            [u'a,b', u'def'] if PY2 else ['a,b', 'def'],
             qsplit('"a,b",def', ','),
             msg_info="qsplit(u'\"a,b\",def', u',')"
         )
 
         self.assertEqual(
-            ['\'a\',b', 'def'],
+            [u'\'a\',b', u'def'] if PY2 else ['\'a\',b', 'def'],
             qsplit('"\'a\',b",def', ','),
             msg_info="qsplit(u'\"\'a\',b\",def', u',')"
         )
