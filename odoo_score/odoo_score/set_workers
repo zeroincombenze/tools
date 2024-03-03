@@ -76,7 +76,7 @@ if [[ $opt_help -gt 0 ]]; then
   "(C) 2018-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-discover_multi
+# discover_multi
 # -------------------------------------------------------------------------------
 # Odoo constants and expressions from
 # https://www.odoo.com/documentation/17.0/administration/install/deploy.html

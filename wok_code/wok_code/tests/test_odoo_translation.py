@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa - pylint: skip-file
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2024 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -115,18 +115,21 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
-        self.Z.inherit_cls(self)
 
-    def setup(self, z0ctx):
+    def setup(self):
+        if os.path.basename(os.getcwd()) == "tests":
+            self.testdir = os.getcwd()
+            self.rundir = os.path.dirname(os.getcwd())
+        else:
+            self.testdir = os.path.join(os.getcwd(), "tests")
+            self.rundir = os.getcwd()
         z0lib.run_traced(
             "build_cmd %s" % os.path.join(
-                self.Z.rundir, "scripts", "odoo_translation.py")
+                self.rundir, "scripts", "odoo_translation.py")
         )
 
     def get_fqn(self, fn):
-        return os.path.join(self.Z.testdir, "data", fn)
+        return os.path.join(self.testdir, "data", fn)
 
     def rm_data_file(self, fn):
         fqn = self.get_fqn(fn)
@@ -139,60 +142,62 @@ class RegressionTest:
             contents = fd.read()
         return contents
 
-    def test_01(self, z0ctx):
-        base_cmd = os.path.join(self.Z.rundir, "scripts", "odoo_translation.py")
+    def test_01(self):
+        # base_cmd = os.path.join(self.rundir, "scripts", "odoo_translation.py")
         ref_template = self.read_data_file("ref_odoo_template_tnl.csv")
         ref_tnl = self.read_data_file("ref_odoo_translation.csv")
         for odoo_version in ODOO_VERSIONS:
-            if not z0ctx["dry_run"]:
-                self.root = z0testodoo.build_odoo_env(z0ctx, odoo_version)
-                odoo_root = os.path.join(self.root, odoo_version)
-                repodir = z0testodoo.create_repo(
-                    z0ctx, odoo_root, "test_repo", odoo_version
-                )
-                moduledir = z0testodoo.create_module(
-                    z0ctx, repodir, "test_module", "%s.0.1.0" % odoo_version
-                )
-                i18n_dir = os.path.join(moduledir, "i18n")
-                it_po_file = os.path.join(moduledir, "i18n", "it.po")
+            os.chdir(self.testdir)
+            self.root = z0testodoo.build_odoo_env({}, odoo_version)
+            odoo_root = os.path.join(self.root, odoo_version)
+            repodir = z0testodoo.create_repo(
+                {}, odoo_root, "test_repo", odoo_version
+            )
+            moduledir = z0testodoo.create_module(
+                {}, repodir, "test_module", "%s.0.1.0" % odoo_version
+            )
+            i18n_dir = os.path.join(moduledir, "i18n")
+            it_po_file = os.path.join(moduledir, "i18n", "it.po")
 
-                if not os.path.isdir(i18n_dir):
-                    os.mkdir(i18n_dir)
-                if os.path.isfile(it_po_file):
-                    os.unlink(it_po_file)
-                self.rm_data_file("odoo_template_tnl.csv")
-                self.rm_data_file("odoo_translation.csv")
-                os.chdir(moduledir)
+            if not os.path.isdir(i18n_dir):
+                os.mkdir(i18n_dir)
+            if os.path.isfile(it_po_file):
+                os.unlink(it_po_file)
+            self.rm_data_file("odoo_template_tnl.csv")
+            self.rm_data_file(self.get_fqn(".odoo_template_tnl_cache.csv"))
+            os.chdir(moduledir)
 
-                cmd = "%s %s -WT" % (sys.executable, base_cmd)
-                sts, stdout, stderr = z0lib.run_traced(cmd)
-                self.assertEqual(sts, 0, msg_info=cmd)
-                template = self.read_data_file("odoo_template_tnl.csv")
-                tnl = self.read_data_file("odoo_translation.csv")
+            cmd = "odoo_translation -WT"
+            sts, stdout, stderr = z0lib.run_traced(cmd)
+            self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
+            template = self.read_data_file("odoo_template_tnl.csv")
+            tnl = self.read_data_file(self.get_fqn(".odoo_template_tnl_cache.csv"))
 
-                self.assertEqual(
-                    template, ref_template, msg="odoo_template_tnl contents"
-                )
-                self.assertEqual(
-                    tnl, ref_tnl, msg="odoo_translation contents"
-                )
+            self.assertEqual(
+                template, ref_template,
+                msg="Files %s != %s" % ("odoo_template_tnl.csv",
+                                        "ref_odoo_template_tnl.csv")
+            )
+            self.assertEqual(
+                tnl, ref_tnl,
+                msg="Files %s != %s" % (".odoo_template_tnl_cache.csv",
+                                        "ref_odoo_translation.csv")
+            )
 
-                with open(it_po_file, "w") as fd:
-                    fd.write(PO_FILE)
-                cmd = "%s %s -T" % (sys.executable, base_cmd)
-                sts, stdout, stderr = z0lib.run_traced(cmd)
-                self.assertEqual(sts, 0, msg_info=cmd)
-                with open(it_po_file, "r") as fd:
-                    po_contents = fd.read()
-                test_value = ""
-                for ln in po_contents.split("\n"):
-                    if test_value:
-                        self.assertEqual(ln, test_value)
-                        test_value = ""
-                    else:
-                        test_value = PO_TEST_VALUE.get(ln)
-
-        return self.ret_sts()
+            with open(it_po_file, "w") as fd:
+                fd.write(PO_FILE)
+            cmd = "odoo_translation -T"
+            sts, stdout, stderr = z0lib.run_traced(cmd)
+            self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
+            with open(it_po_file, "r") as fd:
+                po_contents = fd.read()
+            test_value = ""
+            for ln in po_contents.split("\n"):
+                if test_value:
+                    self.assertEqual(ln, test_value)
+                    test_value = ""
+                else:
+                    test_value = PO_TEST_VALUE.get(ln)
 
 
 #

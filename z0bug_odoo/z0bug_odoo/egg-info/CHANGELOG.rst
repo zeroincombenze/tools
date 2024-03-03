@@ -1,5 +1,5 @@
-2.0.16.1 (2024-02-27)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.17 (2024-02-27)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] TestEnv: minor improvements
 * [FIX] TestEnv: crash if no account.journal in data

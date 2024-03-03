@@ -35,6 +35,34 @@ TNL_TYPES = (
     "ir.ui.menu,name",
     "ir.ui.view,arch_db",
 )
+INVALID_NAMES = [
+    "build",
+    "debian",
+    "dist",
+    "doc",
+    "docs",
+    "egg-info",
+    "filestore",
+    "history",
+    "howtos",
+    "images",
+    "migrations",
+    "readme",
+    "redhat",
+    "reference",
+    "scripts",
+    "server",
+    "setup",
+    "static",
+    "tests",
+    "tmp",
+    "tools",
+    "venv_odoo",
+    "win32",
+]
+MAGIC_PUNCT = [
+    " ", "!", "?", ".", ":", ";", ","
+]
 
 msg_time = time()
 
@@ -169,7 +197,10 @@ class OdooTranslation(object):
         ) or term.endswith("(s)")
 
     def isfullupper(self, term):
-        return term == term.upper()
+        return term == term.upper() and not any([x in term for x in MAGIC_PUNCT])
+
+    def titlable(self, term):
+        return term and term[1:] == term[1:].lower()
 
     def get_filenames(self, fqn=None):
         fqn = fqn or self.opt_args.file_xlsx
@@ -185,35 +216,47 @@ class OdooTranslation(object):
         os.rename(filename, bak_file)
         os.rename(tmp_file, filename)
 
+    def strip_magic(self, term):
+        term = term.strip()
+        while term and term[0] in MAGIC_PUNCT:
+            term = term[1:]
+        while term and term[-1] in MAGIC_PUNCT:
+            term = term[:-1]
+        return term
+
     def get_hash_key(self, key, ignore_case, module=None):
-        kk = key.strip()
+        kk = self.strip_magic(key)
         if ignore_case:
-            kk = key if self.isfullupper(key) else key.lower()
+            kk = key if not self.titlable(key) else key.lower()
         if module:
             kk = module + MODULE_SEP + kk.split(MODULE_SEP)[-1]
         return kk
 
     def adjust_case(self, orig, tnxl):
         if tnxl:
-            if self.isfullupper(orig):
+            ix = 0
+            while orig[ix] in MAGIC_PUNCT:
+                if tnxl[ix] != orig[ix]:
+                    tnxl = tnxl[:ix] + orig[ix] + tnxl[ix:]
+                ix += 1
+            if self.isfullupper(orig) and not self.titlable(tnxl):
                 tnxl = tnxl.upper()
-            elif len(tnxl) > 1:
-                if orig[0].isupper() and tnxl[0].islower():
-                    tnxl = tnxl[0].upper() + tnxl[1:]
+            elif len(tnxl[ix:]) > 1 and self.titlable(tnxl):
+                if orig[ix].isupper() and tnxl[ix].islower():
+                    tnxl = tnxl[:ix] + tnxl[ix].upper() + tnxl[ix + 1:]
                 elif (
-                    orig[0].islower()
-                    and tnxl[0].isupper()
-                    and not self.isfullupper(tnxl)
+                        orig[ix].islower()
+                        and tnxl[ix].isupper()
                 ):
-                    tnxl = tnxl[0].lower() + tnxl[1:]
-            if orig.endswith(".") and not tnxl.endswith("."):
-                tnxl += "."
-            elif orig.endswith("!") and not tnxl.endswith("!"):
-                tnxl += "!"
-            elif orig.endswith(" ") and not tnxl.endswith(" "):
-                tnxl += " "
-            elif orig.endswith(":") and not tnxl.endswith(":"):
-                tnxl += ":"
+                    tnxl = tnxl[:ix] + tnxl[ix].lower() + tnxl[ix + 1:]
+            ix = -1
+            while orig[ix] in MAGIC_PUNCT:
+                if tnxl[ix] != orig[ix]:
+                    if ix == -1:
+                        tnxl = tnxl + orig[ix]
+                    else:
+                        tnxl = tnxl[ix:] + orig[ix] + tnxl[ix + 1:]
+                ix -= 1
         return tnxl
 
     def set_plural(self, orig, term):
@@ -289,7 +332,8 @@ class OdooTranslation(object):
             or is_tag
             or (msg_tnxl and self.dict[hash_key][0] == self.dict[hash_key][1])
         ):
-            self.dict[hash_key] = (msg_orig, msg_tnxl)
+            self.dict[hash_key] = (self.strip_magic(msg_orig),
+                                   self.strip_magic(msg_tnxl))
             if is_tag and hash_key not in self.tags:
                 self.tags.append(hash_key)
         return self.get_term(hash_key, msg_orig, msg_tnxl)
@@ -394,7 +438,7 @@ class OdooTranslation(object):
                                     (
                                         len(hashes_orig[ix][x]) > 2
                                         and hashes_orig[ix][x] != hashes_tnxl[ix][x]
-                                        and not self.isfullupper(hashes_orig[ix][x])
+                                        and self.titlable(hashes_orig[ix][x])
                                     )
                                     for x in range(len(hashes_orig[ix]))
                                 ]
@@ -783,20 +827,15 @@ class OdooTranslation(object):
 
             self.save_n_bak_fn(fqn, tmp_file, bak_file)
 
+    def get_cache_fqn(self, fqn=None):
+        fqn = fqn or self.opt_args.file_xlsx or "odoo_template_tnl.xlsx"
+        return pth.join(
+            pth.dirname(fqn) or os.path.expanduser("~/.local/share/odoo_translation"),
+            "." + pth.basename(fqn).replace(".xlsx", "_cache.xlsx"))
+
     def load_terms_from_cached_xlsx(self, fqn=None):
-        fqn = fqn or self.opt_args.file_xlsx
-        fqn = pth.join(pth.dirname(fqn), "odoo_translation.xlsx")
+        fqn = self.get_cache_fqn(fqn=fqn)
         if not self.opt_args.ignore_cache and pth.isfile(fqn):
-            # with open(fqn, "r") as fd:
-            #     for ln in fd.read().split("\n"):
-            #         if not ln:
-            #             continue
-            #         module, msgid, msgstr = ln.split("\t", 2)
-            #         msg_burst("%s ..>" % msgid[:60].split("\n")[0])
-            #         msgid = msgid.replace("\x7f", "\n")
-            #         msgstr = msgstr.replace("\x7f", "\n")
-            #         hkey = self.get_hash_key(msgid, False, module=module)
-            #         self.store_1_item(hkey, msgid, msgstr, module=module, raw=True)
             self.load_terms_from_xlsx(fqn)
 
     def load_terms_from_pofile(self, po_fn, override=None):
@@ -837,7 +876,10 @@ class OdooTranslation(object):
                 if not row["msgid"] or not row["msgstr"]:
                     continue
                 if self.opt_args.verbose:
-                    msg_burst("%s >.." % row["msgid"][:60].split("\n")[0])
+                    msg_burst("%-60.60s%s" % (
+                        row["msgid"].split("\n")[0],
+                        "> ..."
+                        if "\n" in row["msgid"] or len(row["msgid"]) > 60 else ""))
                 if "hashkey" in row and row["hashkey"]:
                     if row["hashkey"] not in self.dict:
                         self.store_1_item(row["hashkey"],
@@ -882,9 +924,8 @@ class OdooTranslation(object):
             ("sepa", "SEPA", True),
             ("UE", "EU", True),
             ("iban", "IBAN", True),
-            ("Ri.Ba.", "RiBA", True),
             ("Ri.Ba", "RiBA", True),
-            ("RI.BA.", "RiBA", True),
+            ("RI.BA", "RiBA", True),
             ("DDT", "DdT", True),
             ("ddt", "DdT", True),
         ):
@@ -909,28 +950,7 @@ class OdooTranslation(object):
                         and not d.startswith("_")
                         and not d.endswith("~")
                         and d
-                        not in (
-                            "build",
-                            "debian",
-                            "dist",
-                            "doc",
-                            "docs",
-                            "egg-info",
-                            "filestore",
-                            "history",
-                            "howtos",
-                            "images" "migrations",
-                            "redhat",
-                            "reference",
-                            "scripts",
-                            "server",
-                            "setup",
-                            "static",
-                            "tests",
-                            "tmp",
-                            "venv_odoo",
-                            "win32",
-                        )
+                        not in INVALID_NAMES
                     )
                 ]
                 for base in dirs:
@@ -983,11 +1003,11 @@ class OdooTranslation(object):
         # @src: original (english) term
         # @source: evaluated field with source code information
         # @value: translated term
-        # @name: is environment name; value may be:
-        #   - type model: "model name,field name"
-        #   - type code: "source file name", format 'addons/MODULE_PATH'
-        #   - type selection: "MODULE_PATH,field name"
         # @type: may be [code,constraint,model,selection,sql_constraint]
+        # @name: is environment name; value depends on type, may be:
+        #   - @model: "model name,field name"
+        #   - @code: "source file name" (format 'addons/MODULE_PATH')
+        #   - @selection: "MODULE_PATH,field name"
         # @module: module which added term
         # @state: may be [translated, to_translate]
         # @res_id: id of term means:
@@ -1122,8 +1142,9 @@ class OdooTranslation(object):
             print("[%s]\n'%s'='%s'" % (hash_key, terms[0], terms[1]))
 
     def write_cache_xlsx(self, fqn=None):
-        fqn = fqn or self.opt_args.file_xlsx
-        fqn = pth.join(pth.dirname(fqn), "odoo_translation.xlsx")
+        fqn = self.get_cache_fqn(fqn=fqn)
+        if not os.path.isdir(os.path.dirname(fqn)):
+            os.makedirs(os.path.dirname(fqn))
         self.write_xlsx(fqn=fqn, inplace=True)
 
     def write_xlsx(self, fqn=None, inplace=None, only_template=None):
@@ -1187,21 +1208,22 @@ class OdooTranslation(object):
                 else:
                     module = ""
                 if only_template:
-                    fd.write("%s\t%s\t%s\n" % ((module,
-                                                terms[0].replace("\n", "\x7f"),
-                                                terms[1].replace("\n", "\x7f"))))
-                else:
-                    fd.write("%s\t%s\t%s\t%s\n" % ((
+                    fd.write("%s\t%s\t%s\n" % (
                         module,
                         terms[0].replace("\n", "\x7f"),
-                        terms[1].replace("\n", "\x7f"),
-                        hash_key)))
+                        self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f")))
+                else:
+                    fd.write("%s\t%s\t%s\t%s\n" % (
+                        module,
+                        terms[0].replace("\n", "\x7f"),
+                        self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f"),
+                        hash_key))
 
 
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Create translation file", epilog="© 2022-2023 by SHS-AV s.r.l."
+        description="Create translation file", epilog="© 2022-2024 by SHS-AV s.r.l."
     )
     parser.add_argument(
         "-B", "--debug-template", action="store_true", dest="dbg_template"
@@ -1225,7 +1247,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-G",
         "--git-orgs",
-        help="Git organizations, comma separated - " "May be: oca librerp or zero",
+        help="Git organizations, comma separated - " "May be: oca or zero",
     )
     parser.add_argument("-l", "--lang", default="it_IT", help="Language")
     parser.add_argument("-m", "--module-name")

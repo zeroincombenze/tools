@@ -23,7 +23,7 @@ from openpyxl import load_workbook
 
 from python_plus import unicodes
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 
 class Z0bugOdoo(object):
@@ -183,6 +183,7 @@ class Z0bugOdoo(object):
         ):
             for model in self.model_list:
                 self.initialize_model(model, merge=merge)
+
 
 
 
