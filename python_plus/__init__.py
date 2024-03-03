@@ -9,13 +9,8 @@ from . import scripts
 
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
-__license__ = 'L-GPL'
-__copyright__ = 'Copyright 2018-2023 SHS-AV srl'
-__ver_major__ = 0
-__ver_minor__ = 1
-__ver_patch__ = 3
-__ver_sub__ = '6'
-__version__ = '2.0.11'
+__copyright__ = 'Copyright 2018-2024 SHS-AV srl'
+__version__ = '2.0.12'
 
 PYCODESET = 'utf-8'
 if PY3:
@@ -83,6 +78,24 @@ def unicodes(src):
         for i, x in enumerate(src):
             src[i] = _u(x)
     return src
+
+
+def str2bool(item, default=True):
+    """Convert text to bool"""
+    if isinstance(item, bool):
+        return item
+    elif isinstance(item, (int, long)):
+        return item != 0
+    elif isinstance(item, float):
+        return item != 0.0
+    elif not isinstance(item, basestring):
+        return default
+    elif item.lower() in ["true", "t", "1", "y", "yes", "on", "enabled"]:
+        return True
+    elif item.lower() in ["false", "f", "0", "n", "no", "off", "disabled"]:
+        return False
+    else:
+        return default
 
 
 def qsplit(*args, **kwargs):
@@ -275,5 +288,6 @@ class __(object, with_metaclass(Base__, text_type)):
             enquote=enquote,
             strip=strip,
         )
+
 
 
