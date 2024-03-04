@@ -1,7 +1,8 @@
-2.0.15.1 (2024-03-01)
+2.0.15.1 (2024-03-04)
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoo_translation.py: case correction
+* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
 
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~

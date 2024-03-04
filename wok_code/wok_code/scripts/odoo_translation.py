@@ -176,10 +176,10 @@ class OdooTranslation(object):
                     and not self.opt_args.module_name
                     and self.opt_args.rewrite_xlsx
             ):
-                self.opt_args.prio_terms.startswith("P")
+                self.opt_args.prio_terms = "P"
             else:
-                self.opt_args.prio_terms.startswith("D")
-        if not self.opt_args.prio_terms.startswith("P", "D"):
+                self.opt_args.prio_terms = "D"
+        if not self.opt_args.prio_terms.startswith(("P", "D")):
             if self.opt_args.verbose:
                 print("Invalid switch --prio-terms value!")
             self.opt_args.prio_terms = "D"

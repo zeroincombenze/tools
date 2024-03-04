@@ -342,7 +342,11 @@ class Please(object):
                 action="store_true",
             )
         elif arg in ('-O', '--oca'):
-            parser.add_argument("-O", "--oca", help="Use oca tools when possible")
+            parser.add_argument(
+                "-O", "--oca",
+                action="store_true",
+                help="Use oca tools when possible"
+            )
         elif arg in ("-q", "--quite"):
             parser.add_argument(
                 "-q",
