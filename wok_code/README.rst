@@ -199,6 +199,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.15.1 (2024-03-01)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translation.py: case correction
+
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 

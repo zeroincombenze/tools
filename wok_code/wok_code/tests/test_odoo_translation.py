@@ -199,6 +199,22 @@ class RegressionTest:
                 else:
                     test_value = PO_TEST_VALUE.get(ln)
 
+    def test_02(self):
+        odoo_version = "12.0"
+        moduledir = os.path.join(self.root, odoo_version, "test_repo", "test_module")
+        po_file = os.path.join(moduledir, "i18n", "it.po")
+        with open(po_file, "r") as fd:
+            contents = fd.read()
+        contents = contents.replace("msgstr \"IVA\"", "msgstr \"CI\"")
+        with open(po_file, "w") as fd:
+            fd.write(contents)
+        os.chdir(moduledir)
+        cmd = "odoo_translation -WT -p %s -C" % moduledir
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
+        template = self.read_data_file("odoo_template_tnl.csv")
+        self.assertIn("\ttax\tCI", template)
+
 
 #
 # Run main if executed as a script

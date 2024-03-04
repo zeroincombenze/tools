@@ -3291,7 +3291,7 @@ def generate_readme(ctx):
         fqn = pth.join(src_path, fn)
         if not pth.isfile(fqn):
             cur_fqn = get_fqn(ctx, src_path, sect)
-            if pth.isfile(cur_fqn):
+            if pth.isfile(cur_fqn) and not cur_fqn.endswith(".csv"):
                 if not ctx["suppress_warning"]:
                     print("%s -> %s" % (cur_fqn, fqn))
                 os.rename(cur_fqn, fqn)

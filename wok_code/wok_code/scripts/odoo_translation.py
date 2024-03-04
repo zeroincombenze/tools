@@ -170,6 +170,19 @@ class OdooTranslation(object):
                 self.re_tag = item[3]
         self.re_to_upper = r".*[-.(]$"
         self.build_alias_dict()
+        if not self.opt_args.prio_terms:
+            if (
+                    not self.opt_args.database
+                    and not self.opt_args.module_name
+                    and self.opt_args.rewrite_xlsx
+            ):
+                self.opt_args.prio_terms.startswith("P")
+            else:
+                self.opt_args.prio_terms.startswith("D")
+        if not self.opt_args.prio_terms.startswith("P", "D"):
+            if self.opt_args.verbose:
+                print("Invalid switch --prio-terms value!")
+            self.opt_args.prio_terms = "D"
 
     def get_home_devel(self):
         root = os.environ.get("HOME_DEVEL")
@@ -498,7 +511,7 @@ class OdooTranslation(object):
         if not msg_tnxl:
             msg_tnxl = msg_orig
         if self.get_hash_key(msg_orig, False) in self.dict:
-            if action == "build_dict":
+            if action == "build_dict" and not override:
                 return msg_tnxl
             elif action == "translate":
                 return self.dict[self.get_hash_key(msg_orig, False)][1]
@@ -841,7 +854,7 @@ class OdooTranslation(object):
     def load_terms_from_pofile(self, po_fn, override=None):
         if pth.isfile(po_fn):
             if self.opt_args.verbose:
-                print("Loading %s" % po_fn)
+                print("Loading %s %s" % (po_fn, "(prio)" if override else ""))
             try:
                 catalog = pofile.read_po(open(po_fn, "r"))
             except BaseException as e:
@@ -909,7 +922,8 @@ class OdooTranslation(object):
                 print("Module %s without translation" % pth.basename(path))
                 return
             if action == "build_dict":
-                self.load_terms_from_pofile(po_fn)
+                self.load_terms_from_pofile(
+                    po_fn, override=self.opt_args.prio_terms.startswith("P"))
             elif action == "translate":
                 self.translate_pofile(po_fn)
             else:
@@ -1252,7 +1266,14 @@ def main(cli_args=None):
     parser.add_argument("-l", "--lang", default="it_IT", help="Language")
     parser.add_argument("-m", "--module-name")
     parser.add_argument("-n", "--dry-run", action="store_true")
-    parser.add_argument("-p", "--target-path", help="Local directory")
+    parser.add_argument(
+        "-P", "--prio-terms",
+        help="Priority terms: Dict,Po"
+    )
+    parser.add_argument(
+        "-p", "--target-path",
+        help="Local directory of module"
+    )
     parser.add_argument("-q", "--quite", action="store_false")
     parser.add_argument("-T", "--test", action="store_true")
     parser.add_argument("-v", "--verbose", action="count", default=0)
