@@ -799,7 +799,7 @@ class Please(object):
                 x = re.search("[0-9]+ tests", ln)
                 if x:
                     items = ln[x.start(): x.end()].split()
-                    params["testpoints"] = int(items[0])
+                    params["testpoints"] += int(items[0])
         if "total" not in params:
             self.log_warning("No stats found in %s" % log_fqn)
             return 3

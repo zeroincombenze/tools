@@ -16,13 +16,6 @@ Zeroincombenze tools requires:
 Installation
 ------------
 
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install wok_code
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -36,13 +29,6 @@ Current version via Git
 
 Upgrade
 -------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install --upgrade wok_code
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~

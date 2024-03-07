@@ -374,7 +374,33 @@ RST2HTML_GRYMB = {
     "|DesktopTelematico|": '<span class="fa fa-wpforms"/>',
     "|FatturaPA|": '<span class="fa fa-euro"/>',
 }
+RE_PAT_MATCH_DATE = r"[0-9]+\.[0-9]+\.[0-9]+.*[0-9]{4}-[0-9]{2}-[0-9]{2}"
 RE_PAT_DATE = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
+INVALID_NAMES = [
+    "build",
+    "debian",
+    "dist",
+    "doc",
+    "docs",
+    "egg-info",
+    "filestore",
+    "history",
+    "howtos",
+    "images",
+    "migrations",
+    "readme",
+    "redhat",
+    "reference",
+    "scripts",
+    "server",
+    "setup",
+    "static",
+    "tests",
+    "tmp",
+    "tools",
+    "venv_odoo",
+    "win32",
+]
 
 
 def __init__(ctx):
@@ -539,14 +565,15 @@ def __init__(ctx):
 
     if ctx["product_doc"] == "odoo":
         assure_docdir(ctx, "./readme")
-        assure_docdir(ctx, "./static")
-        if ctx["odoo_majver"] <= 7:
-            assure_docdir(ctx, "./static/src")
-            assure_docdir(ctx, "./static/src/img")
-            ctx["img_dir"] = "./static/src/img"
-        else:
-            assure_docdir(ctx, "./static/description")
-            ctx["img_dir"] = "./static/description"
+        if ctx["odoo_layer"] == "module":
+            assure_docdir(ctx, "./static")
+            if ctx["odoo_majver"] <= 7:
+                assure_docdir(ctx, "./static/src")
+                assure_docdir(ctx, "./static/src/img")
+                ctx["img_dir"] = "./static/src/img"
+            else:
+                assure_docdir(ctx, "./static/description")
+                ctx["img_dir"] = "./static/description"
     elif ctx["product_doc"] == "pypi":
         assure_docdir(ctx, "./egg-info")
         assure_docdir(ctx, "./docs")
@@ -1740,9 +1767,9 @@ def compose_line_rst(ctx, line):
     return (line + "\n") if ctx["rst_state"] != "cache" else ""
 
 
-def tail(ctx, source, max_ctr=None, max_days=None, module=None):
+def tail(ctx, source, max_ctr=None, max_days=None, module=None, min_ctr=2):
     target = ""
-    min_ctr = 2
+    min_ctr = min_ctr
     max_ctr = max(max_ctr or 24 if ctx["product_doc"] == "pypi" else 12, min_ctr)
     max_days = max_days or (1090 if ctx["product_doc"] == "pypi" else 720)
     left = ""
@@ -1751,7 +1778,7 @@ def tail(ctx, source, max_ctr=None, max_days=None, module=None):
         if left:
             line = "%s%s" % (left, line)
             left = ""
-        x = re.match(r"^[0-9]+\.[0-9]+\.[0-9]+", line)
+        x = re.search(RE_PAT_MATCH_DATE, line)
         if x:
             ctr += 1
             if ctr > max_ctr:
@@ -1780,7 +1807,7 @@ def sort_history(source):
     hash = ""
     histories[hash] = ""
     for _lno, line in enumerate(source.split("\n")):
-        x = re.match(r"^.*: [0-9]+\.[0-9]+\.[0-9]+", line)
+        x = re.search(RE_PAT_MATCH_DATE, line)
         if x:
             x = re.search(RE_PAT_DATE, line)
             dt = line[x.start() : x.end()]
@@ -2072,7 +2099,7 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
                 section == "changelog"
                 and ctx["product_doc"] == "odoo"
                 and ctx["branch"]
-                and re.search(RE_PAT_DATE, line)
+                and re.match(RE_PAT_MATCH_DATE , line)
                 and not line.startswith(ctx["branch"])
         ):
             line = ctx["branch"] + "." + ctx["branch"].split(".", 1)[1]
@@ -2234,7 +2261,8 @@ def fake_setup(**kwargs):
 def read_history(ctx, fqn, module=None):
     if module:
         with open(fqn, RMODE) as fd:
-            ctx["histories"] += tail(ctx, _u(fd.read()), max_days=60, module=module)
+            ctx["histories"] += tail(
+                ctx, _u(fd.read()), max_days=370, module=module)
     with open(fqn, RMODE) as fd:
         ctx["history-summary"] += tail(
             ctx, _u(fd.read()), max_ctr=1, max_days=30, module=module
@@ -2328,11 +2356,16 @@ def adj_version(ctx, odoo_version):
 
 def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
     def valid_dir(dirname):
-        if dirname.startswith(".") or dirname.startswith("__") or dirname == "setup":
+        if (
+                dirname.startswith(".")
+                or dirname.startswith("_")
+                or dirname.endswith("~")
+                or dirname in INVALID_NAMES
+        ):
             return False
         return True
 
-    path = path or "."
+    path = os.path.abspath(path or ".")
     ctx["manifest"] = {}
     ctx["histories"] = ""
     if not no_history:
@@ -2344,6 +2377,8 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
     else:
         manifest_file = "__openerp__.py"
     for root, dirs, files in os.walk(path):
+        if root != path and ".git" in dirs:
+            continue
         dirs[:] = [d for d in dirs if valid_dir(d)]
         # For OCB read just addons
         if module2search or ctx["odoo_layer"] != "ocb" or root.find("addons") >= 0:
@@ -2382,19 +2417,20 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
                 except KeyError:
                     pass
                 fqn = get_fqn(
-                    ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
+                    ctx, pth.join(root, "readme"), "CHANGELOG.rst")
                 if pth.isfile(fqn):
                     with open(fqn, RMODE) as fd:
                         ctx["histories"] += tail(
-                            ctx, _u(fd.read()), max_days=180, module=module_name
+                            ctx, _u(fd.read()),
+                            min_ctr=0, max_days=370, module=module_name
                         )
                         if not no_history:
                             with open(fqn, RMODE) as fd:
                                 ctx["history-summary"] += tail(
                                     ctx,
                                     _u(fd.read()),
-                                    max_ctr=1,
-                                    max_days=15,
+                                    min_ctr=1,
+                                    max_days=60,
                                     module=module_name,
                                 )
     if not module2search:
@@ -2439,6 +2475,9 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
         if not no_history:
             ctx["histories"] = sort_history(ctx["histories"])
             ctx["history-summary"] = sort_history(ctx["history-summary"])
+    if ctx["odoo_layer"] != "module" and not no_history and ctx["histories"]:
+        with open(pth.join(path, "readme", "CHANGELOG.rst"), "w") as fd:
+            fd.write(ctx["histories"])
     ctx["addons_info"] = addons_info
 
 
@@ -2708,7 +2747,7 @@ def set_default_values(ctx):
         ctx["dst_file"] = "page.man"
     elif ctx["write_office"]:
         ctx["dst_file"] = "user_guide.odt"
-    elif pth.isfile("../setup.py"):
+    elif pth.isfile("../setup.py") and ctx["product_doc"] == "pypi":
         ctx["dst_file"] = "../README.rst"
     else:
         ctx["dst_file"] = "./README.rst"
@@ -3307,13 +3346,13 @@ def generate_readme(ctx):
                 os.rename(cur_fqn, fqn)
 
     # Contents of sections are in rst format
-    for section in DEFINED_SECTIONS:
-        load_section_from_file(ctx, section)
-        load_section_from_file(ctx, section + "_i18n")
-
     for tag in DEFINED_TAG:
         load_section_from_file(ctx, tag, is_tag=True)
         load_section_from_file(ctx, tag + "_i18n", is_tag=True)
+
+    for section in DEFINED_SECTIONS:
+        load_section_from_file(ctx, section)
+        load_section_from_file(ctx, section + "_i18n")
 
     # List tags (i.e. authors) are python list with licensing data
     for section in LIST_TAG:
