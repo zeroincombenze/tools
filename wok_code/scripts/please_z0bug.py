@@ -414,14 +414,14 @@ class PleaseZ0bug(object):
         args = self.build_run_odoo_base_args(branch=branch)
         print("#### Running Tests ... ####")
         sts = please.chain_python_cmd("run_odoo_debug.py", args)
-        if please.is_fatal_sts(sts):
+        if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
-        if not please.opt_args.no_verify and not please.opt_args.debug:
+        if not please.opt_args.no_verify:
             print("## Update documentation ... ##")
             sts = please.do_docs()
         if please.is_fatal_sts(sts):
             return sts
-        if not please.opt_args.no_verify and not please.opt_args.debug:
+        if not please.opt_args.no_verify:
             print("## Git sync ... ##")
             sts = please.run_traced("git add ./", rtime=True)
         if sts:

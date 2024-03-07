@@ -155,13 +155,6 @@ Zeroincombenze tools requires:
 Installation
 ------------
 
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install wok_code
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -178,13 +171,6 @@ Current version via Git
 Upgrade
 -------
 
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install --upgrade wok_code
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -198,6 +184,14 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.15.1 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translation.py: case correction
+* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
+* [FIX] gen_readme.py: Odoo repository documentation
++ [FIX[ please docs: count assertions
 
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~

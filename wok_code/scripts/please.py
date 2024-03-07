@@ -342,7 +342,11 @@ class Please(object):
                 action="store_true",
             )
         elif arg in ('-O', '--oca'):
-            parser.add_argument("-O", "--oca", help="Use oca tools when possible")
+            parser.add_argument(
+                "-O", "--oca",
+                action="store_true",
+                help="Use oca tools when possible"
+            )
         elif arg in ("-q", "--quite"):
             parser.add_argument(
                 "-q",
@@ -795,7 +799,7 @@ class Please(object):
                 x = re.search("[0-9]+ tests", ln)
                 if x:
                     items = ln[x.start(): x.end()].split()
-                    params["testpoints"] = int(items[0])
+                    params["testpoints"] += int(items[0])
         if "total" not in params:
             self.log_warning("No stats found in %s" % log_fqn)
             return 3

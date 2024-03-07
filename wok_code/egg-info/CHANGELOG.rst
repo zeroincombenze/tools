@@ -1,3 +1,11 @@
+2.0.15.1 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translation.py: case correction
+* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
+* [FIX] gen_readme.py: Odoo repository documentation
++ [FIX[ please docs: count assertions
+
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
 

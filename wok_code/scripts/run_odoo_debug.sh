@@ -90,7 +90,7 @@ coverage_set() {
       [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -E "/^ *.\/tests\/./d" -i $COVERAGE_PROCESS_START
       if [[ $opt_dry_run -eq 0 ]]; then
         for m in ${opt_modules//,/ }; do
-          p=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*" -name $m)
+          p=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*" -not -path "*/venv_odoo/*" -name $m|head -n1)
           sed -E "/    \*\.py/a\\    $p/*" -i $COVERAGE_PROCESS_START
         done
         sed -E "s/    \*\.py/#    *.py/" -i $COVERAGE_PROCESS_START
@@ -109,12 +109,7 @@ coverage_erase() {
 coverage_report() {
     local v
      if [[ -n $COVERAGE_PROCESS_START ]]; then
-#      local opts="-i"
-#      for m in ${opt_modules//,/ }; do
-#        opts="$opts --include=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*"  -name $m)/*"
-#      done
       v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      # [[ $v -ge 6 ]] && opts="--data-file=$COVERAGE_DATA_FILE"
       run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
     fi
 }
@@ -125,12 +120,16 @@ set_log_filename() {
     [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
     [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
     [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
-    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_ver}"
-    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_ver}"
-    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_ver}" || UMLI="${GIT_ORGID}"
+    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_maj}"
+    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_maj}"
+    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_maj}" || UMLI="${GIT_ORGID}"
     [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
     [[ -n $m ]] && UMLI="${UMLI}.$m"
-    LOGDIR="$PKGPATH/tests/logs"
+    if [[ $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
+      LOGDIR="$HOME/travis_log/${GIT_ORGID}${odoo_maj}.$m"
+    else
+      LOGDIR="$PKGPATH/tests/logs"
+    fi
     export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE ]] && rm -f $LOGFILE
 }
@@ -149,7 +148,7 @@ replace_web_module() {
     local l m param z w woca
     woca="$ODOO_RUNDIR/addons/_web_oca"
     w="$ODOO_RUNDIR/addons/web"
-    if [[ $odoo_ver -le 7 && -f $TEST_CONFN ]]; then
+    if [[ $odoo_maj -le 7 && -f $TEST_CONFN ]]; then
         z=""
         l=""
         param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
@@ -165,7 +164,7 @@ replace_web_module() {
             [[ -L $w ]] && rm -f $w
             [[ -d $woca ]] && mv $woca $w
         else
-            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -name "__openerp__.py"|head -n 1)
+            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/venv_odoo/*" -name "__openerp__.py"|head -n 1)
             if [[ -n $z ]]; then
                 z=$(dirname $z)
                 [[ ! -d $woca ]] && mv $w $woca
@@ -194,7 +193,7 @@ set_confn() {
         run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $TEST_CONFN"
         run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $TEST_CONFN"
     fi
-    if [[ $odoo_ver -le 10 ]]; then
+    if [[ $odoo_maj -le 10 ]]; then
         run_traced_debug "sed -e \"s|^xmlrpc_port *=.*|xmlrpc_port = $RPCPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="--xmlrpc-port=$RPCPORT"
     else
@@ -245,7 +244,7 @@ clean_old_templates() {
     m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
-        d="template_$x"
+        d="template_${x}_${odoo_maj}"
         [[ $opt_verbose -gt 1 ]] && echo "Searching for $d ..."
         if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d"; then
           run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
@@ -369,7 +368,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug" \
-        "(C) 2015-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -394,7 +393,7 @@ if [[ -n $opt_conf ]]; then
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
     check_path_n_branch "$odoo_root" "$opt_branch"
-    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -not -path "*/venv_odoo/*" -name $opt_modules|head -n1)
     if [[ -n $opt_odir ]]; then
       PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
       PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
@@ -420,10 +419,10 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID")
     [[ -n $opt_modules && $opt_modules == $(basename $PWD) ]] && opt_dir="$PWD"
-    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -name $opt_modules)
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(build_odoo_param PKGPATH "./")
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
-    PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
+    PKGPATH="$opt_odir"
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
     CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID")
@@ -442,7 +441,8 @@ else
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 fi
 [[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
-odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+[[ $REPOSNAME == "addons" ]] && REPOSNAME="OCB"
+odoo_maj=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
 script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
@@ -499,7 +499,7 @@ if [[ $opt_test -ne 0 ]]; then
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
     TEMPLATE="template_${UDI}"
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
-    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_ver}" && drop_db=0
+    [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
     [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
@@ -542,8 +542,8 @@ if [[ -n "$opt_modules" ]]; then
         fi
         OPTS="-i $opt_modules"
         OPTDB=""
-        [[ $opt_test -ne 0 && $odoo_ver -gt 6 ]] && OPTS="$OPTS --test-enable"
-        [[ $opt_test -eq 0 && $odoo_ver -eq 6 ]] && OPTS="$OPTS --test-disable"
+        [[ $opt_test -ne 0 && $odoo_maj -gt 6 ]] && OPTS="$OPTS --test-enable"
+        [[ $opt_test -eq 0 && $odoo_maj -eq 6 ]] && OPTS="$OPTS --test-disable"
     else
         check_for_modules
         OPTSIU="$OPTI $OPTU"
@@ -608,7 +608,7 @@ fi
 if [[ $opt_stop -gt 0 ]]; then
     [[ $opt_dae -ne 0 ]] && OPTS="$OPTS --pidfile=$LOGDIR/odoo.pid" || OPTS="$OPTS --stop-after-init"
     if [[ $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
-        [[ $opt_keep -ne 0 && $opt_test -ne 0 && $odoo_ver -lt 12 ]] && OPTS="$OPTS --test-commit"
+        [[ $opt_keep -ne 0 && $opt_test -ne 0 && $odoo_maj -lt 12 ]] && OPTS="$OPTS --test-commit"
     fi
 fi
 [[ $opt_stop -ne 0 || $opt_dae -ne 0 ]] && stop_bg_process
@@ -683,9 +683,9 @@ if [[ $opt_touch -eq 0 ]]; then
                     [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
                 fi
                 if [[ $opt_force -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                    [[ $odoo_ver -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                    [[ $odoo_ver -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
-                    [[ $odoo_ver -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
+                    [[ $odoo_maj -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
+                    [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
+                    [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
                     run_traced "$cmd"
                 fi
             fi
