@@ -612,6 +612,7 @@ class PleaseCwd(object):
                 sts = self.assure_doc_dirs(pkgtype="odoo")
                 if sts:
                     return sts
+                please.merge_test_result()
                 odoo_major_version = int(branch.split(".")[0])
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if please.opt_args.oca:
@@ -630,7 +631,6 @@ class PleaseCwd(object):
                         args.append("-R")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
-                    please.merge_test_result()
                     self.do_clean()
                 return sts
         elif (

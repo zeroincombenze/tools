@@ -4,7 +4,9 @@
 * [FIX] odoo_translation.py: case correction
 * [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
 * [FIX] gen_readme.py: Odoo repository documentation
-+ [FIX[ please docs: count assertions
+* [FIX] gen_readme.py: thumbsnail figure
+* [FIX] please docs: count assertions
+* [FIX] please test: switch -K --no-ext-test
 
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~

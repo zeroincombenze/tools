@@ -137,11 +137,11 @@ class RegressionTest:
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[7],
+            stdout.split("\n")[8],
             ".*/python .*/gen_readme.py -b 12.0 -f -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[8],
+            stdout.split("\n")[9],
             ".*/python .*/gen_readme.py -b 12.0 -f -n -I",
             msg="Bash command not found in stdout")
         self.assertIn("git add ./",
@@ -269,11 +269,11 @@ class RegressionTest:
             ".*run_odoo_debug.py",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[3],
+            stdout.split("\n")[4],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[5],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
         self.assertMatch(
@@ -301,11 +301,11 @@ class RegressionTest:
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[3],
+            stdout.split("\n")[4],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[5],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
 

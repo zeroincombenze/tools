@@ -178,7 +178,7 @@ class PleaseZ0bug(object):
             args.append(please.opt_args.database)
         if please.opt_args.force:
             args.append("-f")
-        if hasattr(please, "no_ext_test") and please.no_ext_test:
+        if please.opt_args.no_ext_test:
             args.append("-K")
         if please.opt_args.keep:
             args.append("-k")

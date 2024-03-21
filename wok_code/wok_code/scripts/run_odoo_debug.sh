@@ -598,11 +598,13 @@ if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 ||
     fi
 fi
 
+
 ext_test=""
+echo "opt_nox=$opt_nox"
 if [[ $opt_nox -eq 0 && $opt_test -ne 0 && -d $PKGPATH/tests/concurrent_test ]]; then
     ext_test=$(ls -1 $PKGPATH/tests/concurrent_test/|grep -E "^test_.*.py$"|head -n1)
 fi
-[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test wil be executed\e[0m"
+[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test will be executed\e[0m"
 [[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
 
 if [[ $opt_stop -gt 0 ]]; then
