@@ -1,6 +1,5 @@
-
 ================
-odoo_score 2.0.6
+odoo_score 2.0.7
 ================
 
 
@@ -9,83 +8,38 @@ odoo_score 2.0.6
 
 
 
-
 Overview
 ========
 
+Odoo supercore
+
+odoo_score is a library that extends the odoo orm functionality and makes available
+a simple odoo shell even for older Odoo version.
+
+Regression tests of this package do not guarantee full features coverage.
+In order to complete all tests, it required to run test of the
+Odoo module test_odoo_score-* in repository
+`zerobug_test <https://github.com/zeroincombenze/zerobug-test.git>`__
 
 
-odoo_shell
-----------
-
-Odoo shell is a simple line command shell to manager Odoo database using the internal Odoo functions.
-
-
-
-|
-
-Usage
-=====
-
-
-
-odoo_shell usage
-----------------
-
-::
-
-    usage: odoo_shell.py [-h] [-A python_name] [-c file] [-d file] [-n] [-q] [-V]
-                         [-v] [-w file] [-z name] [-1 PARAM_1] [-2 PARAM_2]
-                         [-3 PARAM_3] [-4 PARAM_4] [-5 PARAM_5] [-6 PARAM_6]
-
-    Odoo test environment
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -A python_name, --action python_name
-                            internal action to execute
-      -c file, --config file
-                            configuration command file
-      -d file, --dbname file
-                            DB name to connect
-      -n, --dry-run         do nothing (dry-run)
-      -q, --quiet           silent mode
-      -V, --version         show program's version number and exit
-      -v, --verbose         verbose mode
-      -w file, --src-config file
-                            Source DB configuration file
-      -z name, --src-db_name name
-                            Source database name
-      -1 PARAM_1, --param-1 PARAM_1
-                            value to pass to called function
-      -2 PARAM_2, --param-2 PARAM_2
-                            value to pass to called function
-      -3 PARAM_3, --param-3 PARAM_3
-                            value to pass to called function
-      -4 PARAM_4, --param-4 PARAM_4
-                            value to pass to called function
-      -5 PARAM_5, --param-5 PARAM_5
-                            value to pass to called function
-      -6 PARAM_6, --param-6 PARAM_6
-                            value to pass to called function
-
-
-
-|
-|
 
 Getting started
 ===============
 
 
-Installation
-------------
+Prerequisites
+-------------
 
-Zeroincombenze tools require:
+Zeroincombenze tools requires:
 
 * Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+
+* python 2.7+, some tools require python 3.6+, best python 3.8+
 * bash 5.0+
+
+
+
+Installation
+------------
 
 Stable version via Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,18 +48,17 @@ Stable version via Python Package
 
     pip install odoo_score
 
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
+
 
 
 Upgrade
@@ -116,22 +69,92 @@ Stable version via Python Package
 
 ::
 
-    pip install odoo_score -U
-
-|
+    pip install --upgrade odoo_score
 
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    cd $HOME
-    ./install_tools.sh -U
+    cd ./tools
+    ./install_tools.sh -pUT
     source $HOME/devel/activate_tools
 
 
-|
-|
+
+ChangeLog History
+-----------------
+
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_workers: no automatic discover for odoo multi
+
+2.0.7 (2024-02-05)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] set_workers refactoring
+
+2.0.6 (2023-04-16)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Import class models.Model
+
+2.0.5 (2023-03-23)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: moved to package wok_code
+
+2.0.4 (2023-01-13)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug.sh: test creates log
+
+2.0.3 (2022-11-11)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
+
+2.0.2 (2022-10-20)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: test function improvements
+* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
+
+2.0.1.1 (2022-10-13)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: python stub
+* [FIX] run_odoo_debug: crash in sime rare cases
+
+2.0.1 (2022-10-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] stable version
+
+2.0.0.3 (2022-10-05)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: test via pycharm
+* [FIX] run_odoo_debug: concurrent tests
+
+2.0.0.2 (2022-09-22)
+~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odo_debug: test with random rpcport for multiple tests
+* [IMP] odoo_shell.py: new actions
+
+2.0.0.1 (2022-09-07)
+~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odo_debug with debug
+* [IMP] run_odoo_debug: experimental debug via pycharm
+
+2.0.0 (2022-08-10)
+~~~~~~~~~~~~~~~~~~
+
+* [REF] Stable version
+
+
 
 Credits
 =======
@@ -142,20 +165,21 @@ Copyright
 SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-Contributors
-------------
-
+* `Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>`__
 
 
 |
-
-This module is part of tools project.
-
-Last Update / Ultimo aggiornamento: 2023-05-21
+|
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
@@ -167,10 +191,10 @@ Last Update / Ultimo aggiornamento: 2023-05-21
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -200,5 +224,3 @@ Last Update / Ultimo aggiornamento: 2023-05-21
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

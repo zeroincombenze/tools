@@ -5,6 +5,10 @@ ChangeLog History
 =================
 
 
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_workers: no automatic discover for odoo multi
+
 2.0.7 (2024-02-05)
 ~~~~~~~~~~~~~~~~~~
 
