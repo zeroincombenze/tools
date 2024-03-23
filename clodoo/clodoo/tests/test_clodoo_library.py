@@ -12,10 +12,7 @@
 import os
 import sys
 
-# import time
 from configparser import ConfigParser
-
-# from datetime import datetime
 
 from zerobug import z0test
 
@@ -35,10 +32,10 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
+    # def __init__(self, zarlib):
+    #     self.Z = zarlib
 
-    def setup(self, z0ctx):
+    def setup(self):
         # print("Connection test: it works only if odoo instances are running!")
         os.system(os.path.join(os.path.dirname(__file__), "before_test.sh"))
         self.test_data_dir = os.path.join(self.Z.testdir, 'res')
@@ -94,28 +91,27 @@ class RegressionTest:
                 )
             )
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         sts = 0
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             database = self.version_default[odoo_version]["db_name"]
             confn = os.path.join(self.test_data_dir, 'odoo%s.conf' % odoo_major)
-            if not z0ctx.get('dry_run', False):
-                config = ConfigParser()
-                config["options"] = {}
-                config["options"].update(self.version_default[odoo_version])
-                config.write(open(confn, "w"))
+
+            config = ConfigParser()
+            config["options"] = {}
+            config["options"].update(self.version_default[odoo_version])
+            config.write(open(confn, "w"))
             uid, ctx = clodoo.oerp_set_env(ctx={}, confn=confn, db=database)
             self.version_ctx[odoo_version] = ctx
-            sts += self.Z.test_result(
-                z0ctx,
-                "Connect %s/%s (pypi: %s)" % (database, odoo_version, ctx["pypi"]),
+            self.assertTrue(
                 uid > 0,
-                True,
-            )
+                msg_info="Connect %s/%s (pypi: %s)" % (database,
+                                                       odoo_version,
+                                                       ctx["pypi"]))
         return sts
 
-    def test_02(self, z0ctx):
+    def test_02(self):
         sts = 0
         resource = "res.partner"
         partner_name = "Test clodoo"
@@ -125,117 +121,105 @@ class RegressionTest:
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             database = self.version_default[odoo_version]["db_name"]
-            ids = []
-            if not z0ctx.get('dry_run', False):
-                ids = clodoo.searchL8(self.version_ctx[odoo_version], resource, [])
-            sts += self.Z.test_result(
-                z0ctx, "(%s) SearchL8 %s" % (odoo_version, database), len(ids) > 0, True
-            )
+            ids = clodoo.searchL8(self.version_ctx[odoo_version], resource, [])
+            self.assertTrue(
+                len(ids) > 0,
+                msg_info="(%s) SearchL8 %s" % (odoo_version, database))
 
-            id = False
-            if not z0ctx.get('dry_run', False):
-                id = clodoo.createL8(
-                    self.version_ctx[odoo_version], resource, {"name": partner_name}
-                )
-            sts += self.Z.test_result(
-                z0ctx, "    CreateL8 %s" % database, len(ids) > 0, True
+            id = clodoo.createL8(
+                self.version_ctx[odoo_version], resource, {"name": partner_name}
             )
+            self.assertTrue(id > 0, msg_info="    CreateL8 %s" % database)
+
             ids = clodoo.searchL8(
                 self.version_ctx[odoo_version], resource, [("id", "=", id)]
             )
-            sts += self.Z.test_result(
-                z0ctx, "    SearchL8 %s" % database, len(ids) > 0, True
-            )
+            self.assertTrue(len(ids) > 0, msg_info="    SearchL8 %s" % database)
 
-            partner = None
-            if not z0ctx.get('dry_run', False):
-                partner = clodoo.browseL8(self.version_ctx[odoo_version], resource, id)
-            sts += self.Z.test_result(
-                z0ctx,
-                "    BrowseL8 %s" % database,
+            partner = clodoo.browseL8(self.version_ctx[odoo_version], resource, id)
+            self.assertEqual(
                 partner.name if partner else partner,
                 partner_name,
+                msg_info="    BrowseL8 %s" % database,
             )
 
-            if not z0ctx.get('dry_run', False):
-                clodoo.writeL8(
-                    self.version_ctx[odoo_version],
-                    resource,
-                    id,
-                    {"name": partner_updated},
-                )
-            sts += self.Z.test_result(
-                z0ctx,
-                "    WriteL8 %s" % database,
+            clodoo.writeL8(
+                self.version_ctx[odoo_version],
+                resource,
+                id,
+                {"name": partner_updated},
+            )
+            self.assertEqual(
                 clodoo.browseL8(self.version_ctx[odoo_version], resource, id).name,
                 partner_updated,
+                msg_info="    WriteL8 %s" % database,
             )
 
-            if not z0ctx.get('dry_run', False):
-                clodoo.unlinkL8(self.version_ctx[odoo_version], resource, id)
-                ids = clodoo.searchL8(
-                    self.version_ctx[odoo_version], resource, [("id", "=", id)]
-                )
-            sts += self.Z.test_result(z0ctx, "    UnlinkL8 %s" % database, ids, [])
+            clodoo.unlinkL8(self.version_ctx[odoo_version], resource, id)
+            ids = clodoo.searchL8(
+                self.version_ctx[odoo_version], resource, [("id", "=", id)]
+            )
+            self.assertEqual(
+                ids,
+                [],
+                msg_info="    UnlinkL8 %s" % database,
+            )
 
-            if not z0ctx.get('dry_run', False):
+            ids = clodoo.searchL8(
+                self.version_ctx[odoo_version],
+                "res.lang",
+                [("code", "=", lang)]
+            )
+            if not ids:
                 ids = clodoo.searchL8(
-                    self.version_ctx[odoo_version], "res.lang", [("code", "=", lang)]
+                    self.version_ctx[odoo_version],
+                    "res.lang",
+                    [("code", "=", lang), ("active", "=", False)],
                 )
-                if not ids:
-                    ids = clodoo.searchL8(
-                        self.version_ctx[odoo_version],
-                        "res.lang",
-                        [("code", "=", lang), ("active", "=", False)],
-                    )
-                if odoo_major >= 16:
-                    id = clodoo.createL8(
-                        self.version_ctx[odoo_version],
-                        "base.language.install",
-                        {
-                            "lang_ids": ids,
-                            "overwrite": False,
-                        },
-                    )
-                else:
-                    id = clodoo.createL8(
-                        self.version_ctx[odoo_version],
-                        "base.language.install",
-                        {
-                            "lang": lang,
-                            "overwrite": False,
-                        },
-                    )
-                act = clodoo.executeL8(
+            if odoo_major >= 16:
+                id = clodoo.createL8(
                     self.version_ctx[odoo_version],
                     "base.language.install",
-                    "lang_install",
+                    {
+                        "lang_ids": ids,
+                        "overwrite": False,
+                    },
+                )
+            else:
+                id = clodoo.createL8(
+                    self.version_ctx[odoo_version],
+                    "base.language.install",
+                    {
+                        "lang": lang,
+                        "overwrite": False,
+                    },
+                )
+            act = clodoo.executeL8(
+                self.version_ctx[odoo_version],
+                "base.language.install",
+                "lang_install",
+                [id],
+            )
+            self.assertTrue(isinstance(act, dict),
+                            msg_info="    lang_install(%s)" % ids)
+
+            if odoo_major < 10:
+                id = clodoo.createL8(
+                    self.version_ctx[odoo_version],
+                    "base.update.translations",
+                    {
+                        "lang": lang,
+                    },
+                )
+                act = clodoo.executeL8(
+                    self.version_ctx[odoo_version],
+                    "base.update.translations",
+                    "act_update",
                     [id],
                 )
-                sts += self.Z.test_result(
-                    z0ctx, "    lang_install(%s)" % ids, isinstance(act, dict), True
-                )
+                self.assertTrue(isinstance(act, dict),
+                                msg_info="    lang.act_update(%s)" % ids)
 
-                if odoo_major < 10:
-                    id = clodoo.createL8(
-                        self.version_ctx[odoo_version],
-                        "base.update.translations",
-                        {
-                            "lang": lang,
-                        },
-                    )
-                    act = clodoo.executeL8(
-                        self.version_ctx[odoo_version],
-                        "base.update.translations",
-                        "act_update",
-                        [id],
-                    )
-                    sts += self.Z.test_result(
-                        z0ctx,
-                        "    lang.act_update(%s)" % ids,
-                        isinstance(act, dict),
-                        True,
-                    )
         return sts
 
 
@@ -247,5 +231,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
