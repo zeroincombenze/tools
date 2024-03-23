@@ -39,7 +39,7 @@ and makes available a simple odoo shell.
     package_data={"": [
         "scripts/setup.info",
         "./set_workers",
-        "./odoo-mgr.sh",
+        "./odooctl",
     ]},
     entry_points={
         "console_scripts": [
