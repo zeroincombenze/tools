@@ -27,7 +27,7 @@ except ImportError:
 
 __version__ = "2.0.9"
 
-ODOO_VERSION_TO_TEST = ("16.0", "12.0", "10.0", "8.0", "7.0")
+ODOO_VERSION_TO_TEST = ("12.0", "10.0", "8.0")
 
 
 def version():
@@ -39,7 +39,8 @@ class RegressionTest:
         self.Z = zarlib
 
     def setup(self, z0ctx):
-        print("Connection test: it works only if odoo instances are running!")
+        # print("Connection test: it works only if odoo instances are running!")
+        os.system(os.path.join(os.path.dirname(__file__), "before_test.sh"))
         self.test_data_dir = os.path.join(self.Z.testdir, 'res')
         if not os.path.isdir(self.test_data_dir):
             os.mkdir(self.test_data_dir)
