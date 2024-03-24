@@ -32,9 +32,6 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, zarlib):
-    #     self.Z = zarlib
-
     def setup(self):
         # print("Connection test: it works only if odoo instances are running!")
         os.system(os.path.join(os.path.dirname(__file__), "before_test.sh"))
@@ -106,14 +103,17 @@ class RegressionTest:
             self.version_ctx[odoo_version] = ctx
             self.assertTrue(
                 uid > 0,
-                msg_info="Connect %s/%s (pypi: %s)" % (database,
-                                                       odoo_version,
-                                                       ctx["pypi"]))
+                msg_info="Connect DB=%s (version=%s pypi=%s)" % (database,
+                                                                 odoo_version,
+                                                                 ctx["pypi"]))
         return sts
 
     def test_02(self):
         sts = 0
         resource = "res.partner"
+        res_lang = "res.lang"
+        res_lang_xtl = "base.language.install"
+        res_lang_upd = "base.update.translations"
         partner_name = "Test clodoo"
         partner_updated = "Test updated partner"
         lang = "en_GB"
@@ -121,26 +121,31 @@ class RegressionTest:
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             database = self.version_default[odoo_version]["db_name"]
+            margin = " " * (len(database) + len(odoo_version) + 1)
             ids = clodoo.searchL8(self.version_ctx[odoo_version], resource, [])
             self.assertTrue(
                 len(ids) > 0,
-                msg_info="(%s) SearchL8 %s" % (odoo_version, database))
+                msg_info="%s/%s> searchL8(%s)" % (database, odoo_version, resource))
 
             id = clodoo.createL8(
                 self.version_ctx[odoo_version], resource, {"name": partner_name}
             )
-            self.assertTrue(id > 0, msg_info="    CreateL8 %s" % database)
+            self.assertTrue(
+                id > 0,
+                msg_info="%s> createL8(%s, ...)" % (margin, resource))
 
             ids = clodoo.searchL8(
                 self.version_ctx[odoo_version], resource, [("id", "=", id)]
             )
-            self.assertTrue(len(ids) > 0, msg_info="    SearchL8 %s" % database)
+            self.assertTrue(
+                len(ids) > 0,
+                msg_info="%s> searchL8(%s, %d)" % (margin, resource, id))
 
             partner = clodoo.browseL8(self.version_ctx[odoo_version], resource, id)
             self.assertEqual(
                 partner.name if partner else partner,
                 partner_name,
-                msg_info="    BrowseL8 %s" % database,
+                msg_info="%s> browseL8(%s, %d)" % (margin, resource, id)
             )
 
             clodoo.writeL8(
@@ -152,7 +157,7 @@ class RegressionTest:
             self.assertEqual(
                 clodoo.browseL8(self.version_ctx[odoo_version], resource, id).name,
                 partner_updated,
-                msg_info="    WriteL8 %s" % database,
+                msg_info="%s> writeL8(%s, %d, ...)" % (margin, resource, id)
             )
 
             clodoo.unlinkL8(self.version_ctx[odoo_version], resource, id)
@@ -162,24 +167,24 @@ class RegressionTest:
             self.assertEqual(
                 ids,
                 [],
-                msg_info="    UnlinkL8 %s" % database,
+                msg_info="%s> unlinkL8(%s, [%d])" % (margin, resource, id)
             )
 
             ids = clodoo.searchL8(
                 self.version_ctx[odoo_version],
-                "res.lang",
+                res_lang,
                 [("code", "=", lang)]
             )
             if not ids:
                 ids = clodoo.searchL8(
                     self.version_ctx[odoo_version],
-                    "res.lang",
+                    res_lang,
                     [("code", "=", lang), ("active", "=", False)],
                 )
             if odoo_major >= 16:
                 id = clodoo.createL8(
                     self.version_ctx[odoo_version],
-                    "base.language.install",
+                    res_lang_xtl,
                     {
                         "lang_ids": ids,
                         "overwrite": False,
@@ -188,7 +193,7 @@ class RegressionTest:
             else:
                 id = clodoo.createL8(
                     self.version_ctx[odoo_version],
-                    "base.language.install",
+                    res_lang_xtl,
                     {
                         "lang": lang,
                         "overwrite": False,
@@ -196,29 +201,37 @@ class RegressionTest:
                 )
             act = clodoo.executeL8(
                 self.version_ctx[odoo_version],
-                "base.language.install",
+                res_lang_xtl,
                 "lang_install",
                 [id],
             )
-            self.assertTrue(isinstance(act, dict),
-                            msg_info="    lang_install(%s)" % ids)
+            self.assertTrue(
+                isinstance(act, dict),
+                msg_info="%s> execute(%s, lang_install, %d)" % (margin,
+                                                                res_lang_xtl,
+                                                                id)
+            )
 
             if odoo_major < 10:
                 id = clodoo.createL8(
                     self.version_ctx[odoo_version],
-                    "base.update.translations",
+                    res_lang_upd,
                     {
                         "lang": lang,
                     },
                 )
                 act = clodoo.executeL8(
                     self.version_ctx[odoo_version],
-                    "base.update.translations",
+                    res_lang_upd,
                     "act_update",
                     [id],
                 )
-                self.assertTrue(isinstance(act, dict),
-                                msg_info="    lang.act_update(%s)" % ids)
+                self.assertTrue(
+                    isinstance(act, dict),
+                    msg_info="%s> execute(%s, act_update, %d)" % (margin,
+                                                                  res_lang_upd,
+                                                                  id)
+                )
 
         return sts
 

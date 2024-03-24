@@ -119,6 +119,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.9.1 (2024-03-24)
+~~~~~~~~~~~~~~~~~~~~
+
+[REF] Partial refactoring
+
 2.0.9 (2024-02-02)
 ~~~~~~~~~~~~~~~~~~
 

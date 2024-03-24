@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for port in 8172 8170 8168 8167; do
+for port in 8172 8170 8168; do
   for ctr in {11..0}; do
       ss -lt|grep 0.0.0.0:$port
       [[ $? -eq 0 ]] && break

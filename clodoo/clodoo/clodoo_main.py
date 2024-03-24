@@ -163,20 +163,25 @@ import sys
 import time
 
 # from builtins import *                                           # noqa: F403
-from builtins import input, object
 from datetime import date
 
 from future import standard_library
 from past.builtins import basestring
 
-if sys.version_info[0] == 3:
+try:
+    import odoorpc
+except ImportError:
+    raise ImportError("Package odoorpc not found!")
+if sys.version_info[0] == 2:
     try:
-        import oerplib3         # noqa: F401
+        import oerplib
     except ImportError:
-        try:
-            import odoolib
-        except ImportError:
-            raise ImportError("Package oerplib3 / odoo-client-lib not found!")
+        raise ImportError("Package oerplib not found!")
+else:
+    try:
+        import oerplib3 as oerplib
+    except ImportError:
+        raise ImportError("Package oerplib3 not found!")
 
 # from passlib.context import CryptContext
 from os0 import os0
@@ -305,11 +310,6 @@ db_msg_sp = 0
 db_msg_stack = []
 
 
-class Clodoo(object):
-    def __init__(self):
-        pass
-
-
 def version():
     return __version__
 
@@ -365,107 +365,12 @@ def open_connection(ctx):
     res = connectL8(ctx)
     if isinstance(res, basestring):
         raise RuntimeError(res)  # pragma: no cover
-    return ctx['odoo_cnx']
+    return res
 
 
 def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
-
-    def get_login_user(ctx):
-        return ctx['odoo_cnx'].env.user
-
-    def try_to_login(ctx, pwd):
-        if ctx["pypi"] == "odoorpc":
-            try:
-                ctx['odoo_cnx'].login(db=db_name, login=username, password=pwd)
-            except BaseException:
-                return False
-            user = get_login_user(ctx)
-            ctx['user_id'] = user.id
-            ctx["_pwd"] = pwd
-            return user
-        elif ctx["pypi"].startswith("oerplib"):
-            try:
-                user = ctx['odoo_cnx'].login(
-                    database=db_name, user=username, passwd=pwd
-                )
-                ctx['user_id'] = user.id
-                ctx["_pwd"] = pwd
-                return user
-            except BaseException:
-                return False
-        elif ctx["pypi"] == "odoo-client-lib":
-            connection = odoolib.Connection(ctx['odoo_cnx'], db_name, username, pwd)
-            if not connection:
-                return False
-            try:
-                connection.check_login(True)
-            except BaseException:
-                return False
-            ctx["odoo_session"] = connection
-            ctx['user_id'] = connection.user_id
-            ctx["_pwd"] = pwd
-            model = "res.users"
-            user = create_model_object(ctx, model, connection.user_id)
-            return user
-
-    msg = "do_login()"
-    debug_msg_log(ctx, ctx['level'] + 1, msg)
-    userlist = ctx['login_user'].split(',')
-    for u in ctx['login2_user'].split(','):
-        if u and u not in userlist:
-            userlist.append(u)
-    if ctx.get('lgi_user'):
-        for u in ctx['lgi_user'].split(','):
-            if u and u not in userlist:
-                userlist.insert(0, u)
-    if ctx['login_password']:
-        pwdlist = ctx['login_password'].split(',')
-    else:
-        pwdlist = []
-    if ctx['crypt_password']:
-        cryptlist = ctx['crypt_password'].split(',')
-    else:
-        cryptlist = []
-    if ctx['login2_password']:
-        for p in ctx['login2_password'].split(','):
-            if p and p not in pwdlist:
-                pwdlist.append(p)
-    if ctx['crypt2_password']:
-        for p in ctx['crypt2_password'].split(','):
-            if p and p not in cryptlist:
-                cryptlist.append(p)
-    if ctx.get('lgi_pwd', 'admin') is None:
-        ctx['lgi_pwd'] = 'admin'
-    if ctx.get('lgi_pwd', 'admin'):
-        for p in ctx.get('lgi_pwd', 'admin').split(','):
-            if p and p not in pwdlist:
-                pwdlist.insert(0, p)
-    user = False
-    db_name = get_dbname(ctx, 'login')
-    for username in userlist:
-        for pwd in cryptlist:
-            crypted = True
-            msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'], username, pwd)
-            debug_msg_log(ctx, ctx['level'] + 2, msg)
-            user = try_to_login(ctx, decrypt(pwd))
-            if user:
-                break
-
-        if not user:
-            crypted = False
-            for pwd in pwdlist:
-                msg = "do_login_%s(%s,$1$%s)" % (
-                    ctx['svc_protocol'],
-                    username,
-                    crypt(pwd),
-                )
-                debug_msg_log(ctx, ctx['level'] + 2, msg)
-                user = try_to_login(ctx, pwd)
-                if user:
-                    break
-        if user:
-            break
+    user = ctx["self"].do_login()
     if not user:
         if not ctx.get('no_warning_pwd', False):
             os0.wlog("!DB={}: invalid user/pwd".format(tounicode(ctx['db_name'])))
@@ -474,56 +379,6 @@ def do_login(ctx):
         ctx = init_user_ctx(ctx, user)
         msg = ident_user(ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
-    if ctx['set_passepartout']:
-        vals = {}
-        if user.login != ctx['login_user']:
-            vals['login'] = ctx['login_user']
-        if ctx['crypt_password'] and crypted and pwd != ctx['crypt_password']:
-            vals['password'] = decrypt(ctx['crypt_password'])
-        elif (
-            ctx['crypt_password']
-            and not crypted
-            and pwd != decrypt(ctx['crypt_password'])
-        ):
-            vals['password'] = decrypt(ctx['crypt_password'])
-        elif (
-            ctx['login_password'] and crypted and decrypt(pwd) != ctx['login_password']
-        ):
-            vals['password'] = ctx['login_password']
-        elif ctx['login_password'] and not crypted and pwd != ctx['login_password']:
-            vals['password'] = ctx['login_password']
-        if ctx['oe_version'] != '6.1':
-            if (ctx['with_demo'] and user.email != ctx['def_email']) or (
-                not ctx['with_demo'] and user.email != ctx['zeroadm_mail']
-            ):
-                vals['email'] = set_some_values(
-                    ctx, None, 'email', user.email, model='res.users'
-                )
-        if vals:
-            if vals.get('password'):
-                # ctx['password_crypt'] = CryptContext(
-                #     ['pbkdf2_sha512']).encrypt(vals.get('new_password'))
-                if 'password_crypt' in vals:
-                    del vals['password_crypt']
-            try:
-                writeL8(ctx, 'res.users', user.id, vals)
-                if not ctx.get('no_warning_pwd', False):
-                    os0.wlog(
-                        "DB=%s: updated user/pwd/mail %s to %s"
-                        % (
-                            tounicode(ctx['db_name']),
-                            tounicode(username),
-                            tounicode(ctx['login_user']),
-                        )
-                    )
-                    os0.wlog("You should restart the Odoo service")
-            except BaseException:
-                os0.wlog(
-                    "!!Passpartout user %s/%s write error!"
-                    % (tounicode(username), tounicode(ctx['login_user']))
-                )
-    if user:
-        ctx['_cr'] = psql_connect(ctx)
     return user
 
 
@@ -535,106 +390,101 @@ def oerp_set_env(
     user=None,
     pwd=None,
     lang=None,
-    ctx=None,
+    ctx={},
     http_port=None,
 ):
-    D_LIST = (
-        'ena_inquire',
-        'caller',
-        'level',
-        'dry_run',
-        'multi_user',
-        'set_passepartout',
-        'no_login',
-    )
-    P_LIST = (
-        'db_host',
-        'db_port',
-        'db_name',
-        'db_user',
-        'db_password',
-        'admin_passwd',
-        'login_user',
-        'login_password',
-        'crypt_password',
-        'login2_user',
-        'login2_password',
-        'crypt2_password',
-        'svc_protocol',
-        'oe_version',
-        'http_port',
-        "xmlrpc_port",
-        'lang',
-        'psycopg2',
-    )
-    DEFLT = default_conf(ctx)
+    # D_LIST = (
+    #     'ena_inquire',
+    #     'caller',
+    #     'level',
+    #     'dry_run',
+    #     'multi_user',
+    #     'set_passepartout',
+    #     'no_login',
+    # )
+    # P_LIST = (
+    #     'db_host',
+    #     'db_port',
+    #     'db_name',
+    #     'db_user',
+    #     'db_password',
+    #     'admin_passwd',
+    #     'login_user',
+    #     'login_password',
+    #     'crypt_password',
+    #     'login2_user',
+    #     'login2_password',
+    #     'crypt2_password',
+    #     'svc_protocol',
+    #     'oe_version',
+    #     'http_port',
+    #     "xmlrpc_port",
+    #     'lang',
+    #     'psycopg2',
+    # )
+    # DEFLT = default_conf(ctx)
 
-    def oerp_env_fill(
-        db=None,
-        xmlrpc_port=None,
-        oe_version=None,
-        user=None,
-        pwd=None,
-        lang=None,
-        ctx=None,
-        inquire=None,
-        http_port=None,
-    ):
-        ctx = ctx or {}
-        for p in D_LIST + P_LIST:
-            if p == 'db_name' and db:
-                ctx[p] = db
-            elif p == 'login_user' and user:
-                ctx[p] = user
-            elif p == 'login_password' and pwd:
-                ctx[p] = pwd
-            elif p == 'http_port' and http_port:
-                if isinstance(http_port, basestring):
-                    ctx[p] = int(http_port)
-                else:
-                    ctx[p] = http_port
-            elif p == 'xmlrpc_port' and xmlrpc_port and not http_port:
-                if isinstance(xmlrpc_port, basestring):
-                    ctx[p] = int(xmlrpc_port)
-                else:
-                    ctx[p] = xmlrpc_port
-            elif p == 'oe_version' and oe_version and oe_version != '*':
-                ctx[p] = oe_version
-                if not ctx.get('odoo_vid'):
-                    ctx['odoo_vid'] = ctx['oe_version']
-            elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
-                if ctx.get('oe_version') in ('6.1', '7.0', '8.0'):
-                    ctx[p] = 'xmlrpc'
-                elif ctx.get('oe_version'):
-                    ctx[p] = 'jsonrpc'
-            elif p == 'lang' and lang:
-                ctx[p] = lang
-            elif p not in ctx and p in DEFLT:
-                ctx[p] = DEFLT[p]
-            elif p not in ctx and inquire:
-                ctx[p] = input('%s[def=%s]? ' % (p, ctx[p]))
-        if os.isatty(0):
-            ctx['run_daemon'] = False
-        else:
-            ctx['run_daemon'] = True
-        return ctx
+    # def oerp_env_fill(
+    #     db=None,
+    #     xmlrpc_port=None,
+    #     oe_version=None,
+    #     user=None,
+    #     pwd=None,
+    #     lang=None,
+    #     ctx=None,
+    #     inquire=None,
+    #     http_port=None,
+    # ):
+    #     ctx = ctx or {}
+    #     for p in D_LIST + P_LIST:
+    #         if p == 'db_name' and db:
+    #             ctx[p] = db
+    #         elif p == 'login_user' and user:
+    #             ctx[p] = user
+    #         elif p == 'login_password' and pwd:
+    #             ctx[p] = pwd
+    #         elif p == 'http_port' and http_port:
+    #             if isinstance(http_port, basestring):
+    #                 ctx[p] = int(http_port)
+    #             else:
+    #                 ctx[p] = http_port
+    #         elif p == 'xmlrpc_port' and xmlrpc_port and not http_port:
+    #             if isinstance(xmlrpc_port, basestring):
+    #                 ctx[p] = int(xmlrpc_port)
+    #             else:
+    #                 ctx[p] = xmlrpc_port
+    #         elif p == 'oe_version' and oe_version and oe_version != '*':
+    #             ctx[p] = oe_version
+    #             if not ctx.get('odoo_vid'):
+    #                 ctx['odoo_vid'] = ctx['oe_version']
+    #         elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
+    #             if ctx.get('oe_version') in ('6.1', '7.0', '8.0'):
+    #                 ctx[p] = 'xmlrpc'
+    #             elif ctx.get('oe_version'):
+    #                 ctx[p] = 'jsonrpc'
+    #         elif p == 'lang' and lang:
+    #             ctx[p] = lang
+    #         elif p not in ctx and p in DEFLT:
+    #             ctx[p] = DEFLT[p]
+    #         elif p not in ctx and inquire:
+    #             ctx[p] = input('%s[def=%s]? ' % (p, ctx[p]))
+    #     if os.isatty(0):
+    #         ctx['run_daemon'] = False
+    #     else:
+    #         ctx['run_daemon'] = True
+    #     return ctx
 
-    ctx = set_base_ctx(ctx)
-    if confn:
-        ctx['conf_fn'] = confn
-        if 'conf_fns' in ctx:
-            del ctx['conf_fns']
-    ctx = read_config(ctx)
-    ctx = oerp_env_fill(
-        db=db,
-        xmlrpc_port=xmlrpc_port,
-        user=user,
-        pwd=pwd,
-        oe_version=oe_version or ctx.get('oe_version'),
-        lang=lang,
-        ctx=ctx,
-        http_port=http_port,
-    )
+    # ctx = set_base_ctx(ctx)
+    ctx.update({
+        "db": db,
+        "xmlrpc_port": xmlrpc_port,
+        "odoo_version": oe_version,
+        "user": user,
+        "pwd": pwd,
+        "lang": lang,
+        "http_port": http_port,
+        "confn": confn,
+    })
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
