@@ -298,6 +298,10 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
         if "lst" not in cache[hash_name]:
             cache[hash_name]["expire"] = (
                 datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+        else:
+            cache = cache_validate_repos(cache, git_org, branch)
+    else:
+        cache = cache_validate_repos(cache, git_org, branch)
     return cache
 
 

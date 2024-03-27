@@ -3,6 +3,8 @@
 """
 Create map of Odoo modules
 """
+from __future__ import print_function, unicode_literals
+from past.builtins import long
 import os
 import os.path as pth
 import sys
@@ -982,15 +984,15 @@ class OdooTranslation(object):
                 print("Language %s not installed: installing it now" % lang)
             id = clodoo.createL8(ctx, "base.language.install", vals)
             clodoo.executeL8(ctx, "base.language.install", "lang_install", [id])
-            if not isinstance(ctx["user_id"], int):
+            if not isinstance(ctx["user"].id, (int, long)):
                 if (
                     self.opt_args.odoo_branch
                     and int(self.opt_args.odoo_branch.split(".")[0]) >= 12
                 ):
-                    ctx["user_id"] = 2
+                    ctx["user"].id = 2
                 else:
-                    ctx["user_id"] = 1
-            clodoo.writeL8(ctx, "res.users", ctx["user_id"], {"lang": lang})
+                    ctx["user"].id = 1
+            clodoo.writeL8(ctx, "res.users", ctx["user"].id, {"lang": lang})
             force = True
         elif self.opt_args.verbose:
             print("Found language %s" % lang)
@@ -1287,6 +1289,7 @@ def main(cli_args=None):
     sts = 0
     if odoo_tnxl.opt_args.file_xlsx or odoo_tnxl.opt_args.target_path:
         odoo_tnxl.build_dict()
+        pass
     else:
         print("Invalid parameters: please set xlsx file or Odoo path")
         return 1
