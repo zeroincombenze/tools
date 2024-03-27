@@ -12,7 +12,7 @@ import argparse
 import ast
 from python_plus import unicodes
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 
 
 class OdooMap(object):
@@ -159,4 +159,5 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 

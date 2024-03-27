@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.7
+__version__=2.0.8
 
 OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          t         V           v)
 OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_ltime opt_version opt_verbose)
@@ -356,4 +356,5 @@ if [[ -n "$confn" && $opt_dry_run -eq 0 ]]; then
     echo "You should restart odoo with a command like this one"
     echo "sudo systemctl restart odoo"
 fi
+
 

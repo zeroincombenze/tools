@@ -1,4 +1,4 @@
-2.0.7.1 (2024-02-36)
+2.0.8 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] set_workers: no automatic discover for odoo multi
