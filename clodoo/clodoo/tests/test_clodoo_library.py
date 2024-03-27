@@ -57,7 +57,7 @@ class RegressionTest:
                     ("db_template", "template1"),
                     ("db_user", "odoo%d"),
                     ("login_user", "admin"),
-                    ("password", "admin"),
+                    ("login_password", "admin"),
                     ("db_name", "test%d"),
                     (
                         "xmlrpc_port" if odoo_major < 10 else "http_port",
@@ -66,7 +66,7 @@ class RegressionTest:
                         ),
                     ),
                     ("psycopg2", "1"),
-                    ("svc_protocol", "xmlrpc" if odoo_major < 10 else "jsonrpc"),
+                    ("protocol", "xmlrpc" if odoo_major < 10 else "jsonrpc"),
                     ("admin_password", "admin"),
                     ("tmp_database", "test_clodoo_%d"),
                     ("admin_password", "admin"),
@@ -89,7 +89,6 @@ class RegressionTest:
             )
 
     def test_01(self):
-        sts = 0
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             database = self.version_default[odoo_version]["db_name"]
@@ -97,7 +96,11 @@ class RegressionTest:
 
             config = ConfigParser()
             config["options"] = {}
-            config["options"].update(self.version_default[odoo_version])
+            config["options"].update({
+                k: v
+                for (k, v) in self.version_default[odoo_version].items()
+                if k not in ("db_name", "protocol")
+            })
             config.write(open(confn, "w"))
             uid, ctx = clodoo.oerp_set_env(ctx={}, confn=confn, db=database)
             self.version_ctx[odoo_version] = ctx
@@ -106,17 +109,15 @@ class RegressionTest:
                 msg_info="Connect DB=%s (version=%s pypi=%s)" % (database,
                                                                  odoo_version,
                                                                  ctx["pypi"]))
-        return sts
 
     def test_02(self):
-        sts = 0
         resource = "res.partner"
-        res_lang = "res.lang"
-        res_lang_xtl = "base.language.install"
-        res_lang_upd = "base.update.translations"
         partner_name = "Test clodoo"
         partner_updated = "Test updated partner"
+        res_lang = "res.lang"
         lang = "en_GB"
+        res_lang_xtl = "base.language.install"
+        res_lang_upd = "base.update.translations"
 
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
@@ -233,7 +234,61 @@ class RegressionTest:
                                                                   id)
                 )
 
-        return sts
+    def test_03(self):
+        for odoo_version in ODOO_VERSION_TO_TEST:
+            odoo_major = int(odoo_version.split(".")[0])
+            database = self.version_default[odoo_version]["db_name"]
+            confn = os.path.join(self.test_data_dir, 'odoo%s.conf' % odoo_major)
+
+            odoo = clodoo.Clodoo(confn=confn, db_name=database)
+            self.version_ctx[odoo_version] = odoo
+            self.assertTrue(
+                odoo,
+                msg_info="Connect DB=%s (version=%s pypi=%s)" % (database,
+                                                                 odoo_version,
+                                                                 odoo.pypi))
+
+    def test_04(self):
+        resource = "res.partner"
+        partner_name = "Test clodoo"
+        partner_updated = "Test updated partner"
+
+        for odoo_version in ODOO_VERSION_TO_TEST:
+            odoo_major = int(odoo_version.split(".")[0])
+            if odoo_major < 10:
+                continue
+            database = self.version_default[odoo_version]["db_name"]
+            margin = " " * (len(database) + len(odoo_version) + 1)
+            Partner = self.version_ctx[odoo_version].env[resource]
+            ids = Partner.search([])
+            self.assertTrue(
+                len(ids) > 0,
+                msg_info="%s/%s> %s.search()" % (database, odoo_version, resource))
+
+            id = Partner.create({"name": partner_name})
+            self.assertTrue(
+                id > 0,
+                msg_info="%s> %s.create(...)" % (margin, resource))
+
+            ids = Partner.search([("id", "=", id)])
+            self.assertTrue(
+                len(ids) > 0,
+                msg_info="%s> %ssearch(%d)" % (margin, resource, id))
+
+            Partner.write(id, {"name": partner_updated})
+            self.assertEqual(
+                Partner.browse(id).name,
+                partner_updated,
+                msg_info="%s> %s.write(%d, ...)" % (margin, resource, id)
+            )
+
+            Partner.unlink(id)
+            ids = Partner.search([("id", "=", id)])
+            self.assertEqual(
+                ids,
+                [],
+                msg_info="%s> %s.unlink(%d)" % (margin, resource, id)
+            )
 
 
 #

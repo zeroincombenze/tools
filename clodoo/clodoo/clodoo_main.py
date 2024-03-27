@@ -168,20 +168,20 @@ from datetime import date
 from future import standard_library
 from past.builtins import basestring
 
-try:
-    import odoorpc
-except ImportError:
-    raise ImportError("Package odoorpc not found!")
-if sys.version_info[0] == 2:
-    try:
-        import oerplib
-    except ImportError:
-        raise ImportError("Package oerplib not found!")
-else:
-    try:
-        import oerplib3 as oerplib
-    except ImportError:
-        raise ImportError("Package oerplib3 not found!")
+# try:
+#     import odoorpc
+# except ImportError:
+#     raise ImportError("Package odoorpc not found!")
+# if sys.version_info[0] == 2:
+#     try:
+#         import oerplib
+#     except ImportError:
+#         raise ImportError("Package oerplib not found!")
+# else:
+#     try:
+#         import oerplib3 as oerplib
+#     except ImportError:
+#         raise ImportError("Package oerplib3 not found!")
 
 # from passlib.context import CryptContext
 from os0 import os0
@@ -199,6 +199,7 @@ try:
     from clodoo.clodoocore import model_has_company     # noqa: F401
     from clodoo.clodoocore import put_model_alias       # noqa: F401
     from clodoo.clodoocore import (                     # noqa: F401
+        Clodoo,
         createL8,
         cvt_from_ver_2_ver,
         eval_value,
@@ -338,7 +339,7 @@ def print_hdr_msg(ctx):
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
     msg = "Configuration from"
-    for f in ctx.get('conf_fns'):
+    for f in ctx.get('confns'):
         msg = msg + ' ' + f
     msg_log(ctx, ctx['level'], msg)
 
@@ -393,98 +394,18 @@ def oerp_set_env(
     ctx={},
     http_port=None,
 ):
-    # D_LIST = (
-    #     'ena_inquire',
-    #     'caller',
-    #     'level',
-    #     'dry_run',
-    #     'multi_user',
-    #     'set_passepartout',
-    #     'no_login',
-    # )
-    # P_LIST = (
-    #     'db_host',
-    #     'db_port',
-    #     'db_name',
-    #     'db_user',
-    #     'db_password',
-    #     'admin_passwd',
-    #     'login_user',
-    #     'login_password',
-    #     'crypt_password',
-    #     'login2_user',
-    #     'login2_password',
-    #     'crypt2_password',
-    #     'svc_protocol',
-    #     'oe_version',
-    #     'http_port',
-    #     "xmlrpc_port",
-    #     'lang',
-    #     'psycopg2',
-    # )
-    # DEFLT = default_conf(ctx)
-
-    # def oerp_env_fill(
-    #     db=None,
-    #     xmlrpc_port=None,
-    #     oe_version=None,
-    #     user=None,
-    #     pwd=None,
-    #     lang=None,
-    #     ctx=None,
-    #     inquire=None,
-    #     http_port=None,
-    # ):
-    #     ctx = ctx or {}
-    #     for p in D_LIST + P_LIST:
-    #         if p == 'db_name' and db:
-    #             ctx[p] = db
-    #         elif p == 'login_user' and user:
-    #             ctx[p] = user
-    #         elif p == 'login_password' and pwd:
-    #             ctx[p] = pwd
-    #         elif p == 'http_port' and http_port:
-    #             if isinstance(http_port, basestring):
-    #                 ctx[p] = int(http_port)
-    #             else:
-    #                 ctx[p] = http_port
-    #         elif p == 'xmlrpc_port' and xmlrpc_port and not http_port:
-    #             if isinstance(xmlrpc_port, basestring):
-    #                 ctx[p] = int(xmlrpc_port)
-    #             else:
-    #                 ctx[p] = xmlrpc_port
-    #         elif p == 'oe_version' and oe_version and oe_version != '*':
-    #             ctx[p] = oe_version
-    #             if not ctx.get('odoo_vid'):
-    #                 ctx['odoo_vid'] = ctx['oe_version']
-    #         elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
-    #             if ctx.get('oe_version') in ('6.1', '7.0', '8.0'):
-    #                 ctx[p] = 'xmlrpc'
-    #             elif ctx.get('oe_version'):
-    #                 ctx[p] = 'jsonrpc'
-    #         elif p == 'lang' and lang:
-    #             ctx[p] = lang
-    #         elif p not in ctx and p in DEFLT:
-    #             ctx[p] = DEFLT[p]
-    #         elif p not in ctx and inquire:
-    #             ctx[p] = input('%s[def=%s]? ' % (p, ctx[p]))
-    #     if os.isatty(0):
-    #         ctx['run_daemon'] = False
-    #     else:
-    #         ctx['run_daemon'] = True
-    #     return ctx
-
-    # ctx = set_base_ctx(ctx)
-    ctx.update({
-        "db": db,
-        "xmlrpc_port": xmlrpc_port,
-        "odoo_version": oe_version,
-        "user": user,
-        "pwd": pwd,
-        "lang": lang,
-        "http_port": http_port,
-        "confn": confn,
-    })
+    for (item, arg) in (
+        ("confn", "confn"),
+        ("db_name", "db"),
+        ("xmlrpc_port", "xmlrpc_port"),
+        ("odoo_version", "oe_version"),
+        ("login_user", "user"),
+        ("login_password", "pwd"),
+        ("lang", "lang"),
+        ("http_port", "http_port"),
+    ):
+        if locals()[arg]:
+            ctx[item] = locals()[arg]
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx

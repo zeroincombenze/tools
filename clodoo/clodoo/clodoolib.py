@@ -174,13 +174,13 @@ LX_OPT_S = (
     "lang",
     "with_demo",
     "no_fvalidation",
-    "lgi_user",
-    "lgi_pwd",
+    "login_username",
+    "login_password",
     "logfn",
     "quiet_mode",
     # "http_port",
     # "xmlrpc_port",
-    "odoo_vid",
+    "odoo_version",
     "exit_onerror",
     "data_selection",
 )
@@ -342,7 +342,7 @@ def default_conf(ctx):
         "oe_version": "*",
         "svc_protocol": "",
         # "http_port": 8069,
-        # "odoo_vid": "12.0",
+        # "odoo_version": "12.0",
         "db_name": "demo",
         "logfile": False,
         "dbfilter": ".*",
@@ -519,10 +519,14 @@ def create_params_dict(ctx):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, "data_path") and opt_obj.data_path != "":
             ctx["data_path"] = opt_obj.data_path
-    if ctx.get("oe_version") and ctx["oe_version"] != "*" and not ctx.get("odoo_vid"):
-        ctx["odoo_vid"] = ctx["oe_version"]
-    elif ctx.get("odoo_vid") and ctx["odoo_vid"] != "*":
-        ctx["oe_version"] = build_odoo_param("FULLVER", ctx["odoo_vid"])
+    if (
+            ctx.get("oe_version")
+            and ctx["oe_version"] != "*"
+            and not ctx.get("odoo_version")
+    ):
+        ctx["odoo_version"] = ctx["oe_version"]
+    elif ctx.get("odoo_version") and ctx["odoo_version"] != "*":
+        ctx["oe_version"] = build_odoo_param("FULLVER", ctx["odoo_version"])
     if not ctx["svc_protocol"]:
         if ctx["oe_version"] in ("9.0", "8.0", "7.0", "6.1"):
             ctx["svc_protocol"] = "xmlrpc"
@@ -554,9 +558,9 @@ def docstring_summary(docstring):
 
 
 def fullname_conf(ctx):
-    if ctx.get("conf_fn"):
+    if ctx.get("confn"):
         confs = []
-        for confn in ctx["conf_fn"].split(","):
+        for confn in ctx["confn"].split(","):
             if not os.path.isfile(confn):
                 for path in (".", "./confs", "./conf", "./code"):
                     if os.path.isfile("%s/%s" % (path, confn)):
@@ -564,9 +568,9 @@ def fullname_conf(ctx):
                         break
             confs.append(confn)
         if len(confs) == 1:
-            ctx["conf_fn"] = confs[0]
+            ctx["confn"] = confs[0]
         else:
-            ctx["conf_fn"] = ",".join(confs)
+            ctx["confn"] = ",".join(confs)
     return ctx
 
 
@@ -575,7 +579,7 @@ def read_config(ctx):
 
     def set_confs(ctx):
         version_is_set = False
-        for ver in ("odoo_vid", "oe_version"):
+        for ver in ("odoo_version", "oe_version"):
             if ctx.get(ver) and ctx[ver] != "*":
                 fnver = build_odoo_param("CONFN", ctx[ver], multi=True)
                 if os.path.isfile(fnver) and fnver not in ctx["conf_fns"]:
@@ -588,10 +592,10 @@ def read_config(ctx):
                         version_is_set = True
         return ctx, version_is_set
 
-    if not ctx.get("conf_fn", None):
-        ctx["conf_fn"] = ctx.get("caller", "clodoo") + ".conf"
+    if not ctx.get("confn", None):
+        ctx["confn"] = ctx.get("caller", "clodoo") + ".conf"
     ctx = fullname_conf(ctx)
-    ctx["conf_fns"] = ctx["conf_fn"].split(",")
+    ctx["conf_fns"] = ctx["confn"].split(",")
     ctx, version_is_set = set_confs(ctx)
     ctx["_conf_obj"] = ConfigParser.RawConfigParser(default_conf(ctx))
     ctx["conf_fns"] = ctx["_conf_obj"].read(ctx["conf_fns"])
@@ -614,7 +618,7 @@ def read_config(ctx):
 def create_parser(version, doc, ctx):
     """Return command-line parser.
     Some options are standard:
-    -c --config     set configuration file (conf_fn)
+    -c --config     set configuration file (confn)
     -h --help       show help
     -q --quiet      quiet mode
     -t --dry-run    simulation mode for test (simulate)
@@ -629,8 +633,8 @@ def create_parser(version, doc, ctx):
     )
     parser.add_argument(
         "-A",
-        "--action-to-do",
-        help="action to do (use list_actions to dir)",
+        "--actions",
+        help="actions to do (use list_actions to dir)",
         dest="do_sel_action",
         metavar="actions",
         default=None,
@@ -639,7 +643,7 @@ def create_parser(version, doc, ctx):
         "-b",
         "--odoo-branch",
         help="talk server Odoo version",
-        dest="odoo_vid",
+        dest="odoo_version",
         metavar="version",
         default="",
     )
@@ -647,7 +651,7 @@ def create_parser(version, doc, ctx):
         "-c",
         "--config",
         help="configuration command file",
-        dest="conf_fn",
+        dest="confn",
         metavar="file",
         default=CONF_FN,
     )
@@ -711,7 +715,7 @@ def create_parser(version, doc, ctx):
         "-P",
         "--pwd",
         help="login password",
-        dest="lgi_pwd",
+        dest="login_password",
         metavar="password",
         default="admin",
     )
@@ -743,7 +747,7 @@ def create_parser(version, doc, ctx):
         "-U",
         "--user",
         help="login username",
-        dest="lgi_user",
+        dest="login_username",
         metavar="username",
         default=None,
     )
@@ -793,10 +797,10 @@ def parse_args(arguments, apply_conf=APPLY_CONF, version=None, tlog=None, doc=No
     opt_obj = parser.parse_args(arguments)
     ctx["_opt_obj"] = opt_obj
     if apply_conf:
-        if hasattr(opt_obj, "conf_fn"):
-            ctx["conf_fn"] = opt_obj.conf_fn
-        if hasattr(opt_obj, "odoo_vid") and opt_obj.odoo_vid:
-            ctx["odoo_vid"] = opt_obj.odoo_vid
+        if hasattr(opt_obj, "confn"):
+            ctx["confn"] = opt_obj.confn
+        if hasattr(opt_obj, "odoo_version") and opt_obj.odoo_version:
+            ctx["odoo_version"] = opt_obj.odoo_version
         ctx = read_config(ctx)
         opt_obj = parser.parse_args(arguments)
     ctx["level"] = 0
@@ -825,8 +829,8 @@ def check_if_running(ctx, pid):
     return f_alrdy_run
 
 
-def get_odoo_full_ver(odoo_vid):
-    v = re.search(r"[0-9]+(\.[0-9])?", odoo_vid).group()
+def get_odoo_full_ver(odoo_version):
+    v = re.search(r"[0-9]+(\.[0-9])?", odoo_version).group()
     if v == "6":
         odoo_fver = "6.1"
     elif v.find(".") >= 0:
@@ -837,7 +841,7 @@ def get_odoo_full_ver(odoo_vid):
 
 
 def build_odoo_VER(
-    item, odoo_vid=None, debug=None, suppl=None, git_org=None, multi=None
+    item, odoo_version=None, debug=None, suppl=None, git_org=None, multi=None
 ):
     return __version__
 
@@ -848,7 +852,11 @@ def build_odoo_param(
     fct = "build_odoo_%s" % item
     if fct in globals():
         return globals()[fct](
-            odoo_vid=odoo_vid, debug=debug, suppl=suppl, git_org=git_org, multi=multi
+            odoo_vid=odoo_vid,
+            debug=debug,
+            suppl=suppl,
+            git_org=git_org,
+            multi=multi
         )
     odoorc = os.path.join(os.path.dirname(__file__), "odoorc")
     if multi:

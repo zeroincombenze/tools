@@ -69,6 +69,7 @@ STS_SUCCESS = 0
 CNX_DICT = {
     "odoo_version": "*",
     "admin_passwd": "admin",
+    "autoconnect": True,
     "cnx": None,
     "confn": "",
     "crypt_password": "Ec{fu",
@@ -101,7 +102,7 @@ CNX_DICT = {
 }
 CNX_PARAMS = list(CNX_DICT.keys())
 OLD_CNX_PARAMS = {
-    # "confn": "conf_fn",
+    # "confn": "confn",
     "cnx": "odoo_cnx",
     "odoo_version": "oe_version",
     "protocol": "svc_protocol",
@@ -134,12 +135,19 @@ class Clodoo(object):
         self.run_tty = not self.run_daemon
         self.set_odoo_version(self.odoo_version)
         self.read_config()
+        self.env = []
+        if self.autoconnect:
+            self.connect()
+            if self.cnx and not self.no_login:
+                self.do_login()
+                if self.pypi == "odoorpc":
+                    self.env = self.cnx.env
 
     def set_odoo_version(self, odoo_version):
         if odoo_version and "." in odoo_version:
             self.odoo_version = odoo_version
             self.odoo_major_version = int(odoo_version.split(".")[0])
-            if self.odoo_major_version < 6 or odoo_version > 18:
+            if self.odoo_major_version < 6 or self.odoo_major_version > 18:
                 self.odoo_major_version = 0
                 self.odoo_version = None
         else:
@@ -283,7 +291,6 @@ class Clodoo(object):
         else:
             return self.cnx.env[model].search(domain, order=order)
 
-
     def create(self, model, vals, context=None):
         if self.pypi == "oerplib":
             return self.cnx.create(model, vals, context=context)
@@ -312,20 +319,17 @@ class Clodoo(object):
     def execute(self, model, action, *args):
         if self.odoo_major_version < 10 and action == "invoice_open":
             return self.cnx.exec_workflow(model, action, *args)
-        # elif self.pypi == "oerplib":
         else:
             return self.cnx.execute_kw(model, action, *args)
-        # else:
-        #     return self.cnx.env[model].execute(action, *args)
 
     def return_dict(self):
         ctx = {"self": self}
-        for k in CNX_PARAMS + ["caller", "caller_fqn"]:
+        for k in CNX_PARAMS + ["caller", "caller_fqn", "user"]:
             v = getattr(self, k)
             if v is not None:
                 ctx[OLD_CNX_PARAMS.get(k, k)] = v
-        for k in ("server_version", ):
-            ctx[k] = getattr(self, k)
+        # for k in ("server_version", ):
+        #     ctx[k] = getattr(self, k)
         ctx["majver"] = self.odoo_major_version
         return ctx
 
@@ -377,13 +381,11 @@ def sql_reconnect(ctx):
 
 def connectL8(ctx):
     """Open connection to Odoo service"""
-    self = Clodoo(
-        http_port=ctx.get("http_port"),
-        xmlrpc_port=ctx.get("xmlrpc_port"),
-        protocol=ctx.get("svc_protocol"),
-        db_host=ctx.get("db_host"),
-        confn=ctx.get("confn"),
-    )
+    if ctx.get("odoo_vid") and not ctx("odoo_version"):
+        ctx["odoo_version"] = ctx["odoo_vid"]
+    if ctx.get("db") and not ctx("db_name"):
+        ctx["db_name"] = ctx["db"]
+    self = Clodoo(**ctx)
     odoo = self.connect()
     ctx.update(self.return_dict())
     if not odoo:
