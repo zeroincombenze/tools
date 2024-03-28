@@ -200,7 +200,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 #############################################################################
@@ -882,5 +882,6 @@ def build_odoo_param(
     if item in ("LPPORT", "MAJVER", "RPCPORT"):
         return eval(out.split("\n")[0])
     return out.split("\n")[0]
+
 
 

@@ -17,7 +17,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 msg_time = time.time()
@@ -199,5 +199,6 @@ if __name__ == "__main__":
     for company_id in ids:
         ctx["company_id"] = company_id
         update_coa(ctx)
+
 
 

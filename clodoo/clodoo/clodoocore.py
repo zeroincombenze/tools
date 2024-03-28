@@ -108,7 +108,7 @@ OLD_CNX_PARAMS = {
     "protocol": "svc_protocol",
 }
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 class Clodoo(object):
@@ -385,8 +385,11 @@ def connectL8(ctx):
         ctx["odoo_version"] = ctx["odoo_vid"]
     if ctx.get("db") and not ctx("db_name"):
         ctx["db_name"] = ctx["db"]
-    self = Clodoo(**ctx)
-    odoo = self.connect()
+    if ctx.get("self"):
+        self = ctx["self"]
+    else:
+        self = Clodoo(**ctx)
+    odoo = self.cnx
     ctx.update(self.return_dict())
     if not odoo:
         if ctx["oe_version"] != "*":
@@ -1684,5 +1687,6 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
+
 
 
