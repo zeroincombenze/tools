@@ -99,6 +99,7 @@ CNX_DICT = {
     "run_tty": None,
     "server_version": None,
     "xmlrpc_port": None,
+    "_cr": None,
 }
 CNX_PARAMS = list(CNX_DICT.keys())
 OLD_CNX_PARAMS = {
@@ -386,9 +387,8 @@ def connectL8(ctx):
     if ctx.get("db") and not ctx("db_name"):
         ctx["db_name"] = ctx["db"]
     if ctx.get("self"):
-        self = ctx["self"]
-    else:
-        self = Clodoo(**ctx)
+        del ctx["self"]
+    self = Clodoo(**ctx)
     odoo = self.cnx
     ctx.update(self.return_dict())
     if not odoo:

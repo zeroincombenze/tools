@@ -413,6 +413,7 @@ def oerp_set_env(
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')  # pragma: no cover
     uid = lgiuser.id
+    ctx["_cr"] = ctx["self"]._cr
     return uid, ctx
 
 
