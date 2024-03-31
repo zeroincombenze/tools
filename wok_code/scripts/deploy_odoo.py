@@ -31,7 +31,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -426,6 +426,8 @@ class OdooDeploy(object):
             opts.append("-v")
         if self.opt_args.dry_run:
             opts.append("-n")
+        if self.opt_args.force:
+            opts.append("-f")
         if branch:
             opts.append("-b")
             opts.append(branch)
@@ -960,7 +962,8 @@ class OdooDeploy(object):
                 and self.opt_args.action not in ("amend", "update", "git-push")
         ):
             if self.opt_args.skip_if_exist:
-                return self.git_pull(tgtdir, branch, master_branch=odoo_master_branch)
+                return self.git_pull(
+                    tgtdir, branch, master_branch=odoo_master_branch)[0]
             elif not self.ask_4_confirm("Path %s of repo %s already exists!"
                                         % (tgtdir, repo),
                                         "Delete (y/n)? "):
@@ -1160,7 +1163,7 @@ class OdooDeploy(object):
                     self.run_traced("rm -fR %s" % tgtdir)
             else:
                 sts = self.download_single_repo(repo)
-            if sts:
+            if sts and not self.opt_args.continue_after_error:
                 break
         if sts == 0:
             if self.opt_args.verbose and self.addons_path:
@@ -1221,6 +1224,12 @@ def main(cli_args=None):
         default="repo,stage,branch,git_org,git_url,stash",
     )
     parser.add_argument(
+        "-f",
+        "--force",
+        help="force download from github (ignore cache)",
+        action="store_true",
+    )
+    parser.add_argument(
         "-G",
         "--git-orgs",
         help="Git organizations, comma separated - " "May be: oca librerp or zero",
@@ -1230,6 +1239,12 @@ def main(cli_args=None):
         "--use-git",
         action="store_true",
         help="When clone use git protocol instead of https",
+    )
+    parser.add_argument(
+        "-k",
+        "--continue-after-error",
+        action="store_true",
+        help="Continue cloning even after repository download error",
     )
     parser.add_argument(
         "-K",
@@ -1319,6 +1334,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

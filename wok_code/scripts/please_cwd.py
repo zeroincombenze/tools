@@ -19,7 +19,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -93,6 +93,7 @@ class PleaseCwd(object):
             self.please.add_argument(parser, "-n")
         parser.add_argument('-F', '--from-version')
         self.please.add_argument(parser, "-f")
+        self.please.add_argument(parser, "-G")
         parser.add_argument('-m', '--message', help="Commit message")
         parser.add_argument(
             "--odoo-venv", action="store_true", help="Update Odoo virtual environments"
@@ -334,7 +335,7 @@ class PleaseCwd(object):
                     sts = please.run_traced(cmd)
                     if sts:
                         break
-            logdir = pth.join(os.getcwd(), "tests", "logs")
+            logdir = please.get_logdir()
             if is_odoo and pth.isdir(logdir):
                 last = " "
                 for root, dirs, files in os.walk(logdir):
@@ -612,6 +613,7 @@ class PleaseCwd(object):
                 sts = self.assure_doc_dirs(pkgtype="odoo")
                 if sts:
                     return sts
+                please.merge_test_result()
                 odoo_major_version = int(branch.split(".")[0])
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if please.opt_args.oca:
@@ -630,7 +632,6 @@ class PleaseCwd(object):
                         args.append("-R")
                         sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
-                    please.merge_test_result()
                     self.do_clean()
                 return sts
         elif (
@@ -730,7 +731,7 @@ class PleaseCwd(object):
                 shutil.copytree(os.getcwd(), target_dir)
                 sts = please.run_traced("cd " + target_dir)
                 if sts == 0:
-                    target_dir = pth.join(target_dir, "tests", "logs")
+                    target_dir = please.get_logdir(path=target_dir)
                     if pth.isdir(target_dir):
                         shutil.rmtree(target_dir)
                     args = self.build_gen_readme_base_args(branch=branch)
@@ -1191,6 +1192,7 @@ class PleaseCwd(object):
             please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
+
 
 
 

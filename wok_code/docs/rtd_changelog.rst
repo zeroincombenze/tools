@@ -5,13 +5,18 @@ ChangeLog History
 =================
 
 
-2.0.15.1 (2024-03-04)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.16 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoo_translation.py: case correction
 * [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
 * [FIX] gen_readme.py: Odoo repository documentation
-+ [FIX[ please docs: count assertions
+* [FIX] gen_readme.py: thumbnail figure
+* [FIX] please docs: count assertions
+* [FIX] please test: switch -K --no-ext-test
+* [FIX] deploy_odoo: crash when clone existing directory
+* [IMP] deploy_odoo: new switch --continue-after-error
+* [FIX] deploy_odoo/wget_odoo_repositories: store github query in cache
 
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~
@@ -227,10 +232,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -125,7 +125,7 @@ except ImportError:
 # standard_library.install_aliases()
 
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -1208,7 +1208,7 @@ def rst2html(ctx, text, draw_button=False):
     while lineno < len(lines):
         if not lines[lineno].startswith(".. "):
             if ctx["html_state"]["tag"] in ("image", "figure"):
-                x = re.match(r" +:(alt|target|width|height):", lines[lineno])
+                x = re.match(r" *:(alt|target|width|height):", lines[lineno])
                 if x:
                     ctx["html_state"][lines[lineno][x.start():x.end()].strip(
                         )[1: -1]] = lines[lineno][x.end():].strip()
@@ -1725,6 +1725,9 @@ def compose_line_rst(ctx, line):
         if is_rst_tag(ctx, line, "image"):
             url = get_rst_tokens(ctx, line, "image")[0]
             line = line.replace(url, url_by_doc(ctx, url))
+        elif is_rst_tag(ctx, line, "figure"):
+            url = get_rst_tokens(ctx, line, "figure")[0]
+            line = line.replace(url, url_by_doc(ctx, url))
     elif ctx["rst_state"] == "directive":
         # End directive
         if not line.startswith(" "):
@@ -1784,14 +1787,16 @@ def tail(ctx, source, max_ctr=None, max_days=None, module=None, min_ctr=2):
             if ctr > max_ctr:
                 break
             x = re.search(RE_PAT_DATE, line)
+            try:
+                changelog_date = datetime.strptime(line[x.start() : x.end()],
+                                                   "%Y-%m-%d")
+            except BaseException:
+                print("Invalid line <%s>" % line)
+                continue
             if (
                 ctr > min_ctr
                 and x
-                and (
-                    datetime.now()
-                    - datetime.strptime(line[x.start() : x.end()], "%Y-%m-%d")
-                ).days
-                > max_days
+                and (datetime.now() - changelog_date).days > max_days
             ):
                 break
             if module:
@@ -3568,6 +3573,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

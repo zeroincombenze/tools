@@ -17,7 +17,7 @@ except ImportError:
 
 import psycopg2
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 
@@ -403,7 +403,6 @@ class RunOdoo(object):
         if self.config and not os.path.isfile(self.config):
             self.config = None
         if self.config:
-            # self.opt_args.config = self.config
             Config = ConfigParser.RawConfigParser()
             Config.read(self.config)
             if not Config.has_section("options"):
@@ -461,33 +460,40 @@ def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
 
-    run_odoo_debug = RunOdoo(cli_args)
-    if (
-            run_odoo_debug.opt_args.export_i18n
-            and run_odoo_debug.opt_args.install
-            and run_odoo_debug.opt_args.import_i18n
-            and run_odoo_debug.opt_args.test
-            and run_odoo_debug.opt_args.update
-    ):
-        print("Option switches conflict!")
+    run_odoo = RunOdoo(cli_args)
+    # if (
+    #         run_odoo.opt_args.export_i18n
+    #         and run_odoo.opt_args.install
+    #         and run_odoo.opt_args.import_i18n
+    #         and run_odoo.opt_args.test
+    #         and run_odoo.opt_args.update
+    # ):
+    if sum([int(getattr(run_odoo.opt_args, x)) for x in (
+            "export_i18n",
+            "install",
+            "import_i18n",
+            "test",
+            "update")]) > 1:
+        print("Optional switch values conflict!")
         sts = 1
-    elif run_odoo_debug.opt_args.export_i18n:
-        sts = run_odoo_debug.export_i18n()
-    elif run_odoo_debug.opt_args.install:
-        sts = run_odoo_debug.install_modules()
-    elif run_odoo_debug.opt_args.import_i18n:
-        sts = run_odoo_debug.import_i18n()
-    elif run_odoo_debug.opt_args.test:
-        sts = run_odoo_debug.run_tests()
-    elif run_odoo_debug.opt_args.update:
-        sts = run_odoo_debug.update_modules()
+    elif run_odoo.opt_args.export_i18n:
+        sts = run_odoo.export_i18n()
+    elif run_odoo.opt_args.install:
+        sts = run_odoo.install_modules()
+    elif run_odoo.opt_args.import_i18n:
+        sts = run_odoo.import_i18n()
+    elif run_odoo.opt_args.test:
+        sts = run_odoo.run_tests()
+    elif run_odoo.opt_args.update:
+        sts = run_odoo.update_modules()
     else:
-        sts = run_odoo_debug.run()
+        sts = run_odoo.run()
     return sts
 
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

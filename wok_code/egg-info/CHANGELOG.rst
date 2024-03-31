@@ -1,10 +1,15 @@
-2.0.15.1 (2024-03-04)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.16 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoo_translation.py: case correction
 * [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
 * [FIX] gen_readme.py: Odoo repository documentation
-+ [FIX[ please docs: count assertions
+* [FIX] gen_readme.py: thumbnail figure
+* [FIX] please docs: count assertions
+* [FIX] please test: switch -K --no-ext-test
+* [FIX] deploy_odoo: crash when clone existing directory
+* [IMP] deploy_odoo: new switch --continue-after-error
+* [FIX] deploy_odoo/wget_odoo_repositories: store github query in cache
 
 2.0.15 (2024-02-17)
 ~~~~~~~~~~~~~~~~~~~

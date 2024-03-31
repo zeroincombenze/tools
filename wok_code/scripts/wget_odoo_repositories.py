@@ -18,7 +18,7 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen as urlopen
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 
 ODOO_BRANCHES = ("18.0", "17.0", "16.0", "15.0",
@@ -298,6 +298,10 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
         if "lst" not in cache[hash_name]:
             cache[hash_name]["expire"] = (
                 datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+        else:
+            cache = cache_validate_repos(cache, git_org, branch)
+    else:
+        cache = cache_validate_repos(cache, git_org, branch)
     return cache
 
 
@@ -466,6 +470,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 
