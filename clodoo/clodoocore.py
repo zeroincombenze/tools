@@ -15,16 +15,20 @@ from __future__ import unicode_literals
 
 from future import standard_library
 
-# from builtins import hex
-# from builtins import str
-from builtins import int
-from past.builtins import basestring
+# from builtins import int
+from past.builtins import basestring, long
 from builtins import str
 
 # from builtins import *                                           # noqa: F403
 from past.utils import old_div
+import os
 import sys
 import re
+import inspect
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 
 try:
     import odoorpc
@@ -37,19 +41,16 @@ if sys.version_info[0] == 2:
         raise ImportError("Package oerplib not found!")
 else:
     try:
-        import oerplib3
+        import oerplib3 as oerplib
     except ImportError:
-        try:
-            import odoolib
-        except ImportError:
-            raise ImportError("Package oerplib3 / odoo-client-lib not found!")
+        raise ImportError("Package oerplib3 not found!")
 
 from os0 import os0
 
 try:
-    from clodoolib import debug_msg_log, msg_log, decrypt
+    from clodoolib import debug_msg_log, msg_log, decrypt, crypt
 except ImportError:
-    from clodoo.clodoolib import debug_msg_log, msg_log, decrypt
+    from clodoo.clodoolib import debug_msg_log, msg_log, decrypt, crypt
 try:
     from transodoo import read_stored_dict, translate_from_sym, translate_from_to
 except ImportError:
@@ -57,7 +58,6 @@ except ImportError:
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
     postgres_drive = True
 except BaseException:  # pragma: no cover
     postgres_drive = False
@@ -66,9 +66,273 @@ standard_library.install_aliases()  # noqa: E402
 
 STS_FAILED = 1
 STS_SUCCESS = 0
+CNX_DICT = {
+    "odoo_version": "*",
+    "admin_passwd": "admin",
+    "autoconnect": True,
+    "cnx": None,
+    "confn": "",
+    "crypt_password": "Ec{fu",
+    "crypt2_password": "",
+    "data_dir": "",
+    "dbfilter": ".*",
+    "db_host": "localhost",
+    "db_name": "demo",
+    "db_password": "",
+    "db_port": 5432,
+    "db_user": "postgres",
+    "dry_run": False,
+    "http_port": None,
+    "lang": "en_US",
+    "level": 1,
+    "logfile": False,
+    "login_user": "admin",
+    "login_password": "admin",
+    "login2_user": "",
+    "login2_password": "",
+    "multi_user": False,
+    "no_login": False,
+    "protocol": None,
+    "psycopg2": False,
+    "pypi": "",
+    "run_daemon": None,
+    "run_tty": None,
+    "server_version": None,
+    "xmlrpc_port": None,
+    "_cr": None,
+}
+CNX_PARAMS = list(CNX_DICT.keys())
+OLD_CNX_PARAMS = {
+    # "confn": "confn",
+    "cnx": "odoo_cnx",
+    "odoo_version": "oe_version",
+    "protocol": "svc_protocol",
+}
+
+__version__ = "2.0.10"
 
 
-__version__ = "2.0.9"
+class Clodoo(object):
+    def __init__(self, **kwargs):
+        for item in CNX_PARAMS:
+            setattr(self, item, kwargs.get(item, CNX_DICT[item]))
+        stack = inspect.stack()
+        ctr = 0
+        matched = False
+        for ix in range(15):
+            if os.path.basename(stack[ix][1]).startswith("clodoo"):
+                matched = True
+                continue
+            if matched:
+                break
+            ctr += 1
+            if ctr > 0:
+                break
+        self.caller_fqn = inspect.stack()[ix][1]
+        self.caller = os.path.splitext(os.path.basename(self.caller_fqn))[0]
+        self.confn = self.confn or self.caller + ".conf"
+        self.conf_fns = self.confn.split(",")
+        self.run_daemon = False if os.isatty(0) else True
+        self.run_tty = not self.run_daemon
+        self.set_odoo_version(self.odoo_version)
+        self.read_config()
+        self.env = []
+        if self.autoconnect:
+            self.connect()
+            if self.cnx and not self.no_login:
+                self.do_login()
+                if self.pypi == "odoorpc":
+                    self.env = self.cnx.env
+
+    def set_odoo_version(self, odoo_version):
+        if odoo_version and "." in odoo_version:
+            self.odoo_version = odoo_version
+            self.odoo_major_version = int(odoo_version.split(".")[0])
+            if self.odoo_major_version < 6 or self.odoo_major_version > 18:
+                self.odoo_major_version = 0
+                self.odoo_version = None
+        else:
+            self.odoo_major_version = 0
+            self.odoo_version = odoo_version or "*"
+
+    def get_rpc_port(self):
+        if self.odoo_major_version and self.odoo_major_version < 10:
+            port = self.xmlrpc_port or self.http_port
+        else:
+            port = self.http_port or self.xmlrpc_port
+        return port or 8069
+
+    def get_rpc_protocol(self):
+        if self.pypi == "oerplib" or (self.odoo_major_version
+                                      and self.odoo_major_version < 10):
+            protocol = self.protocol or "xmlrpc"
+        else:
+            protocol = self.protocol or "jsonrpc"
+        return protocol
+
+    def read_config(self):
+        self._conf_obj = ConfigParser.RawConfigParser({})
+        self.conf_fns = self._conf_obj.read(self.conf_fns)
+        if self.conf_fns:
+            sect = "options"
+            for item in CNX_PARAMS:
+                item2 = OLD_CNX_PARAMS.get(item)
+                if self._conf_obj.has_option(sect, item):
+                    value = self._conf_obj.get(sect, item)
+                elif item2 and self._conf_obj.has_option(sect, item2):
+                    value = self._conf_obj.get(sect, item2)
+                else:
+                    continue
+                if value and value != "False":
+                    setattr(self, item, value)
+
+    def connect(self):
+        if self.get_rpc_protocol() == "xmlrpc":
+            self.pypi = "oerplib"
+            self.server_version = self.odoo_version
+            try:
+                self.cnx = oerplib.OERP(
+                    server=self.db_host,
+                    protocol=self.protocol,
+                    port=self.get_rpc_port(),
+                )
+                self.server_version = self.cnx.db.server_version()
+                self.protocol = "xmlrpc"
+            except BaseException:  # pragma: no cover
+                self.cnx = None
+                self.pypi = self.protocol = ""
+        else:
+            self.pypi = "odoorpc"
+            try:
+                self.cnx = odoorpc.ODOO(self.db_host, port=self.get_rpc_port())
+                self.server_version = self.cnx.version
+                self.protocol = "jsonrpc"
+            except BaseException:  # pragma: no cover
+                self.cnx = None
+                self.pypi = self.protocol = ""
+            if not self.cnx and not self.odoo_major_version:
+                # Try if older Odoo version
+                self.protocol = "xmlrpc"
+        if self.server_version:
+            if self.odoo_version == "*":
+                x = re.match(r"[0-9]+\.[0-9]+", self.server_version)
+                self.odoo_version = self.server_version[0: x.end()]
+        return self.cnx
+
+    def try_to_login(self, username, pwd):
+        if self.pypi == "oerplib":
+            try:
+                user = self.cnx.login(database=self.db_name, user=username, passwd=pwd)
+            except BaseException:
+                return False
+        else:
+            try:
+                self.cnx.login(db=self.db_name, login=username, password=pwd)
+                user = self.cnx.env.user
+            except BaseException:
+                return False
+        return user
+
+    def do_login(self):
+        userlist = []
+        for u in self.login_user.split(",") + self.login2_user.split(","):
+            if u and u not in userlist:
+                userlist.append(u)
+        cryptlist = []
+        for p in self.login_password.split(",") + self.login2_password.split(","):
+            if p:
+                p = crypt(p)
+                if p not in cryptlist:
+                    cryptlist.append(p)
+        for p in self.crypt_password.split(",") + self.crypt2_password.split(","):
+            if p and p not in cryptlist:
+                cryptlist.append(p)
+
+        user = False
+        for username in userlist:
+            for pwd in cryptlist:
+                user = self.try_to_login(username, decrypt(pwd))
+                if user:
+                    break
+            if user:
+                break
+        if not user:
+            return user
+        self.user = user
+        self.user_id = user.id
+        self._pwd = pwd
+        if user:
+            self.psql_connect()
+        return user
+
+    def psql_connect(self):
+        self._cr = False
+        if postgres_drive and self.psycopg2:
+            cnx = psycopg2.connect(dbname=self.db_name,
+                                   user=self.db_user,
+                                   password=self.db_password,
+                                   port=self.db_port)
+            cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            self._cr = cnx.cursor()
+        return self._cr
+
+    def browse(self, model, id, context=None):
+        if self.pypi == "oerplib":
+            return self.cnx.browse(model, id, context=context)
+        if context:
+            return self.cnx.env[model].browse(id).with_context(context)
+        else:
+            return self.cnx.env[model].browse(id)
+
+    def search(self, model, domain, order=None, context=None):
+        if self.pypi == "oerplib":
+            return self.cnx.search(model, domain, order=order, context=context)
+        if context:
+            return self.cnx.env[model].search(domain, order=order).with_context(context)
+        else:
+            return self.cnx.env[model].search(domain, order=order)
+
+    def create(self, model, vals, context=None):
+        if self.pypi == "oerplib":
+            return self.cnx.create(model, vals, context=context)
+        if context:
+            return self.cnx.env[model].create(vals).with_context(context)
+        else:
+            return self.cnx.env[model].create(vals)
+
+    def write(self, model, ids, vals, context=None):
+        if self.pypi == "oerplib":
+            return self.cnx.write(model, ids, vals, context=context)
+        if context:
+            return self.cnx.env[model].write(ids, vals).with_context(context)
+        else:
+            return self.cnx.env[model].write(ids, vals)
+
+    def unlink(self, model, ids, context=None):
+        ids = ids if isinstance(ids, (list, tuple)) else [ids]
+        if self.pypi == "oerplib":
+            return self.cnx.unlink(model, ids, context=context)
+        if context:
+            return self.cnx.env[model].unlink(ids).with_context(context)
+        else:
+            return self.cnx.env[model].unlink(ids)
+
+    def execute(self, model, action, *args):
+        if self.odoo_major_version < 10 and action == "invoice_open":
+            return self.cnx.exec_workflow(model, action, *args)
+        else:
+            return self.cnx.execute_kw(model, action, *args)
+
+    def return_dict(self):
+        ctx = {"self": self}
+        for k in CNX_PARAMS + ["caller", "caller_fqn", "user"]:
+            v = getattr(self, k)
+            if v is not None:
+                ctx[OLD_CNX_PARAMS.get(k, k)] = v
+        # for k in ("server_version", ):
+        #     ctx[k] = getattr(self, k)
+        ctx["majver"] = self.odoo_major_version
+        return ctx
 
 
 #############################################################################
@@ -89,43 +353,6 @@ def psql_connect(ctx):
 #############################################################################
 # Connection and database
 #
-def cnx(ctx):
-    port = ctx.get("http_port") or ctx.get("xmlrpc_port")
-    if "." in ctx["oe_version"] and int(ctx["oe_version"].split(".")[0]) < 10:
-        port = ctx.get("xmlrpc_port") or ctx.get("http_port")
-    try:
-        if ctx["svc_protocol"] == "jsonrpc":
-            odoo = odoorpc.ODOO(ctx["db_host"], ctx["svc_protocol"], port)
-            ctx["odoo_cnx"] = odoo
-            ctx["pypi"] = "odoorpc"
-        elif sys.version_info[0] == 2:
-            odoo = oerplib.OERP(
-                server=ctx["db_host"],
-                protocol=ctx["svc_protocol"],
-                port=port,
-            )
-            ctx["odoo_cnx"] = odoo
-            ctx["pypi"] = "oerplib"
-        elif "oerplib3" in globals():
-            odoo = oerplib3.OERP(
-                server=ctx["db_host"],
-                protocol=ctx["svc_protocol"],
-                port=port,
-            )
-            ctx["odoo_cnx"] = odoo
-            ctx["pypi"] = "oerplib3"
-        else:
-            odoo = odoolib.get_connector(
-                hostname=ctx["db_host"], protocol=ctx["svc_protocol"], port=port
-            )
-            ctx["odoo_cnx"] = odoo
-            ctx["pypi"] = "odoo-client-lib"
-    except BaseException:  # pragma: no cover
-        odoo = False
-        ctx["odoo_cnx"] = odoo
-        ctx["pypi"] = ""
-    return odoo
-
 
 def exec_sql(ctx, query, response=None):
     ctx["_cr"] = psql_connect(ctx)
@@ -155,41 +382,26 @@ def sql_reconnect(ctx):
 
 def connectL8(ctx):
     """Open connection to Odoo service"""
-    odoo = cnx(ctx)
+    if ctx.get("odoo_vid") and not ctx("odoo_version"):
+        ctx["odoo_version"] = ctx["odoo_vid"]
+    if ctx.get("db") and not ctx("db_name"):
+        ctx["db_name"] = ctx["db"]
+    if ctx.get("self"):
+        del ctx["self"]
+    self = Clodoo(**ctx)
+    odoo = self.cnx
+    ctx.update(self.return_dict())
     if not odoo:
         if ctx["oe_version"] != "*":
             return "!Odoo server %s is not running!" % ctx["oe_version"]
-        if ctx["svc_protocol"] == "jsonrpc" and sys.version_info[0] == 2:
-            ctx["svc_protocol"] = "xmlrpc"
-        odoo = cnx(ctx)
-        if not odoo:
-            return "!Odoo server %s is not running!" % ctx["oe_version"]
-    if ctx["pypi"] == "odoorpc":
-        ctx["server_version"] = odoo.version
-    elif ctx["pypi"].startswith("oerplib"):
-        try:
-            ctx["server_version"] = odoo.db.server_version()
-        except BaseException:
-            ctx["server_version"] = ctx["oe_version"]
     else:
-        ctx["server_version"] = odoo.get_service("db").server_version()
-    x = re.match(r"[0-9]+\.[0-9]+", ctx["server_version"])
-    if (
-        ctx["oe_version"] != "*"
-        and ctx["server_version"][0 : x.end()] != ctx["oe_version"]
-    ):
-        return "!Invalid Odoo Server version: expected %s, found %s!" % (
-            ctx["oe_version"],
-            ctx["server_version"],
-        )
-    elif ctx["oe_version"] == "*":
-        ctx["oe_version"] = ctx["server_version"][0 : x.end()]
-    ctx["majver"] = eval(ctx["server_version"].split(".")[0])
-    if ctx["majver"] < 10 and ctx["svc_protocol"] == "jsonrpc":
-        ctx["svc_protocol"] = "xmlrpc"
-        return connectL8(ctx)
-    ctx["cnx"] = ctx["odoo_session"] = odoo
-    return True
+        x = re.match(r"[0-9]+\.[0-9]+", ctx["server_version"])
+        if ctx["server_version"][0 : x.end()] != ctx["oe_version"]:
+            return "!Invalid Odoo Server version: expected %s, found %s!" % (
+                ctx["oe_version"],
+                ctx["server_version"],
+            )
+    return odoo
 
 
 #############################################################################
@@ -218,104 +430,39 @@ def create_model_object(ctx, resource, id, deep=3):
 
 
 def searchL8(ctx, model, domain, order=None, context=None):
-    if ctx["pypi"] == "odoorpc":
-        return (
-            ctx["odoo_session"].env[model].search(domain, order=order, context=context)
-        )
-    elif ctx["pypi"].startswith("oerplib"):
-        return ctx["odoo_session"].search(model, domain, order=order, context=context)
-    elif ctx["pypi"] == "odoo-client-lib":
-        if order:
-            return ctx["odoo_session"].get_model(model).search(domain, order=order)
-        return ctx["odoo_session"].get_model(model).search(domain)
+    return ctx["self"].search(model, domain, order, context=context)
 
 
 def browseL8(ctx, model, id, context=None):
-    if ctx["pypi"] == "odoorpc":
-        if context:
-            return ctx["odoo_session"].env[model].browse(id).with_context(context)
-        else:
-            return ctx["odoo_session"].env[model].browse(id)
-    elif ctx["pypi"].startswith("oerplib"):
-        return ctx["odoo_session"].browse(model, id, context=context)
-    elif ctx["pypi"] == "odoo-client-lib":
-        if isinstance(id, (list, tuple)):
-            res = []
-            for ii in id:
-                res.append(create_model_object(ctx, model, ii))
-            return res
-        return create_model_object(ctx, model, id)
+    return ctx["self"].browse(model, id, context=context)
 
 
 def createL8(ctx, model, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
     vals = complete_fields(ctx, model, vals)
-    if ctx["pypi"] == "odoorpc":
-        if context:
-            return ctx["odoo_session"].env[model].create(vals).with_context(context)
-        else:
-            return ctx["odoo_session"].env[model].create(vals)
-    elif ctx["pypi"].startswith("oerplib"):
-        return ctx["odoo_session"].create(model, vals)
-    elif ctx["pypi"] == "odoo-client-lib":
-        return ctx["odoo_session"].get_model(model).create(vals)
+    return ctx["self"].create(model, vals, context=context)
 
 
 def writeL8(ctx, model, ids, vals, context=None):
     vals = drop_invalid_fields(ctx, model, vals)
-    if ctx["pypi"] == "odoorpc":
-        if context:
-            return (
-                ctx["odoo_session"]
-                .env[model]
-                .browse(ids)
-                .with_context(context)
-                .write(vals)
-            )
-        else:
-            return ctx["odoo_session"].env[model].write(ids, vals)
-    elif ctx["pypi"].startswith("oerplib"):
-        return ctx["odoo_session"].write(model, ids, vals, context=context)
-    elif ctx["pypi"] == "odoo-client-lib":
-        return ctx["odoo_session"].get_model(model).write(ids, vals)
+    return ctx["self"].write(model, ids, vals, context=context)
 
 
-def unlinkL8(ctx, model, ids):
-    ids = ids if isinstance(ids, (list, tuple)) else [ids]
-    if ctx["pypi"] == "odoorpc":
-        return ctx["odoo_session"].env[model].unlink(ids)
-    elif ctx["pypi"].startswith("oerplib"):
-        return ctx["odoo_session"].unlink(model, ids)
-    elif ctx["pypi"] == "odoo-client-lib":
-        return (
-            ctx["odoo_session"]
-            .get_model(model)
-            .unlink(ids if isinstance(ids, (list, tuple)) else [ids])
-        )
+def unlinkL8(ctx, model, ids, context=None):
+    return ctx["self"].unlink(model, ids, context=context)
 
 
 def executeL8(ctx, model, action, *args):
     action = translate_from_to(
         ctx, model, action, "10.0", ctx["oe_version"], type="action"
     )
-    if ctx["majver"] < 10 and action == "invoice_open":
-        return ctx["odoo_session"].exec_workflow(model, action, *args)
-    if ctx["pypi"] in ("odoorpc", "oerplib", "oerplib3"):
-        return ctx["odoo_session"].execute(model, action, *args)
-    elif ctx["pypi"] == "odoo-client-lib":
-        return (
-            ctx["odoo_session"]
-            .get_service('object')
-            .execute_kw(
-                ctx["db_name"], ctx["user_id"], ctx["_pwd"], model, action, *args
-            )
-        )
+    return ctx["self"].execute(model, action, args)
 
 
 def execute_action_L8(ctx, model, action, ids):
     sts = 0
     if model == "account.invoice":
-        ids = [ids] if isinstance(ids, int) else ids
+        ids = [ids] if isinstance(ids, (int, long)) else ids
         try:
             if ctx["majver"] >= 10:
                 executeL8(ctx, model, "compute_taxes", ids)
@@ -326,7 +473,7 @@ def execute_action_L8(ctx, model, action, ids):
         except RuntimeError:
             pass
     elif model == "sale.order":
-        ids = [ids] if isinstance(ids, int) else ids
+        ids = [ids] if isinstance(ids, (int, long)) else ids
         try:
             executeL8(ctx, model, "compute_tax_id", ids)
         except RuntimeError:
@@ -961,7 +1108,7 @@ def get_company_id(ctx):
             value = ids[0]
         else:
             value = 1
-    if "company_id" not in ctx and isinstance(value, int):
+    if "company_id" not in ctx and isinstance(value, (int, long)):
         ctx["company_id"] = value
     return value
 
@@ -1261,7 +1408,7 @@ def get_query_id(ctx, o_model, row):
         o_skull["code"] = "id"
         o_skull["hide_id"] = False
         value = eval_value(ctx, o_skull, "id", row["id"])
-        if isinstance(value, int):
+        if isinstance(value, (int, long)):
             ids = searchL8(ctx, model, [("id", "=", value)])
     if not ids:
         if o_model["code"].find(",") >= 0:
@@ -1393,12 +1540,12 @@ def concat_res(res, value):
     if isinstance(res, basestring) and res:
         if isinstance(value, basestring):
             res = res + value
-        elif isinstance(value, (bool, int, float)):
+        elif isinstance(value, (bool, int, long, float)):
             res = res + str(value)
-    elif isinstance(res, (bool, int, float)):
+    elif isinstance(res, (bool, int, long, float)):
         if isinstance(value, basestring) and value:
             res = str(res) + value
-        elif isinstance(value, (bool, int, float)):
+        elif isinstance(value, (bool, int, long, float)):
             res = str(res) + str(value)
     else:
         res = value
@@ -1540,5 +1687,3 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
-
-

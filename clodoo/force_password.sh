@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 get_dbuser() {
   # get_dbuser odoo_majver
@@ -150,5 +150,3 @@ else
   run_traced "psql -p $opt_port -c \"update res_users set password='$pwd1' where id=$userid;\" \"$opt_db\""
 fi
 echo "Restart Odoo Service"
-
-

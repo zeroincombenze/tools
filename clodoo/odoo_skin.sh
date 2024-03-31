@@ -69,7 +69,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 
 get_odoo_service_name() {
@@ -450,5 +450,3 @@ if [ $opt_list -ne 0 ]; then
 else
   update_skin "$theme_dirs" "$odoo_vid" "$opt_webdir" "$sel_skin"
 fi
-
-

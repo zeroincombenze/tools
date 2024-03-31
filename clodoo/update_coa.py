@@ -17,7 +17,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 msg_time = time.time()
@@ -52,7 +52,7 @@ def init_n_connect(flavour=None):
         "-c",
         "--config",
         help="configuration command file",
-        dest="conf_fn",
+        dest="confn",
         metavar="file",
         default="./import_partners.conf",
     )
@@ -66,7 +66,7 @@ def init_n_connect(flavour=None):
     # Connect to DB
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
     oerp, uid, ctx = clodoo.oerp_set_env(
-        confn=ctx["conf_fn"], db=ctx["db_name"], ctx=ctx
+        confn=ctx["confn"], db=ctx["db_name"], ctx=ctx
     )
     return oerp, uid, ctx
 
@@ -199,5 +199,3 @@ if __name__ == "__main__":
     for company_id in ids:
         ctx["company_id"] = company_id
         update_coa(ctx)
-
-
