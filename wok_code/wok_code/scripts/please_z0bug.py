@@ -6,7 +6,7 @@ import sys
 
 import re
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 RED = "\033[1;31m"
@@ -196,12 +196,12 @@ class PleaseZ0bug(object):
             return "" if full else 3
         if not full:
             return 0
-        fqn = pth.join(os.getcwd(), "tests", "logs")
+        fqn = self.please.get_logdir()
         if not pth.isdir(fqn):
             self.please.log_warning("Module %s w/o regression test result!"
                                     % pth.basename(os.getcwd()))
             return ""
-        fqn = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
+        fqn = pth.join(self.please.get_logdir(), "show-log.sh")
         if not pth.isfile(fqn):
             self.please.log_error("Command %s not found!" % fqn)
             return
@@ -275,7 +275,7 @@ class PleaseZ0bug(object):
     def do_show(self):
         please = self.please
         if please.is_odoo_pkg():
-            cmd = pth.join(os.getcwd(), "tests", "logs", "show-log.sh")
+            cmd = pth.join(please.get_logdir(), "show-log.sh")
             return please.run_traced(cmd)
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
@@ -320,7 +320,7 @@ class PleaseZ0bug(object):
             return 3
         with open(cmd, RMODE) as fd:
             fn = fd.read().split("\n")[0].split("/")[-1]
-            fqn = pth.join(os.getcwd(), "tests", "logs", fn)
+            fqn = pth.join(self.please.get_logdir(), fn)
             return self._do_show_summary(fqn)
 
     def do_summary(self):
@@ -473,6 +473,7 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
+
 
 
 

@@ -60,7 +60,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 KNOWN_ACTIONS = [
     "help",
@@ -325,6 +325,10 @@ class Please(object):
                     " full (status) | translate"
                 ),
             )
+        elif arg in ("-G", "--git-org"):
+            parser.add_argument(
+                "-G", "--git-org", metavar="NAME", help="Git organizzation"
+            )
         elif arg in ("-j", "--python"):
             parser.add_argument(
                 "-j",
@@ -361,6 +365,8 @@ class Please(object):
             )
         elif arg in ("-y", "--assume-yes"):
             parser.add_argument("-y", "--assume-yes", action="store_true")
+        elif arg in ("--read-only"):
+            parser.add_argument("--read-only", action="store_true")
         else:
             raise NotImplementedError
 
@@ -636,23 +642,26 @@ class Please(object):
                 pth.isdir(pth.join(path, "odoo", "addons"))
                 and pth.isdir(pth.join(path, "addons"))
         ):
-            paths = (
-                os.listdir(pth.isdir(pth.join(path, "odoo", "addons")))
-                + os.listdir(pth.isdir(pth.join(path, "addons")))
-            )
+            paths = []
+            for root in pth.join(path, "odoo", "addons"), pth.join(path, "addons"):
+                paths += [pth.join(root, x)
+                          for x in os.listdir(root)
+                          if pth.isdir(pth.join(root, x))]
         elif (
                 pth.isdir(pth.join(path, "openerp", "addons"))
                 and pth.isdir(pth.join(path, "addons"))
         ):
-            paths = (
-                os.listdir(pth.isdir(pth.join(path, "openerp", "addons")))
-                + os.listdir(pth.isdir(pth.join(path, "addons")))
-            )
+            paths = []
+            for root in pth.join(path, "openerp", "addons"), pth.join(path, "addons"):
+                paths += [pth.join(root, x)
+                          for x in os.listdir(root)
+                          if pth.isdir(pth.join(root, x))]
         else:
-            paths = os.listdir(path)
-        for fn in paths:
-            subpath = pth.join(path, fn)
-            if pth.isdir(subpath) and self.is_odoo_pkg(path=subpath):
+            paths = [pth.join(path, x)
+                     for x in os.listdir(path)
+                     if pth.isdir(pth.join(path, x))]
+        for subpath in paths:
+            if self.is_odoo_pkg(path=subpath):
                 yield subpath
 
     def adj_version(self, module_version, branch=None):
@@ -722,6 +731,50 @@ class Please(object):
                 sts = 0
         return sts, branch
 
+    def get_remote_info(self, verbose=True):
+        verbose = verbose and self.opt_args.verbose
+        stash_list = ""
+        url = upstream = ""
+        sts, stdout, stderr = z0lib.run_traced("git remote -v", verbose=verbose)
+        if sts == 0 and stdout:
+            for ln in stdout.split("\n"):
+                if not ln:
+                    continue
+                lns = ln.split()
+                if lns[0] == "origin":
+                    url = lns[1]
+                elif lns[0] == "upstream":
+                    upstream = lns[1]
+            sts, stdout, stderr = z0lib.run_traced("git stash list", verbose=False)
+            stash_list = stdout
+        else:
+            if self.path_is_ocb(os.getcwd()):
+                url = "https://github.com/odoo/odoo.git"
+            else:
+                url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
+        return sts, url, upstream, stash_list
+
+    def data_from_url(self, url):
+        REV_SHORT_NAMES = {
+            "zeroincombenze": "zero",
+            "OCA": "oca",
+        }
+
+        def get_short_name(uri):
+            git_org = pth.splitext(pth.basename(pth.dirname(uri)))[0]
+            return REV_SHORT_NAMES.get(git_org, git_org)
+
+        if "git@github.com:" in url:
+            git_org = get_short_name(url.split("@")[1].split(":")[1])
+            read_only = False
+        elif "https:" in url:
+            git_org = get_short_name(url.split(":")[1])
+            read_only = True if git_org == "oca" else False
+        else:
+            git_org = get_short_name(url)
+            read_only = True
+        return git_org, read_only
+
     def get_pypi_version(self, path=None):
         path = path or os.getcwd()
         setup = pth.join(path, "setup.py")
@@ -735,6 +788,10 @@ class Please(object):
             print(stderr)
             return "2.0.0"
         return stdout.split("\n")[0].strip()
+
+    def get_logdir(self, path=None):
+        path = path or os.getcwd()
+        return pth.join(path, "tests", "logs")
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
@@ -771,14 +828,14 @@ class Please(object):
         return cmd
 
     def merge_test_result(self):
-        cat_fqn = pth.join("tests", "logs", "show-log.sh")
+        cat_fqn = pth.join(self.get_logdir(), "show-log.sh")
         log_fqn = contents = ""
         if pth.isfile(cat_fqn):
             with open(cat_fqn, "r") as fd:
                 contents = fd.read()
         for ln in contents.split("\n"):
             if ln.startswith("less"):
-                log_fqn = pth.join("tests", "logs", ln.split("/")[-1])
+                log_fqn = pth.join(self.get_logdir(), ln.split("/")[-1])
                 break
         if not log_fqn or not pth.isfile(log_fqn):
             self.log_warning("Test log file %s not found!" % log_fqn)
@@ -989,6 +1046,7 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 
