@@ -85,6 +85,3 @@ for odoo_vid in ${opt_branch//,/ };do
   [ $opt_dry_run -eq 0 ] && rsync -avz $DDIR/filestore/ $opt_tgt:$DDIR/filestore/
 done
 exit $sts
-
-
-

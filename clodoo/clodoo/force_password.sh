@@ -150,6 +150,3 @@ else
   run_traced "psql -p $opt_port -c \"update res_users set password='$pwd1' where id=$userid;\" \"$opt_db\""
 fi
 echo "Restart Odoo Service"
-
-
-

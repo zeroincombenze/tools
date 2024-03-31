@@ -537,6 +537,3 @@ while [ $ctr -gt 0 ]; do
   fi
 done
 exit $sts
-
-
-

@@ -1687,6 +1687,3 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
-
-
-

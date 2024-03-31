@@ -199,6 +199,3 @@ if __name__ == "__main__":
     for company_id in ids:
         ctx["company_id"] = company_id
         update_coa(ctx)
-
-
-
