@@ -1,0 +1,37 @@
+#!/bin/bash
+if [[ -z $1  || $1 == "-h" ]]; then
+  echo "$0 odoo_vid action"
+  echo ""
+  echo "odoo_vid example: 10.0 12.0 oca16"
+  echo ""
+  echo "action is:"
+  echo "  start"
+  echo "  stop"
+  echo "  restart"
+  echo "  status"
+  echo "  enable"
+  echo "  disable"
+  exit 1
+fi
+# . /home/odoo/devel/pypi/clodoo/clodoo/odoorc
+# vid="$1"
+# fn=$(build_odoo_param CONFN $vid "" "" "MULTI")
+# svc=$(build_odoo_param SVCNAME $vid "" "" "MULTI")
+svc=""
+[[ -f /etc/init.d/$1 ]] && svc="$1"
+if [[ -z $svc ]]; then
+  m=$(echo $1 | grep -Eo "[0-9]+" | head -n1)
+  [[ -f /etc/init.d/odoo$m ]] && svc="odoo$m"
+  [[ -z $svc && -f /etc/init.d/odoo${m}-server ]] && svc="odoo${m}-server"
+  [[ -z $svc && $1 =~ oca && -f /etc/init.d/odoo${m}-oca ]] && svc="odoo${m}-oca"
+fi
+[[ -z $svc ]] && echo "Service $1 not found!" && exit 126
+if [[ $2 =~ (start|stop|restart|status|enable|disable) ]]; then
+  echo "systemctl $2 $svc"
+  sudo systemctl $2 $svc
+else
+  echo "Invalid action $2"
+  echo "$0 $1 start|stop|restart|status|enable|disable"
+  exit 1
+fi
+exit 0

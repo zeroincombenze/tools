@@ -5,6 +5,7 @@ if [[ $1 == "-h" ]]; then
   echo "action is:"
   echo "  start"
   echo "  stop"
+  echo "  restart"
   echo "  status"
   echo "  enable"
   echo "  disable"
@@ -14,10 +15,10 @@ fi
 vid="$1"
 fn=$(build_odoo_param CONFN $vid "" "" "MULTI")
 svc=$(build_odoo_param SVCNAME $vid "" "" "MULTI")
-if [[ $2 =~ (start|stop|status|enable|disable) ]]; then
+if [[ $2 =~ (start|stop|restart|status|enable|disable) ]]; then
   echo "systemctl $2 $svc"
   sudo systemctl $2 $svc
 else
   echo "Invalid action"
-  echo "$0 $vid start|stop|status|enable|disablw"
+  echo "$0 $vid start|stop|restart|status|enable|disablw"
 fi

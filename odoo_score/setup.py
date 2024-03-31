@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="odoo_score",
-    version="2.0.7",
+    version="2.0.8",
     description="Odoo super core",
     long_description='''
 Odoo supercore
@@ -39,7 +39,7 @@ and makes available a simple odoo shell.
     package_data={"": [
         "scripts/setup.info",
         "./set_workers",
-        "./odoo-mgr.sh",
+        "./odooctl",
     ]},
     entry_points={
         "console_scripts": [
@@ -50,4 +50,5 @@ and makes available a simple odoo shell.
     },
     zip_safe=False,
 )
+
 

@@ -5,6 +5,13 @@ ChangeLog History
 =================
 
 
+2.0.8 (2024-03-26)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_workers: no automatic discover for odoo multi
+* [IMP] Purged old unused code
+* [IMP] New odooctl command
+
 2.0.7 (2024-02-05)
 ~~~~~~~~~~~~~~~~~~
 
@@ -83,10 +90,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
