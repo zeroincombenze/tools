@@ -94,9 +94,6 @@ CNX_DICT = {
     "no_login": False,
     "protocol": None,
     "psycopg2": False,
-    "pypi": "",
-    "run_daemon": None,
-    "run_tty": None,
     "server_version": None,
     "xmlrpc_port": None,
     "_cr": None,
@@ -107,7 +104,18 @@ OLD_CNX_PARAMS = {
     "cnx": "odoo_cnx",
     "odoo_version": "oe_version",
     "protocol": "svc_protocol",
+    "odoo_major_version": "majver",
 }
+SUPPL_PARAMS = [
+    "caller",
+    "caller_fqn",
+    "odoo_major_version",
+    "pypi",
+    "run_daemon",
+    "run_tty",
+    "server_version",
+    "user"
+]
 
 __version__ = "2.0.10"
 
@@ -116,6 +124,8 @@ class Clodoo(object):
     def __init__(self, **kwargs):
         for item in CNX_PARAMS:
             setattr(self, item, kwargs.get(item, CNX_DICT[item]))
+        for item in SUPPL_PARAMS:
+            setattr(self, item, None)
         stack = inspect.stack()
         ctr = 0
         matched = False
@@ -325,13 +335,11 @@ class Clodoo(object):
 
     def return_dict(self):
         ctx = {"self": self}
-        for k in CNX_PARAMS + ["caller", "caller_fqn", "user"]:
+        for k in CNX_PARAMS + SUPPL_PARAMS:
             v = getattr(self, k)
             if v is not None:
                 ctx[OLD_CNX_PARAMS.get(k, k)] = v
-        # for k in ("server_version", ):
-        #     ctx[k] = getattr(self, k)
-        ctx["majver"] = self.odoo_major_version
+        # ctx["majver"] = self.odoo_major_version
         return ctx
 
 
