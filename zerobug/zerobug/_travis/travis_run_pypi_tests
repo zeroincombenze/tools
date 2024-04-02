@@ -214,26 +214,7 @@ do_test () {
         OPTS=$(inherits_travis_opts "$opts" "T")
         [[ -n $TRAVIS_TEST_PATTERN ]] && OPTS="$OPTS -p $TRAVIS_TEST_PATTERN"
         coverage_set
-#        if [[ -f ./tests/test_$PRJNAME.py ]]; then
-#            if [ ${opt_dprj:-0} -gt 0 ]; then
-#                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py $OPTS"
-#            else
-#                run_traced "cd $PRJPATH/tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py $OPTS"
-#            fi
-#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-#        else
-#            if [[ ${opt_dprj:-0} -gt 0 ]]; then
-#                run_traced "cd $PRJPATH; DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
-#            else
         run_traced "cd $PRJPATH/tests && DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
-#            fi
-        s=$?; [[ ${s-1} -eq 0 || $sts -ne 0 ]] || sts=$s
-#        fi
-#        $(ls ./pytest* &> /dev/null) && cd ..
-#        if $(ls ./tests/pytest* &> /dev/null); then
-#            run_traced "coverage run -m pytest -v ./tests/pytest*"
-#            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-#        fi
         if [[ ! -f $COVERAGE_DATA_FILE ]]; then
             echo "Result coverage file $COVERAGE_DATA_FILE not found!"
         fi

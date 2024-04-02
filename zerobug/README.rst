@@ -153,7 +153,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.15 (2024-02-31)
+2.0.15.1 (2024-03-27)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] z0testlib: no crash without coverage
+
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] build_cmd: command not in scripts directory
