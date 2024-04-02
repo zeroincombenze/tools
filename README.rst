@@ -113,6 +113,110 @@ Current version via Git
 ChangeLog History
 -----------------
 
+wok_code: 2.0.15.1 (2024-03-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translation.py: case correction
+
+
+odoo_score: 2.0.7.1 (2024-02-36)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_workers: no automatic discover for odoo multi
+
+
+zerobug: 2.0.15 (2024-02-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] build_cmd: command not in scripts directory
+
+
+python_plus: 2.0.12 (2024-02-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function str2bool()
+
+
+z0bug_odoo: 2.0.17 (2024-02-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: minor improvements
+* [FIX] TestEnv: crash if no account.journal in data
+* [IMP] Data with date range 2024
+
+
+z0bug_odoo: 2.0.16 (2024-02-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: nested +multi fields with Odoo cmd
+
+
+wok_code: 2.0.15 (2024-02-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] do_git_checkout_new_branch: ignore symbolic links
+* [FIX] deploy_odoo: minor fixes
+* [IMP] do_git_checkout_new_branch: oddo 17.0
+* [IMP] deploy_odoo: new action amend
+* [IMP] deploy_odoo: new switch to link repositories
+* [IMP] deploy_odoo: removed deprecated switches
+* [IMP] New repositories selection
+* [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
+* [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
+* [IMP] arcangelo switch -lll
+* [IMP] arcaneglo: rules reorganization
+* [IMP] arcangelo: trigger management and new param ctx
+* [IMP] arcangelo: new switch -R to select rules to apply
+
+
+wok_code: 2.0.14 (2024-02-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Quality rating formula
+* [FIX] please install python --python=3.7
+* [IMP] please publish marketplace
+* [IMP] read-only repository
+* [IMP] arcangelo improvements
+* [IMP] gen_readme.py manifest rewrite improvements
+* [IMP] cvt_csv_coa.py improvements
+* [IMP] please test with new switch -D
+* [IMP] run_odoo_debug improvements
+
+
+python_plus: 2.0.11 (2024-02-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem: show right python version if 3.10+
+* [IMP] list_requirements.py improvements
+* [IMP] new python version assignment from odoo version
+
+
+odoo_score: 2.0.7 (2024-02-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] set_workers refactoring
+
+
+clodoo: 2.0.9 (2024-02-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[IMP] odoorc improvements
+
+
+z0lib: 2.0.9 (2024-02-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Internal matadata
+
+
+zerobug: 2.0.14 (2024-01-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] build_cmd: enable coverage on sub process
+* [FIX] Re-enable coverage statistics
+* [FIX] Printing message: right sequence
+
+
 z0bug_odoo: 2.0.15 (2024-01-27)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -131,50 +235,6 @@ z0bug_odoo: 2.0.15 (2024-01-27)
 
 
 
-clodoo: 2.0.9 (2024-01-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[IMP] odoorc improvements
-
-
-z0bug_odoo: 2.0.14 (2023-12-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: commit odoo data became internal feature
-* [IMP] TestEnv: test on model asset.asset
-* [IMP] TestEnv: detail external reference coding free
-* [IMP] TestEnv: empty currency_id is set with company currency
-* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
-* [FIX] TestEnv: sometimes external.KEY did not work
-* [FIX] TestEnv: 3 level xref fails when module ha "_" in its name
-* [IMP] _check4deps.py: documentation clearing
-
-
-zerobug: 2.0.13 (2023-12-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] python2: argument signature
-* [IMP] build_os_tree: compatible with unittest2
-* [IMP] remove_os_tree: compatible with unittest2
-* [IMP] build_cmd: enable coverage on sub process
-* [FIX] Re-enable coverage statistics
-* [FIX] Printing message: right sequence
-
-
-wok_code: 2.0.13.1 (2023-12-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Quality rating formula
-* [FIX] please install python --python=3.7
-* [IMP] please publish marketplace
-* [IMP] read-only repository
-* [IMP] arcangelo improvements
-* [IMP] gen_readme.py manifest rewrite improvements
-* [IMP] cvt_csv_coa.py improvements
-* [IMP] please test with new switch -D
-* [IMP] run_odoo_debug improvements
-
-
 travis_emulator: 2.0.8 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -182,40 +242,10 @@ travis_emulator: 2.0.8 (2023-12-01)
 
 
 
-zerobug: 2.0.12 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] python2: has_args
-
-
-wok_code: 2.0.13 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please install python, now can install python 3.10
-* [IMP] arcangelo: new python version assignment from odoo version
-* [IMP] please version: now show compare with last entry of history
-* [FIX] please docs: faq
-* [FIX] please help cwd
-* [FIX] gen_readme.py: sometimes lost history
-* [FIX] gen_readme.py: error reading malformed table
-* [IMP] odoo_translation.py: new regression tests
-* [FIX] odoo_translation.py: punctuation at the end of term
-* [FIX] odoo_translation.py: first character case
-* [FIX] odoo_translation.py: cache file format is Excel
-* [FIX] run_odoo_debug: path with heading space
-* [IMP] please test now can update account.account.xlsx
-
-
 travis_emulator: 2.0.7 (2023-11-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Automatic python version for Odoo
-
-
-python_plus: 2.0.11 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] new python version assignment from odoo version
 
 
 clodoo: 2.0.8 (2023-11-16)
@@ -250,38 +280,10 @@ zar: 2.0.3 (2023-09-06)
 * [FIX] DB name with hyphen (-)
 
 
-z0lib: 2.0.7 (2023-07-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced return system exit code
-* [IMP] run_traced: new rtime parameter to show rtime output
-* [IMP] New main
-
-
-python_plus: 2.0.10 (2023-07-18)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: werkzeug for Odoo 16.0
-* [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
-* [IMP] pip install packages with use2to3 is backupgrdae to < 23
-
-
 oerplib3: 0.8.4 (2023-05-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] First porting
-
-
-odoo_score: 2.0.6 (2023-04-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Import class models.Model
-
-
-odoo_score: 2.0.5 (2023-03-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug.sh: moved to package wok_code
 
 
 os0: 2.0.1 (2022-10-20)

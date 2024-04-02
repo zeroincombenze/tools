@@ -402,18 +402,6 @@ class SanityTest:
         #     sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
         return sts
 
-    # def test_03(self, z0ctx):
-    #     """Sanity autotest #3"""
-    #     tlog = "~/devel/z0testlib.log"
-    #     opts = ['-n', '-l', tlog]
-    #     ctx = self.Z.parseoptest(opts)
-    #     sts = self.Z.test_result(z0ctx, "Opt -n", True, ctx['dry_run'])
-    #     if sts == TEST_SUCCESS:
-    #         sts = self.Z.test_result(z0ctx, "Opt -n (-k)", False, ctx['opt_new'])
-    #     if sts == TEST_SUCCESS:
-    #         sts = self.Z.test_result(z0ctx, "Opt -n (-l)", tlog, ctx['logfn'])
-    #     return sts
-
     def test_04(self, z0ctx):
         """Sanity autotest #4"""
         opts = ['-e']
@@ -1260,7 +1248,7 @@ class Z0test(object):
                     and ctx.get('run4cover', False)
                     and not ctx.get('dry_run', False)
             ):
-                if ctx["COVERAGE_DATA_FILE"]:
+                if ctx.get("COVERAGE_DATA_FILE"):
                     with open(ctx["COVERAGE_PROCESS_START"], "r") as fd:
                         coveragerc = fd.read()
                     if "data_file" not in coveragerc:
@@ -1278,16 +1266,16 @@ class Z0test(object):
                             "[run]\ndata_file=%s\n\n" % ctx["COVERAGE_DATA_FILE"])
                         with open(ctx["COVERAGE_PROCESS_START"], "w") as fd:
                             fd.write(coveragerc)
-                cmd = "coverage erase --rcfile=%s" % ctx["COVERAGE_PROCESS_START"]
-                if ctx.get("opt_verbose"):
-                    if ctx.get('dry_run', False):
-                        print_flush("    > " + cmd)
-                    else:
-                        print_flush("    $ " + cmd)
-                sts, stdout, stderr = z0lib.run_traced(cmd)
-                if sts:
-                    print_flush('Coverage not found!')
-                    ctx['run4cover'] = False
+                    cmd = "coverage erase --rcfile=%s" % ctx["COVERAGE_PROCESS_START"]
+                    if ctx.get("opt_verbose"):
+                        if ctx.get('dry_run', False):
+                            print_flush("    > " + cmd)
+                        else:
+                            print_flush("    $ " + cmd)
+                    sts, stdout, stderr = z0lib.run_traced(cmd)
+                    if sts:
+                        print_flush('Coverage not found!')
+                        ctx['run4cover'] = False
         test_list = []
         if isinstance(unittest_list, (list, tuple)):
             test_list = unittest_list
@@ -1321,7 +1309,11 @@ class Z0test(object):
         if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
             if sts == 0:
                 print_flush(success_msg)
-                if ctx.get('run4cover', False) and not ctx.get('dry_run', False):
+                if (
+                        ctx.get("COVERAGE_DATA_FILE")
+                        and ctx.get('run4cover', False)
+                        and not ctx.get('dry_run', False)
+                ):
                     cmd = ("coverage report --show-missing --rcfile=%s"
                            % ctx["COVERAGE_PROCESS_START"])
                     if ctx.get("opt_verbose"):
