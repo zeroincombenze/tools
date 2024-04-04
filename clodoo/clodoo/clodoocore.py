@@ -290,7 +290,7 @@ class Clodoo(object):
         if self.pypi == "oerplib":
             return self.cnx.browse(model, id, context=context)
         if context:
-            return self.cnx.env[model].browse(id).with_context(context)
+            return self.cnx.env[model].with_context(context).browse(id)
         else:
             return self.cnx.env[model].browse(id)
 
@@ -298,7 +298,7 @@ class Clodoo(object):
         if self.pypi == "oerplib":
             return self.cnx.search(model, domain, order=order, context=context)
         if context:
-            return self.cnx.env[model].search(domain, order=order).with_context(context)
+            return self.cnx.env[model].with_context(context).search(domain, order=order)
         else:
             return self.cnx.env[model].search(domain, order=order)
 
@@ -306,7 +306,7 @@ class Clodoo(object):
         if self.pypi == "oerplib":
             return self.cnx.create(model, vals, context=context)
         if context:
-            return self.cnx.env[model].create(vals).with_context(context)
+            return self.cnx.env[model].with_context(context).create(vals)
         else:
             return self.cnx.env[model].create(vals)
 
@@ -314,7 +314,7 @@ class Clodoo(object):
         if self.pypi == "oerplib":
             return self.cnx.write(model, ids, vals, context=context)
         if context:
-            return self.cnx.env[model].write(ids, vals).with_context(context)
+            return self.cnx.env[model].with_context(context).write(ids, vals)
         else:
             return self.cnx.env[model].write(ids, vals)
 
@@ -323,7 +323,7 @@ class Clodoo(object):
         if self.pypi == "oerplib":
             return self.cnx.unlink(model, ids, context=context)
         if context:
-            return self.cnx.env[model].unlink(ids).with_context(context)
+            return self.cnx.env[model].with_context(context).unlink(ids)
         else:
             return self.cnx.env[model].unlink(ids)
 
