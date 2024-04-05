@@ -185,6 +185,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.16.1 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Log file of daemon process of test in tests/logs
+
 2.0.16 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~~
 

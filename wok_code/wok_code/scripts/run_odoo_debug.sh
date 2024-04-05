@@ -211,7 +211,7 @@ set_confn() {
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
 }
 
-wait_process_idle() {
+wait_daemon_idle() {
     local c ctr p sz t x
     ctr=0
     [[ ! -f $LOGDIR/odoo.pid ]] && p="" && sleep 3
@@ -236,7 +236,7 @@ wait_process_idle() {
 stop_bg_process() {
     local p
     [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || p=""
-    [[ -n $p ]] && wait_process_idle $p && run_traced "kill $p" && rm -f $LOGDIR/odoo.pid
+    [[ -n $p ]] && wait_daemon_idle $p && run_traced "kill $p" && rm -f $LOGDIR/odoo.pid
 }
 
 clean_old_templates() {
@@ -261,7 +261,9 @@ test_with_external_process() {
     echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
     export TEST_DB="$opt_db"
     export ODOO_VERSION="$odoo_fver"
+    export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
     echo "\$ export LOGFILE=$LOGFILE"
+    echo "\$ exporto DAEMON_LOGFILE=$DAEMON_LOGFILE"
     echo "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
     echo "\$ export ODOO_VERSION=$ODOO_VERSION"
     echo "\$ export TEST_CONFN=$TEST_CONFN"
@@ -270,7 +272,7 @@ test_with_external_process() {
     OPTS="--pidfile=$LOGDIR/odoo.pid -d $TEST_DB"
     opt_dae=1
     run_odoo_server
-    wait_process_idle
+    # wait_daemon_idle
     for p in $(ls -1 $PKGPATH/tests/concurrent_test/|grep -E "^test_.*.py$"); do
         ext_test="$PKGPATH/tests/concurrent_test/$p"
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -290,7 +292,8 @@ test_with_external_process() {
 }
 
 run_odoo_server() {
-    run_traced "pushd $ODOO_RUNDIR &>/dev/null"
+    [[ $opt_dae -eq 0 ]] && run_traced "pushd $ODOO_RUNDIR &>/dev/null"
+    [[ $opt_dae -ne 0 ]] && pushd $ODOO_RUNDIR &>/dev/null
     if [[ -n $COVERAGE_PROCESS_START ]]; then
         v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $opt_dae -eq 0 ]]; then
@@ -300,9 +303,9 @@ run_odoo_server() {
             [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         else
             run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
-            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &"
-            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS &
+            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &
         fi
     else
         if [[ $opt_dae -eq 0 ]]; then
@@ -313,7 +316,7 @@ run_odoo_server() {
             [[ $opt_dry_run -eq 0 ]] && $script $OPT_CONF $OPT_LLEV $OPTS &
         fi
     fi
-    [[ $opt_dae -ne 0 ]] && wait_process_idle
+    [[ $opt_dae -ne 0 ]] && wait_daemon_idle
     run_traced "popd &>/dev/null"
 }
 
@@ -706,7 +709,6 @@ if [[ $create_db -gt 0 ]]; then
         fi
     fi
 fi
-
 
 [[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
 if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
