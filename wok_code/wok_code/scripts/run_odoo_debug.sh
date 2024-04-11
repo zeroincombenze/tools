@@ -175,6 +175,7 @@ replace_web_module() {
 }
 
 set_confn() {
+    local x
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^admin_passwd *=.*|admin_passwd = admin|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^db_password *=.*|db_password = False|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^proxy_mode *=.*|proxy_mode = False|\" -i $TEST_CONFN"
@@ -209,6 +210,10 @@ set_confn() {
         OPT_LLEV="--log-level=$opt_llvl"
     fi
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
+    if [[ $REPOSNAME == "OCB" ]]; then
+      x=$(cat $TEST_CONFN | grep -Eo "^addons_path *=.*(/addons)")
+      run_traced_debug "sed -e \"s|^addons_path *=.*|$x|\" -i $TEST_CONFN"
+    fi
 }
 
 wait_daemon_idle() {
