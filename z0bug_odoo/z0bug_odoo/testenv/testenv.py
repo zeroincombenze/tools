@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.17
+"""Test Environment v2.0.18
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -3004,23 +3004,22 @@ class MainTest(test_common.TransactionCase):
             if "TEST_SETUP_LIST" in inspect.stack()[ix][0].f_globals:
                 found = True
                 break
-        if setup_list and found:
+        if setup_list:
+            data = {"TEST_SETUP_LIST": setup_list}
+        elif found:
             data = {
                 "TEST_SETUP_LIST":
                     inspect.stack()[ix][0].f_globals["TEST_SETUP_LIST"]
             }
-            for resource in data["TEST_SETUP_LIST"]:
-                init_resource_data(resource, data, ix + 1)
-            self.declare_all_data(data)
-        elif setup_list:
-            data = {"TEST_SETUP_LIST": setup_list}
-            for resource in setup_list:
-                init_resource_data(resource, data, ix + 1 if found else ix)
-            self.declare_all_data(data, group=group)
+        else:
+            self.raise_error("No data declared")
+        for resource in data["TEST_SETUP_LIST"]:
+            init_resource_data(resource, data, ix + 1 if found else ix)
+        self.declare_all_data(data, group=group)
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.17 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.18 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(
@@ -3665,6 +3664,7 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
+
 
 
 
