@@ -1733,7 +1733,8 @@ class MainTest(test_common.TransactionCase):
                     6,
                     0,
                     [
-                        x.id if isinstance(x.id, (int, long)) else x.id.origin
+                        x.id if isinstance(x.id, (int, long))
+                        else getattr(x.id, "origin", False)
                         for x in value
                     ],
                 )
@@ -1835,7 +1836,11 @@ class MainTest(test_common.TransactionCase):
     def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
-            if field in BLACKLIST_COLUMNS or record._fields[field].readonly:
+            if (
+                    field in BLACKLIST_COLUMNS
+                    or record._fields[field].compute
+                    or record._fields[field].related
+            ):
                 continue
             value = self._convert_field_to_write(record, field)
             if value is None:  # pragma: no cover

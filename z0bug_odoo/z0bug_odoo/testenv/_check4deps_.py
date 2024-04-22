@@ -49,7 +49,7 @@ def check_4_depending(cr):
     Notice:
     __init__.py in current module root must contain the statement:
         from ._check4deps_ import check_4_depending
-    __manifest__.py in current module root must containt the statement:
+    __manifest__.py in current module root must contain the statement:
         "pre_init_hook": "check_4_depending",
     """
 
@@ -136,6 +136,7 @@ def check_4_depending(cr):
             )
             _logger.error(uninstallable_reason)
             return uninstallable_reason
+        return ""
 
     def eval_condition(mtype, app, condition, disable_check):
         """evaluate condition and return reason for match"""
