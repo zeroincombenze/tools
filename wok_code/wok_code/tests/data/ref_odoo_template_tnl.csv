@@ -1,25 +1,26 @@
 module	msgid	msgstr
-	DDT	DDT
 	Acceptance Account	Conto RI.BA. all'incasso
-	account	conto
-	Credit	Avere
 	Customer	Cliente
-	ddt	DdT
-	Dear	Gentile
+	DDT	DDT
 	First Name	Nome di battesimo
-	iban	IBAN
 	Invoice	Fattura
 	Invoice lines	Righe fattura
-	Invoice n	Fattura n
 	Invoices	Fatture
-	iva	IVA
 	Last Name	Cognome
+	Order	Ordine
+	Purchase	Acquisto
+	Sale	Vendite
+	Sale lines	Righe vendita
+	account	conto
+	Credit	Avere
+	ddt	DdT
+	Dear	Gentile
+	iban	IBAN
+	Invoice	Fattura
+	iva	IVA
 	line	riga
 	lines	righe
 	Name	Nome
-	Order	Ordine
 	Print	Stampa
-	Purchase	Acquisto
-	Sale	Vendite
 	sepa	SEPA
 	tax	IVA
