@@ -117,6 +117,7 @@ z0bug_odoo: 2.0.18 (2024-04-17)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: no data loaded in some cases
+* [FIX[ TestEnv: rsource_edit manage read-only fields
 * [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
 
 
@@ -598,12 +599,6 @@ z0bug_odoo: 2.0.8 (2023-04-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: multiple action on the same records
-
-
-odoo_score: 2.0.6 (2023-04-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Import class models.Model
 
 
 os0: 2.0.1 (2022-10-20)

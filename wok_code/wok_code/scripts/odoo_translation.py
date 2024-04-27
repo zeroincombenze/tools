@@ -18,7 +18,7 @@ from openpyxl import load_workbook, Workbook
 
 try:
     from clodoo import clodoo
-except ImportError:
+except ImportError:                                                  # pragma: no cover
     import clodoo
 
 # from python_plus import unicodes
@@ -93,10 +93,10 @@ ITALIAN_TERMS = ("il", "lo", "la", "gli", "un", "uno", "una",
 msg_time = time()
 
 
-def msg_burst(text):
+def msg_burst(text):                                                 # pragma: no cover
     global msg_time
     t = time() - msg_time
-    if t > 5:
+    if t > 11:
         print(text, "\r")
         msg_time = time()
 
@@ -215,7 +215,7 @@ class OdooTranslation(object):
             self.opt_args.rewrite_xlsx = True
 
     def get_home_devel(self):
-        root = os.environ.get("HOME_DEVEL")
+        root = os.environ.get("HOME_DEVEL")                          # pragma: no cover
         if not root or not pth.isdir(root):
             if pth.isdir(pth.expanduser("~/odoo/devel")):
                 root = pth.expanduser("~/odoo/devel")
@@ -354,7 +354,7 @@ class OdooTranslation(object):
         if len(msg_orig) <= 1 and not is_tag:
             return msg_orig
         if collections.Counter(msg_orig)["%"] != collections.Counter(msg_tnxl)["%"]:
-            print("*** Warning: different param subts: <<"
+            print("*** Warning: no translation due different param subts: <<"
                   + msg_orig[:80] + ">> / <<" + msg_tnxl[:80] + ">>")
             return msg_orig
         if not is_tag and not raw:
@@ -371,7 +371,7 @@ class OdooTranslation(object):
                 rtoken = " %s" % tnxls[1]
                 if msg_tnxl.endswith(ltoken):
                     msg_tnxl = msg_tnxl[0: -len(ltoken)] + rtoken
-        hash_key = self.get_hash_key(hash_key, False, module=module)
+        hash_key = self.get_hash_key(hash_key, True, module=module)
         if hash_key and (
                 hash_key not in self.dict
                 or prio_terms == "P"
@@ -407,7 +407,7 @@ class OdooTranslation(object):
             for tok_type in self.types_decl:
                 match = re.match(tok_type[3], message[ix:])
                 if match:
-                    token = message[ix : match.end() + ix]
+                    token = message[ix: match.end() + ix]
                     if token.startswith("# "):
                         token = "N."
                         hash_key = self.get_hash_key(token, tok_type[0])
@@ -466,7 +466,7 @@ class OdooTranslation(object):
         ) or len(hashes_orig) == len(hashes_tnxl) else True
         if hashes_orig != hashes_tnxl:
             ix = 0
-            while not learn_about and ix < len(hashes_orig):
+            while not learn_about and ix < len(hashes_orig) and ix < len(hashes_tnxl):
                 if (
                     (
                         isinstance(hashes_orig[ix], (list, tuple))
@@ -510,10 +510,11 @@ class OdooTranslation(object):
         return False, False
 
     def process_transable_tokens(self, tok_orig, hash_orig, tok_tnxl, adjust_case=None):
+        tok_tnxl = tok_tnxl or tok_orig
         term_tnxl = ""
         hash_key = ""
         ix = 0
-        while ix < len(tok_orig):
+        while ix < len(tok_orig) and ix < len(tok_tnxl):
             cur_tok = tok_orig[ix]
             if re.match(self.re_word, cur_tok):
                 x = self.get_term(hash_orig[ix], cur_tok, None, adjust_case=adjust_case)
@@ -563,21 +564,24 @@ class OdooTranslation(object):
         ):
             msg_tnxl = msg_orig
             lang_tnxl = lang_orig
-        hash_key = self.get_hash_key(msg_orig, True)
-        if action == "translate" and hash_key in self.dict:
-            return self.get_term(hash_key, msg_orig, msg_tnxl, adjust_case=True)
+        if action == "translate":
+            for m in (module, None):
+                for i in (True, False):
+                    hash_key = self.get_hash_key(msg_orig, i, module=m)
+                    if hash_key in self.dict:
+                        return self.get_term(
+                            hash_key, msg_orig, msg_tnxl, adjust_case=True)
+
         hash_key = self.get_hash_key(msg_orig, False)
-        if action == "translate" and hash_key in self.dict:
-            return self.get_term(hash_key, msg_orig, msg_tnxl, adjust_case=True)
         if hash_key in self.dict:
             # Just build dict
             if msg_orig == msg_tnxl:
                 return msg_orig
             msg_dict = self.dict[hash_key][1]
             if prio_terms == "Q":
-                print("Item <<<%s>>>" % msg_orig[:60])
-                print("Dictionary for <<<%s>>>" % msg_dict[:60])
-                print("PO file value  <<<%s>>>" % msg_tnxl[:60])
+                print("# Item <<<%s>>>" % msg_orig[:60])
+                print("# Dictionary for <<<%s>>>" % msg_dict[:60])
+                print("# PO file value  <<<%s>>>" % msg_tnxl[:60])
                 lang_dict, lang_tnxl = self.parse_lang_terms(msg_dict, msg_tnxl)
                 if (
                         (lang_dict == "it" and lang_tnxl != "it")
@@ -648,12 +652,13 @@ class OdooTranslation(object):
         hash_orig = hashes_orig.pop(0) if hashes_orig else ""
         tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
         adjust_case = not is_tag
-        while (tok_orig or tok_tnxl) and (action == "build_dict" or not learn_about):
+        while (tok_orig or tok_tnxl):
             if isinstance(tok_orig, (list, tuple)):
                 term_orig = "".join(tok_orig)
                 term_tnxl = "".join(tok_tnxl)
                 term_hkey = "".join(hash_orig)
-                if not learn_about:
+                lang_orig, lang_tnxl = self.parse_lang_terms(term_orig, term_tnxl)
+                if lang_tnxl != "it":
                     term_tnxl, term_hkey = self.get_transated_tokens(
                         tok_orig, module=module, adjust_case=adjust_case
                     )
@@ -729,13 +734,19 @@ class OdooTranslation(object):
                                 timeout=5,
                             ),
                         )
-                        sleep(0.2)
+                        sleep(0.3)
                         return self.store_1_item(
                             hash_key, fullterm_orig, fullterm_tnxl,
                             prio_terms=prio_terms
                         )
-                    except BaseException:
-                        pass
+                    except BaseException as e:
+                        print("*** Google translator error %s on <<<%s>>>!"
+                              % (e, fullterm_orig))
+                        sleep(2.0)
+                        return self.store_1_item(
+                            hash_key, fullterm_orig, fullterm_tnxl,
+                            prio_terms=prio_terms
+                        )
             elif (fullterm_orig and fullterm_2_store) or self.isplural(fulltermhk_orig):
                 return self.store_1_item(
                     hash_key,
@@ -841,13 +852,13 @@ class OdooTranslation(object):
         if pth.isfile(po_fn):
             fqn, tmp_file, bak_file = self.get_filenames(fqn=po_fn)
             if self.opt_args.verbose:
-                print("Writing %s" % fqn)
+                print("# Writing %s" % fqn)
 
             module = self.opt_args.module_name
             try:
                 catalog = pofile.read_po(open(po_fn, "r"))
             except BaseException as e:
-                print("Error %s reading po file %s" % (e, po_fn))
+                print("*** Error %s reading po file %s!" % (e, po_fn))
                 return
             for message in catalog:
                 if not message.id:
@@ -965,13 +976,21 @@ class OdooTranslation(object):
     def load_terms_from_pofile(self, po_fn, prio_terms="D"):
         if pth.isfile(po_fn):
             if self.opt_args.verbose:
-                print("Loading %s (prio=%s)" % (po_fn, prio_terms))
+                print("# Loading %s (prio=%s)" % (po_fn, prio_terms))
             try:
                 catalog = pofile.read_po(open(po_fn, "r"))
             except BaseException as e:
-                print("Error %s reading po file %s" % (e, po_fn))
+                print("*** Error %s reading po file %s!" % (e, po_fn))
                 return
+            rowctr = 0
             for message in catalog:
+                rowctr += 1
+                if self.opt_args.verbose:
+                    msg_burst("%d/%d) %-60.60s%s" % (
+                        rowctr, len(self.dict),
+                        message.id.split("\n")[0],
+                        "> ..."
+                        if "\n" in message.id or len(message.id) > 60 else ""))
                 if not message.id:
                     continue
                 if self.opt_args.wep_wrong_terms:
@@ -983,17 +1002,20 @@ class OdooTranslation(object):
                     message.id, message.string,
                     action="build_dict", prio_terms=prio_terms
                 )
+            if self.opt_args.verbose:
+                print("# %d lines read from %s ..." % (rowctr, po_fn))
 
     def load_terms_from_xlsx(self, dict_fn, prio_terms="D"):
         if pth.isfile(dict_fn):
             if self.opt_args.verbose:
-                print("Loading terms from %s (prio=%s)" % (dict_fn, prio_terms))
+                print("# Loading terms from %s (prio=%s)" % (dict_fn, prio_terms))
             wb = load_workbook(dict_fn)
             sheet = wb.active
             colnames = []
             for ncol in sheet.columns:
                 colnames.append(ncol[0].value)
             hdr = True
+            rowctr = 0
             for nrow in sheet.rows:
                 if hdr:
                     hdr = False
@@ -1003,18 +1025,19 @@ class OdooTranslation(object):
                     row[colnames[ncol]] = (
                         cell.value.replace("\\n", "\n") if cell.value else cell.value
                     )
-                if not row["msgid"] or not row["msgstr"]:
-                    continue
+                rowctr += 1
                 if self.opt_args.verbose:
-                    msg_burst("%-60.60s%s" % (
-                        row["msgid"].split("\n")[0],
+                    msg_burst("%d/%d) %-60.60s%s" % (
+                        rowctr, len(self.dict), row["msgid"].split("\n")[0],
                         "> ..."
                         if "\n" in row["msgid"] or len(row["msgid"]) > 60 else ""))
+                if not row["msgid"] or not row["msgstr"]:
+                    continue
                 if self.opt_args.wep_wrong_terms:
                     lang_msgid, lang_msgstr = self.parse_lang_terms(row["msgid"],
                                                                     row["msgstr"])
                     if lang_msgstr == "en":
-                        return
+                        continue
                 if "hashkey" in row and row["hashkey"]:
                     if row["hashkey"] not in self.dict:
                         self.store_1_item(row["hashkey"],
@@ -1030,6 +1053,8 @@ class OdooTranslation(object):
                         prio_terms=prio_terms,
                         module=row["module"],
                     )
+            if self.opt_args.verbose:
+                print("# %d lines read from %s ..." % (rowctr, dict_fn))
 
     def do_work_on_path(self, root, base, action=None):
         action = action or "translate"
@@ -1042,7 +1067,7 @@ class OdooTranslation(object):
                     i18n_path, "%s.po" % self.opt_args.lang.split("_")[0]
                 )
             if not pth.isfile(po_fn):
-                print("Module %s without translation" % pth.basename(path))
+                print("*** Module %s without translation!" % pth.basename(path))
                 return
             if self.opt_args.merge:
                 self.load_terms_from_xlsx(
@@ -1105,7 +1130,7 @@ class OdooTranslation(object):
         force = False
         if not ids:
             if self.opt_args.verbose:
-                print("Language %s not installed: installing it now" % lang)
+                print("* Language %s not installed: installing it now" % lang)
             id = clodoo.createL8(ctx, "base.language.install", vals)
             clodoo.executeL8(ctx, "base.language.install", "lang_install", [id])
             if not isinstance(ctx["user"].id, (int, long)):
@@ -1119,10 +1144,10 @@ class OdooTranslation(object):
             clodoo.writeL8(ctx, "res.users", ctx["user"].id, {"lang": lang})
             force = True
         elif self.opt_args.verbose:
-            print("Found language %s" % lang)
+            print("# Found language %s" % lang)
         if force or not clodoo.searchL8(ctx, "ir.translation", [("lang", "=", lang)]):
             if self.opt_args.verbose:
-                print("No term found for language %s: loading translation" % lang)
+                print("*** No term found for language %s: loading translation" % lang)
             id = clodoo.createL8(ctx, "base.update.translations", vals)
             clodoo.executeL8(ctx, "base.update.translations", "act_update", [id])
 
@@ -1134,7 +1159,7 @@ class OdooTranslation(object):
                 oe_version=self.opt_args.odoo_branch,
             )
         except BaseException:
-            print("No DB %s found" % self.opt_args.database)
+            print("*** No DB %s found!" % self.opt_args.database)
             ctx = None
         return ctx
 
@@ -1214,12 +1239,12 @@ class OdooTranslation(object):
                             not self.opt_args.module_name
                             or term.module == self.opt_args.module_name
                     ):
-                        print("Error <%s> for term '%s'" % (e, term.src))
+                        print("*** Error <%s> for term '%s'!" % (e, term.src))
                 ctr_write += 1
             return ctr_write
 
         if not pth.isfile(self.opt_args.config):
-            print("File %s not found!" % self.opt_args.config)
+            print("*** File %s not found!" % self.opt_args.config)
             return 1
         ctr_read = ctr_write = db_tnl = 0
         for database in self.opt_args.database.split(","):
@@ -1250,10 +1275,10 @@ class OdooTranslation(object):
                 ctr_read += 1
                 ctr_write += write_term(term)
         if db_tnl == 0:
-            print("No DB translated!")
+            print("* No DB translated!")
             return 126
         if self.opt_args.verbose:
-            print("%d records read, %d records written" % (ctr_read, ctr_write))
+            print("# %d records read, %d records written" % (ctr_read, ctr_write))
         return 0
 
     def translate_module(self):
@@ -1291,10 +1316,10 @@ class OdooTranslation(object):
         fqn, tmp_file, bak_file = self.get_filenames(fqn)
         if not pth.isfile(fqn):
             inplace = True
+        if self.opt_args.verbose:
+            print("# Writing %s" % fqn)
         if self.opt_args.test:
             return self.write_csv(fqn=fqn, inplace=inplace, only_template=only_template)
-        if self.opt_args.verbose:
-            print("Writing %s" % fqn)
         wb = Workbook()
         sheet = wb.active
         sheet.title = "odoo_default_tnxl"
@@ -1328,7 +1353,7 @@ class OdooTranslation(object):
     def write_csv(self, fqn=None, inplace=None, only_template=None):
         fqn = fqn.replace(".xlsx", ".csv")
         if self.opt_args.verbose:
-            print("Writing %s" % fqn)
+            print("# Writing %s" % fqn)
         with open(fqn, "w") as fd:
             if only_template:
                 fd.write("%s\t%s\t%s\n" % (

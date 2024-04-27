@@ -1,6 +1,7 @@
 2.0.16.1 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~~~~
 
+* [FIX] odoo_translate.py various fixes
 * [IMP] Log file of daemon process of test in tests/logs
 * [IMP] run_odoo_sdebug: OCB repository does not search for other repositories
 

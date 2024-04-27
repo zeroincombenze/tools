@@ -40,10 +40,14 @@ msgstr ""
 msgid "Account."
 msgstr ""
 
-
 #. module: test_module
 #: model:ir.model.fields,field_description:test_module.test_model_account_id
 msgid "tax"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.test_model_account_id
+msgid "Credit"
 msgstr ""
 
 #. module: test_module
@@ -59,6 +63,11 @@ msgstr ""
 #. module: test_module
 #: model:ir.model.web,field_description:test_module.test_model_account_id
 msgid "Dear ${name}"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "Dear ${partner}"
 msgstr ""
 
 #. module: test_module
@@ -88,6 +97,11 @@ msgstr "Purchase invoice"
 
 #. module: test_module
 #: model:ir.model.web,field_description:test_module.test_model_account_id
+msgid "Sale Order"
+msgstr ""
+
+#. module: test_module
+#: model:ir.model.web,field_description:test_module.test_model_account_id
 msgid "/usr/name/line"
 msgstr ""
 
@@ -102,18 +116,22 @@ PO_TEST_VALUE = {
     "msgid \"Account\"": "msgstr \"Conto\"",
     "msgid \"Account.\"": "msgstr \"Conto.\"",
     "msgid \"tax\"": "msgstr \"IVA\"",
+    "msgid \"Credit\"": "msgstr \"Credito\"",
     "msgid \"Invoices\"": "msgstr \"Fatture\"",
     "msgid \"<b>Invoice<b>\"": "msgstr \"<b>Fattura<b>\"",
     "msgid \"Dear ${name}\"": "msgstr \"Gentile ${name}\"",
+    "msgid \"Dear ${partner}\"": "msgstr \"Gentile ${partner}\"",
     "msgid \"&gt; 100%%\"": "msgstr \"&gt; 100%%\"",
     "msgid \"Invoice n.%s\"": "msgstr \"Fattura n.%s\"",
     "msgid \"n. fattura%(number)s of %(date)s\"":
         "msgstr \"fattura n.%(number)s di %(date)s\"",
     "msgid \"# invoice lines\"": "msgstr \"N. righe fattura\"",
     "msgid \"Purchase\"": "msgstr \"Acquisto\"",
+    "msgid \"Sale Order\"": "msgstr \"Ordine vendite\"",
     "msgid \"/usr/name/line\"": "msgstr \"/usr/name/line\"",
     "msgid \"account.tax\"": "msgstr \"account.tax\"",
 }
+
 
 def version():
     return __version__
@@ -176,13 +194,13 @@ class RegressionTest:
             sts, stdout, stderr = z0lib.run_traced(cmd)
             self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
             template = self.read_data_file("odoo_template_tnl.csv")
-            tnl = self.read_data_file(self.get_fqn(".odoo_template_tnl_cache.csv"))
-
             self.assertEqual(
                 template, ref_template,
                 msg="Files %s != %s" % ("odoo_template_tnl.csv",
                                         "ref_odoo_template_tnl.csv")
             )
+
+            tnl = self.read_data_file(self.get_fqn(".odoo_template_tnl_cache.csv"))
             self.assertEqual(
                 tnl, ref_tnl,
                 msg="Files %s != %s" % (".odoo_template_tnl_cache.csv",
