@@ -37,13 +37,13 @@ TEST_SUCCESS = 0
 if os.name == "posix":
     RED = "\033[1;31m"
     GREEN = "\033[1;32m"
-    CLEAR = "\033[0;m"
+    CLEAR = "\033[0m"
 else:  # pragma: no cover
     RED = ''
     GREEN = ''
     CLEAR = ''
 fail_msg = RED + "Test FAILED!" + CLEAR
-success_msg = GREEN + "Test successfully terminated" + CLEAR
+success_msg = GREEN + "Test SUCCESSFULLY completed" + CLEAR
 # max # of test
 MAX_TEST_NUM = 10
 # Apply for configuration file (True/False)

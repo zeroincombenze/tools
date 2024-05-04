@@ -632,7 +632,6 @@ Z0BUG_main_file() {
         # test w/o tracelog
         exec_all_tests "$ut1_list"
         sts=$?
-        # Test log file successfully ended; set log file to next tests
         WLOGCMD=
         set_tlog_file "$logfn" "" "$LECHO"
       fi
@@ -640,9 +639,9 @@ Z0BUG_main_file() {
       sts+=$?
       if [ ${run_on_top:-0} -ne 0 ]; then
         if [ $sts -eq 0 ]; then
-          echo "Test successfully terminated"
+          echo -e "\e[1;32mTest SUCCESSFULLY completed\e[0m"
         else
-          echo "Test failed!"
+          echo -e "\e[1;31mTest FAILED!\e[0m"
         fi
       fi
     else

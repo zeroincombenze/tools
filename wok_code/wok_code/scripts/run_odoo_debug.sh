@@ -286,9 +286,9 @@ test_with_external_process() {
         s=$?
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         if [[ $s -eq 0 ]]; then
-            echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mTest successfully terminated\e[0m" | tee -a $LOGFILE
+            echo -e "$x $$ DAEMON $opt_db $p: \e[32mTest SUCCESSFULLY completed\e[0m" | tee -a $LOGFILE
         else
-            echo -e "$x $$ ERROR $opt_db $p: \e[31;43mTest $ext_test terminated with error $s\e[0m" | tee -a $LOGFILE
+            echo -e "$x $$ ERROR $opt_db $p: \e[31mTest $ext_test terminated with error $s\e[0m" | tee -a $LOGFILE
             sts=$s
             break
         fi

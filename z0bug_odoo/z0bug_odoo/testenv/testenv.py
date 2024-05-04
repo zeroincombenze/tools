@@ -700,7 +700,15 @@ class MainTest(test_common.TransactionCase):
             self.env.cr.commit()  # pylint: disable=invalid-commit
             _logger.info("✨ Test data available on database %s" % self.env.cr.dbname)
         super(MainTest, self).tearDown()
-        self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        if os.name == "posix":
+            GREEN = "\033[1;32m"
+            CLEAR = "\033[0m"
+        else:  # pragma: no cover
+            GREEN = ""
+            CLEAR = ""
+        self._logger.info(
+            ("🏆🥇 " + GREEN + "%d tests SUCCESSFULLY completed" + CLEAR)
+            % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --
@@ -768,7 +776,13 @@ class MainTest(test_common.TransactionCase):
                 break
 
     def raise_error(self, mesg):  # pragma: no cover
-        self._logger.info("🛑 " + mesg)
+        if os.name == "posix":
+            RED = "\033[1;31m"
+            CLEAR = "\033[0m"
+        else:  # pragma: no cover
+            RED = ""
+            CLEAR = ""
+        self._logger.info("🛑 " + RED + mesg + CLEAR)
         raise ValueError(mesg)
 
     # ----------------------------------
