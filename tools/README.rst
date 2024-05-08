@@ -595,12 +595,6 @@ oerplib3: 0.8.4 (2023-05-06)
 * [FIX] First porting
 
 
-z0bug_odoo: 2.0.8 (2023-04-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: multiple action on the same records
-
-
 os0: 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -5,7 +5,7 @@ Create map of Odoo modules
 """
 from __future__ import print_function, unicode_literals
 from builtins import input
-from past.builtins import long
+from past.builtins import long, basestring
 import os
 import os.path as pth
 import sys
@@ -550,6 +550,8 @@ class OdooTranslation(object):
         module=None,
         is_tag=None,
     ):
+        msg_orig = msg_orig or ""
+        msg_tnxl = msg_tnxl or ""
         if not msg_orig:
             return msg_orig
         action = action or ("build_dict" if prio_terms == "P" else "translate")
@@ -994,10 +996,16 @@ class OdooTranslation(object):
                 if not message.id:
                     continue
                 if self.opt_args.wep_wrong_terms:
-                    lang_msgid, lang_msgstr = self.parse_lang_terms(message.id,
-                                                                    message.string)
-                    if lang_msgstr == "en":
+                    if (
+                            ("\n" in message.string and "\n" not in message.id)
+                            or ("\"" in message.string and "\"" not in message.id)
+                    ):
                         message.string = ""
+                    else:
+                        lang_msgid, lang_msgstr = self.parse_lang_terms(message.id,
+                                                                        message.string)
+                        if lang_msgstr == "en":
+                            message.string = ""
                 self.do_dict_item(
                     message.id, message.string,
                     action="build_dict", prio_terms=prio_terms
@@ -1022,9 +1030,13 @@ class OdooTranslation(object):
                     continue
                 row = {}
                 for ncol, cell in enumerate(nrow):
+                    if cell.value and not isinstance(cell.value, basestring):
+                        cell.value = str(cell.value)
                     row[colnames[ncol]] = (
                         cell.value.replace("\\n", "\n") if cell.value else cell.value
                     )
+                if not row["msgid"]:
+                    continue
                 rowctr += 1
                 if self.opt_args.verbose:
                     msg_burst("%d/%d) %-60.60s%s" % (
@@ -1034,10 +1046,16 @@ class OdooTranslation(object):
                 if not row["msgid"] or not row["msgstr"]:
                     continue
                 if self.opt_args.wep_wrong_terms:
-                    lang_msgid, lang_msgstr = self.parse_lang_terms(row["msgid"],
-                                                                    row["msgstr"])
-                    if lang_msgstr == "en":
+                    if (
+                            ("\n" in row["msgstr"] and "\n" not in row["msgid"])
+                            or ("\"" in row["msgstr"] and "\"" not in row["msgid"])
+                    ):
                         continue
+                    else:
+                        lang_msgid, lang_msgstr = self.parse_lang_terms(row["msgid"],
+                                                                        row["msgstr"])
+                        if lang_msgstr == "en":
+                            continue
                 if "hashkey" in row and row["hashkey"]:
                     if row["hashkey"] not in self.dict:
                         self.store_1_item(row["hashkey"],
