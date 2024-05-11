@@ -19,7 +19,7 @@ PG_PARAMS = {
             "odoo11", "oca11", "odoo12", "oca12",
             "odoo13", "oca13", "odoo14", "oca14",
             "odoo15", "oca15", "odoo15", "oca15",
-            "odoo16", "oca16", "odoo16", "oca16",
+            "odoo16", "oca16", "odoo17", "oca17",
             "odoo_www", "weblate", "librerp12", "kalamitica",
         ]
     },
@@ -108,6 +108,7 @@ def replace_user_in_pgfile(fqn, replacements):
                 fd.write(new_content)
         except BaseException:
             print("Cannot update file %s" % fqn)
+
 
 def search_pg_ver(user):
     def_pg_ver = ""
@@ -230,6 +231,9 @@ def main(cli_args=None):
         cmd = "psql%s" % ("" if pg_ver == "12" else ("-" + pg_ver))
         for odoo_ver in ALL_ODOO_VERS:
             user = "odoo" + odoo_ver.split(".")[0]
+            print("%s template1 -c \"create role %s with superuser createdb login\""
+                  % (cmd, user))
+            user = "oca" + odoo_ver.split(".")[0]
             print("%s template1 -c \"create role %s with superuser createdb login\""
                   % (cmd, user))
     return 0

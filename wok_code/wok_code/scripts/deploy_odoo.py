@@ -31,7 +31,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -411,7 +411,16 @@ class OdooDeploy(object):
                     path = os.path.join(root, dir)
                     analyze_path(path, dir)
             for repo in [x for x in self.repo_info.keys()]:
-                if self.repo_info[repo]["#"] == 0:
+                path = self.repo_info[repo]["PATH"]
+                self.run_traced("cd %s" % path, verbose=False)
+                sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info(
+                    verbose=False
+                )
+                if sts == 0 and self.opt_args.git_orgs:
+                    org_url, repo, repo_org = self.data_from_url(git_url)
+                    if repo_org in self.opt_args.git_orgs:
+                        continue
+                if self.opt_args.clean_empty_repo and self.repo_info[repo]["#"] == 0:
                     del self.repo_info[repo]
             self.repo_list = sorted(self.repo_info.keys())
             if "OCB" in self.repo_list:
@@ -1205,6 +1214,11 @@ def main(cli_args=None):
         action="store_true",
         help="Remove repositories out of boundaries",
     )
+    parser.add_argument(
+        "--clean-empty-repo",
+        action="store_true",
+        help="Rempve repositories without modules",
+    )
     parser.add_argument("-c", "--config", help="Odoo configuration file")
     parser.add_argument("-D", "--default-gitorg", default="oca")
     # parser.add_argument("-d", "--deployment-mode", help="may be tree,server,odoo")
@@ -1334,6 +1348,10 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
+
+
+
 
 
 
