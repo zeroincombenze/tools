@@ -1,4 +1,4 @@
-Test Environment v2.0.18
+Test Environment v2.0.19
 ========================
 
 Overview
@@ -1230,6 +1230,7 @@ Useful External Reference
 +-------------------+-----------------------+-----------------+----------------------------------+
 | base.USD          | USD currency          | res.currency    | Test currency in test: US dollar |
 +-------------------+-----------------------+-----------------+----------------------------------+
+
 
 
 

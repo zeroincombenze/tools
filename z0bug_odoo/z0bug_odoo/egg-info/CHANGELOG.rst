@@ -1,8 +1,13 @@
+2.0.19 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Colored test results
+
 2.0.18 (2024-04-17)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] TestEnv: no data loaded in some cases
-* [FIX[ TestEnv: rsource_edit manage read-only fields
+* [FIX[ TestEnv: resource_edit manage read-only fields
 * [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
 
 2.0.17 (2024-02-27)
