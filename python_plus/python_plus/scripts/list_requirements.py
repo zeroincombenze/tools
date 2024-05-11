@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -49,13 +49,14 @@ REQVERSION = {
     },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
-    "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=23.0,<38.0"},
+    "cryptography": {"2.7": ">=2.2.2,<3.4", "3.7": ">=23.0,<38.0", "3.9": ">38.0.2"},
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10"},
     # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
     "docutils": {"0": "==0.16"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
+    "factur-x": {"2.7": "<3.0", "3.6": ">=3.0"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
     "flake8": {
         "2.7": "<4.0.0",     # <<Tested 3.5.0; 3.6.0 does not work>>
@@ -65,7 +66,7 @@ REQVERSION = {
     "gevent": {
         "6.1": "==1.0.1",                # by odoo documentation
         "7.0": "==1.0.2",                # by odoo documentation
-        "10.0": ">=1.1.2,<=1.4.0",       # by odoo + gevent documentation + test
+        "10.0": ">=1.1.2,<1.3.0",        # by odoo + gevent documentation + test
         "11.0": "==1.5.0",               # by odoo documentation
         "12.0": ">=1.5.0,<=21.12.0",     # https://github.com/gevent/gevent/issues/1899
         "14.0": ">=20.9.0,<=22.10.99",   # by odoo + gevent documentation
@@ -78,6 +79,7 @@ REQVERSION = {
         "3.7": ">=0.4.13",
     },
     "importlib-metadata": {"3.7": "==4.8.3"},
+    "invoice2data": {"2.7": "<0.4", "3.6": ">=0.4"},
     "ipy": {"6.1": ">=0.83"},
     "isort": {"0": "==4.3.4"},  # Version by test pkgs
     "jcconv": {"6.1": "==0.2.3"},
@@ -89,8 +91,10 @@ REQVERSION = {
         "7.0": ">=3.3.5,<=3.4.1",
         "9.0": ">=3.4.1,<=3.4.4",
         "10.0": ">=3.5.0,<=3.6.4",
+        "11.0": "PYVER",
         "14.0": ">=4.5.0",
         "15.0": ">=4.6.5",
+        "16.0": "PYVER",
         "3.6": "==3.7.1",
         "3.7": ">=4.2.3,<=4.6.5",
         "3.8": ">=4.6.1,<=4.6.5",
@@ -103,6 +107,7 @@ REQVERSION = {
     "MarkupSafe": {"6.1": "==0.23", "14.0": "==1.1.0", "0": "<2.1.0"},  # Tested 1.0
     "matplotlib": {
         "10.0": "==3.0.3",
+        "11.0": "PYVER",
         # "13.0": "==3.4.1",
         "3.6": "==3.0.3",
         # "3.7": "==3.4.1"
@@ -110,6 +115,7 @@ REQVERSION = {
     },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "nbconvert": {"0": "==6.0.7"},
+    "num2words": {"2.7": "<=0.5", "3.6": ">=0.5"},
     "odoo_score": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
     "ofxparse": {"6.1": "==0.16"},
     "pandas": {"3.7": ">=0.22.0,<=1.1.0"},
@@ -119,9 +125,10 @@ REQVERSION = {
         "7.0": "==3.4.2",
         "8.0": "==3.4.1",
         "11.0": "==4.0.0",
+        "12.0": "PYVER",
         "15.0": ">=7.0.0",
         "3.6": "==4.0.0",
-        "3.7": "==6.1.0",
+        "3.7": ">=6.1.0,<=6.2.0",
         "3.8": ">=6.2.1",
     },
     "psutil": {"6.1": "==2.1.1", "7.0": "==2.2.0", "8.0": "==4.3.1"},
@@ -149,19 +156,25 @@ REQVERSION = {
     },
     "pylint-odoo": {
         "6.1": "<3.0.0",        # to match lxml
+        "10.0": "<=4.0.0",
         "11.0": "PYVER",
         "13.0": ">=3.3.1",      # from pypi documentation
-        "15.0": ">=5.0.1",      # from pypi documentation
-        "16.0": ">=7.0.0",      # from pypi documentation
-        "3.5": "<=8.0.0",
-        "3.8": ">=3.5.0,<=8.0.0",
+        "14.0": "PYVER",
+        # "15.0": ">=5.0.1",      # from pypi documentation
+        # "16.0": ">=7.0.0",      # from pypi documentation
+        "3.5": "<=5.0.0",
+        "3.8": ">=3.5.0,<=5.0.0",
     },
     "pylint-plugin-utils": {
         "2.7": "==0.2.6",
         "3.5": "==0.5",
         "3.6": ">=0.7",
     },
-    "pyOpenSSL": {"0": ">=16.2.0,<19.0", "3.9": ">=16.2.0,<23.0"},
+    "pyOpenSSL": {
+        "0": ">=16.2.0,<19.0",
+        "3.8": ">=20.0.0,<23.0",
+        "3.9": ">=22.0.0,<23.0"
+    },
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
@@ -196,7 +209,10 @@ REQVERSION = {
         "10.0": ">=2.11.1,<=2.20.0",
         "13.0": ">=2.11.1,<=2.21.0",
         "14.0": "<=2.25.1",
+        "15.0": "PYVER",
         "3.8": ">=2.22.0",
+        # versions < 2.25 aren't compatible w/ urllib3 1.26. Bullseye = 2.25.1.
+        # min version = 2.22.0 (Focal)
         "3.9": ">=2.25.1",
     },
     "sentry-sdk": {"0": "<1.12.0"},
@@ -215,10 +231,11 @@ REQVERSION = {
     "vobject": {"6.1": "==0.6.6", "7.0": "==0.9.3"},  # Tested 0.9.5
     "Werkzeug": {
         "6.1": "==0.9.6",
-        "10.0": "==0.11.11",
+        "10.0": ">=0.11.11,<=0.11.15",
         "11.0": "==0.11.15",
         "12.0": "==0.14.1",
         "14.0": "==0.16.1",
+        "15.0": "PYVER",
         "3.9": "==2.0.2",
 
     },
@@ -265,6 +282,7 @@ ALIAS = {
     "serial": "pyserial",
     "sphinx": "Sphinx",
     "stdnum": "python-stdnum",
+    "Unidecode": "unidecode",
     "usb": "pyusb",
     "werkzeug": "Werkzeug",
     "xlsxwriter": "XlsxWriter",
@@ -296,6 +314,7 @@ ALIAS_RHEL = {
 }
 FORCE_ALIAS2 = {
     "docutils==0.12": "docutils==0.16",
+    "invoice2data>=0.2.74,<=0.3.4": "invoice2data>=0.2.74,<0.4",
     "pytz==2014.4": "pytz>=2014.4",
     "pytz==2014.10": "pytz>=2014.10",
     "pytz==2016.7": "pytz>=2016.7",
@@ -428,8 +447,8 @@ BIN_TEST_PACKAGES = [
     "python-dev",
     "python-setuptools",
 ]
-RPC2_PACKAGES = ["clodoo", "odoorpc", "oerplib", "os0"]
-RPC3_PACKAGES = ["clodoo", "odoorpc", "os0"]
+RPC2_PACKAGES = ["clodoo", "odoorpc", "oerplib"]
+RPC3_PACKAGES = ["clodoo", "odoorpc"]
 PIP_BASE_PACKAGES = [
     "Babel",
     "chardet",
@@ -797,6 +816,8 @@ def merge_item_version(left, right, ignore_error=False):
                 ix_right += 1
                 split_left = [split_left[0], op, split_right[ix_right]]
             elif (">" not in op and "<" not in op) or "==" not in split_left:
+                if len(split_left) > 1 and split_left[-1] != ",":
+                    split_left.append(",")
                 split_left.append(op)
                 ix_right += 1
                 split_left.append(split_right[ix_right])
@@ -1479,16 +1500,6 @@ def main(cli_args=None):
                 odoo_ver=ctx["odoo_ver"],
                 pyver=ctx["pyver"],
             )
-            # odoo_major = int(ctx["odoo_ver"].split(".")[0])
-            # if odoo_major >= 10:
-            #     deps_list = package_from_list(
-            #         deps_list,
-            #         "python",
-            #         ["lessc"],
-            #         with_version=ctx["with_version"],
-            #         odoo_ver=ctx["odoo_ver"],
-            #         pyver=ctx["pyver"],
-            #     )
             deps_list = package_from_list(
                 deps_list,
                 "bin",
@@ -1568,35 +1579,25 @@ def main(cli_args=None):
             while len(rm_list):
                 ii = rm_list.pop()
                 del deps_list["bin"][ii]
+    if ctx["pypi_name"]:
+        for dep_pkg in deps_list["python"]:
+            pkg = split_versions(dep_pkg)[0]
+            if pkg == ctx["pypi_name"]:
+                deps_list["python"] = [dep_pkg]
+                deps_list["bin"] = []
+                break
+        for dep_pkg in deps_list["bin"]:
+            pkg = split_versions(dep_pkg)[0]
+            if pkg == ctx["bin"]:
+                deps_list["bin"] = [dep_pkg]
+                deps_list["python"] = []
+                break
     for ii, dep_pkg in enumerate(deps_list["python"]):
         if ">" in dep_pkg or "<" in dep_pkg or " " in dep_pkg:
             deps_list["python"][ii] = "'%s'" % dep_pkg
     for ii, dep_pkg in enumerate(deps_list["bin"]):
         if ">" in dep_pkg or "<" in dep_pkg or " " in dep_pkg:
             deps_list["bin"][ii] = "'%s'" % dep_pkg
-    # for item in DEPS:
-    #     if "python" in DEPS[item]:
-    #         if isinstance(DEPS[item]["python"], (tuple, list)):
-    #             for itm in DEPS[item]["python"]:
-    #                 swap(deps_list["python"], item, itm)
-    #         else:
-    #             swap(deps_list["python"], item, DEPS[item]["python"])
-    # if ctx["pyver"] and ctx["pyver"].split(".")[0] == "2":
-    #     for item in DEPS2:
-    #         if "python" in DEPS2[item]:
-    #             if isinstance(DEPS2[item]["python"], (tuple, list)):
-    #                 for itm in DEPS2[item]["python"]:
-    #                     swap(deps_list["python"], item, itm)
-    #             else:
-    #                 swap(deps_list["python"], item, DEPS2[item]["python"])
-    # if ctx["pyver"] and ctx["pyver"].split(".")[0] == "3":
-    #     for item in DEPS3:
-    #         if "python" in DEPS3[item]:
-    #             if isinstance(DEPS3[item]["python"], (tuple, list)):
-    #                 for itm in DEPS3[item]["python"]:
-    #                     swap(deps_list["python"], item, itm)
-    #             else:
-    #                 swap(deps_list["python"], item, DEPS3[item]["python"])
     if ctx["out_file"]:
         req_pkgs = []
         try:
@@ -1648,6 +1649,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

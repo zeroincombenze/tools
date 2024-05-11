@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.12
+__version__=2.0.13
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -302,9 +302,9 @@ bin_install_1() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install_1($*)"
   local pkg sts=126
   local binreq bin_re
-  [[ -n "$opt_bins" ]] && binreq="${opt_bins//,/ }"
   if [[ -n "$opt_bins" ]]; then
     [[ $opt_verbose -gt 0 ]] && echo -e "(1) Analyzing \e[36m$opt_bins\e[0m"
+    binreq="${opt_bins//,/ }"
     for pkg in $binreq; do
       bin_install $pkg
       ((sts=sts+$?))
@@ -375,7 +375,15 @@ pip_install() {
   pkg=$(get_actual_pkg "$pkg")
   pfn=$(get_pkg_wo_version "$pkg")
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-  [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+  if [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]]; then
+    run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+    x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+    [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+  elif [[ ! $pkg =~ $USE2TO3_PKGS && $PIPVER -lt 23 && $opt_pyver =~ ^3 ]]; then
+    run_traced "$PIP install pip -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+    x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+    [[ $x -lt 58 ]] && run_traced "$PIP --disable-pip-version-check install setuptools -U"
+  fi
   x="-qP"
   [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
   [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
@@ -552,7 +560,7 @@ pip_install_1() {
 }
 
 pip_install_2() {
-  # pip_install_2()
+  # pip_install_2(popts)
   echo -en "\e[?25l"
   local pkg popts sts=0
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
@@ -566,7 +574,7 @@ pip_install_2() {
 }
 
 pip_install_req() {
-  # pip_install_req()
+  # pip_install_req(popts)
   echo -en "\e[?25l"
   local f pfn pkg flist cmd popts sts=0
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
@@ -891,7 +899,7 @@ find_cur_py() {
     fi
     if [[ -n $opt_oever || -n $opt_oepath ]]; then
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
+      # [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
     fi
 }
 
@@ -1042,11 +1050,8 @@ do_venv_mgr() {
       echo "Wrong activation script $VENV/bin/activate"
       sed -Ee "s|^ *\[ -x \\\$f -a ! -d \\\$f ] | [[ -x \$f \&\& ! -d \$f ]] \&\& grep -q \"^#\!.*[ /]python\" \$f \&>/dev/null |" -i $VENV/bin/activate
     fi
+    pypi_requirements
   fi
-  # BINPKGS=$(get_req_list "" "bin")
-  # [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #\$(get_req_list '' 'bin' 'debug')"
-  # [[ $opt_force -ne 0 ]] && OEPKGS=$(get_req_list "" "python" "oe,cur") || OEPKGS=$(get_req_list "" "python" "oe")
-  # [[ $opt_verbose -gt 2 ]] && echo "OEPKGS=$OEPKGS #\$(get_req_list '' 'python' 'debug,oe,cur')"
   if [[ $cmd =~ (amend|check|test|inspect) ]]; then
     V=$VENV
   elif [[ "$cmd" == "cp" ]]; then
@@ -1104,15 +1109,14 @@ do_venv_mgr() {
       run_traced "$PIP install \"pip<21.0\" -U"
     else
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
+      # [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
       [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
-      x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-      [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+      # x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+      # [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
     fi
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
     [[ $cmd =~ (amend|check) ]] && pip_check_1 $cmd
-    # [[ -n "$opt_oever" && "$cmd" == "amend" ]] && pip_install_2 "--upgrade"
     [[ -n "$opt_oever" && $cmd =~ (amend|check) ]] && pip_check_2 $cmd
     # [[ $cmd == "amend" && -n "$opt_rfile" ]] && pip_install_req "--upgrade"
     [[ $cmd =~ (amend|check) && -n "$opt_rfile" ]] && pip_check_req $cmd
@@ -1244,7 +1248,7 @@ do_venv_create() {
     set_pybin $opt_pyver "opt_pyver"
   fi
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
-
+  [[ $opt_verbose -ne 0 ]] && echo "# python$opt_pyver ..."
   $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
   if [[ -n $venvexe ]]; then
     [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
@@ -1293,17 +1297,18 @@ do_venv_create() {
   if [[ $x == "2" ]]; then
     run_traced "$PIP install \"pip<21.0\" -U"
   else
-    PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-    [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
-    [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
-    x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-    [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+    # PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+    # [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
+    # [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
+    # x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+    # [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+    run_traced "$PIP install pip -U"
   fi
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   run_traced "$PIP install wheel"
   check_installed_pkgs
-  pypi_requrements
+  pypi_requirements
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   [[ $opt_dry_run -eq 0 ]] && custom_env $VENV $opt_pyver
@@ -1385,7 +1390,7 @@ validate_py_oe_vers() {
   local odoo_majver
   if [[ -n $opt_oever && -z $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
-    [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-10)/2+6))"
+    [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-9)/2+6))"
   elif [[ -n $opt_oever && -n $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
     if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then
@@ -1395,7 +1400,7 @@ validate_py_oe_vers() {
   fi
 }
 
-pypi_requrements() {
+pypi_requirements() {
     # pypi_requirements(cur)
     BINPKGS=$(get_req_list "" "bin")
     [[ $opt_verbose -gt 2 ]] && echo "BINPKGS=$BINPKGS #$(get_req_list '' '' 'debug,bin')"
@@ -1490,7 +1495,7 @@ fi
 [[ -z "$p4" && -n "$p5" ]] && p4="$p5" && p5=""
 [[ -z "$p3" && -n "$p4" ]] && p3="$p4" && p4=""
 if [[ $opt_help -gt 0 ]]; then
-  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2023 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage virtual environment\naction may be: $ACTIONS" "(C) 2018-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/en/latest/pypi_python_plus/rtd_description.html#vem-virtual-environment-manager\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [[ $action =~ (help|create|python) ]]; then
@@ -1528,7 +1533,6 @@ FLAG=">"
 [[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=""
 [[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
 chmod -c +x $LIST_REQ
-# LIST_REQ="python $LIST_REQ"    #debug
 
 sts=126
 if [[ $action == "rm" ]]; then
@@ -1540,6 +1544,7 @@ if [[ $action == "rm" ]]; then
 elif [[ $action == "create" ]]; then
   [[ -n $opt_oepath ]] && opt_oepath=$(readlink -f $opt_oepath) && venv_mgr_check_oever
   sts=$?
+  [[ $opt_oever =~ ^1 && -z $opt_bins ]] && opt_bins="lessc"
 elif [[ $action != "help" ]]; then
   do_activate "$p2" "-q"
   venv_mgr_check_src_path "$p2"
@@ -1547,7 +1552,7 @@ elif [[ $action != "help" ]]; then
   [[ -z $opt_oever ]] && venv_mgr_check_oever
   check_installed_pkgs
   validate_py_oe_vers
-  pypi_requrements "$opt_force"
+  pypi_requirements "$opt_force"
 fi
 
 sts=126
@@ -1586,6 +1591,10 @@ if [[ -n "$ERROR_PKGS" ]]; then
   echo "************************************************************"
   echo -e "\e[1mWarning! Following packages with wrong version or uninstalled\e[0m"
   echo "$ERROR_PKGS"
+#  echo "Try to install again ..."
+#  for pkg in $ERROR_PKGS; do
+#     do_venv_pip "$p2" "install" "$pkg"
+#  done
   echo "************************************************************"
   DISTO=$(xuname -d)
   FH=$(xuname -f)
@@ -1635,6 +1644,7 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
+
 
 
 
