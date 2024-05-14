@@ -3,7 +3,7 @@
 
 * [IMP] list_requirements.py: package versions improvements
 * [FIX] list_requirements.py: in some rare cases wrong version to apply (factur-x)
-+ [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
+* [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
 * [IMP] vem: pip is always updated to last version
 
 2.0.12 (2024-02-29)
