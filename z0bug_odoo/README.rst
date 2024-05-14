@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.16
+z0bug_odoo 2.0.19
 =================
 
 
@@ -817,7 +817,7 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package 2.0.16
+* z0bug_odoo PYPI package 2.0.19
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
@@ -917,7 +917,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.16
+* z0bug_odoo PYPI package version 2.0.19
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -2146,8 +2146,20 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.16.1 (2024-02-27)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.19 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Colored test results
+
+2.0.18 (2024-04-17)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: no data loaded in some cases
+* [FIX[ TestEnv: resource_edit manage read-only fields
+* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
+
+2.0.17 (2024-02-27)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] TestEnv: minor improvements
 * [FIX] TestEnv: crash if no account.journal in data
@@ -2335,10 +2347,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

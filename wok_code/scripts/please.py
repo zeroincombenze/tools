@@ -60,7 +60,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 KNOWN_ACTIONS = [
     "help",
@@ -860,6 +860,18 @@ class Please(object):
         if "total" not in params:
             self.log_warning("No stats found in %s" % log_fqn)
             return 3
+        log_fqn = pth.join(pth.dirname(self.get_logdir()),
+                           "concurrent_test",
+                           "test_concurrent.log")
+        if pth.isfile(log_fqn):
+            with open(log_fqn, "r") as fd:
+                contents = fd.read()
+            for ln in contents.split("\n"):
+                if "SUCCESSFULLY completed" in ln:
+                    x = re.search("[0-9]+ tests", ln)
+                    if x:
+                        items = ln[x.start(): x.end()].split()
+                        params["testpoints"] += int(items[0])
         # Q-rating = coverage (60%) + # testpoints*4/total (40%)
         params["qrating"] = int((params["cover"] / params["total"] * 60)
                                 + (params["testpoints"] * 160 / params["total"])
@@ -1046,6 +1058,10 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 ===============
-wok_code 2.0.16
+wok_code 2.0.17
 ===============
 
 
@@ -184,6 +184,14 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.17 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translate.py various fixes
+* [IMP] Log file of daemon process of test in tests/logs
+* [IMP] run_odoo_debug: OCB repository does not search for other repositories
+* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
 
 2.0.16 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~~
@@ -436,10 +444,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

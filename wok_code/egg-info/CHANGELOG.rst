@@ -1,3 +1,11 @@
+2.0.17 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translate.py various fixes
+* [IMP] Log file of daemon process of test in tests/logs
+* [IMP] run_odoo_debug: OCB repository does not search for other repositories
+* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
+
 2.0.16 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~~
 

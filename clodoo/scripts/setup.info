@@ -77,10 +77,10 @@ setup(
     package_data={
         "": [
             "scripts/setup.info",
-            "./manage_db",
-            "./manage_odoo",
-            "./manage_odoo.man",
-            "./odoo_install_repository",
+            # "./manage_db",
+            # "./manage_odoo",
+            # "./manage_odoo.man",
+            # "./odoo_install_repository",
             "./odoorc",
             "./transodoo.xlsx",
             "./bck_filestore.sh",

@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.12
+"""Test Environment v2.0.18
 
-Copy this file in tests directory of your module.
-Please copy the documentation testenv.rst file too in your module.
+You can locate the recent testenv.py in testenv directory of module
+https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
+
+For full documentation visit:
+https://zeroincombenze-tools.readthedocs.io/en/latest/pypi_z0bug_odoo/index.html
+https://z0bug-odoo.readthedocs.io/en/latest/
+https://github.com/zeroincombenze/tools
+https://github.com/zeroincombenze/zerobug-test
+
+Copy the testenv.py file in tests directory of your module.
+Please copy the documentation testenv.rst file in your module too.
+
 The __init__.py must import testenv.
-Your python test file should have to contain some following example lines:
 
-::
+    from . import testenv
+    from . import test_<MY_TEST_FILE>
+
+Your python test file have to contain some following example lines:
 
     import os
     import logging
-    from .testenv_rpc import MainTest as SingleTransactionCase
+    from .testenv import MainTest as SingleTransactionCase
 
     _logger = logging.getLogger(__name__)
 

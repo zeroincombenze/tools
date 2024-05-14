@@ -230,7 +230,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.16
+* z0bug_odoo PYPI package version 2.0.18
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 

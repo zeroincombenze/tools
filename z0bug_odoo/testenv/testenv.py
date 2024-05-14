@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.16
+"""Test Environment v2.0.19
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -700,7 +700,15 @@ class MainTest(test_common.TransactionCase):
             self.env.cr.commit()  # pylint: disable=invalid-commit
             _logger.info("✨ Test data available on database %s" % self.env.cr.dbname)
         super(MainTest, self).tearDown()
-        self._logger.info("🏆🥇 %d tests SUCCESSFULLY completed" % self.assert_counter)
+        if os.name == "posix":
+            GREEN = "\033[1;32m"
+            CLEAR = "\033[0m"
+        else:  # pragma: no cover
+            GREEN = ""
+            CLEAR = ""
+        self._logger.info(
+            ("🏆🥇 " + GREEN + "%d tests SUCCESSFULLY completed" + CLEAR)
+            % self.assert_counter)
 
     # ---------------------------------------
     # --  Unicode encode/decode functions  --
@@ -768,7 +776,13 @@ class MainTest(test_common.TransactionCase):
                 break
 
     def raise_error(self, mesg):  # pragma: no cover
-        self._logger.info("🛑 " + mesg)
+        if os.name == "posix":
+            RED = "\033[1;31m"
+            CLEAR = "\033[0m"
+        else:  # pragma: no cover
+            RED = ""
+            CLEAR = ""
+        self._logger.info("🛑 " + RED + mesg + CLEAR)
         raise ValueError(mesg)
 
     # ----------------------------------
@@ -1733,7 +1747,8 @@ class MainTest(test_common.TransactionCase):
                     6,
                     0,
                     [
-                        x.id if isinstance(x.id, (int, long)) else x.id.origin
+                        x.id if isinstance(x.id, (int, long))
+                        else getattr(x.id, "origin", False)
                         for x in value
                     ],
                 )
@@ -1835,7 +1850,11 @@ class MainTest(test_common.TransactionCase):
     def _convert_to_write(self, record, new=None, orig=None):
         values = {}
         for field in list(record._fields.keys()):
-            if field in BLACKLIST_COLUMNS or record._fields[field].readonly:
+            if (
+                    field in BLACKLIST_COLUMNS
+                    or record._fields[field].compute
+                    or record._fields[field].related
+            ):
                 continue
             value = self._convert_field_to_write(record, field)
             if value is None:  # pragma: no cover
@@ -3004,23 +3023,22 @@ class MainTest(test_common.TransactionCase):
             if "TEST_SETUP_LIST" in inspect.stack()[ix][0].f_globals:
                 found = True
                 break
-        if setup_list and found:
+        if setup_list:
+            data = {"TEST_SETUP_LIST": setup_list}
+        elif found:
             data = {
                 "TEST_SETUP_LIST":
                     inspect.stack()[ix][0].f_globals["TEST_SETUP_LIST"]
             }
-            for resource in data["TEST_SETUP_LIST"]:
-                init_resource_data(resource, data, ix + 1)
-            self.declare_all_data(data)
-        elif setup_list:
-            data = {"TEST_SETUP_LIST": setup_list}
-            for resource in setup_list:
-                init_resource_data(resource, data, ix + 1 if found else ix)
-            self.declare_all_data(data, group=group)
+        else:
+            self.raise_error("No data declared")
+        for resource in data["TEST_SETUP_LIST"]:
+            init_resource_data(resource, data, ix + 1 if found else ix)
+        self.declare_all_data(data, group=group)
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.16 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.19 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(
@@ -3665,5 +3683,8 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
+
+
+
 
 

@@ -119,20 +119,27 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.10.1 (2024-03-31)
+~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Parameters review
+* [FIX] No file durin pip install
+* [FIX] Call with context Odoo 10.0+
+
 2.0.10 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~~
 
-[REF] Partial refactoring
+* [REF] Partial refactoring
 
 2.0.9 (2024-02-02)
 ~~~~~~~~~~~~~~~~~~
 
-[IMP] odoorc improvements
+* [IMP] odoorc improvements
 
 2.0.8 (2023-11-16)
 ~~~~~~~~~~~~~~~~~~
 
-[FIX] Discard odoorpc 0.10 which does not work
+* [FIX] Discard odoorpc 0.10 which does not work
 
 2.0.7 (2023-09-26)
 ~~~~~~~~~~~~~~~~~~
