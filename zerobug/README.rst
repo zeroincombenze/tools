@@ -1,5 +1,5 @@
 ==============
-zerobug 2.0.15
+zerobug 2.0.16
 ==============
 
 
@@ -153,8 +153,8 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.15.1 (2024-03-27)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.16 (2024-05-14)
+~~~~~~~~~~~~~~~~~~~
 
 * [FIX] z0testlib: no crash without coverage
 
@@ -314,10 +314,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
