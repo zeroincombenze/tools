@@ -29,7 +29,7 @@ from os0 import os0
 from z0lib import z0lib
 from python_plus import _c
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 # return code
 TEST_FAILED = 1
@@ -37,13 +37,13 @@ TEST_SUCCESS = 0
 if os.name == "posix":
     RED = "\033[1;31m"
     GREEN = "\033[1;32m"
-    CLEAR = "\033[0;m"
+    CLEAR = "\033[0m"
 else:  # pragma: no cover
     RED = ''
     GREEN = ''
     CLEAR = ''
 fail_msg = RED + "Test FAILED!" + CLEAR
-success_msg = GREEN + "Test successfully terminated" + CLEAR
+success_msg = GREEN + "Test SUCCESSFULLY completed" + CLEAR
 # max # of test
 MAX_TEST_NUM = 10
 # Apply for configuration file (True/False)
@@ -1808,5 +1808,6 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+
 
 

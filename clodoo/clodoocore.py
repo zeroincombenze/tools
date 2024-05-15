@@ -117,7 +117,7 @@ SUPPL_PARAMS = [
     "user"
 ]
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 class Clodoo(object):
@@ -1695,3 +1695,4 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
+

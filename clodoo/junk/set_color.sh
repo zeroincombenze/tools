@@ -35,7 +35,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.10
+__version__=2.0.11
 
 
 OPTOPTS=(h        n            V           v)
@@ -132,6 +132,7 @@ elif [ "$HOSTNAME" == "$HOSTNAME_PRD" ]; then
 else
   echo "Macchina non riconosciuta"
 fi
+
 
 
 
