@@ -1,8 +1,8 @@
-2.0.10.1 (2024-03-31)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.11 (2024-03-31)
+~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Parameters review
-* [FIX] No file durin pip install
+* [FIX] No file during pip install
 * [FIX] Call with context Odoo 10.0+
 
 2.0.10 (2024-03-26)
