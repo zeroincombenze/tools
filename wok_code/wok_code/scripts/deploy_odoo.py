@@ -884,18 +884,28 @@ class OdooDeploy(object):
         sleep(1)
         sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info()
         alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
-        if repo_branch != branch and repo_branch not in alt_branches:
-            for alt_branch in [branch] + alt_branches:
-                cmd = "git checkout %s" % alt_branch
+        if repo_branch != branch:
+            if (
+                    repo_branch not in alt_branches
+                    and branch not in alt_branches
+                    and not self.opt_args.force
+            ):
+                if not self.ask_4_confirm(
+                        "Current branch %s is different from required branch  %s!"
+                        % (repo_branch, branch),
+                        "Do checkout %s? " % branch):
+                    return 1, repo_branch
+            cmd = "git checkout %s" % branch
+            sts, stdout, stderr = self.run_traced(cmd)
+            if sts:
+                print("Invalid branch %s" % branch)
+                cmd = "git checkout %s" % master_branch
                 sts, stdout, stderr = self.run_traced(cmd)
-                if sts == 0:
-                    # remote_branch = alt_branch
-                    break
+                if sts:
+                    print("Invalid branch %s" % master_branch)
+                    return sts, repo_branch
                 sleep(1)
-        if sts:
-            print("Invalid branch %s" % branch)
-        sleep(1)
-        cmd = "git pull"
+        cmd = "git pull origin %s" % branch
         return self.run_traced(cmd)[0], repo_branch
 
     def git_push(self, repo, tgtdir):
@@ -1240,7 +1250,7 @@ def main(cli_args=None):
     parser.add_argument(
         "-f",
         "--force",
-        help="force download from github (ignore cache)",
+        help="force download from github (ignore cache) or force branch rename",
         action="store_true",
     )
     parser.add_argument(

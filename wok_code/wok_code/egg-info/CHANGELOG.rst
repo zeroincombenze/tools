@@ -1,3 +1,8 @@
+2.0.17.1 (2024-05-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo update that requires checkout, requires -f switch
+
 2.0.17 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~
 
