@@ -189,6 +189,7 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo update that requires checkout, requires -f switch
+* [IMP] gen_readme now can use .jpg and .gif images
 
 2.0.17 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~
