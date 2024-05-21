@@ -2,6 +2,9 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo update that requires checkout, requires -f switch
+* [FIX] deploy_odoo default branch from repo in actions different from clone
+* [IMP] deploy_odoo new action merge
+* [IMP] deploy_odoo new action new-branch
 * [IMP] gen_readme now can use .jpg and .gif images
 
 2.0.17 (2024-05-11)
