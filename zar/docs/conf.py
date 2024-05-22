@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'zar'
-copyright = '2019-23, Antonio Maria Vigliotti'
+copyright = '2019-24, Antonio Maria Vigliotti'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = '2.0.4'
+version = '2.0.5'
 # The full version, including alpha/beta/rc tags
-release = '2.0.4'
+release = '2.0.5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -160,5 +160,6 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 html_logo = 'logozero_180x46.png'
+
 
 
