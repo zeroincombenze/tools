@@ -1,3 +1,8 @@
+2.0.19.1 (2024-05-16)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Offical _check4deps_.py
+
 2.0.19 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -111,11 +116,11 @@
 * [IMP] TestEnv: resource_make now capture demo record if available
 * [IMP] TestEnv: resource is not required for declared xref
 * [IMP] TestEnv: self.module has all information about current testing module
-* [IMP] TestEnv: conveyance functions for all fields (currenly jsust for account.payment.line)
+* [IMP] TestEnv: conveyance functions for all fields (currenly just for account.payment.line)
 * [IMP] TestEnv: fields many2one accept object as value
 * [IMP] TestEnv: function validate_records() improvements
 * [FIX] TestEnv: company_setup, now you can declare bank account
-* [IMP] TesEnv: minor improvements
+* [IMP] TestEnv: minor improvements
 
 2.0.4 (2023-01-13)
 ~~~~~~~~~~~~~~~~~~

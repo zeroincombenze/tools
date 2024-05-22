@@ -42,7 +42,7 @@ optional arguments:
   -x, --external-bin-dependencies
   -1, --no-depth
 
-© 2020-23 by SHS-AV s.r.l.
+© 2020-24 by SHS-AV s.r.l.
 
 
 This app can execute following actions:
@@ -304,6 +304,8 @@ def get_modules_info(path, depth=1, depends_by=None, ao_list=None):
     modules = {}
     if os.path.isdir(path) and depth > 0:
         for module in sorted(os.listdir(path)):
+            if module.startswith((".", "_")):
+                continue
             module_path = os.path.join(path, module)
             manifest_path = is_module(module_path)
             if manifest_path:
@@ -472,7 +474,7 @@ def build_module_tree(path_list, matches=None, depth=None, only_missed=None):
     if 'base' in all_modules:
         walk_module_tree('base')
     else:
-        walk_module_tree(all_modules.keys()[0])
+        walk_module_tree(list(all_modules.keys())[0])
     while True:
         found = False
         for module in all_modules.keys():
@@ -735,7 +737,7 @@ def main(cli_args=None):
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
     parser = z0lib.parseoptargs(
         "Odoo dependencies management",
-        "© 2020-21 by SHS-AV s.r.l.",
+        "© 2020-24 by SHS-AV s.r.l.",
         version=__version__,
     )
     parser.add_argument('-h')

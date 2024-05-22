@@ -51,6 +51,7 @@ setup(
         "": [
             "scripts/setup.info",
             "data/*",
+            "testenv/*",
             "travis/cfg/*",
             "travis/pylint_deprecated_modules/*",
             "travis/pylint_deprecated_modules/openerp/*",

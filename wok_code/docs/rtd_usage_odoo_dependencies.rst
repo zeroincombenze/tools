@@ -50,7 +50,7 @@ odoo_dependecies.py usage
       -x, --external-bin-dependencies
       -1, --no-depth
     
-    © 2020-21 by SHS-AV s.r.l.
+    © 2020-24 by SHS-AV s.r.l.
     
 
 |

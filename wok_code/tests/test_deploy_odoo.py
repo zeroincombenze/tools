@@ -7,13 +7,14 @@
 """
 from __future__ import print_function, unicode_literals
 import os
+import re
 import sys
 
 from z0lib import z0lib
-from zerobug import z0test, z0testodoo
+from zerobug import z0test
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -42,8 +43,9 @@ class RegressionTest:
         )
 
     def find_cmd_in_stdout(self, cmd, stdout):
-        self.assertMatch(stdout.replace("\n", " "), ".*" + cmd,
-                         msg="Cmd <<<%s>>> not found!" % cmd)
+        self.assertTrue(
+            re.search(".*" + cmd, stdout, re.MULTILINE | re.DOTALL),
+            msg="Cmd <<<%s>>> not found!" % cmd)
 
     def test_01_version(self):
         sts, stdout, stderr = z0lib.run_traced("deploy_odoo --version")
@@ -51,9 +53,10 @@ class RegressionTest:
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
     def test_02_clone_oca(self):
-        cmd = "deploy_odoo -mnv -b16.0 -Goca -p %s clone -r %s" % (
-            os.path.join(self.odoo_testdir, "oca16"),
-            "OCB,crm,l10n-italy,web")
+        # Create repository oca16
+        git_dir = os.path.join(self.odoo_testdir, "oca16")
+        cmd = ("deploy_odoo clone -mTv -b16.0 -Goca -p %s -r %s" % (
+            git_dir, "OCB,crm,l10n-italy,web"))
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
@@ -61,79 +64,118 @@ class RegressionTest:
             " --depth=1 --single-branch",
             stdout)
         self.find_cmd_in_stdout(
-            "OCB +unstaged +16.0 +odoo +https://github.com/odoo/odoo.git",
-            stdout)
-        self.find_cmd_in_stdout(
             "git clone https://github.com/OCA/crm.git .* -b 16.0"
             " --depth=1 --single-branch",
-            stdout)
-        self.find_cmd_in_stdout(
-            "crm +unstaged +16.0 +oca +https://github.com/OCA/crm.git",
             stdout)
         self.find_cmd_in_stdout(
             "git clone https://github.com/OCA/l10n-italy.git .* -b 16.0"
             " --depth=1 --single-branch",
             stdout)
         self.find_cmd_in_stdout(
-            "l10n-italy +unstaged +16.0"
-            " +oca +https://github.com/OCA/l10n-italy.git",
+            "git clone https://github.com/OCA/web.git .* -b 16.0"
+            " --depth=1 --single-branch",
+            stdout)
+        self.find_cmd_in_stdout(
+            "odoo +unstaged +16.0 +odoo +https://github.com/odoo/odoo.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "crm +unstaged +16.0 +oca +https://github.com/OCA/crm.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "l10n-italy +unstaged +16.0 +oca"
+            " +https://github.com/OCA/l10n-italy.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "web +unstaged +16.0 +oca +https://github.com/OCA/web.git",
             stdout)
 
     def test_03_clone_zero(self):
-        cmd = "deploy_odoo -Kmnv -b16.0 -gGzero -p %s clone -r %s" % (
-            os.path.join(self.odoo_testdir, "16.0"),
-            "OCB,crm,l10n-italy,web")
+        # create repo 16.0 (zero) w/o l10n-italy
+        git_dir = os.path.join(self.odoo_testdir, "16.0")
+        cmd = "deploy_odoo clone -KmTv -b16.0 -gGzero -p %s -r %s" % (
+            git_dir, "OCB,crm,web")
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/OCB.git .* -b 16.0",
             stdout)
         self.find_cmd_in_stdout(
-            "OCB +unstaged +16.0"
-            " +zeroincombenze +git@github.com:zeroincombenze/OCB.git",
-            stdout)
-        self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/crm.git .* -b 16.0",
             stdout)
         self.find_cmd_in_stdout(
-            "crm +unstaged +16.0"
-            " +zeroincombenze +git@github.com:zeroincombenze/crm.git",
+            "git clone git@github.com:zeroincombenze/web.git .* -b 16.0",
             stdout)
+        self.find_cmd_in_stdout(
+            "OCB +unstaged +16.0 +zero +.*/OCB.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "crm +unstaged +16.0 +zero +.*/crm.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "web +unstaged +16.0 +zero +.*/web.git",
+            stdout)
+
+    def test_04_amend(self):
+        git_dir = os.path.join(self.odoo_testdir, "16.0")
+        cmd = ("deploy_odoo amend -KmTv -b16.0 -gGzero -p %s -r OCB,crm,l10n-italy,web"
+               % git_dir)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/l10n-italy.git .* -b 16.0",
             stdout)
         self.find_cmd_in_stdout(
-            "l10n-italy +unstaged +16.0"
-            " +zeroincombenze +git@github.com:zeroincombenze/l10n-italy.git",
+            "l10n-italy +unstaged +16.0 +zero +.*/l10n-italy.git",
             stdout)
 
-    def test_03_update(self):
-        self.root = z0testodoo.build_odoo_env({}, "16.0")
-        odoo_root = os.path.join(self.root, "16.0")
-        z0testodoo.create_module(
-            {}, os.path.join(odoo_root, "odoo", "addons"), "base", "16.0.0.1.0"
-        )
-        repodir = z0testodoo.create_repo(
-            {}, odoo_root, "crm", "16.0"
-        )
-        z0testodoo.create_module(
-            {}, repodir, "crm_test", "16.0.0.1.0"
-        )
-        cmd = "deploy_odoo -nv -b16.0 -gGzero -p %s update" % odoo_root
+    def test_05_update(self):
+        git_dir = os.path.join(self.odoo_testdir, "16.0")
+        cmd = "deploy_odoo update -Tv -b16.0 -gGzero -p %s" % git_dir
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
-            " cd %s.*git branch.*git remote.*git pull" % odoo_root,
+            " cd %s.*git pull origin 16.0" % git_dir,
             stdout)
 
-    def test_04_amend(self):
-        odoo_root = os.path.join(self.root, "16.0")
-        cmd = ("deploy_odoo -Kmnv -b16.0 -gGzero -p %s amend -r OCB,crm,l10n-italy,web"
-               % odoo_root)
+    def test_06_checkout(self):
+        git_dir = os.path.join(self.odoo_testdir, "oca16")
+        new_dir = os.path.join(self.odoo_testdir, "17.0")
+        cmd = "deploy_odoo new-branch -mTv -b%s -gGzero -p %s -o %s" % (
+            "17.0", new_dir, git_dir)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
-            "git clone git@github.com:zeroincombenze/l10n-italy.git l10n-italy/",
+            "git clone git@github.com:zeroincombenze/OCB.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "please defcon gitignore",
+            stdout)
+        self.find_cmd_in_stdout(
+            "please defcon precommit",
+            stdout)
+        self.find_cmd_in_stdout(
+            "git remote add upstream",
+            stdout)
+        self.find_cmd_in_stdout(
+            "git checkout -b 17.0",
+            stdout)
+        self.find_cmd_in_stdout(
+            "rsync -avz --delete --exclude.*",
+            stdout)
+        self.find_cmd_in_stdout(
+            "cp .*/odoo-bin",
+            stdout)
+        self.find_cmd_in_stdout(
+            "OCB +unstaged +17.0 +zero +.*/OCB.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "crm +unstaged +17.0 +zero +.*/crm.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "l10n-italy +unstaged +17.0 +zero +.*/l10n-italy.git",
+            stdout)
+        self.find_cmd_in_stdout(
+            "web +unstaged +17.0 +zero +.*/web.git",
             stdout)
 
 

@@ -113,30 +113,67 @@ Current version via Git
 ChangeLog History
 -----------------
 
-z0bug_odoo: 2.0.18 (2024-04-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+z0bug_odoo: 2.0.19.1 (2024-05-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] TestEnv: no data loaded in some cases
-* [FIX[ TestEnv: rsource_edit manage read-only fields
-* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
+* [IMP] Offical _check4deps_.py
 
 
-clodoo: 2.0.10.1 (2024-03-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Parameters review
-* [FIX] No file durin pip install
-* [FIX] Call with context Odoo 10.0+
-
-
-zerobug: 2.0.15.1 (2024-03-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+zerobug: 2.0.16 (2024-05-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] z0testlib: no crash without coverage
 
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] build_cmd: command not in scripts directory
+
+
+wok_code: 2.0.17.1 (2024-05-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo update that requires checkout, requires -f switch
+* [IMP] gen_readme now can use .jpg and .gif images
+
+
+z0bug_odoo: 2.0.19 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Colored test results
+
+
+wok_code: 2.0.17 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translate.py various fixes
+* [IMP] Log file of daemon process of test in tests/logs
+* [IMP] run_odoo_debug: OCB repository does not search for other repositories
+* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
+
+
+python_plus: 2.0.13 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+* [FIX] list_requirements.py: in some rare cases wrong version to apply (factur-x)
+* [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
+* [IMP] vem: pip is always updated to last version
+
+
+z0bug_odoo: 2.0.18 (2024-04-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: no data loaded in some cases
+* [FIX[ TestEnv: resource_edit manage read-only fields
+* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
+
+
+clodoo: 2.0.11 (2024-03-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Parameters review
+* [FIX] No file during pip install
+* [FIX] Call with context Odoo 10.0+
 
 
 wok_code: 2.0.16 (2024-03-26)
@@ -545,48 +582,6 @@ travis_emulator: 2.0.5 (2023-05-14)
 * [IMP] Switch -M removed
 * [IMP] Switch -d set default "test" action
 * [IMP] Removes osx support
-
-
-wok_code: 2.0.8 (2023-05-09)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Install run_odoo_debug
-* [FIX] Install do_git_ignore
-* [IMP] lint_2_compare: ignore odoo/openerp test string and LICENSE files
-* [IMP] lint_2_compare: new switch ---purge do not load identical files (quick diff)
-
-
-zerobug: 2.0.6 (2023-05-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Now all_tests is ignored
-* [IMP] Build Odoo environment for Odoo 16.0
-
-
-wok_code: 2.0.7 (2023-05-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] deply_odoo: new action git-push
-* [REF] odoo_translation: new implementation
-* [FIX] run_odoo_debug: minor fixes
-* [NEW] do_git_checkout_new_branch: new command
-* [IMP] install_python3_from_source: improvements
-* [FIX] ssh.py: scp with port not 22
-
-
-python_plus: 2.0.7 (2023-05-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: upgrade version for Odoo 16.0
-* [REF] vem: partial refactoring
-* [IMP] Mots coverage test
-
-
-clodoo: 2.0.5 (2023-05-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py: minor fixes
-* [IMP] odoorc: odoo version 16.0
 
 
 oerplib3: 0.8.4 (2023-05-06)

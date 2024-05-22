@@ -1374,7 +1374,8 @@ def expand_macro(ctx, token, default=None):
     elif token == "icon":
         value = url_by_doc(ctx, "icon.png")
     elif token == "thumbnail":
-        value = url_by_doc(ctx, "description.png")
+        img_fqn = look_up_image(ctx, "description")
+        value = url_by_doc(ctx, pth.basename(img_fqn))
     elif token == "GIT_URL_ROOT":
         value = "https://github.com/%s/%s" % (
             GIT_USER[ctx["git_orgid"]],
@@ -2651,9 +2652,9 @@ def manifest_contents(ctx):
             if item == "images":
                 value = eval(ctx.get(item, "[]"))
                 for img in ("banner", "description", "l10n_it", "l10n_us", "l10n_uk"):
-                    fqn_img = "static/description/%s.png" % img
-                    if fqn_img not in value:
-                        value.append(fqn_img)
+                    img_fqn = look_up_image(ctx, img)
+                    if img_fqn not in value:
+                        value.append(img_fqn)
                 ctx["manifest"][item] = value
             elif item == "currency":
                 ctx["manifest"][item] = ctx.get(item, "EUR")
@@ -3020,6 +3021,14 @@ def item_2_text(ctx, section):
         ctx[section] += "\n"
 
 
+def look_up_image(ctx, img_name):
+    for img_type in (".png", ".jpg", ".gif"):
+        img_fqn = pth.join("static", "description", "%s%s" % (img_name, img_type))
+        if pth.isfile(img_fqn):
+            return img_fqn
+    return ""
+
+
 def load_section_from_file(ctx, section, is_tag=None):
     if not is_tag or re.match(r"\s*$", ctx.get(section, "")):
         ctx[section] = parse_local_file(
@@ -3034,16 +3043,16 @@ def load_section_from_file(ctx, section, is_tag=None):
                 ctx[section] = ctx[section][1:]
     if re.match(r"\s*$", ctx[section]):
         ctx[section] = ""
-    if pth.isfile(pth.join("static", "description", "%s.png" % section)):
-        ctx["%s_png" % section] = """.. figure:: %s
+        ctx["%s_img" % section] = ""
+    img_fqn = look_up_image(ctx, section)
+    if img_fqn:
+        ctx["%s_img" % section] = """.. figure:: %s
 :alt: %s
 :width: 98%%""" % (
             url_by_doc(
                 ctx,
-                "/%s/static/description/%s.png" % (ctx["module_name"], section)),
+                "/%s/static/description/%s" % (ctx["module_name"], img_fqn)),
             ctx["name"])
-    else:
-        ctx["%s_png" % section] = ""
 
 
 def write_rst_file(ctx, path, section):
@@ -3396,7 +3405,9 @@ def generate_readme(ctx):
 
     if ctx["odoo_marketplace"] and ctx["product_doc"]:
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")
-        copy_img_file_template("banner.png")
+        img_fqn = look_up_image(ctx, "banner")
+        if img_fqn:
+            copy_img_file_template(pth.basename(img_fqn))
         for country in ("l10n_uk", "l10n_us", "l10n_it"):
             src_icon = pth.expanduser(pth.join("~",
                                                ctx["branch"],
