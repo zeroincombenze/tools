@@ -5,11 +5,11 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.0
+# Based on template 2.0.17
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.5
 
 
 inherit_options() {
@@ -108,7 +108,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Backup postgres DB"\
-  "(C) 2015-2023 by zeroincombenze®\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2024 by zeroincombenze®\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -261,4 +261,5 @@ if [ -n "$dblist" ]; then
   popd >/dev/null
 fi
 exit 0
+
 

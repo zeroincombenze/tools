@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.4",
+    version="2.0.5",
     description="Zeroincombenze Archive Replica",
     long_description=long_description,
     classifiers=[
@@ -54,6 +54,7 @@ setup(
             "./zar_cptbl",
             "./zar_purge",
             "./zar_rest",
+            "./zar_upd",
             "./zarrc",
         ]
     },
@@ -64,4 +65,5 @@ setup(
     },
     zip_safe=False,
 )
+
 

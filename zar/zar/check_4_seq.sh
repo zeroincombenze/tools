@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# __version__=2.0.4
+# __version__=2.0.5
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.0
+# Based on template 2.0.17
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
