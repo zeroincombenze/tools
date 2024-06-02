@@ -468,7 +468,11 @@ def close_sale_orders(ctx):
                         ln.product_id.id in shipping_ids
                         or ln.product_id.id in conai_product_ids)
                 ):
-                    if not so.carrier_id or so.carrier_id.product_id != ln.product_id:
+                    if (
+                            ln.product_id.id not in conai_product_ids
+                            and (not so.carrier_id
+                                 or so.carrier_id.product_id != ln.product_id)
+                    ):
                         print("*** Order %s - '%s' - Inv. %s - multiple amount %s ***"
                               % (so.name,
                                  ln.name[:40],
