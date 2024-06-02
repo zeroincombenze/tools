@@ -1,6 +1,7 @@
 2.0.17.1 (2024-05-14)
 ~~~~~~~~~~~~~~~~~~~
 
+* [FIX] deploy_odoo update addons_path in config file
 * [FIX] deploy_odoo update that requires checkout, requires -f switch
 * [FIX] deploy_odoo default branch from repo in actions different from clone
 * [IMP] deploy_odoo new action merge

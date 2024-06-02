@@ -401,6 +401,9 @@ class OdooDeploy(object):
             self.repo_list = ["OCB"] + sorted(self.repo_list[1:])
         else:
             self.repo_list = sorted(self.repo_list)
+        self.addons_path = []
+        for repo in self.repo_list:
+            self.add_addons_path(self.repo_info[repo]["PATH"], repo)
 
     def is_module(self, path):
         if not pth.isdir(path):
