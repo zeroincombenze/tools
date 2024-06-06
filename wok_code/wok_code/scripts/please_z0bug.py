@@ -296,12 +296,15 @@ class PleaseZ0bug(object):
             self.please.log_error("File %s not found!" % fqn)
             return 3
         with open(fqn, RMODE) as fd:
+            timestamp = ""
             for ln in fd.read().split("\n"):
-                if re.search(
-                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23]"
-                        r"| DAEMON )",
+                if re.search(" DAEMON ", ln):
+                    timestamp = ln[:19]
+                elif re.search(
+                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])",
                         ln):
-                    print(ln)
+                    print(ln.replace("| please test", "") + " (" + timestamp + ")")
+                    timestamp = ""
         return 0
 
     def _do_show_summary_odoo(self):

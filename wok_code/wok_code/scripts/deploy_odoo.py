@@ -496,6 +496,9 @@ class OdooDeploy(object):
                 if self.path_is_ocb(path):
                     self.repo_info[repo] = {"PATH": path, "#": 0}
                     self.load_repo_info(path, repo)
+                    self.master_branch = build_odoo_param(
+                        "FULLVER", odoo_vid=self.repo_info["OCB"]["BRANCH"]
+                    )
                 else:
                     path = pth.dirname(path)
             if "OCB" not in self.repo_info:
@@ -663,7 +666,7 @@ class OdooDeploy(object):
                     self.analyze_path(path, "OCB")
             self.sort_repo_list()
 
-    def find_data_dir(self, canonicalize=None):
+    def find_data_dir(self, canonicalize=None, addons=None):
         if self.master_branch and int(self.master_branch.split(".")[0]) < 8:
             return False
         tgtdir = pth.join(os.environ["HOME"], ".local")
@@ -671,10 +674,7 @@ class OdooDeploy(object):
             tgtdir = pth.join(tgtdir, "share")
             if not pth.isdir(tgtdir) and canonicalize:
                 os.mkdir(tgtdir)
-            odoo_master_branch = build_odoo_param(
-                "FULLVER", odoo_vid=self.opt_args.odoo_branch
-            )
-            base = "Odoo%s" % odoo_master_branch.split(".")[0]
+            base = "Odoo%s" % self.master_branch.split(".")[0]
             tgtdir = pth.join(tgtdir, base)
             if not pth.isdir(tgtdir) and canonicalize:
                 os.mkdir(tgtdir)
@@ -682,7 +682,8 @@ class OdooDeploy(object):
                 tgt = pth.join(tgtdir, base)
                 if not pth.isdir(tgt) and canonicalize:
                     os.mkdir(tgt)
-            tgtdir = pth.join(tgtdir, "addons")
+            if addons:
+                tgtdir = pth.join(tgtdir, "addons")
         return tgtdir
 
     def update_gitignore(self, repos):
@@ -912,7 +913,7 @@ class OdooDeploy(object):
             if path:
                 self.addons_path.append(path)
             self.addons_path.append(pth.join(tgtdir, "addons"))
-            data_dir = self.find_data_dir()
+            data_dir = self.find_data_dir(addons=True)
             if data_dir:
                 self.addons_path.append(data_dir)
         else:

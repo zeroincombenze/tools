@@ -622,6 +622,10 @@ class PleaseCwd(object):
                         % (branch, repo_name),
                         rtime=True)
                 else:
+                    if repo_name == "marketplace":
+                        args = self.build_gen_readme_base_args(branch=branch)
+                        args.append("-R")
+                        sts = please.chain_python_cmd("gen_readme.py", args)
                     args = self.build_gen_readme_base_args(branch=branch)
                     sts = please.chain_python_cmd("gen_readme.py", args)
                     if sts == 0:
