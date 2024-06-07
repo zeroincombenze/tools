@@ -143,6 +143,7 @@ wok_code: 2.0.17.1 (2024-05-14)
 * [FIX] deploy_odoo default branch from repo in actions different from clone
 * [IMP] deploy_odoo new action merge
 * [IMP] deploy_odoo new action new-branch
+* [FIX] gen_readme now check for images value for marketplace
 * [IMP] gen_readme now can use .jpg and .gif images
 
 
