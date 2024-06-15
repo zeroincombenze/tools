@@ -1,5 +1,5 @@
 ============================
-|Zeroincombenze| tools 2.0.5
+|Zeroincombenze| tools 2.0.6
 ============================
 
 |license gpl|
@@ -113,22 +113,106 @@ Current version via Git
 ChangeLog History
 -----------------
 
-wok_code: 2.0.15.1 (2024-03-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+zar: 2.0.5 (2024-05-22)
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] odoo_translation.py: case correction
-
-
-odoo_score: 2.0.7.1 (2024-02-36)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] set_workers: no automatic discover for odoo multi
+* [FIX] zar_upd
 
 
-zerobug: 2.0.15 (2024-02-31)
+z0bug_odoo: 2.0.19.1 (2024-05-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Offical _check4deps_.py
+
+
+zerobug: 2.0.16 (2024-05-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* [FIX] z0testlib: no crash without coverage
+
+~~~~~~~~~~~~~~~~~~~
+
 * [FIX] build_cmd: command not in scripts directory
+
+
+wok_code: 2.0.17.1 (2024-05-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] deploy_odoo update addons_path in config file
+* [FIX] deploy_odoo update that requires checkout, requires -f switch
+* [FIX] deploy_odoo default branch from repo in actions different from clone
+* [IMP] deploy_odoo new action merge
+* [IMP] deploy_odoo new action new-branch
+* [FIX] gen_readme now check for images value for marketplace
+* [IMP] gen_readme now can use .jpg and .gif images
+
+
+z0bug_odoo: 2.0.19 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Colored test results
+
+
+wok_code: 2.0.17 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translate.py various fixes
+* [IMP] Log file of daemon process of test in tests/logs
+* [IMP] run_odoo_debug: OCB repository does not search for other repositories
+* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
+
+
+python_plus: 2.0.13 (2024-05-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+* [FIX] list_requirements.py: in some rare cases wrong version to apply (factur-x)
+* [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
+* [IMP] vem: pip is always updated to last version
+
+
+z0bug_odoo: 2.0.18 (2024-04-17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: no data loaded in some cases
+* [FIX[ TestEnv: resource_edit manage read-only fields
+* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
+
+
+clodoo: 2.0.11 (2024-03-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Parameters review
+* [FIX] No file during pip install
+* [FIX] Call with context Odoo 10.0+
+
+
+wok_code: 2.0.16 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoo_translation.py: case correction
+* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
+* [FIX] gen_readme.py: Odoo repository documentation
+* [FIX] gen_readme.py: thumbnail figure
+* [FIX] please docs: count assertions
+* [FIX] please test: switch -K --no-ext-test
+* [FIX] deploy_odoo: crash when clone existing directory
+* [IMP] deploy_odoo: new switch --continue-after-error
+* [FIX] deploy_odoo/wget_odoo_repositories: store github query in cache
+
+
+odoo_score: 2.0.8 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] set_workers: no automatic discover for odoo multi
+* [IMP] Purged old unused code
+* [IMP] New odooctl command
+
+
+clodoo: 2.0.10 (2024-03-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring
 
 
 python_plus: 2.0.12 (2024-02-29)
@@ -200,7 +284,7 @@ odoo_score: 2.0.7 (2024-02-05)
 clodoo: 2.0.9 (2024-02-02)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[IMP] odoorc improvements
+* [IMP] odoorc improvements
 
 
 z0lib: 2.0.9 (2024-02-01)
@@ -235,11 +319,75 @@ z0bug_odoo: 2.0.15 (2024-01-27)
 
 
 
+z0bug_odoo: 2.0.14 (2023-12-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: commit odoo data became internal feature
+* [IMP] TestEnv: test on model asset.asset
+* [IMP] TestEnv: detail external reference coding free
+* [IMP] TestEnv: empty currency_id is set with company currency
+* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
+* [FIX] TestEnv: sometimes external.KEY did not work
+* [FIX] TestEnv: 3 level xref fails when module ha "_" in its name
+* [IMP] _check4deps.py: documentation clearing
+
+
+zerobug: 2.0.13 (2023-12-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] python2: argument signature
+* [IMP] build_os_tree: compatible with unittest2
+* [IMP] remove_os_tree: compatible with unittest2
+
+
+z0bug_odoo: 2.0.13 (2023-12-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: now you can declare you own source data directory
+* [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
+* [IMP] TestEnv: file account.tax.xlsx with some italian taxes for l10n_generic_oca
+* [IMP] TestEnv: simple expression for data value
+
+
 travis_emulator: 2.0.8 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Translation excel file names
 
+
+
+zerobug: 2.0.12 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[FIX] python2: has_args
+
+
+wok_code: 2.0.13 (2023-11-27)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please install python, now can install python 3.10
+* [IMP] arcangelo: new python version assignment from odoo version
+* [IMP] please version: now show compare with last entry of history
+* [FIX] please docs: faq
+* [FIX] please help cwd
+* [FIX] gen_readme.py: sometimes lost history
+* [FIX] gen_readme.py: error reading malformed table
+* [IMP] odoo_translation.py: new regression tests
+* [FIX] odoo_translation.py: punctuation at the end of term
+* [FIX] odoo_translation.py: first character case
+* [FIX] odoo_translation.py: cache file format is Excel
+* [FIX] run_odoo_debug: path with heading space
+* [IMP] please test now can update account.account.xlsx
+
+
+zerobug: 2.0.11 (2023-11-19)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Disabled sanity_check
+* [IMP] Disabled some deprecated switches
+* [FIX] Coverage data file
+* [IMP] zerobug: test function signature like unittest2
+* [IMP] zerobug: no more execution for count
 
 
 travis_emulator: 2.0.7 (2023-11-17)
@@ -251,13 +399,35 @@ travis_emulator: 2.0.7 (2023-11-17)
 clodoo: 2.0.8 (2023-11-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[FIX] Discard odoorpc 0.10 which does not work
+* [FIX] Discard odoorpc 0.10 which does not work
+
+
+zerobug: 2.0.10 (2023-11-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Partial refactoring
+* [IMP] New functions assert* like unittest2
+* [IMP] New switch -f failfast
+* [IMP] Test signature like unittest2 and old zerobug signature
+* [IMP] Test flow without return status (like unitest2)
 
 
 z0lib: 2.0.8 (2023-10-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] parseopt
+
+
+clodoo: 2.0.7 (2023-09-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Some fixes due old wrong code (id -> name)
+
+
+z0bug_odoo: 2.0.12 (2023-09-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: validate_records with 2 identical template records
 
 
 zar: 2.0.4 (2023-09-08)
@@ -278,6 +448,122 @@ zar: 2.0.3 (2023-09-06)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] DB name with hyphen (-)
+
+
+wok_code: 2.0.12 (2023-08-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py: minor fixes
+* [IMP] gen_readme.py: manifest author priority
+* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
+* [IMP] gen_readme.py: link to authors on README.rst and index.html
+* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
+* [FIX] license_mgnt: best organization recognition
+* [IMP] license_mgnt: powerp renamed to librerp
+* [FIX] run_odoo_debug: no doc neither translate after test error
+* [IMP] arcangelo: new rules
+* [IMP] arcangelo: new git conflict selection
+* [IMP] arcangelo: merge gen_readme.py formatting
+* [IMP] arcangelo: new switch --string-normalization
+* [FIX] deploy_odoo: minor fixes
+* [FIX] odoo_translation: sometime did not translate
+* [IMP] odoo_translation: best performance
+
+
+z0lib: 2.0.7 (2023-07-20)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_traced return system exit code
+* [IMP] run_traced: new rtime parameter to show rtime output
+* [IMP] New main
+
+
+python_plus: 2.0.10 (2023-07-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: werkzeug for Odoo 16.0
+* [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
+* [IMP] pip install packages with use2to3 is backupgrdae to < 23
+
+
+zerobug: 2.0.9 (2023-07-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] zerobug implementation with unittest
+* [FIX] z0testlib.py: build_odoo_env, odoo-bin / openerp-server are executable
+* [FIX] z0testlib.py: minor fixes
+
+
+wok_code: 2.0.10 (2023-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
+* [IMP] please replace now do "please docs" before
+* [IMP] please docs now do "please clean" after
+* [IMP] please lint and zerobug now do "pre-commit run" before (--no-verify)
+* [IMP] please test and zerobug now do "please translate" after (--no-translate)
+* [IMP] please update: new switches --vme --odoo-venv
+* [IMP] please clean db: new action replace old wep-db
+* [IMP] please version: new interface
+* [IMP] please show docs: new interface
+* [REF] run_odoo_debug: partial refactoring
+* [IMP] run_odoo_debug: new switch --daemon
+* [IMP] arcangelo: new swicth --string-normalization
+* [FIX] please test / run_odoo_debug: minor fixes
+
+
+travis_emulator: 2.0.6 (2023-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] travis: check for dropped DB and abort if still exist
+* [IMP] travis: action show as alias of show-log for please integration
+
+
+clodoo: 2.0.6 (2023-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Incorporated new pypi oerlib3
+* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
+* [IMP] New param IS_MULTI
+
+
+z0bug_odoo: 2.0.10 (2023-07-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] TestEnv: new feature, external reference with specific field value
+* [REF] TestEnv: tomany casting refactoring
+
+
+wok_code: 2.0.9 (2023-06-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
+* [FIX] run_odoo_debug: check for dropped DB and abort if still exist
+* [REF] odoo_translation: refactoring
+* [REF] please: refactoring
+* [IMP] deploy_odoo: new brief for status
+* [IMP] deploy_odoo: new action unstaged e new status format
+* [IMP] do_migrate renamed to arcangelo
+* [IMP] gen_readme.py: manage CHANGELOG.rst too
+* [IMP] argangelo: refactoring to run inside pre-commit
+
+
+python_plus: 2.0.9 (2023-06-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: werkzeug for Odoo 16.0
+* [IMP] list_requirements.py: best recognize mixed version odoo/python
+* [FIX] vem: commands return application status
+
+
+z0bug_odoo: 2.0.9 (2023-06-24)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
+* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
+* [FIX] TestEnv: default value in wizard creation, overlap default function
+* [FIX] TestEnv: record not found for xref of other group
+* [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
 
 
 oerplib3: 0.8.4 (2023-05-06)
@@ -340,10 +626,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.5/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.6/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.5/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.6/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
