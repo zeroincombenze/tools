@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os.path
+import platform
 
 from z0lib import z0lib
 
@@ -49,11 +50,17 @@ BUGS
         self.please = please
 
     def action_opts(self, parser, for_help=False):
+        dist, ver, suppl = platform.dist()
+        if dist == "centos":
+            before = ("yum install libffi-devel gcc openssl-devel bzip2-devel"
+                      " ncurses-devel readline-devel")
+        else:
+            before = ("apt install libssl-dev libffi-dev libncurses5-dev"
+                      " libsqlite3-dev libreadline-dev")
         parser.add_argument(
             "--cmd-before",
             help=(
-                "Command to execute before install python; example:"
-                "apt install libssl-dev libffi-dev libncurses5-dev libsqlite3-dev"
+                "Command to execute before install python; example:" + before
             ),
         )
         parser.add_argument(
@@ -66,7 +73,7 @@ BUGS
             self.please.add_argument(parser, "-q")
             self.please.add_argument(parser, "-v")
         parser.add_argument(
-            "--wget-opts", help="Options fro wget; example: --no-check-certificate"
+            "--wget-opts", help="Options for wget; example: --no-check-certificate"
         )
         parser.add_argument("args", nargs="*")
         return parser
@@ -102,7 +109,9 @@ BUGS
         )
         if please.opt_args.dry_run:
             z0lib.run_traced(
-                cmd, verbose=self.opt_args.verbose, dry_run=please.opt_args.dry_run
+                cmd,
+                verbose=self.please.opt_args.verbose,
+                dry_run=please.opt_args.dry_run
             )
             return 0
         return please.run_traced(cmd)

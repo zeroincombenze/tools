@@ -310,6 +310,7 @@ MANIFEST_ITEMS = (
     "maintainer",
     "installable",
     "active",
+    "application",
     "images",
     "currency",
     "price",
@@ -339,6 +340,7 @@ MANIFEST_ITEMS_OPTIONAL = (
 )
 
 MANIFEST_ITEMS_MARKETPLACE = (
+    "application",
     "images",
     "currency",
     "price",
@@ -584,6 +586,7 @@ def __init__(ctx):
     ctx["pre_do_else"] = []
     ctx["html_state"] = {"tag": "", "open_para": 0}
     ctx["rst_state"] = ""
+    ctx["def_images"] = []
 
 
 def chain_python_cmd(pyfile, args):
@@ -2608,7 +2611,9 @@ def manifest_contents(ctx):
     target += "{\n"
     for item in MANIFEST_ITEMS:
         if (
-            item not in ctx["manifest"] and item in MANIFEST_ITEMS_REQUIRED
+                item not in ctx["manifest"]
+                and item in MANIFEST_ITEMS_REQUIRED
+                and ctx.get(item)
         ):
             ctx["manifest"][item] = ctx[item]
         elif item == "depends":
@@ -2648,13 +2653,20 @@ def manifest_contents(ctx):
         ):
             ctx["manifest"][item] = (ctx["from_version"] + "."
                                      + ctx["manifest"][item].split(".", 2)[-1])
-        elif ctx["odoo_marketplace"] and item in MANIFEST_ITEMS_MARKETPLACE:
+        elif (
+                (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace")
+                and item in MANIFEST_ITEMS_MARKETPLACE
+                and ctx["rewrite_manifest"]
+        ):
             if item == "images":
-                value = eval(ctx.get(item, "[]"))
+                value = eval(ctx.get(item, "[]")) or ctx["def_images"]
                 for img in ("banner", "description", "l10n_it", "l10n_us", "l10n_uk"):
                     img_fqn = look_up_image(ctx, img)
                     if img_fqn not in value:
-                        value.append(img_fqn)
+                        if img == "banner":
+                            value.insert(0, img_fqn)
+                        else:
+                            value.append(img_fqn)
                 ctx["manifest"][item] = value
             elif item == "currency":
                 ctx["manifest"][item] = ctx.get(item, "EUR")
@@ -2662,6 +2674,8 @@ def manifest_contents(ctx):
                 ctx["manifest"][item] = ctx.get(item, "0.0")
             elif item == "support":
                 ctx["manifest"][item] = "cc@shs-av.com"
+            elif item == "application":
+                ctx["manifest"][item] = True
         elif item in ("pre_init_hook",
                       "post_init_hook") and ctx["migrate"] and item in ctx["manifest"]:
             del ctx["manifest"][item]
@@ -2679,18 +2693,30 @@ def manifest_contents(ctx):
     return target
 
 
+def show_error_with_lines(ctx, e, source):
+    print("\n")
+    for ix, ln in enumerate(source.split("\n")):
+        print(ix + 1, ln)
+    print("\n")
+    print_red_message("***** Error %s *****" % e)
+
+
 def index_html_content(ctx, source):
     target = ""
-    for section in source.split("\f"):
+    if source.startswith("<section"):
+        sources = source.split("\f")
+    else:
+        sources = [source.replace("\f", "\n")]
+    for section in sources:
         try:
             root = etree.XML(section)
         except SyntaxError as e:
-            print_red_message("***** Error %s *****" % e)
+            show_error_with_lines(ctx, e, source)
             continue
         try:
             target += "\n%s" % _u(etree.tostring(root, pretty_print=True))
         except SyntaxError as e:
-            print_red_message("***** Error %s *****" % e)
+            show_error_with_lines(ctx, e, source)
             target += section
     for t in list(RST2HTML.keys()):
         target = target.replace(t, RST2HTML[t])
@@ -3053,6 +3079,7 @@ def load_section_from_file(ctx, section, is_tag=None):
                 ctx,
                 "/%s/static/description/%s" % (ctx["module_name"], img_fqn)),
             ctx["name"])
+        ctx["def_images"].append(img_fqn)
 
 
 def write_rst_file(ctx, path, section):
@@ -3321,6 +3348,8 @@ def generate_readme(ctx):
     # === Starting generate ===
     __init__(ctx)
     read_manifest_setup(ctx)
+    if ctx["write_index"] and ctx["repos_name"] == "marketplace":
+        ctx["odoo_marketplace"] = True
     if ctx["odoo_layer"] == "module":
         get_submodules(ctx)
         for fn in ("./README.md", "./README.rst", "../README.rst"):
@@ -3402,12 +3431,15 @@ def generate_readme(ctx):
 
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
-
-    if ctx["odoo_marketplace"] and ctx["product_doc"]:
+    if (
+            (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace")
+            and ctx["product_doc"]
+    ):
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")
         img_fqn = look_up_image(ctx, "banner")
         if img_fqn:
             copy_img_file_template(pth.basename(img_fqn))
+            ctx["def_images"].insert(0, img_fqn)
         for country in ("l10n_uk", "l10n_us", "l10n_it"):
             src_icon = pth.expanduser(pth.join("~",
                                                ctx["branch"],
@@ -3416,14 +3448,11 @@ def generate_readme(ctx):
                                                "static",
                                                "description",
                                                "icon.png"))
-            icon_fn = pth.join("static", "description", "%s.png" % country)
-            copyfile(src_icon, icon_fn)
-        if not ctx["template_name"]:
-            ctx["template_name"] = "marketplace_index.html"
-        target = index_html_content(
-            ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")
-        )
-    elif ctx["write_office"]:
+            icon_fqn = pth.join("static", "description", "%s.png" % country)
+            copyfile(src_icon, icon_fqn)
+            ctx["def_images"].append(icon_fqn)
+
+    if ctx["write_office"]:
         if not ctx["template_name"]:
             ctx["template_name"] = "soffice.rst"
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
@@ -3448,7 +3477,9 @@ def generate_readme(ctx):
     elif ctx["write_index"] and ctx["product_doc"] == "odoo":
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")
         if not ctx["template_name"]:
-            ctx["template_name"] = "readme_index.html"
+            ctx["template_name"] = ("marketplace_index.html"
+                                    if ctx["odoo_marketplace"]
+                                    else "readme_index.html")
         target = index_html_content(
             ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")
         )
@@ -3458,14 +3489,19 @@ def generate_readme(ctx):
                                     if ctx["odoo_layer"] == "module"
                                     else "pypi_index.rst")
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
+    elif ctx["rewrite_manifest"] and ctx["odoo_layer"] == "module":
+        if ctx["product_doc"] != "odoo":
+            return
+        target = manifest_contents(ctx)
     else:
         if not ctx["template_name"]:
             ctx["template_name"] = "readme_main_%s.rst" % ctx["odoo_layer"]
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
-    if ctx["rewrite_manifest"] and ctx["odoo_layer"] == "module":
-        if ctx["product_doc"] != "odoo":
-            return
-        target = manifest_contents(ctx)
+
+    if ctx["odoo_marketplace"] and (not ctx["manifest"].get("images")
+                                    or not ctx["manifest"].get("application")):
+        print_red_message("Missed images/application declaration in the manifest!!!")
+        print_red_message("run gen_readme -R")
     dst_file = ctx["dst_file"]
     if ctx["opt_verbose"]:
         print("Writing %s" % dst_file)

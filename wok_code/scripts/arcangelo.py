@@ -902,6 +902,9 @@ class MigrateFile(MigrateMeta):
                 continue
             if not last_date and re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
                 x = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
+                if not x:
+                    print(red("Invalid changelog line: ") + ln)
+                    continue
                 i_start = x.start() + 1
                 i_end = x.end() - 1
                 last_date = ln[i_start: i_end]

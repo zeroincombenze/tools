@@ -1,117 +1,269 @@
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
+<div class="container">
+    <div class="oe_styling_v8">
+        <section class="oe_container" id="marketplace_header">
+            <div class="oe_row oe_spaced">
 .. $if summary == summary_i18n
 .. $if branch in '8.0'
-        <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
+                <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
 .. $else
-        <div class="oe_span12">
-            <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
-        </div>
+                <div class="oe_span12">
+                    <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
+                </div>
 .. $fi
 .. $else
 .. $if branch in '8.0'
-        <h2 class="oe_slogan" style="color:#162832;">{{summary}} | {{summary_i18n}}</h2>
+                <h2 class="oe_slogan" style="color:#162832;">{{summary}} | {{summary_i18n}}</h2>
 .. $else
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
-                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
-            </p>
-            <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
-        </div>
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
-            </p>
-            <h2 class="oe_slogan" style="color:#162832;">{{summary_i18n}}</h2>
-        </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <h2 class="oe_slogan" style="color:#162832;">{{summary}}</h2>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <h2 class="oe_slogan" style="color:#162832;">{{summary_i18n}}</h2>
+                </div>
 .. $fi
 .. $fi
-        <div class="oe_demo oe_screenshot">
-            {{description_img}}
-        </div>
-    </div>
-</section>
-
-<section>
-    <div>
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
-                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{description}}</p>
-        </div>
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{description_i18n}}</p>
-        </div>
-    </div>
-</section>
-.. $if defined features
-
-<section>
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Features | Caratteristiche</h3>
-        <div class="oe_span12">
-{{features}}
-        </div>
-    </div>
-</section>
-.. $fi
+                <div class="oe_demo oe_screenshot">
+                    {{description_img}}
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{description}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{description_i18n}}</p>
+                </div>
+            </div>
+        </section>
 .. $if defined configuration
-
-<section>
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Configuration | Configurazione</h3>
+
+        <section>
+            <div class="oe_row oe_spaced">
+                <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Configuration |
+                    Configurazione</h3>
 .. $if configuration == configuration_i18n
-        <div class="oe_span12">
-{{configuration}}
-        </div>
+                <div class="oe_span12">
+                    {{configuration}}
+                </div>
 .. $else
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
-                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{configuration}}</p>
-        </div>
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{configuration_i18n}}</p>
-        </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{configuration}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{configuration_i18n}}</p>
+                </div>
 .. $fi
-    </div>
-</section>
+            </div>
+        </section>
 .. $fi
 .. $if defined usage
-
-<section>
-    <div class="oe_row oe_spaced">
-        <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Usage | Utilizzo</h3>
+
+        <section>
+            <div class="oe_row oe_spaced">
+                <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Usage | Utilizzo</h3>
 .. $if usage == usage_i18n
-        <div class="oe_span12">
-{{usage}}
-        </div>
+                <div class="oe_span12">
+                    {{usage}}
+                </div>
 .. $else
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
-                <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{usage}}</p>
-        </div>
-        <div class="oe_span6">
-            <p align="center">
-                <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
-            </p>
-            <p class="oe_mt16" align="justify">{{usage_i18n}}</p>
-        </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{usage}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{usage_i18n}}</p>
+                </div>
+.. $fi
+            </div>
+        </section>
+.. $fi
+
+        <section>
+            <div class="container">
+                <div class="o_notebook d-flex w-100 horizontal flex-column">
+                    <ul class="nav nav-tabs flex-row flex-nowrap" id="myTab" role="tablist">
+.. $if defined features
+                        <li class="nav-item flex-nowrap">
+                            <a data-toggle="tab" data-bs-toggle="tab" disable_anchor="true"
+                               class="nav-link active" id="overview-tab" role="tab"
+                               href="#features" aria-expanded="false">Features</a>
+                        </li>
+.. $fi
+.. $if defined configuration
+                        <li class="nav-item flex-nowrap">
+                            <a data-toggle="tab" data-bs-toggle="tab" disable_anchor="true"
+                               class="nav-link active" id="configuration-tab" role="tab"
+                               href="#configuration" aria-expanded="false">Configuration</a>
+                        </li>
+.. $fi
+.. $if defined usage
+                        <li class="nav-item flex-nowrap">
+                            <a data-toggle="tab" data-bs-toggle="tab" disable_anchor="true"
+                               class="nav-link active" id="usage-tab" role="tab"
+                               href="#usage" aria-expanded="false">Usage</a>
+                        </li>
+.. $fi
+.. $if defined changelog
+                        <li class="nav-item flex-nowrap">
+                            <a data-toggle="tab" data-bs-toggle="tab" disable_anchor="true"
+                               class="nav-link active" id="changelog-tab" role="tab"
+                               href="#changelog" aria-expanded="false">Releases</a>
+                        </li>
+.. $fi
+                    </ul>
+                </div>
+                <div class="tab-content" id="myTabContent">
+.. $if defined features
+                    <div aria-labelledby="features-tab" class="tab-pane active" id="features" role="tabpanel">
+                        <div class="position-relative" style="border-radius:10px">
+                            <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Features |
+                                Caratteristiche</h3>
+                            <div class="oe_span12">{{features}}</div>
+                        </div>
+                    </div>
+.. $fi
+.. $if defined configuration
+                    <div aria-labelledby="configuration-tab" class="tab-pane fade show" id="configuration"
+                         role="tabpanel">
+                        <div class="position-relative" style="border-radius:10px">
+                            <p>Configuration: no yet documented</p>
+                        </div>
+                    </div>
+.. $fi
+.. $if defined usage
+                    <div aria-labelledby="usage-tab" class="tab-pane fade show" id="usage" role="tabpanel">
+                        <div class="position-relative" style="border-radius:10px">
+                            <p>Usage: no yet documented</p>
+                        </div>
+                    </div>
+.. $fi
+.. $if defined changelog
+                    <div aria-labelledby="changelog-tab" class="tab-pane fade show" id="changelog" role="tabpanel">
+                        <div class="position-relative" style="border-radius:10px">
+                            <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">ChangeLog History
+                                |
+                                Cronologia modifiche</h3>
+                            <div class="oe_span12">{{changelog}}</div>
+                        </div>
+                    </div>
+.. $fi
+                </div>
+            </div>
+        </section>
+.. $if defined troubleshooting
+
+        <section>
+            <div class="oe_row oe_spaced">
+                <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Troubleshooting | Risoluzione
+                    dei
+                    problemi</h3>
+.. $if troubleshooting == troubleshooting_i18n
+                <div class="oe_span12">
+                    {{troubleshooting}}
+                </div>
+.. $else
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{troubleshooting}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{troubleshooting_i18n}}</p>
+                </div>
+.. $fi
+            </div>
+        </section>
+.. $fi
+.. $if defined known_issues
+
+        <section>
+            <div class="oe_row oe_spaced">
+                <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">Known issues | Problemi
+                    conosciuti</h3>
+.. $if known_issues == known_issues_i18n
+                <div class="oe_span12">
+                    {{known_issues}}
+                </div>
+.. $else
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{known_issues}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{known_issues_i18n}}</p>
+                </div>
+.. $fi
+            </div>
+        </section>
+.. $fi
+.. $if defined faq
+
+        <section>
+            <div class="oe_row oe_spaced">
+                <h3 align="center" style="color:#162832;font-size: 26px;font-weight: 300;">FAQ | Domande &amp;
+                    Risposte</h3>
+.. $if faq == faq_i18n
+                <div class="oe_span12">
+                    {{faq}}
+                </div>
+.. $else
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_uk}}" alt="English" style="width:16px;height:16px;"/>
+                        <img src="{{icon_l10n_us}}" alt="English" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{faq}}</p>
+                </div>
+                <div class="oe_span6">
+                    <p align="center">
+                        <img src="{{icon_l10n_it}}" alt="Italiano" style="width:16px;height:16px;"/>
+                    </p>
+                    <p class="oe_mt16" align="justify">{{faq_i18n}}</p>
+                </div>
+.. $fi
+            </div>
+        </section>
 .. $fi
     </div>
-</section>
-.. $fi
+</div>

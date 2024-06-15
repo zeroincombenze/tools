@@ -74,7 +74,8 @@ def check_4_depending(cr):
             )
             if "!" not in op:
                 uninstallable_reason += (
-                    " - Use config param <disable_module_incompatibility> to install!")
+                    " - Set system param <disable_module_incompatibility> to True"
+                    " in order to force installation or upgrade!")
             _logger.error(uninstallable_reason)
             if not disable_check or "!" in op:
                 return uninstallable_reason
@@ -96,7 +97,8 @@ def check_4_depending(cr):
             )
             if "?" in op:
                 uninstallable_reason += (
-                    " - Use config param <disable_module_incompatibility> to install!")
+                    " - Set system param <disable_module_incompatibility> to True"
+                    " in order to force installation or upgrade!")
             _logger.error(uninstallable_reason)
             if not disable_check or "?" not in op:
                 return uninstallable_reason
@@ -113,7 +115,8 @@ def check_4_depending(cr):
             )
             if "?" in op:
                 uninstallable_reason += (
-                    " - Use config param <disable_module_incompatibility> to install!")
+                    " - Set system param <disable_module_incompatibility> to True"
+                    " in order to force installation or upgrade!")
             _logger.error(uninstallable_reason)
             if not disable_check or "?" not in op:
                 return uninstallable_reason
