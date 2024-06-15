@@ -1,5 +1,5 @@
 .. z0lib documentation master file, created by
-   gen_readme.py on 2024-02-07 15:36:25
+   gen_readme.py on 2024-06-15 20:12:31
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
