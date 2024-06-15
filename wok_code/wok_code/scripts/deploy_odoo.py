@@ -140,16 +140,18 @@ REPO_NAMES = {
 FMT_PARAMS = {
     "branch": "%(branch)-10.10s",
     "brief": "%(brief)s",
-    "dif_branch": "%(branch)-10.10s",
+    "dif_branch": "%(dif_branch)-10.10s",
     "git_org": "%(git_org)-14.14s",
     "git_url": "%(git_url)-64.64s",
+    "last_date": "%(last_date)-12.12s",
     "path": "%(path)-56.56s",
     "repo": "%(repo)-30.30s",
     "stash": "%(stash)5.5s",
+    "stash_info": "%(stash_info)s",
     "stage": "%(stage)-10.10s",
     "status": "%(status)s",
     "sts": "%(sts)3.3s",
-    "upstream": "%(upstream)-48.48s",
+    "upstream": "%(upstream)-54.54s",
 }
 
 
@@ -157,13 +159,15 @@ class OdooDeploy(object):
     """Odoo's organization/branch repositories
     self.repo_list is the repositories list of self.repo_info
     self.repo_info contains repository information
+    * #: number of modules in repo
     * BRANCH: git branch
-    * PATH: repository path
-    * URL: git URL
     * GIT_ORG: git organization
-    * UPSTREAN: upstream url
+    * LAST_DATE: last commit date
+    * PATH: repository path
     * STASH: repo with stash
     * STS: os status
+    * UPSTREAM: upstream url
+    * URL: git URL
     """
 
     def run_traced(self, cmd, verbose=None):
@@ -337,6 +341,9 @@ class OdooDeploy(object):
             self.get_repo_from_path()
         self.set_default_branch()
 
+    def _init_list(self):
+        return self._init_status()
+
     def _init_unstaged(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
@@ -461,14 +468,16 @@ class OdooDeploy(object):
             "GIT_ORG": REV_SHORT_NAMES.get(git_org, git_org),
             "URL": url,
             "BRANCH": branch,
+            "LAST_DATE": "",
             "STS": 127,
         }
 
     def load_repo_info(self, path, repo):
         self.run_traced("cd %s" % path, verbose=False)
-        sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info(
-            verbose=False
-        )
+        (
+            sts, repo_branch, git_url, stash_list, upstream,
+            last_date, status, stage, brief
+        ) = self.get_remote_info(verbose=False)
         if sts == 0:
             org_url, rrepo, rgit_org = self.data_from_url(git_url)
         else:
@@ -476,19 +485,17 @@ class OdooDeploy(object):
             repo_branch = self.opt_args.odoo_branch or build_odoo_param(
                 "FULLVER", odoo_vid=path)
         if repo not in self.repo_info:
-            self.repo_info[repo] = {
-                "PATH": path,
-                "GIT_ORG": REV_SHORT_NAMES.get(rgit_org, rgit_org),
-                "URL": git_url,
-                "BRANCH": repo_branch,
-            }
-        else:
-            self.repo_info[repo]["GIT_ORG"] = REV_SHORT_NAMES.get(rgit_org, rgit_org)
-            self.repo_info[repo]["URL"] = git_url
-            self.repo_info[repo]["BRANCH"] = repo_branch
+            self.repo_info[repo] = {"PATH": path}
+        self.repo_info[repo]["GIT_ORG"] = REV_SHORT_NAMES.get(rgit_org, rgit_org)
+        self.repo_info[repo]["URL"] = git_url
+        self.repo_info[repo]["BRANCH"] = repo_branch
+        self.repo_info[repo]["LAST_DATE"] = last_date
+        self.repo_info[repo]["STATUS"] = status
+        self.repo_info[repo]["STAGE"] = stage
         self.repo_info[repo]["STS"] = sts
-        if stash_list:
-            self.repo_info[repo]["STASH"] = stash_list
+        self.repo_info[repo]["STASH"] = stash_list
+        self.repo_info[repo]["UPSTREAM"] = upstream
+        self.repo_info[repo]["BRIEF"] = brief
 
     def analyze_path(self, path, repo):
         if repo == "OCB":
@@ -779,19 +786,21 @@ class OdooDeploy(object):
                 )
         return tgtdir
 
-    def get_remote_info(self, verbose=True):
+    def get_remote_info(self, verbose=True, short=False):
         verbose = verbose and self.opt_args.verbose
         branch = self.master_branch
-        stash_list = ""
-        url = upstream = ""
+        stash_list = url = upstream = last_date = git_stat = stage = brief = ""
         sts, stdout, stderr = self.run_traced("git branch", verbose=verbose)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if ln.startswith("*"):
                     branch = ln[2:]
                     break
-        sts, stdout, stderr = self.run_traced("git remote -v", verbose=verbose)
-        if sts == 0 and stdout:
+        if short:
+            return sts, branch
+
+        sts1, stdout, stderr = self.run_traced("git remote -v", verbose=verbose)
+        if sts1 == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
                     continue
@@ -800,14 +809,28 @@ class OdooDeploy(object):
                     url = lns[1]
                 elif lns[0] == "upstream":
                     upstream = lns[1]
-            sts, stdout, stderr = self.run_traced("git stash list", verbose=verbose)
+            sts1, stdout, stderr = self.run_traced("git stash list", verbose=verbose)
             stash_list = stdout
         else:
+            sts = sts or sts1
             if self.path_is_ocb(os.getcwd()):
                 url = "https://github.com/odoo/odoo.git"
             else:
                 url = "https://github.com/OCA/%s.git" % pth.basename(os.getcwd())
-        return sts, branch, url, stash_list, upstream
+        if sts == 0:
+            sts1, stdout, stderr = self.run_traced(
+                "git log --pretty=format:%cs%n%s -n 1", verbose=verbose)
+            if sts1 == 0 and stdout:
+                last_date, brief = stdout.split("\n")
+        sts1, stdout, stderr = self.run_traced("git status", verbose=verbose)
+        sts = sts or sts1
+        if sts1 == 0:
+            git_stat = stdout
+            stage = "staged" if (
+                    "On branch" in stdout
+                    and "Your branch is up to date" in stdout
+                    and "working tree clean" in stdout) else "unstaged"
+        return sts, branch, url, stash_list, upstream, last_date, git_stat, stage, brief
 
     def set_upstream(self, origin_path, repo):
         if repo != "OCB":
@@ -983,8 +1006,7 @@ class OdooDeploy(object):
         if os.getcwd() != tgtdir:
             self.run_traced("cd %s" % tgtdir)
         if pth.islink(tgtdir):
-            sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info()
-            return sts, repo_branch
+            return self.get_remote_info(short=True)
         cmd = "git stash"
         self.run_traced(cmd, verbose=False)
         sleep(1)
@@ -1044,8 +1066,7 @@ class OdooDeploy(object):
         if os.getcwd() != tgtdir:
             self.run_traced("cd %s" % tgtdir)
         if pth.islink(tgtdir):
-            sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info()
-            return sts, repo_branch
+            return self.get_remote_info(sort=True)
         if repo_branch != branch:
             print("Current branch %s is different from required branch  %s!"
                   % (repo_branch, branch))
@@ -1219,11 +1240,14 @@ class OdooDeploy(object):
         return sts, self.opt_args.odoo_branch
 
     def action_list(self):
+        return self.action_status()
+
+    def action_status(self, format=None):
         print("Odoo main version..........: %s" % self.master_branch)
         print("Odoo root path.............: %s" % self.target_path)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
-        fmt_list = self.opt_args.format.split(",")
+        fmt_list = format.split(",") if format else self.opt_args.format.split(",")
         fmt = ""
         datas = {}
         for item in fmt_list:
@@ -1232,75 +1256,25 @@ class OdooDeploy(object):
         fmt = fmt.strip()
         print(fmt % datas)
         for repo in self.repo_list:
-            datas = {
-                "branch": self.repo_info[repo].get("BRANCH"),
-                "brief": "",
-                "dif_branch": self.repo_info[repo].get("BRANCH")
-                if self.repo_info[repo].get("BRANCH") != self.master_branch
-                else "",
-                "git_org": self.repo_info[repo].get("GIT_ORG"),
-                "git_url": self.repo_info[repo].get("URL"),
-                "path": self.repo_info[repo].get("PATH"),
-                "repo": repo,
-                "stash": "stash" if self.repo_info[repo].get("STASH") else "",
-                "stage": "",
-                "status": "",
-                "sts": self.repo_info[repo].get("STS"),
-                "upstream": self.repo_info[repo].get("UPSTREAM"),
-            }
-            print(fmt % datas)
-        if self.opt_args.show_addons:
-            print()
-            print(",".join(self.addons_path))
-        return 0
-
-    def action_status(self):
-        print("Odoo main version..........: %s" % self.master_branch)
-        print("Odoo root path.............: %s" % self.target_path)
-        if self.opt_args.config:
-            print("Odoo configuration file....: %s" % self.opt_args.config)
-        fmt_list = self.opt_args.format.split(",")
-        fmt = ""
-        datas = {}
-        for item in fmt_list:
-            fmt += " " + FMT_PARAMS[item]
-            datas[item] = item.upper()
-        fmt = fmt.strip()
-        print(fmt % datas)
-        for repo in self.repo_list:
-            git_stat = brief = ""
-            stage = "staged"
-            tgtdir = self.get_path_of_repo(repo)
-            self.run_traced("cd %s" % tgtdir, verbose=False)
-            sts, repo_branch, git_url, stash_list, upstream = self.get_remote_info(
-                verbose=False)
-            if sts == 0:
-                org_url, repo, git_org = self.data_from_url(git_url)
-                sts, stdout, stderr = self.run_traced("git status", verbose=False)
-                if sts == 0:
-                    git_stat = stdout
-                    stage = "staged" if (
-                            "On branch" in stdout
-                            and "Your branch is up to date" in stdout
-                            and "working tree clean" in stdout) else "unstaged"
-            else:
-                git_url = self.repo_info[repo]["URL"]
-                git_org = self.repo_info[repo]["GIT_ORG"]
-                stage = "unstaged"
+            repo_branch = self.repo_info[repo]["BRANCH"]
+            stage = self.repo_info[repo]["STAGE"]
+            git_org = self.repo_info[repo]["GIT_ORG"]
 
             datas = {
-                "branch": repo_branch,
-                "brief": brief,
+                "branch": self.repo_info[repo]["BRANCH"],
+                "brief": self.repo_info[repo]["BRIEF"],
                 "dif_branch": repo_branch if repo_branch != self.master_branch else "",
-                "git_org": git_org,
-                "git_url": git_url,
-                "path": tgtdir,
+                "git_org": self.repo_info[repo]["GIT_ORG"],
+                "git_url": self.repo_info[repo]["URL"],
+                "last_date": self.repo_info[repo]["LAST_DATE"],
+                "path": self.repo_info[repo]["PATH"],
                 "repo": "odoo" if repo == "OCB" and git_org == "odoo" else repo,
-                "stash": "stash" if self.repo_info.get(repo, {}).get("STASH") else "",
-                "stage": stage,
-                "status": git_stat,
-                "sts": sts,
-                "upstream": upstream,
+                "stash": "stash" if self.repo_info[repo]["STASH"] else "",
+                "stash_info": self.repo_info[repo]["STASH"],
+                "stage": self.repo_info[repo]["STAGE"],
+                "status": self.repo_info[repo]["STATUS"],
+                "sts": self.repo_info[repo]["STS"],
+                "upstream": self.repo_info[repo].get("UPSTREAM", ""),
             }
             if self.opt_args.action != "unstaged" or stage == "unstaged":
                 print(fmt % datas)
@@ -1533,9 +1507,9 @@ def main(cli_args=None):
         "--format",
         help=(
             "When status, use 1 or + of "
-            "branch,brief,git_org,git_url,path,repo,stash,stage,status,sts,upstream"
+            "branch,brief,dif_branch,git_org,git_url,last_date,path,repo,stash,"
+            "stash_info,stage,status,sts,upstream"
         ),
-        default="repo,stage,branch,git_org,git_url,stash",
     )
     parser.add_argument(
         "-f",
@@ -1623,6 +1597,11 @@ def main(cli_args=None):
         help="May be clone,git-push,list,merge,new-branch,status,unstaged,update",
     )
     opt_args = parser.parse_args(cli_args)
+    if not opt_args.format:
+        if opt_args.action == "list":
+            opt_args.format = "repo,branch,git_url,path"
+        else:
+            opt_args.format = "repo,branch,git_org,last_date,stage,stash,brief"
     deploy = OdooDeploy(opt_args)
     if opt_args.action == "list":
         sts = deploy.action_list()
