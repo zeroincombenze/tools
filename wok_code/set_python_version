@@ -48,7 +48,7 @@ ACTION="set"
 DRY_RUN=0
 cmd=$(basename $0)
 while [[ -n $1 ]]; do
-    [[ $1 =~ ^(2|3|2.7|3.5|3.6|3.7|3.8|3.9|3.10)$ ]] && VER=$1 && shift && continue
+    [[ $1 =~ ^(2|3|2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12)$ ]] && VER=$1 && shift && continue
     [[ $1 =~ -.*l ]] && ACTION="list" && shift && continue
     [[ $1 =~ -.*n ]] && DRY_RUN=1 && shift && continue
     [[ $1 =~ -.*h ]] && echo "$cmd [-h][-l][-n] python_version" && exit 0
