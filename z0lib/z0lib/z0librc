@@ -143,7 +143,7 @@ xuname() {
     elif [ -f /etc/slackware-version ]; then
       DIST="Slackware"
       VER=""
-    elif [ -f /var/lib/odoo/tools/z0lib/xuname-o -d /etc/lsb-release.d ]; then
+    elif [ -f /var/lib/odoo/tools/z0lib/xuname -o -d /etc/lsb-release.d ]; then
       DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
       if [ -z "$DIST" ]; then
         DIST="Ubuntu"
