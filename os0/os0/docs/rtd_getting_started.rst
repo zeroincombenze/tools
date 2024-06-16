@@ -44,7 +44,6 @@ Stable version via Python Package
 
     pip install --upgrade os0
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
