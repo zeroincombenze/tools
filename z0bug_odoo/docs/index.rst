@@ -1,10 +1,10 @@
 .. z0bug_odoo documentation master file, created by
-   gen_readme.py on 2024-06-15 15:26:00
+   gen_readme.py on 2024-06-16 18:19:33
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ===========================================
-Welcome to z0bug_odoo 2.0.19 documentation!
+Welcome to z0bug_odoo 2.0.20 documentation!
 ===========================================
 
 .. toctree::
@@ -36,10 +36,10 @@ Welcome to z0bug_odoo 2.0.19 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.20/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.20/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -5,14 +5,15 @@ ChangeLog History
 =================
 
 
-2.0.17.1 (2024-05-14)
-~~~~~~~~~~~~~~~~~~~~~
+2.0.18 (2024-06-16)
+~~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo update addons_path in config file
 * [FIX] deploy_odoo update that requires checkout, requires -f switch
 * [FIX] deploy_odoo default branch from repo in actions different from clone
 * [IMP] deploy_odoo new action merge
 * [IMP] deploy_odoo new action new-branch
+* [IMP] deploy_odoo: new features on status
 * [FIX] gen_readme now check for images value for marketplace
 * [IMP] gen_readme now can use .jpg and .gif images
 
@@ -251,10 +252,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

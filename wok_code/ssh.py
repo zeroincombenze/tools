@@ -3,7 +3,7 @@
 import os
 import sys
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 
 
 def get_remote_user():
@@ -283,6 +283,7 @@ if verbose:
 if dry_run:
     exit(0)
 exit(os.system(cmd))
+
 
 
 

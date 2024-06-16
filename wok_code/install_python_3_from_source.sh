@@ -4,14 +4,14 @@ install_via_apt() {
 # install_via_apt(PYVER)
     echo "\$ " apt update -y && apt upgrade -y && apt autoremove-y
     apt update -y && apt upgrade -y && apt autoremove-y
-    echo "\$ " apt install software-properties-common
-    apt install software-properties-common
-    echo "\$ " add-apt-repository ppa:deadsnakes/ppa
-    add-apt-repository ppa:deadsnakes/ppa
+    echo "\$ " apt install -y software-properties-common
+    apt install -y software-properties-common
+    echo "\$ " add-apt-repository -y ppa:deadsnakes/ppa
+    add-apt-repository -y ppa:deadsnakes/ppa
     echo "\$ " apt update -y && apt upgrade -y && apt autoremove-y
     apt update -y && apt upgrade -y && apt autoremove-y
-    echo "\$ " apt install python$1
-    apt install python$1
+    echo "\$ " apt install -y python$1
+    apt install -y python$1
     echo ""
 }
 
@@ -84,19 +84,21 @@ else
 fi
 PIP=$(which pip3)
 if [[ -z $PIP ]]; then
-    echo "\$ " apt install python3-pip
-    apt install python3-pip
+    echo "\$ " apt install -y python3-pip
+    apt install -y python3-pip
     echo "\$ " pip3 install pip -U
     pip3 install pip -U
 fi
 py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
 if [[ $py != $DEFPYVER ]]; then
-    echo "\$ " apt install python$py-distutils
-    apt install python$py-distutils
-    echo "\$ " apt install python$py-setuptools
-    apt install python$py-setuptools
-    echo "\$ " apt install python$py-dev
-    apt install python$py-dev
+    echo "\$ " apt install .y python$py-distutils
+    apt install -y python$py-distutils
+    echo "\$ " apt install -y python$py-setuptools
+    apt install -y python$py-setuptools
+    echo "\$ " apt install -y python$py-dev
+    apt install -y python$py-dev
+    echo "\$ " apt install -y python$1-venv
+    apt install -y python$1-venv
     echo "\$ " cd /tmp
     cd /tmp
     echo "\$ " wget $WGET_OPTS https://bootstrap.pypa.io/pip/$py/get-pip.py
@@ -131,6 +133,8 @@ if [[ -z $PIP ]]; then
         /tmp/pip3.7 --version | grep -q "$py" | echo "$ " mv /tmp/pip$py /usr/local/bin/pip$py && mv /tmp/pip$py /usr/local/bin/pip$py
     fi
 fi
+PIP=$(which pip$py)
+[[ -n $PIP ]] && echo "\$ " pip$py install virtualenv && pip$py install virtualenv
 echo ""
 echo ""
 python$py --version

@@ -5,7 +5,7 @@ import platform
 
 from z0lib import z0lib
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 
 
 class PleasePython(object):
@@ -115,6 +115,7 @@ BUGS
             )
             return 0
         return please.run_traced(cmd)
+
 
 
 
