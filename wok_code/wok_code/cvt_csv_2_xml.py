@@ -43,7 +43,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 
 msg_time = time.time()
 
@@ -197,6 +197,7 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

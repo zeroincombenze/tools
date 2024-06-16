@@ -1,4 +1,4 @@
-2.0.17.1 (2024-05-14)
+2.0.18 (2024-06-16)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] deploy_odoo update addons_path in config file
@@ -6,6 +6,7 @@
 * [FIX] deploy_odoo default branch from repo in actions different from clone
 * [IMP] deploy_odoo new action merge
 * [IMP] deploy_odoo new action new-branch
+* [IMP] deploy_odoo: new features on status
 * [FIX] gen_readme now check for images value for marketplace
 * [IMP] gen_readme now can use .jpg and .gif images
 
