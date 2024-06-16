@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.19",
+    version="2.0.20",
     description="Odoo testing framework",
     long_description=long_description,
     classifiers=[
@@ -73,6 +73,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

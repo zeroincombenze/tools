@@ -135,7 +135,6 @@ Stable version via Python Package
 
     pip install --upgrade oerplib3
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 

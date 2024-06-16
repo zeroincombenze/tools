@@ -44,7 +44,6 @@ Stable version via Python Package
 
     pip install --upgrade lisa
 
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 

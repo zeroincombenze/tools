@@ -34,7 +34,7 @@ from travis_helpers import print_flush
 from z0lib import z0lib
 
 _logger = logging.getLogger()
-__version__ = '2.0.19'
+__version__ = '2.0.20'
 
 
 def create_deps():
@@ -201,6 +201,7 @@ if __name__ == '__main__':
                 sys.argv[2] if len(sys.argv) > 2 else None,
             )
         )
+
 
 
 

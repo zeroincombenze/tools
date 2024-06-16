@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 
 
 def check_4_depending(cr):
-    """check_4_depending v2.0.19
+    """check_4_depending v2.0.20
     This function check for valid modules which current module depends on.
     Usually Odoo checks for depending on, through "depends" field in the manifest, but
     Odoo does not check for the version range neither check for incompatibilities.
@@ -255,6 +255,7 @@ def check_4_depending(cr):
     check_for_all_dependecies(
         manifest.get("conflicts", []), mtype="conflicts", disable_check=disable_check
     )
+
 
 
 
