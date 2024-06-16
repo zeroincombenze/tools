@@ -161,10 +161,13 @@ class OdooDeploy(object):
     self.repo_info contains repository information
     * #: number of modules in repo
     * BRANCH: git branch
+    * BRIEF: last commit message
     * GIT_ORG: git organization
     * LAST_DATE: last commit date
     * PATH: repository path
+    * STAGE: staged or unstaged
     * STASH: repo with stash
+    * STATUS: git status
     * STS: os status
     * UPSTREAM: upstream url
     * URL: git URL
@@ -469,6 +472,10 @@ class OdooDeploy(object):
             "URL": url,
             "BRANCH": branch,
             "LAST_DATE": "",
+            "BRIEF": "",
+            "STAGE": "",
+            "STASH": "",
+            "STATUS": "",
             "STS": 127,
         }
 
@@ -632,6 +639,7 @@ class OdooDeploy(object):
         for repo in repo_list:
             if repo not in self.repo_info:
                 self.set_default_repo_info(repo, git_org, branch)
+        self.sort_repo_list()
 
     def data_from_url(self, url):
         if "git@github.com:" in url:
