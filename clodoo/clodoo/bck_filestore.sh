@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.11
+__version__=2.0.12
 
 
 OPTOPTS=(h        b          n            q           t       V           v)
@@ -85,4 +85,5 @@ for odoo_vid in ${opt_branch//,/ };do
   [ $opt_dry_run -eq 0 ] && rsync -avz $DDIR/filestore/ $opt_tgt:$DDIR/filestore/
 done
 exit $sts
+
 

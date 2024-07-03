@@ -46,7 +46,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.11",
+    version="2.0.12",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[
@@ -95,6 +95,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

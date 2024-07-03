@@ -117,7 +117,7 @@ SUPPL_PARAMS = [
     "user"
 ]
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 class Clodoo(object):
@@ -173,8 +173,10 @@ class Clodoo(object):
         return port or 8069
 
     def get_rpc_protocol(self):
-        if self.pypi == "oerplib" or (self.odoo_major_version
-                                      and self.odoo_major_version < 10):
+        if not self.pypi:
+            protocol = self.protocol
+        elif self.pypi == "oerplib" or (self.odoo_major_version
+                                        and self.odoo_major_version < 10):
             protocol = self.protocol or "xmlrpc"
         else:
             protocol = self.protocol or "jsonrpc"
@@ -196,37 +198,49 @@ class Clodoo(object):
                 if value and value != "False":
                     setattr(self, item, value)
 
-    def connect(self):
-        if self.get_rpc_protocol() == "xmlrpc":
+    def connect_oerplib(self, protocol="xmlrpc"):
+        try:
+            self.cnx = oerplib.OERP(
+                server=self.db_host,
+                protocol=protocol,
+                port=self.get_rpc_port(),
+            )
+            self.server_version = self.cnx.db.server_version()
+            self.protocol = "xmlrpc"
             self.pypi = "oerplib"
-            self.server_version = self.odoo_version
-            try:
-                self.cnx = oerplib.OERP(
-                    server=self.db_host,
-                    protocol=self.protocol,
-                    port=self.get_rpc_port(),
-                )
-                self.server_version = self.cnx.db.server_version()
-                self.protocol = "xmlrpc"
-            except BaseException:  # pragma: no cover
-                self.cnx = None
-                self.pypi = self.protocol = ""
-        else:
+        except BaseException:  # pragma: no cover
+            self.cnx = None
+            self.pypi = self.protocol = ""
+
+    def connect_odoorpc(self, protocol="odoorpc"):
+        try:
+            self.cnx = odoorpc.ODOO(self.db_host, port=self.get_rpc_port())
+            if self.set_odoo_version(self.cnx.version) < 10:
+                raise
+            self.server_version = self.cnx.version
+            self.protocol = protocol
             self.pypi = "odoorpc"
-            try:
-                self.cnx = odoorpc.ODOO(self.db_host, port=self.get_rpc_port())
-                self.server_version = self.cnx.version
-                self.protocol = "jsonrpc"
-            except BaseException:  # pragma: no cover
-                self.cnx = None
-                self.pypi = self.protocol = ""
+        except BaseException:  # pragma: no cover
+            self.cnx = None
+            self.pypi = self.protocol = ""
+
+    def connect(self):
+        self.server_version = self.odoo_version if self.odoo_version != "*" else ""
+        protocol = self.get_rpc_protocol()
+        if not protocol:
+            self.connect_odoorpc()
+            if not self.protocol:
+                self.connect_oerplib()
+        elif protocol == "xmlrpc":
+            self.connect_oerplib()
+        else:
+            self.connect_odoorpc()
             if not self.cnx and not self.odoo_major_version:
                 # Try if older Odoo version
-                self.protocol = "xmlrpc"
-        if self.server_version:
-            if self.odoo_version == "*":
-                x = re.match(r"[0-9]+\.[0-9]+", self.server_version)
-                self.odoo_version = self.server_version[0: x.end()]
+                self.connect_oerplib()
+        if self.odoo_version == "*":
+            x = re.match(r"[0-9]+\.[0-9]+", self.server_version)
+            self.odoo_version = self.server_version[0: x.end()]
         return self.cnx
 
     def try_to_login(self, username, pwd):
@@ -1695,4 +1709,5 @@ def _get_name_n_ix(name, deflt=None):
         n = name
         x = deflt
     return n, x
+
 
