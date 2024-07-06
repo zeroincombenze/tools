@@ -215,7 +215,7 @@ class Clodoo(object):
     def connect_odoorpc(self, protocol="odoorpc"):
         try:
             self.cnx = odoorpc.ODOO(self.db_host, port=self.get_rpc_port())
-            if self.set_odoo_version(self.cnx.version) < 10:
+            if eval(self.cnx.version.split(".")[0]) < 10:
                 raise
             self.server_version = self.cnx.version
             self.protocol = protocol

@@ -24,7 +24,7 @@ except ImportError:
 
 __version__ = "2.0.9"
 
-ODOO_VERSION_TO_TEST = ("12.0", "10.0", "8.0")
+ODOO_VERSION_TO_TEST = ("12.0", "10.0", "8.0", "7.0", "14.0")
 
 
 def version():
@@ -33,8 +33,6 @@ def version():
 
 class RegressionTest:
     def setup(self):
-        # print("Connection test: it works only if odoo instances are running!")
-        os.system(os.path.join(os.path.dirname(__file__), "before_test.sh"))
         self.test_data_dir = os.path.join(self.Z.testdir, 'res')
         if not os.path.isdir(self.test_data_dir):
             os.mkdir(self.test_data_dir)
@@ -125,7 +123,7 @@ class RegressionTest:
             margin = " " * (len(database) + len(odoo_version) + 1)
             ids = clodoo.searchL8(self.version_ctx[odoo_version], resource, [])
             self.assertTrue(
-                len(ids) > 0,
+                len(ids) > 1,
                 msg_info="%s/%s> searchL8(%s)" % (database, odoo_version, resource))
 
             id = clodoo.createL8(
@@ -139,7 +137,7 @@ class RegressionTest:
                 self.version_ctx[odoo_version], resource, [("id", "=", id)]
             )
             self.assertTrue(
-                len(ids) > 0,
+                len(ids) == 1,
                 msg_info="%s> searchL8(%s, %d)" % (margin, resource, id))
 
             partner = clodoo.browseL8(self.version_ctx[odoo_version], resource, id)
@@ -262,7 +260,7 @@ class RegressionTest:
             Partner = self.version_ctx[odoo_version].env[resource]
             ids = Partner.search([])
             self.assertTrue(
-                len(ids) > 0,
+                len(ids) > 1,
                 msg_info="%s/%s> %s.search()" % (database, odoo_version, resource))
 
             id = Partner.create({"name": partner_name})
@@ -272,7 +270,7 @@ class RegressionTest:
 
             ids = Partner.search([("id", "=", id)])
             self.assertTrue(
-                len(ids) > 0,
+                len(ids) == 1,
                 msg_info="%s> %ssearch(%d)" % (margin, resource, id))
 
             Partner.write(id, {"name": partner_updated})
