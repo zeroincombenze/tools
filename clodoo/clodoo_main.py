@@ -294,7 +294,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -409,7 +409,10 @@ def oerp_set_env(
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
-    lgiuser = do_login(ctx)
+    if ctx["user"] and hasattr(ctx["user"], "id"):
+        lgiuser = ctx["user"]
+    else:
+        lgiuser = do_login(ctx)
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')  # pragma: no cover
     uid = lgiuser.id
@@ -2376,4 +2379,5 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
