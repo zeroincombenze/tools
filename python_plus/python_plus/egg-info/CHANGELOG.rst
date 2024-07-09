@@ -1,3 +1,9 @@
+2.0.14 (2024-07-08)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+* [IMP] Python 3.6 deprecated
+
 2.0.13 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~
 

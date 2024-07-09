@@ -375,7 +375,7 @@ if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then
 else
     TRANSIFEX_CHECK_ENABLED=0;
 fi
-[[ -z "$PYPI_RUN_PYVER" ]] && PYPI_RUN_PYVER="(2.7|3.5|3.6|3.7|3.8|3.9)"
+[[ -z "$PYPI_RUN_PYVER" ]] && PYPI_RUN_PYVER="(2.7|3.7|3.8|3.9|3.10)"
 [[ -f ./travis.ini && $(grep -qv "^#" ./travis.ini) ]] && export $(cat ./travis.ini|grep -v "^#"|tr -d "'"|tr -d '"')
 [[ "$PRJNAME" == "Odoo" ]] && ULI="$(build_odoo_param GIT_ORGID '.')${BRANCH}-${PKGNAME}" || ULI="${PKGNAME}-${BRANCH}"
 [[ -n "$REPOSNAME" ]] && UMLI="${REPOSNAME//,/+}.${ULI}" || UMLI=$ULI

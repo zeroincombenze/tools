@@ -25,11 +25,10 @@ import unittest
 
 import magic
 
-from os0 import os0
 from z0lib import z0lib
-from python_plus import _c
+from python_plus import _c, str2bool
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 # return code
 TEST_FAILED = 1
@@ -192,8 +191,8 @@ def check_for_requirements(requirements=None):
             with open(fqn, "r") as fd:
                 contents = fd.read()
         for ln in contents.split("\n"):
-            if ln.startswith(".. $set before_test"):
-                requirements = eval(ln[35:].strip())
+            if ln.startswith(".. $set pg_requirements"):
+                requirements = eval(ln[20:].strip())
                 break
     sts = 0
     if not requirements:
@@ -211,8 +210,8 @@ def check_for_requirements(requirements=None):
         if port_found:
             print("Instance %s running at %s [OK]" % (vid, port))
         else:
-            print("*** No Odoo instance running at port <%s> (instance %s)!" % (port,
-                                                                                vid))
+            print("*** No Odoo instance running at port <%s> (name %s)!" % (port,
+                                                                            vid))
             sts = 1
         outs, errs = os_run(["psql", "-Atl"])
         db_found = False
@@ -225,7 +224,7 @@ def check_for_requirements(requirements=None):
         if db_found:
             print("Instance %s with db %s, user admin/admin [OK]" % (vid, db))
         else:
-            print("*** No database <%s> found (instance %s)!" % (db, vid))
+            print("*** No database <%s> found (name %s)!" % (db, vid))
             sts = 1
     if sts:
         print("*** TEST FAILED!!!! ***")
@@ -928,12 +927,12 @@ class Z0test(object):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
                 if hasattr(opt_obj, p):
-                    ctx[p] = os0.str2bool(getattr(opt_obj, p), None)
+                    ctx[p] = str2bool(getattr(opt_obj, p), None)
             for p in LX_OPT_CFG_N:
                 if hasattr(opt_obj, p) and getattr(opt_obj, p):
                     ctx[p] = int(getattr(opt_obj, p))
         for p in LX_SB:
-            ctx[p] = os0.str2bool(ctx[p], ctx[p])
+            ctx[p] = str2bool(ctx[p], ctx[p])
         return ctx
 
     def _get_this_fqn(self):
@@ -1871,6 +1870,7 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+
 
 
 

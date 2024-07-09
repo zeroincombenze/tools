@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=2.0.9
+#__version__=2.0.10
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
 STS_FAILED=1
@@ -143,7 +143,7 @@ xuname() {
     elif [ -f /etc/slackware-version ]; then
       DIST="Slackware"
       VER=""
-    elif [ -f /var/lib/odoo/tools/z0lib/xuname -o -d /etc/lsb-release.d ]; then
+    elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
       DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
       if [ -z "$DIST" ]; then
         DIST="Ubuntu"
@@ -1631,5 +1631,6 @@ clean_dirs() {
   $SETX
 }
 export -f clean_dirs
+
 
 

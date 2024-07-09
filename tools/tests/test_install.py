@@ -9,7 +9,7 @@ from z0lib import z0lib
 RED = r"\e[1;31m"
 GREEN = r"\e[1;32m"
 CLR = r"\e[0m"
-PKG_LIST = ("clodoo", "lisa", "odoo_score", "oerplib3", "os0", "python_plus",
+PKG_LIST = ("clodoo", "lisa", "odoo_score", "oerplib3", "python_plus",
             "travis_emulator", "wok_code", "z0bug_odoo", "z0lib", "zar", "zerobug")
 ERROR_LOG = ""
 

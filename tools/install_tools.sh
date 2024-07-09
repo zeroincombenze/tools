@@ -152,7 +152,7 @@ fi
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9)$ ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9)$  && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
         echo "Please install python 3.9 typing fowllowing command:"
         echo ""
@@ -264,15 +264,16 @@ if [[ ! $opts =~ ^-.*k ]]; then
         fi
     done
 fi
-if [[ -f $BINPATH/please ]]; then
-    PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')
-    PLEASE_CMDS="${PLEASE_CMDS//|/ }"
-fi
-if [[ -f $BINPATH/travis ]]; then
-    TRAVIS_CMDS=$(grep "^ACTIONS=" $BINPATH/travis|awk -F= '{print $2}'|tr -d '"')
-    TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
-    TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
-fi
+#if [[ -f $BINPATH/please ]]; then
+#    PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')
+#    PLEASE_CMDS="${PLEASE_CMDS//|/ }"
+#fi
+#if [[ -f $BINPATH/travis ]]; then
+#    TRAVIS_CMDS=$(grep "^ACTIONS=" $BINPATH/travis|awk -F= '{print $2}'|tr -d '"')
+#    TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
+#    TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
+#fi
+
 [[ ! $opts =~ ^-.*k && -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
 [[ ! $opts =~ ^-.*k && -f $SRCPATH/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"

@@ -29,8 +29,7 @@ import sys
 import argparse
 import time
 
-from os0 import os0
-from python_plus import unicodes
+from python_plus import unicodes, str2bool
 from clodoo import transodoo
 
 __version__ = "2.0.18"
@@ -422,7 +421,7 @@ class CvtCsvFile(object):
                     #     else:
                     #         row[name] = self.get_key(value)
                     elif self.hdr[name].get("type", "") == "bool":
-                        value = os0.str2bool(line[ix], False)
+                        value = str2bool(line[ix], False)
                         if self.opt_args.alt_format:
                             if self.opt_args.action == "export-z0bug":
                                 row[name] = value

@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=2.0.16
+# __version__=2.0.17
 
 language: python
 sudo: false
@@ -10,9 +10,10 @@ cache:
 
 python:
   # For branches <= 10.0, put `- "2.7"`
-  - "3.5"
-  - "3.6"
   - "3.7"
+  - "3.8"
+  - "3.9"
+  - "3.10"
 
 virtualenv:
   system_site_packages: false
@@ -107,6 +108,7 @@ script:
 
 after_success:
   - travis_after_tests_success
+
 
 
 

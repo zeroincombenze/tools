@@ -106,8 +106,7 @@ try:
 except ImportError:
     from wok_code.scripts import license_mgnt
 
-from os0 import os0
-from python_plus import unicodes, qsplit
+from python_plus import unicodes, qsplit, str2bool
 
 try:
     from z0lib import z0lib
@@ -860,7 +859,7 @@ def get_default_available_addons(ctx):
             lol = len(pkg)
     if lol > 36:
         lol = 36
-    no_oca_diff = os0.str2bool(ctx.get("no_section_oca_diff", False), False)
+    no_oca_diff = str2bool(ctx.get("no_section_oca_diff", False), False)
     if no_oca_diff:
         fmt = "| %%-%d.%ds | %%-10.10s | %%-80.80s |\n" % (lol, lol)
         lne = fmt % ("", "", "")

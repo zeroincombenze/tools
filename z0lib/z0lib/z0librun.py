@@ -29,7 +29,7 @@ import os
 from builtins import object
 import shutil
 import shlex
-from subprocess import PIPE, Popen, call
+from subprocess import PIPE, Popen
 # from python_plus import qsplit
 standard_library.install_aliases()  # noqa: E402
 
@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 
 
 def nakedname(path):
@@ -65,64 +65,111 @@ def run_traced(cmd,
                rtime=False):
     """Run system command with log (for trace) and return system status"""
 
+    def read_from_proc_n_echo(proc, outerr, rtime):
+        log = ""
+        while True:
+            ln = proc.stderr.readline() if outerr == "err" else proc.stdout.readline()
+            if not ln:
+                break
+            else:
+                ln = ln.decode("utf8")
+                if rtime:
+                    print(ln, end="")
+                log += ln
+        return log
+
     def call_os(args, verbose=False, with_shell=None, rtime=False):
         prcout = prcerr = ""
+        # if sys.version_info[0] == 2:
+        #     if rtime:
+        #         try:
+        #             sts = call(" ".join(args), shell=True)
+        #         except OSError as e:
+        #             if verbose:
+        #                 print(e)
+        #             sts = 127
+        #         except BaseException:
+        #             sts = 126
+        #     else:
+        #         try:
+        #             proc = Popen(
+        #                 args if not with_shell else " ".join(args),
+        #                 stderr=PIPE,
+        #                 stdout=PIPE,
+        #                 shell=with_shell)
+        #             prcout, prcerr = proc.communicate()
+        #             sts = proc.returncode
+        #             prcout = prcout.decode("utf-8")
+        #             prcerr = prcerr.decode("utf-8")
+        #         except OSError as e:
+        #             if verbose:
+        #                 print(e)
+        #             sts = 127
+        #         except BaseException:
+        #             sts = 126
+        # else:
+        #     if rtime:
+        #         try:
+        #             sts = call(" ".join(args), shell=True)
+        #         except FileNotFoundError as e:  # noqa: F821
+        #             if verbose:
+        #                 print(e)
+        #             sts = 127
+        #         except BaseException:
+        #             sts = 126
+        #     else:
+        #         try:
+        #             with Popen(
+        #                     args if not with_shell else " ".join(args),
+        #                     stdin=PIPE,
+        #                     stdout=PIPE,
+        #                     stderr=PIPE,
+        #                     shell=with_shell
+        #             ) as proc:
+        #                 prcout, prcerr = proc.communicate()
+        #                 sts = proc.returncode
+        #                 prcout = prcout.decode("utf-8")
+        #                 prcerr = prcerr.decode("utf-8")
+        #         except FileNotFoundError as e:  # noqa: F821
+        #             if verbose:
+        #                 print(e)
+        #             sts = 127
+        #         except BaseException:
+        #             sts = 126
         if sys.version_info[0] == 2:
-            if rtime:
-                try:
-                    sts = call(" ".join(args), shell=True)
-                except OSError as e:
-                    if verbose:
-                        print(e)
-                    sts = 127
-                except BaseException:
-                    sts = 126
-            else:
-                try:
-                    proc = Popen(
-                        args if not with_shell else " ".join(args),
-                        stderr=PIPE,
-                        stdout=PIPE,
-                        shell=with_shell)
-                    prcout, prcerr = proc.communicate()
-                    sts = proc.returncode
-                    prcout = prcout.decode("utf-8")
-                    prcerr = prcerr.decode("utf-8")
-                except OSError as e:
-                    if verbose:
-                        print(e)
-                    sts = 127
-                except BaseException:
-                    sts = 126
+            try:
+                proc = Popen(
+                    args if not with_shell else " ".join(args),
+                    stderr=PIPE,
+                    stdout=PIPE,
+                    shell=with_shell)
+                prcout = read_from_proc_n_echo(proc, "out", rtime)
+                prcerr = read_from_proc_n_echo(proc, "err", rtime)
+                sts = proc.wait()
+            except OSError as e:
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
         else:
-            if rtime:
-                try:
-                    sts = call(" ".join(args), shell=True)
-                except FileNotFoundError as e:  # noqa: F821
-                    if verbose:
-                        print(e)
-                    sts = 127
-                except BaseException:
-                    sts = 126
-            else:
-                try:
-                    with Popen(
-                            args if not with_shell else " ".join(args),
-                            stdin=PIPE,
-                            stdout=PIPE,
-                            stderr=PIPE,
-                            shell=with_shell
-                    ) as proc:
-                        prcout, prcerr = proc.communicate()
-                        sts = proc.returncode
-                        prcout = prcout.decode("utf-8")
-                        prcerr = prcerr.decode("utf-8")
-                except FileNotFoundError as e:  # noqa: F821
-                    if verbose:
-                        print(e)
-                    sts = 127
-                except BaseException:
-                    sts = 126
+            try:
+                with Popen(
+                        args if not with_shell else " ".join(args),
+                        stdin=PIPE,
+                        stdout=PIPE,
+                        stderr=PIPE,
+                        shell=with_shell,
+                ) as proc:
+                    prcout = read_from_proc_n_echo(proc, "out", rtime)
+                    prcerr = read_from_proc_n_echo(proc, "err", rtime)
+                    sts = proc.wait()
+            except FileNotFoundError as e:  # noqa: F821
+                if verbose:
+                    print(e)
+                sts = 127
+            except BaseException:
+                sts = 126
         return sts, prcout, prcerr
 
     def cmd_neutral_if(
@@ -592,5 +639,6 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
+
 
 

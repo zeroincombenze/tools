@@ -1,3 +1,9 @@
+2.0.17 (2024-07-07)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] z0testlib: no more depends on os0
+* [IMP] Python 3.6 deprecated
+
 2.0.16 (2024-05-14)
 ~~~~~~~~~~~~~~~~~~~
 

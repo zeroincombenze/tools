@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -100,7 +100,7 @@ REQVERSION = {
         "3.8": ">=4.6.1,<=4.6.5",
         "3.10": "==4.9.2",
     },
-    "mccabe": {"0": "<0.7.0,>=0.6.0"},
+    "mccabe": {"0": "<0.7.0,>=0.6.0", "3.6": "<0.8.0,>=0.7.0"},
     "Mako": {
         "6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4", "10.0": ">=1.0.4",
     },
@@ -153,6 +153,7 @@ REQVERSION = {
         "3.5": "<2.7.0",
         "3.6": "<2.14.0",
         "3.7": "<2.15.0",
+        "3.8": ">2.10.0",
     },
     "pylint-odoo": {
         "6.1": "<3.0.0",        # to match lxml
@@ -162,8 +163,10 @@ REQVERSION = {
         "14.0": "PYVER",
         # "15.0": ">=5.0.1",      # from pypi documentation
         # "16.0": ">=7.0.0",      # from pypi documentation
+        "2.7": "<=4.0.0",
         "3.5": "<=5.0.0",
-        "3.8": ">=3.5.0,<=5.0.0",
+        # "3.8": ">=3.5.0,<=5.0.0",
+        "3.8": ">=8.0",
     },
     "pylint-plugin-utils": {
         "2.7": "==0.2.6",
@@ -197,7 +200,7 @@ REQVERSION = {
     "pytz": {"6.1": ">=2014.10", "10.0": ">=2016.7"},
     # check for: Odoo requires >=1.0.0b1, but it does conflict with other packges
     "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "16.0": ">=1.0.0b1"},
-    "pyxb": {"6.1": "==1.2.4", "8.0": "==1.2.5", "12.0": "==1.2.6"},
+    "pyxb": {"6.1": "==1.2.4", "8.0": "==1.2.5", "10.0": ">=1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
     "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13", "3.9": "==6.0"},
     "qrcode": {"6.1": "==5.0.1", "7.0": "==5.1", "10.0": "==5.3"},
@@ -1588,7 +1591,7 @@ def main(cli_args=None):
                 break
         for dep_pkg in deps_list["bin"]:
             pkg = split_versions(dep_pkg)[0]
-            if pkg == ctx["bin"]:
+            if pkg == ctx["pypi_name"]:
                 deps_list["bin"] = [dep_pkg]
                 deps_list["python"] = []
                 break
@@ -1649,6 +1652,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 
