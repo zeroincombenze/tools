@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "z0bug_odoo"
-copyright = "2019-23, SHS-AV s.r.l."
+copyright = "2019-24, SHS-AV s.r.l."
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version
@@ -175,11 +175,3 @@ autodoc_default_options = {
     "member-order": "bysource",
     # "exclude-members": "z0bug_odoo.test_common"
 }
-
-
-
-
-
-
-
-
