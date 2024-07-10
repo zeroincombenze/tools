@@ -1,5 +1,5 @@
 ================
-odoo_score 2.0.8
+odoo_score 2.0.9
 ================
 
 
@@ -84,6 +84,12 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.9 (2024-07-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] It does no more depends on os0
+* [IMP] Python 3.6 deprecated
 
 2.0.8 (2024-03-26)
 ~~~~~~~~~~~~~~~~~~
@@ -194,10 +200,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.9/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.9/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
