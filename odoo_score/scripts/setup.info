@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="odoo_score",
-    version="2.0.8",
+    version="2.0.9",
     description="Odoo super core",
     long_description='''
 Odoo supercore
@@ -16,7 +16,6 @@ and makes available a simple odoo shell.
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -50,5 +49,6 @@ and makes available a simple odoo shell.
     },
     zip_safe=False,
 )
+
 
 

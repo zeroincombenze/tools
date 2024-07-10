@@ -12,7 +12,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '2.0.8'
+__version__ = '2.0.9'
 
 
 def update_module_names(ctx, namespec, merge_modules=False):
@@ -118,3 +118,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.13",
+    version="2.0.14",
     description="python useful function",
     long_description=long_description,
     classifiers=[
@@ -26,7 +26,6 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -57,6 +56,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

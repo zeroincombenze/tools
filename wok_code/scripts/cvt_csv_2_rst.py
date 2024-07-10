@@ -26,7 +26,6 @@ import os
 import sys
 import time
 import csv
-from os0 import os0
 from python_plus import _b, _c, _u
 
 if sys.version_info[0] == 2:
@@ -58,10 +57,10 @@ def msg_burst(text):
 def items_2_unicode(src):
     if isinstance(src, dict):
         for x in src.keys():
-            src[x] = os0.u(src[x])
+            src[x] = _u(src[x])
     elif isinstance(src, list):
         for i, x in enumerate(src):
-            src[i] = os0.u(x)
+            src[i] = _u(x)
     return src
 
 

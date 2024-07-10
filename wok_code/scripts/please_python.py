@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os.path
-import platform
+import sys
+
+if sys.version_info[0] < 3 or sys.version_info[1] <= 7:
+    import platform
+else:
+    import distro
 
 from z0lib import z0lib
 
@@ -50,7 +55,10 @@ BUGS
         self.please = please
 
     def action_opts(self, parser, for_help=False):
-        dist, ver, suppl = platform.dist()
+        if sys.version_info[0] < 3 or sys.version_info[1] <= 7:
+            dist, ver, suppl = platform.dist()
+        else:
+            dist, ver, suppl = distro.linux_distribution()
         if dist == "centos":
             before = ("yum install libffi-devel gcc openssl-devel bzip2-devel"
                       " ncurses-devel readline-devel")

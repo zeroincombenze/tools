@@ -1,3 +1,9 @@
+2.0.9 (2024-07-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] It does no more depends on os0
+* [IMP] Python 3.6 deprecated
+
 2.0.8 (2023-12-01)
 ~~~~~~~~~~~~~~~~~~
 

@@ -17,12 +17,14 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "clodoo", "z0lib", "os0",
+    "clodoo", "z0lib", "python_plus",
     "future", "Babel", "lxml", "openpyxl", "pyyaml"
 ]
 if sys.version_info >= (3, 0):
     install_requires.append("translators")
     install_requires.append("twine")
+    if sys.version_info >= (3, 7):
+        install_requires.append("distro")
 else:
     install_requires.append("twine==1.15.0")
 
@@ -36,7 +38,6 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -74,13 +75,14 @@ setup(
             "./to_pep8.2p8",
             "./pypi.sh",
             "./install_python_3_from_source.sh",
-            "./cvt_csv_2_xml.py",
+            # "./cvt_csv_2_xml.py",
         ]
     },
     entry_points={
         "console_scripts": [
             "wok_code-info = wok_code.scripts.main:main",
             "cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main",
+            "cvt_csv_2_xml.py = wok_code.scripts.cvt_csv_2_xml:main",
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
             "dist_pkg = wok_code.scripts.dist_pkg:main",

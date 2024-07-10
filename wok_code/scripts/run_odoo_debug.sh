@@ -131,7 +131,7 @@ set_log_filename() {
       LOGDIR="$PKGPATH/tests/logs"
     fi
     export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
-    [[ -f $LOGFILE ]] && rm -f $LOGFILE
+    [[ -f $LOGFILE && $opt_test -ne 0 ]] && rm -f $LOGFILE
 }
 
 check_path_n_branch() {
@@ -648,9 +648,10 @@ if [[ $opt_dry_run -eq 0 ]]; then
     done
 fi
 if [[ -n $mod_test_cfg ]]; then
-    bef_test=$(grep -E "^\.\. +.set +before_test " readme/__manifest__.rst|sed -E "s|^\.\. +.set +before_test ([a-zA-Z0-9/_.+-]+)+|\1|")
-    [[ -n $bef_test && ! $bef_test =~ ^(/|./|../) ]] && bef_test="$opt_odir/tests/$bef_test"
-    [[ -z $bef_test ]] || run_traced "$bef_test"
+    # bef_test=$(grep -E "^\.\. +.set +pg_requirements " readme/__manifest__.rst|sed -E "s|^\.\. +.set +pg_requirements ([a-zA-Z0-9/_.+-]+)+|\1|")
+    # [[ -n $bef_test && ! $bef_test =~ ^(/|./|../) ]] && bef_test="$opt_odir/tests/$bef_test"
+    # [[ -z $bef_test ]] || run_traced "$bef_test"
+    run_traced "python3 $TDIR/pg_requirements.py"
     [[ $? -ne 0 ]] && exit 1
 fi
 [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"

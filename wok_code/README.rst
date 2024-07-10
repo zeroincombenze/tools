@@ -185,9 +185,10 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.18 (2024-06-16)
+2.0.18 (2024-07-10)
 ~~~~~~~~~~~~~~~~~~~
 
+* [FIX] please python 3.9+
 * [FIX] deploy_odoo update addons_path in config file
 * [FIX] deploy_odoo update that requires checkout, requires -f switch
 * [FIX] deploy_odoo default branch from repo in actions different from clone
@@ -196,6 +197,10 @@ ChangeLog History
 * [IMP] deploy_odoo: new features on status
 * [FIX] gen_readme now check for images value for marketplace
 * [IMP] gen_readme now can use .jpg and .gif images
+* [IMP] new pg_requirements.py
+* [IMP] run_odoo_debug checks fro pg_requirements from __manifest__.rst
+* [FIX] No more depends on os0
+* [IMP] Python 3.6 deprecated
 
 2.0.17 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~

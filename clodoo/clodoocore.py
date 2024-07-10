@@ -45,8 +45,15 @@ else:
     except ImportError:
         raise ImportError("Package oerplib3 not found!")
 
-from os0 import os0
-
+# from os0 import os0
+from python_plus import str2bool, _u
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 try:
     from clodoolib import debug_msg_log, msg_log, decrypt, crypt
 except ImportError:
@@ -385,7 +392,7 @@ def exec_sql(ctx, query, response=None):
         else:
             response = True
     except psycopg2.OperationalError:
-        os0.wlog("Error executing sql %s" % query)
+        # os0.wlog("Error executing sql %s" % query)
         response = False
     try:
         ctx["_cr"].close()
@@ -734,7 +741,7 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
                 elif default:
                     apply = "tnl_2_ver_set_value"
                     if default == "true":
-                        default = os0.str2bool(default, True)
+                        default = str2bool(default, True)
                 else:
                     apply = ""
                 if not apply or apply not in list(globals()):
@@ -1032,7 +1039,7 @@ def _import_file_model(ctx, o_model, csv_fn):
     """Get model name of import file"""
     model, hide_cid = _get_model_bone(ctx, o_model)
     if model is None:
-        model = os0.nakedname(csv_fn).replace("-", ".").replace("_", ".")
+        model = z0lib.nakedname(csv_fn).replace("-", ".").replace("_", ".")
     return model, hide_cid
 
 
@@ -1251,8 +1258,8 @@ def eval_value(ctx, o_model, name, value):
     @ name:        field name
     @ value:       field value (constant, macro or expression)
     """
-    name = os0.u(name)
-    value = os0.u(value)
+    name = _u(name)
+    value = _u(value)
     msg = "eval_value(name=%s, value=%s)" % (name, value)
     debug_msg_log(ctx, 6, msg)
     if not value and o_model:

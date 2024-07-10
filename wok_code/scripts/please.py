@@ -275,16 +275,16 @@ class Please(object):
 
     def run_traced(self, cmd, verbose=None, disable_output=False, rtime=False):
         verbose = verbose if verbose is not None else self.opt_args.verbose
-        if rtime:
-            if self.opt_args.dry_run:
-                if self.opt_args.verbose:
-                    print("> " + cmd)
-                return 0
-            if self.opt_args.verbose:
-                print("$ " + cmd)
-            return os.system(cmd)
+        # if rtime:
+        #     if self.opt_args.dry_run:
+        #         if self.opt_args.verbose:
+        #             print("> " + cmd)
+        #         return 0
+        #     if self.opt_args.verbose:
+        #         print("$ " + cmd)
+        #     return os.system(cmd)
         sts, stdout, stderr = z0lib.run_traced(
-            cmd, verbose=verbose, dry_run=self.opt_args.dry_run
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime
         )
         if not disable_output:
             print(stdout + stderr)

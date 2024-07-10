@@ -1,7 +1,9 @@
-2.0.20 (2024-06-16)
+2.0.20 (2024-07-10)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Offical _check4deps_.py
+* [FIX] No more depends on os0
+* [IMP] Python 3.6 deprecated
 
 2.0.19 (2024-05-11)
 ~~~~~~~~~~~~~~~~~~~

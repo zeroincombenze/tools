@@ -4,6 +4,7 @@ from . import main
 # from . import create_translation_file
 from . import arcangelo
 from . import cvt_csv_2_rst
+from . import cvt_csv_2_xml
 from . import cvt_csv_coa
 from . import deploy_odoo
 from . import dist_pkg
@@ -15,6 +16,7 @@ from . import lint_2_compare
 from . import makepo_it
 from . import odoo_dependencies
 from . import odoo_translation
+from . import pg_requirements
 from . import please
 from . import please_apache
 from . import please_cwd
