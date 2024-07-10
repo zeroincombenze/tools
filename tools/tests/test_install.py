@@ -9,7 +9,7 @@ from z0lib import z0lib
 RED = r"\e[1;31m"
 GREEN = r"\e[1;32m"
 CLR = r"\e[0m"
-PKG_LIST = ("clodoo", "lisa", "odoo_score", "oerplib3", "python_plus",
+PKG_LIST = ("clodoo", "os0", "lisa", "odoo_score", "oerplib3", "python_plus",
             "travis_emulator", "wok_code", "z0bug_odoo", "z0lib", "zar", "zerobug")
 ERROR_LOG = ""
 
@@ -103,6 +103,8 @@ def parse_opts(cli_args=[]):
 
 
 def create_venv(opt_args, venvdir, pypidir, toolsdir):
+    print("\x1b[1;32m# Starting create_venv(%s,%s, %s)\x1b[0m"
+          % (venvdir, pypidir, toolsdir))
     if opt_args.from_vme:
         if opt_args.branch:
             srcdir = pth.expanduser("~/VME/VME" + opt_args.branch)
