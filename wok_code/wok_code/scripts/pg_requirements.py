@@ -65,4 +65,5 @@ def check_for_requirements(requirements=None):
     return sts
 
 
-exit(check_for_requirements())
+if __name__ == "__main__":
+    exit(check_for_requirements())
