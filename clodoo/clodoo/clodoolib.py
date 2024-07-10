@@ -33,8 +33,15 @@ import time
 import subprocess
 from datetime import date
 
-from os0 import os0
-
+# from os0 import os0
+from python_plus import _u, str2bool
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 standard_library.install_aliases()  # noqa: E402
 
 # Apply for configuration file (True/False)
@@ -207,10 +214,11 @@ __version__ = "2.0.12"
 # Message and output
 #
 def init_logger(ctx):
-    if ctx["quiet_mode"]:
-        os0.set_tlog_file(ctx["logfn"], echo=False)
-    else:
-        os0.set_tlog_file(ctx["logfn"], echo=True)
+    # if ctx["quiet_mode"]:
+    #     os0.set_tlog_file(ctx["logfn"], echo=False)
+    # else:
+    #     os0.set_tlog_file(ctx["logfn"], echo=True)
+    pass
 
 
 def msg_burst(level, text, i, n):
@@ -242,7 +250,8 @@ def msg_log(ctx, level, text):
             txt = "{0}{1}".format(ident, tounicode(text))
     else:
         txt = "{0}{1}".format(ident, tounicode(text))
-    os0.wlog(txt)
+    # os0.wlog(txt)
+    print(txt)
 
 
 def debug_msg_log(ctx, level, text):
@@ -471,12 +480,12 @@ def create_def_params_dict(ctx):
                     ctx[p] = tmp
         for p in LX_OPT_B:
             if hasattr(opt_obj, p):
-                ctx[p] = os0.str2bool(getattr(opt_obj, p), None)
+                ctx[p] = str2bool(getattr(opt_obj, p), None)
         for p in LX_OPT_N:
             if hasattr(opt_obj, p) and getattr(opt_obj, p):
                 ctx[p] = int(getattr(opt_obj, p))
     for p in LX_CFG_SB:
-        ctx[p] = os0.str2bool(ctx[p], ctx[p])
+        ctx[p] = str2bool(ctx[p], ctx[p])
     if ctx.get("LX_CFG_S", ""):
         ctx["LX_CFG_S"] = eval(ctx["LX_CFG_S"])
     return ctx
@@ -776,7 +785,7 @@ def create_parser(version, doc, ctx):
 def set_base_ctx(ctx=None):
     ctx = ctx or {}
     ctx["caller_fqn"] = inspect.stack()[1][1]
-    ctx["caller"] = os0.nakedname(os.path.basename(ctx["caller_fqn"]))
+    ctx["caller"] = z0lib.nakedname(os.path.basename(ctx["caller_fqn"]))
     ctx["run_daemon"] = False if os.isatty(0) else True
     ctx["run_tty"] = os.isatty(0)
     return ctx
@@ -812,20 +821,25 @@ def check_if_running(ctx, pid):
     f_alrdy_run = False
     id_str = ctx["caller"] + ".py"
     cmd = "ps aux|grep " + id_str
-    os0.muteshell(cmd, keepout=True)
-    stdinp_fd = open(os0.setlfilename(os0.bgout_fn), "r")
+    sts, outs, errs = z0lib.run_traced(cmd)
+    # os0.muteshell(cmd, keepout=True)
+    # stdinp_fd = open(os0.setlfilename(os0.bgout_fn), "r")
     rxmatch = "root .* python .*" + id_str + ".*"
     rxnmatch = "root .* {0} .*".format(pid)
-    line = stdinp_fd.readline()
-    while line != "" and not f_alrdy_run:
-        i = line.rfind("\n")
-        if i >= 0:
-            if re.match(rxmatch, line) and not re.match(rxnmatch, line):
-                f_alrdy_run = True
-        line = stdinp_fd.readline()
-    stdinp_fd.close()
-    if os.path.isfile(os0.setlfilename(os0.bgout_fn)):
-        os.remove(os0.setlfilename(os0.bgout_fn))
+    # line = stdinp_fd.readline()
+    # while line != "" and not f_alrdy_run:
+    #     i = line.rfind("\n")
+    #     if i >= 0:
+    #         if re.match(rxmatch, line) and not re.match(rxnmatch, line):
+    #             f_alrdy_run = True
+    #     line = stdinp_fd.readline()
+    # stdinp_fd.close()
+    # if os.path.isfile(os0.setlfilename(os0.bgout_fn)):
+    #     os.remove(os0.setlfilename(os0.bgout_fn))
+    for ln in outs.split("\n"):
+        if re.match(rxmatch, ln) and not re.match(rxnmatch, ln):
+            f_alrdy_run = True
+            break
     return f_alrdy_run
 
 
@@ -878,7 +892,7 @@ def build_odoo_param(
     out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:
         return False
-    out = os0.u(out)
+    out = _u(out)
     if item in ("LPPORT", "MAJVER", "RPCPORT"):
         return eval(out.split("\n")[0])
     return out.split("\n")[0]

@@ -184,8 +184,8 @@ from past.builtins import basestring
 #         raise ImportError("Package oerplib3 not found!")
 
 # from passlib.context import CryptContext
-from os0 import os0
-from python_plus import _c
+# from os0 import os0
+from python_plus import _c, _u, str2bool
 
 try:
     from clodoo.clodoocore import browseL8              # noqa: F401
@@ -374,7 +374,7 @@ def do_login(ctx):
     user = ctx["self"].do_login()
     if not user:
         if not ctx.get('no_warning_pwd', False):
-            os0.wlog("!DB={}: invalid user/pwd".format(tounicode(ctx['db_name'])))
+            print("!DB={}: invalid user/pwd".format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(ctx, user)
@@ -767,9 +767,9 @@ def create_local_parms(ctx, act):
     ):
         pv = get_param_ver(ctx, p)
         if pv in lctx:
-            lctx[pv] = os0.str2bool(lctx[pv], lctx[pv])
+            lctx[pv] = str2bool(lctx[pv], lctx[pv])
         elif p in lctx:
-            lctx[p] = os0.str2bool(lctx[p], lctx[p])
+            lctx[p] = str2bool(lctx[p], lctx[p])
     return lctx
 
 
@@ -1845,7 +1845,7 @@ def import_file(ctx, o_model, csv_fn):
                             o_model['name'],
                             tounicode(name_new),
                         )
-                        os0.wlog(msg)
+                        print(msg)
                     if written:
                         if (
                             model == 'res.users'
@@ -1868,9 +1868,9 @@ def import_file(ctx, o_model, csv_fn):
                                 o_model['name'],
                                 tounicode(name_new),
                             )
-                            os0.wlog(msg)
+                            print(msg)
             else:
-                msg = "insert " + os0.u(name_new)
+                msg = "insert " + _u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
                     if not o_model.get('hide_cid', False) and 'company_id' not in vals:
@@ -1891,7 +1891,7 @@ def import_file(ctx, o_model, csv_fn):
                             tounicode(o_model['name']),
                             tounicode(name_new),
                         )
-                        os0.wlog(msg)
+                        print(msg)
                     if written and id:
                         try:
                             add_external_name(ctx, o_model, row, id)
@@ -1901,7 +1901,7 @@ def import_file(ctx, o_model, csv_fn):
                                 o_model['name'],
                                 tounicode(name_new),
                             )
-                            os0.wlog(msg)
+                            print(msg)
                 else:
                     ctx['header_id'] = -1
         csv_fd.close()
@@ -1984,7 +1984,7 @@ def import_config_file(ctx, csv_fn):
 def setup_user_config_param(ctx, username, name, value):
     context = get_context(ctx)
     sts = STS_SUCCESS
-    v = os0.str2bool(value, None)
+    v = str2bool(value, None)
     if v is not None:
         value = v
     if isinstance(value, bool):
