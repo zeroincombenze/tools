@@ -186,6 +186,8 @@ PLEASE_CMDS=""
 TRAVIS_CMDS=""
 LOCAL_PKGS="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
+PIPVER=$(which pip)
+[[ -z $PIPVER ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1
 PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
 popts="--disable-pip-version-check --no-python-version-warning"
