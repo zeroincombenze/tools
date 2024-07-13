@@ -521,7 +521,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "lessc; odoo_major>=10",
     "lxml",
     "Mako",
-    "matplotlib",
+    "matplotlib; odoo_major>=14",
     "numpy",
     "num2words",
     "odoo_score",
@@ -1608,7 +1608,7 @@ def main(cli_args=None):
                 ii = rm_list.pop()
                 del deps_list["python"][ii]
             for ii, dep_pkg in enumerate(deps_list["bin"]):
-                if deps_list["bin"][ii] == item:
+                if get_naked_pkgname(deps_list["bin"][ii]) == item:
                     rm_list.append(ii)
             while len(rm_list):
                 ii = rm_list.pop()
