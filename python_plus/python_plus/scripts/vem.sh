@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.14
+__version__=2.0.15
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -64,7 +64,7 @@ BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 UNISOLATED_PKGS="(.?-|lxml)"
 ERROR_PKGS=""
-LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|z0bug_odoo|z0lib|zerobug)"
+LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|wok_code|z0bug_odoo|z0lib|zerobug)"
 [[ -d $HOME_DEVEL/../tools ]] && LOCAL_PKGS=$(find $HOME_DEVEL/../tools -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f7|tr "\n" " ")
 [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(find $HOME_DEVEL/pypi -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f6|tr "\n" " ")
 LOCAL_PKGS=$(echo $LOCAL_PKGS)
@@ -1296,6 +1296,8 @@ do_venv_create() {
   x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
   if [[ $x == "2" ]]; then
     run_traced "$PIP install \"pip<21.0\" -U"
+    # bugfix for packages with regexe like invoice2data
+    run_traced "$PIP install regex==2021.3.17"
   else
     # PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     # [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
@@ -1644,8 +1646,3 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
-
-
-
-
-
