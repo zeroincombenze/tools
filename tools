@@ -113,16 +113,93 @@ Current version via Git
 ChangeLog History
 -----------------
 
+python_plus: 2.0.15 (2024-07-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
+
+oerplib3: 0.8.5 (2024-07-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Python 3.10 porting
+
+
+z0bug_odoo: 2.0.20 (2024-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Offical _check4deps_.py
+* [FIX] No more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
+wok_code: 2.0.18 (2024-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] deploy_odoo update addons_path in config file
+* [FIX] deploy_odoo update that requires checkout, requires -f switch
+* [FIX] deploy_odoo default branch from repo in actions different from clone
+* [IMP] deploy_odoo new action merge
+* [IMP] deploy_odoo new action new-branch
+* [IMP] deploy_odoo: new features on status
+* [FIX] gen_readme now check for images value for marketplace
+* [IMP] gen_readme now can use .jpg and .gif images
+* [IMP] new pg_requirements.py
+* [IMP] run_odoo_debug checks fro pg_requirements from __manifest__.rst
+* [FIX] No more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
+travis_emulator: 2.0.9 (2024-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] It does no more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
+odoo_score: 2.0.9 (2024-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] It does no more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
+python_plus: 2.0.14 (2024-07-08)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+* [IMP] Python 3.6 deprecated
+
+
+zerobug: 2.0.17 (2024-07-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] z0testlib: no more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
+z0lib: 2.0.10 (2024-07-07)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_traced improvements
+* [IMP] Python 3.6 deprecated
+
+
+clodoo: 2.0.12 (2024-07-03)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Rpc with odoo < 10.0
+* [IMP] It does no more depends on os0
+* [IMP] Python 3.6 deprecated
+
+
 zar: 2.0.5 (2024-05-22)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] zar_upd
-
-
-z0bug_odoo: 2.0.19.1 (2024-05-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Offical _check4deps_.py
 
 
 zerobug: 2.0.16 (2024-05-14)
@@ -133,18 +210,6 @@ zerobug: 2.0.16 (2024-05-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] build_cmd: command not in scripts directory
-
-
-wok_code: 2.0.17.1 (2024-05-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo update addons_path in config file
-* [FIX] deploy_odoo update that requires checkout, requires -f switch
-* [FIX] deploy_odoo default branch from repo in actions different from clone
-* [IMP] deploy_odoo new action merge
-* [IMP] deploy_odoo new action new-branch
-* [FIX] gen_readme now check for images value for marketplace
-* [IMP] gen_readme now can use .jpg and .gif images
 
 
 z0bug_odoo: 2.0.19 (2024-05-11)
@@ -525,45 +590,6 @@ clodoo: 2.0.6 (2023-07-10)
 * [IMP] Incorporated new pypi oerlib3
 * [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
 * [IMP] New param IS_MULTI
-
-
-z0bug_odoo: 2.0.10 (2023-07-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: new feature, external reference with specific field value
-* [REF] TestEnv: tomany casting refactoring
-
-
-wok_code: 2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
-* [FIX] run_odoo_debug: check for dropped DB and abort if still exist
-* [REF] odoo_translation: refactoring
-* [REF] please: refactoring
-* [IMP] deploy_odoo: new brief for status
-* [IMP] deploy_odoo: new action unstaged e new status format
-* [IMP] do_migrate renamed to arcangelo
-* [IMP] gen_readme.py: manage CHANGELOG.rst too
-* [IMP] argangelo: refactoring to run inside pre-commit
-
-
-python_plus: 2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: werkzeug for Odoo 16.0
-* [IMP] list_requirements.py: best recognize mixed version odoo/python
-* [FIX] vem: commands return application status
-
-
-z0bug_odoo: 2.0.9 (2023-06-24)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
-* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
-* [FIX] TestEnv: default value in wizard creation, overlap default function
-* [FIX] TestEnv: record not found for xref of other group
-* [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
 
 
 oerplib3: 0.8.4 (2023-05-06)

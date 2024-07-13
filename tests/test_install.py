@@ -6,10 +6,17 @@ import argparse
 
 from z0lib import z0lib
 
-RED = r"\e[1;31m"
-GREEN = r"\e[1;32m"
-CLR = r"\e[0m"
-PKG_LIST = ("clodoo", "lisa", "odoo_score", "oerplib3", "os0", "python_plus",
+bRED = "[1;31m"
+bGREEN = "[1;32m"
+bCLR = "[0m"
+eRED = r"\e" + bRED
+eGREEN = r"\e" + bGREEN
+eCLR = "\e" + bCLR
+pRED = "\x1b" + bRED
+pGREEN = "\x1b" + bGREEN
+pCLR = "\x1b" + bCLR
+
+PKG_LIST = ("clodoo", "os0", "lisa", "odoo_score", "oerplib3", "python_plus",
             "travis_emulator", "wok_code", "z0bug_odoo", "z0lib", "zar", "zerobug")
 ERROR_LOG = ""
 
@@ -34,7 +41,7 @@ def test_sh_flake8(fd):
     write_test_line(fd, "sts=$?", no_echo=True)
     write_test_line(
         fd,
-        "[[ $sts -ne 0 ]] && echo -e \"" + RED + "* flake8 not found ($sts) *" + CLR + "\"",
+        "[[ $sts -ne 0 ]] && echo -e \"" + eRED + "* flake8 not found ($sts) *" + eCLR + "\"",
         no_echo=True)
 
 
@@ -43,7 +50,7 @@ def test_sh_pylint(fd):
     write_test_line(fd, "sts=$?", no_echo=True)
     write_test_line(
         fd,
-        "[[ $sts -ne 0 ]] && echo -e \"" + RED + "* pylint not found ($sts) *" + CLR + "\"",
+        "[[ $sts -ne 0 ]] && echo -e \"" + eRED + "* pylint not found ($sts) *" + eCLR + "\"",
         no_echo=True)
 
 
@@ -52,11 +59,11 @@ def test_sh_python(fd, python_ver):
     write_test_line(fd, "python --version")
     write_test_line(
         fd, "PYVER=$(python --version 2>&1 | grep \"Python\" |"
-            " grep --color=never -Eo \"[23]\.[0-9]\" | head -n1)")
+            " grep --color=never -Eo \"[23]\.[0-9]+\" | head -n1)")
     write_test_line(
         fd,
         "[[ $PYVER != \"" + python_ver + "\" ]] && "
-        "echo -e '" + RED + "* Invalid python version *" + CLR + "'",
+        "echo -e '" + eRED + "* Invalid python version *" + eCLR + "'",
         no_echo=True)
 
 
@@ -102,7 +109,13 @@ def parse_opts(cli_args=[]):
     return parser.parse_args(cli_args)
 
 
+def verbose_switch(opt_args):
+    verb = "v" * opt_args.verbose
+    return ("-%s" % verb) if verb else "-q"
+
 def create_venv(opt_args, venvdir, pypidir, toolsdir):
+    print(pGREEN + ("# Starting create_venv(%s,%s, %s)"
+                    % (venvdir, pypidir, toolsdir)) + pCLR)
     if opt_args.from_vme:
         if opt_args.branch:
             srcdir = pth.expanduser("~/VME/VME" + opt_args.branch)
@@ -117,7 +130,7 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
             cmd += (" -p %s" % opt_args.python)
         if opt_args.branch:
             cmd += (" -o ~/%s" % opt_args.branch)
-    cmd += " -v" if opt_args.verbose else " -q"
+    cmd += " " + verbose_switch(opt_args)
     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
     cmd = "mkdir %s" % toolsdir
     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
@@ -144,6 +157,7 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
 
 
 def main(cli_args=[]):
+    print("\x1b[H\x1b[J")
     if not cli_args:
         cli_args = sys.argv[1:]
     opt_args = parse_opts(cli_args)
@@ -151,18 +165,24 @@ def main(cli_args=[]):
     if not opt_args.python:
         print("No python version declared: use --python=PYVER")
         if opt_args.branch:
+            print(pGREEN + ("Building environment test for Odoo %s"
+                            % opt_args.branch) + pCLR)
             odoo_majver = int(opt_args.branch.split(".")[0])
-            opt_args.python = "3.%d" % (int((odoo_majver - 10) / 2) + 6)
+            if odoo_majver <= 10:
+                opt_args.python = "2.7"
+            else:
+                opt_args.python = "3.%d" % (int((odoo_majver - 10) / 2) + 6)
         else:
             opt_args.python = "3.9"
-        print("Python %s will be used!" % opt_args.python)
+        print(pGREEN + "Python %s will be used!" % opt_args.python + pCLR)
         opt_args.issue_pyver = False
+    venvdir = pth.expanduser("~/VENV_0" + opt_args.python.replace(".", ""))
+    venvdir += "%03d" % int(opt_args.branch.replace(".", "").replace(".", "") if opt_args.branch else "0")
+    print(pGREEN + ("Virtual path is %s" % venvdir) + pCLR)
     print("")
     print("")
     print("### Test setup ...")
     print("")
-    venvdir = pth.expanduser("~/VENV_0" + opt_args.python.replace(".", ""))
-    venvdir += opt_args.branch.replace(".", "") if opt_args.branch else "0"
     pypidir = pth.dirname(pth.dirname(pth.dirname(__file__)))
     toolsdir = pth.join(venvdir, "tools")
     if pth.isdir(venvdir):
@@ -176,7 +196,7 @@ def main(cli_args=[]):
             write_test_line(fd, "#!/usr/bin/env bash")
             write_test_line(fd, "echo ''")
             write_test_line(
-                fd, "echo -e '" + GREEN + "# Starting " + script + CLR + "'")
+                fd, "echo -e '" + eGREEN + "# Starting " + script + eCLR + "'")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "cd %s" % venvdir)
             write_test_line(fd, "source bin/activate")
@@ -185,9 +205,7 @@ def main(cli_args=[]):
             test_sh_flake8(fd)
             test_sh_pylint(fd)
             write_test_line(fd, "cd %s" % toolsdir)
-            write_test_line(fd,
-                            "./install_tools.sh -vptT" if opt_args.verbose
-                            else "./install_tools.sh -qptT")
+            write_test_line(fd, "./install_tools.sh %sptT" % verbose_switch(opt_args))
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "deactivate")
             write_test_line(fd, "echo PATH=\"$PATH\"")
@@ -206,7 +224,7 @@ def main(cli_args=[]):
             write_test_line(fd, "#!/usr/bin/env bash")
             write_test_line(fd, "echo ''")
             write_test_line(
-                fd, "echo -e '" + GREEN + "# Starting " + script + CLR + "'")
+                fd, "echo -e '" + eGREEN + "# Starting " + script + eCLR + "'")
             write_test_line(fd, "SAVED_PATH=\"$PATH\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "cd %s" % venvdir)
@@ -220,7 +238,7 @@ def main(cli_args=[]):
             for pkg in PKG_LIST:
                 if pkg == "oerplib3" and opt_args.python.startswith("2"):
                     pkg = "oerplib"
-                if pkg in ("lisa", "odoo_score", "travis_emulator", "wok_code", "zar"):
+                if pkg in ("lisa", "travis_emulator","wok_code", "zar"):
                     continue
                 write_test_line(
                     fd, "pip show %s | grep -E '^(Name|Location)'" % pkg)
@@ -229,26 +247,26 @@ def main(cli_args=[]):
                         "|cut -d: -f2|tr -d ' ')" % pkg)
                 write_test_line(
                     fd, "[[ ! $VALUE =~ " + venvdir + " ]] && "
-                        "echo -e '" + RED + " Invalid location" + CLR + "'",
+                        "echo -e '" + eRED + " Invalid location" + eCLR + "'",
                     no_echo=True)
 
-            write_test_line(fd, "echo -e '" + GREEN + "'", no_echo=True)
+            write_test_line(fd, "echo -e '" + eGREEN + "'", no_echo=True)
             for pkg in ("pip", "setuptools", "pyflakes", "pyOpenSSL", "pylint-odoo"):
                 write_test_line(
                     fd, "pip show %s | grep -E '^(Name|Location|Version)'" % pkg)
 
-            write_test_line(fd, "echo -e '" + RED + "'", no_echo=True)
+            write_test_line(fd, "echo -e '" + eRED + "'", no_echo=True)
             write_test_line(fd, "pip check")
-            write_test_line(fd, "echo -e '" + CLR + "'", no_echo=True)
+            write_test_line(fd, "echo -e '" + eCLR + "'", no_echo=True)
             write_test_line(fd, "deactivate")
             write_test_line(fd, "echo '# Restoring default virtualenv'")
             write_test_line(fd, "source %s" % pth.join(
                 pth.dirname(venvdir), "devel", "activate_tools"))
             write_test_line(fd, "export PATH=\"$SAVED_PATH\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
-            write_test_line(fd, "echo -e '" + RED + "'", no_echo=True)
+            write_test_line(fd, "echo -e '" + eRED + "'", no_echo=True)
             write_test_line(fd, "pip check")
-            write_test_line(fd, "echo -e '" + CLR + "'", no_echo=True)
+            write_test_line(fd, "echo -e '" + eCLR + "'", no_echo=True)
         run_traced("chmod +x %s" % script, dry_run=opt_args.dry_run, rtime=True)
         os.system(script)
 
@@ -267,7 +285,7 @@ def main(cli_args=[]):
                 write_test_line(fd, "#!/usr/bin/env bash")
                 write_test_line(fd, "echo ''")
                 write_test_line(
-                    fd, "echo -e '" + GREEN + "# Starting " + script + CLR + "'")
+                    fd, "echo -e '" + eGREEN + "# Starting " + script + eCLR + "'")
                 write_test_line(fd, "cd %s" % venvdir)
                 write_test_line(fd, "source bin/activate")
                 write_test_line(fd, "%s --addons-path=%s --stop-after-init"

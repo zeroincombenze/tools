@@ -1,3 +1,10 @@
+2.0.15 (2024-07-12)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
 2.0.14 (2024-07-08)
 ~~~~~~~~~~~~~~~~~~~
 

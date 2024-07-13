@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -35,7 +35,6 @@ python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 REQVERSION = {
     "acme_tiny": {"6.1": ">=4.0.3"},
     "argparse": {"0": "==1.2.1"},
-    # "astroid": {"2.7": "==1.6.5", "3.5": "==2.2.0"},  # Version by test pkgs
     "astroid": {"2.7": "==1.6.5", "3.5": "==2.11.7"},  # Version by test pkgs
     "autopep8": {"0": "==1.2"},
     "Babel": {"6.1": "==1.3", "8.0": "==2.3.4", "16.0": ">=2.6.0,<=2.9.1"},
@@ -56,11 +55,13 @@ REQVERSION = {
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
+    "evdev": {"2.7": "<1.5", "3.7": ">=1.0"},
     "factur-x": {"2.7": "<3.0", "3.6": ">=3.0"},
     "feedparser": {"6.1": "==5.1.3", "10.0": "==5.2.1"},
     "flake8": {
         "2.7": "<4.0.0",     # <<Tested 3.5.0; 3.6.0 does not work>>
         "3.6": ">=4.0.0",
+        "3.7": ">=5.0.0",
     },
     "gdata": {"6.1": "==2.0.18"},
     "gevent": {
@@ -81,9 +82,17 @@ REQVERSION = {
     "importlib-metadata": {"3.7": "==4.8.3"},
     "invoice2data": {"2.7": "<0.4", "3.6": ">=0.4"},
     "ipy": {"6.1": ">=0.83"},
-    "isort": {"0": "==4.3.4"},  # Version by test pkgs
+    "isort": {"0": "==4.3.4", "3.10": ">=4.3.4"},  # Version by test pkgs
     "jcconv": {"6.1": "==0.2.3"},
-    "Jinja2": {"6.1": "==2.7.3", "9.0": "==2.8.1", "10.0": "==2.10.1"},
+    "Jinja2": {
+        "6.1": "==2.7.3",
+        "9.0": "==2.8.1",
+        "10.0": "==2.10.1",
+        "12.0": "PYVER",
+        "3.6": "==2.10.1",
+        "3.8": "==2.11.2",
+        "3.10": "==3.1.2",
+    },
     "jupyter-server": {"0": "<1.20.0"},
     "lessc": {"0": ">=3.0.0"},
     "lxml": {
@@ -92,7 +101,7 @@ REQVERSION = {
         "9.0": ">=3.4.1,<=3.4.4",
         "10.0": ">=3.5.0,<=3.6.4",
         "11.0": "PYVER",
-        "14.0": ">=4.5.0",
+        # "14.0": ">=4.5.0",
         "15.0": ">=4.6.5",
         "16.0": "PYVER",
         "3.6": "==3.7.1",
@@ -100,26 +109,37 @@ REQVERSION = {
         "3.8": ">=4.6.1,<=4.6.5",
         "3.10": "==4.9.2",
     },
-    "mccabe": {"0": "<0.7.0,>=0.6.0", "3.6": "<0.8.0,>=0.7.0"},
+    "mccabe": {"0": "<0.7.0,>=0.6.0", "3.8": "<0.8.0,>=0.7.0"},
     "Mako": {
         "6.1": "==1.0.0", "7.0": "==1.0.1", "8.0": "==1.0.4", "10.0": ">=1.0.4",
     },
-    "MarkupSafe": {"6.1": "==0.23", "14.0": "==1.1.0", "0": "<2.1.0"},  # Tested 1.0
+    "MarkupSafe": {
+        "0": "<2.1.0",
+        "6.1": "==0.23",
+        "14.0": "==1.1.0",
+        "15.0": "PYVER",
+        "3.8":  "==1.1.1",
+        "3.10":  "==2.1.2",
+        "3.12":  "==2.1.5",
+    },  # Tested 1.0
     "matplotlib": {
         "10.0": "==3.0.3",
         "11.0": "PYVER",
         # "13.0": "==3.4.1",
         "3.6": "==3.0.3",
-        # "3.7": "==3.4.1"
         "3.7": "<3.3.0"     # Experimental!
     },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "nbconvert": {"0": "==6.0.7"},
     "num2words": {"2.7": "<=0.5", "3.6": ">=0.5"},
     "odoo_score": {"6.1": "==1.0.1", "10.0": ">=2.0.0"},
+    "oerplib3": {
+        "0": ">=0.8.4", "12.0": "PYVER", "3.8": ">=0.8.4", "3.10": ">=0.8.5"
+    },
     "ofxparse": {"6.1": "==0.16"},
     "pandas": {"3.7": ">=0.22.0,<=1.1.0"},
     "passlib": {"6.1": "==1.6.2", "10.0": "==1.6.5", "16.0": ">=1.7.0"},
+    "pdfplumber": {"14.0": "<0.10.2"},
     "Pillow": {
         "6.1": "==3.4.1",
         "7.0": "==3.4.2",
@@ -165,7 +185,7 @@ REQVERSION = {
         # "16.0": ">=7.0.0",      # from pypi documentation
         "2.7": "<=4.0.0",
         "3.5": "<=5.0.0",
-        # "3.8": ">=3.5.0,<=5.0.0",
+        "3.7": ">5.0.0,<=8.0.0",
         "3.8": ">=8.0",
     },
     "pylint-plugin-utils": {
@@ -182,7 +202,7 @@ REQVERSION = {
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
     "pyparsing": {"6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10"},
-    "pyPdf": {"6.1": "==1.13"},
+    "pyPdf": {"6.1": "==1.13", "12.0": ">=3.1.0"},
     "pyserial": {"6.1": "==2.7", "10.0": ">=3.1.1"},
     "Python-Chart": {"6.1": "==1.39"},
     "python-dateutil": {
@@ -199,7 +219,7 @@ REQVERSION = {
     "python-stdnum": {"6.1": ">=1.8.1"},
     "pytz": {"6.1": ">=2014.10", "10.0": ">=2016.7"},
     # check for: Odoo requires >=1.0.0b1, but it does conflict with other packges
-    "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "16.0": ">=1.0.0b1"},
+    "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "14.0": ">=1.0.0b1"},
     "pyxb": {"6.1": "==1.2.4", "8.0": "==1.2.5", "10.0": ">=1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
     "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13", "3.9": "==6.0"},
@@ -224,7 +244,7 @@ REQVERSION = {
     "Sphinx": {"2.7": "==1.2.3", "3.7": ">=2.4.0"},
     "suds": {"6.1": "==0.4"},
     "suds-jurko": {"6.1": "==0.6"},
-    "translators": {"0": "<5.0.0"},
+    "translators": {"0": "<4.11.3"},
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
@@ -412,6 +432,7 @@ PIP3_TEST_PACKAGES = [
     "lazy_object_proxy",
     "lxml",
     "MarkupSafe",
+    "mccabe",
     "mock",
     "pbr",
     "polib",
@@ -451,7 +472,7 @@ BIN_TEST_PACKAGES = [
     "python-setuptools",
 ]
 RPC2_PACKAGES = ["clodoo", "odoorpc", "oerplib"]
-RPC3_PACKAGES = ["clodoo", "odoorpc"]
+RPC3_PACKAGES = ["clodoo", "odoorpc", "oerplib3"]
 PIP_BASE_PACKAGES = [
     "Babel",
     "chardet",
@@ -500,9 +521,12 @@ PIP_ODOO_BASE_PACKAGES = [
     "lessc; odoo_major>=10",
     "lxml",
     "Mako",
+    "matplotlib",
     "numpy",
     "num2words",
+    "odoo_score",
     "passlib",
+    "pdfplumber; odoo_major>=14",
     "Pillow",
     "psutil",
     "psycogreen",
@@ -601,14 +625,19 @@ def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', python_plus.qsplit(pkg)[0])[0].strip()
 
 
+def get_odoo_majver(odoo_ver):
+    return int(odoo_ver.split(".")[0]) if odoo_ver else 0
+
+
 def eval_requirement_cond(line, pyver=None, odoo_ver=None):
-    pyver = pyver or '3.7'
     items = line.split('#')[0].split(";")
     if len(items) == 1:
         return get_naked_pkgname(line)
-    testenv = {"sys_platform": sys.platform,
-               "python_version": pyver,
-               "odoo_major": int(odoo_ver.split(".")[0])}
+    testenv = {
+        "sys_platform": sys.platform,
+        "python_version": pyver,
+        "odoo_major": get_odoo_majver(odoo_ver),
+    }
     if eval(items[1], testenv):
         return get_naked_pkgname(line)
     return False
@@ -695,7 +724,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     if "openupgradelib" not in item_l and item_l in ALIAS:
         full_item = full_item.replace(item, ALIAS[item_l])
         item = ALIAS[item_l]
-    if odoo_ver and int(odoo_ver.split('.')[0]) > 10:
+    if get_odoo_majver(odoo_ver) > 10:
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
@@ -938,7 +967,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=Non
         if with_version and full_item:
             found = False
             for ix, kk in enumerate(deps_list[kw2]):
-                if kk.startswith(item):
+                if get_naked_pkgname(kk) == item:
                     deps_list[kw2][ix] = merge_item_version(kk, full_item)
                     found = True
                     break
@@ -1152,7 +1181,7 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
 
 
 def get_pyver_4_odoo(odoo_ver):
-    odoo_major = int(odoo_ver.split(".")[0])
+    odoo_major = get_odoo_majver(odoo_ver)
     if odoo_major <= 10:
         pyver = "2.7"
     else:
@@ -1347,11 +1376,13 @@ def main(cli_args=None):
     parser.add_argument("-v")
     parser.add_argument("-y", "--python", action="store", dest="pyver")
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    if ctx["odoo_ver"] and not ctx["pyver"]:
+        ctx = get_pyver(ctx)
+    if not ctx["pyver"]:
+        ctx["pyver"] = "3.10"
     if ctx["pyver"]:
         global PY3_DEV
         PY3_DEV = "python%s-dev" % ctx["pyver"]
-    if ctx["odoo_ver"] and not ctx["pyver"]:
-        ctx = get_pyver(ctx)
     if ctx["out_file"]:
         ctx = set_def_outfile(ctx)
     if (
@@ -1571,13 +1602,13 @@ def main(cli_args=None):
                      + RPC3_PACKAGES):
             rm_list = []
             for ii, dep_pkg in enumerate(deps_list["python"]):
-                if deps_list["python"][ii].startswith(item):
+                if get_naked_pkgname(deps_list["python"][ii]) == item:
                     rm_list.append(ii)
             while len(rm_list):
                 ii = rm_list.pop()
                 del deps_list["python"][ii]
             for ii, dep_pkg in enumerate(deps_list["bin"]):
-                if deps_list["bin"][ii].startswith(item):
+                if deps_list["bin"][ii] == item:
                     rm_list.append(ii)
             while len(rm_list):
                 ii = rm_list.pop()
@@ -1652,8 +1683,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
-
-
-
-
