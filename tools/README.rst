@@ -113,6 +113,20 @@ Current version via Git
 ChangeLog History
 -----------------
 
+python_plus: 2.0.15 (2024-07-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
+
+oerplib3: 0.8.5 (2024-07-12)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Python 3.10 porting
+
+
 z0bug_odoo: 2.0.20 (2024-07-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

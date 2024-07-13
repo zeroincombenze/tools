@@ -1276,5 +1276,3 @@ if [[ $sts -eq $STS_SUCCESS ]]; then
     fi
 fi
 exit $sts
-
-

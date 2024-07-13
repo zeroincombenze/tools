@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio Maria Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-23 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-24 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -581,14 +581,14 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update bash script" \
-    "© 2016-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    "© 2016-24 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 [[ $opt_verbose -gt 1 ]] && set -x
 declare -A COPY
-COPY[z0lib]="© 2015-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
-COPY[travis_em]="© 2015-23 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[z0lib]="© 2015-24 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+COPY[travis_em]="© 2015-24 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
 [[ -z "$opt_id" ]] && opt_id=$(basename $(dirname $(readlink -f $bashscript)))
 [[ $opt_id == "tests" ]] && opt_id=$(basename $(dirname $(dirname $(readlink -f $bashscript))))
 ToRepeat=

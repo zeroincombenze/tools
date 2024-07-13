@@ -152,7 +152,7 @@ fi
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9)$  && $PYVER != "2.7" ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
         echo "Please install python 3.9 typing fowllowing command:"
         echo ""
@@ -324,6 +324,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "[[ -f \$ACTIVATE ]] && echo \"+\$PATH:\"|grep -qv \"+\$BINDIR:\" && [[ \$opts =~ ^-.*f ]] && export PATH=\"\$BINDIR:\$PATH\"">>$DSTPATH/activate_tools
     [[ -n $PLEASE_CMDS ]] && echo "$COMPLETE -W \"$PLEASE_CMDS\" please">>$DSTPATH/activate_tools
     [[ -n $TRAVIS_CMDS ]] && echo "$COMPLETE -W \"$TRAVIS_CMDS\" travis">>$DSTPATH/activate_tools
+    echo "true">>$DSTPATH/activate_tools
 
     echo "x=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $1}')">$DSTPATH/deactivate_tools
     echo "y=$(echo $SAVED_HOME_DEVEL|awk -F\":\" '{print $2 ":" $3 ":" $4}')">>$DSTPATH/deactivate_tools

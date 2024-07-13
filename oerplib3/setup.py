@@ -22,7 +22,7 @@ def names(fn, email=None):
 
 setup(
     name='oerplib3',
-    version='0.8.4',
+    version='0.8.5',
     description='Python3 oerlib porting',
     long_description=open('README.rst').read(),
     classifiers=[

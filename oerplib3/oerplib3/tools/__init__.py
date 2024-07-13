@@ -23,13 +23,20 @@ manage the configuration related to an instance of :class:`OERP <oerplib.OERP>`,
 and some useful helper functions used internally in `OERPLib`.
 """
 from __future__ import unicode_literals
+import sys
 import collections
+import collections
+if sys.version_info < (3, 10):
+    from collections import MutableMapping
+else:
+    from collections.abc import MutableMapping
+
 import re
 
 MATCH_VERSION = re.compile(r'[^\d.]')
 
 
-class Config(collections.MutableMapping):
+class Config(MutableMapping):
     """Class which manage the configuration of an
     :class:`OERP <oerplib.OERP>` instance.
 

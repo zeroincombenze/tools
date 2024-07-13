@@ -639,6 +639,3 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
-
-
-

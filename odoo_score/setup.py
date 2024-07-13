@@ -49,6 +49,3 @@ and makes available a simple odoo shell.
     },
     zip_safe=False,
 )
-
-
-
