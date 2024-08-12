@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.0.2 (Debian)
+# version: 2.0.4 (Debian)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -418,7 +418,7 @@ stop_by_ps() {
     echo "$dt $$ DAEMON-ERROR ? $0: $x">>$LOGFILE
     [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
     ctr=3
-    pid=$(ps -ef | grep "$py .*$DAEMON.*conf" | grep -v grep | awk '{print $2}' | head -n1)
+    pid=$(ps -ef | grep "$py .*$DAEMON.*$CONFIGFILE" | grep -v grep | awk '{print $2}' | head -n1)
     while [[ -n "$pid" ]]; do
         kill $pid
         x="Killed process $pid!"
