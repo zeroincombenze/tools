@@ -1,5 +1,5 @@
 ==========
-lisa 2.0.3
+lisa 2.0.4
 ==========
 
 
@@ -87,8 +87,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.3 (2023-09-07
-~~~~~~~~~~~~~~~~~
+2.0.4 (2024-08-12)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: fixes & improvements
+
+2.0.3 (2023-09-07)
+~~~~~~~~~~~~~~~~~~
 
 * [FIX] lisa_bld_ods: fixes & improvements
 
@@ -155,10 +160,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.3/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.4/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.3/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.4/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
