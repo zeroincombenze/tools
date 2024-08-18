@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.4 (RHEL)
+# version: 2.0.5 (RHEL)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -323,6 +323,59 @@ set_publicsep_dir() {
 }
 
 
+restore_modules() {
+    local d dt m opaths p
+    p=$$
+    if [[ -f $CONFIGFILE ]]; then
+        opaths="$(grep -E ^addons_path $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
+        for d in ${opaths//,/ }; do
+            [[ ! -d $d/_module_replaced ]] && continue
+            for m in $d/_module_replaced/*; do
+                m=$(basename $m)
+                [[ -d $d/$m && ! -L $d/$m ]] && continue
+                dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+                echo "$dt $$ DAEMON ? $0: Original module $m restored">>$LOGFILE
+                [[ -L $d/$m ]] && rm -f $d/$m
+                mv $d/_module_replaced/$m $d/$m
+            done
+        done
+    fi
+}
+
+
+replace_modules() {
+# replace_modules()
+# Replace module by another from configuration file
+# server_wide_module_replacement = old_module:new_module,old_path:new_path
+    local d dt f m new newp old oldp opaths p param
+    p=$$
+    if [[ -f $CONFIGFILE ]]; then
+        opaths="$(grep -E ^addons_path $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
+        f=0
+        param=$(grep -E ^server_wide_module_replacement $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')
+        for m in ${param//,/ }; do
+            f=1
+            oldp=""
+            newp=""
+            old=$(echo $m | awk -F: '{gsub(/^ */,"",$1); print $1}')
+            [[ -d $old && ( -f $old/__manifest__.py || -f $old/__openerp__.py ) ]] && oldp=$(dirname $old)
+            new=$(echo $m | awk -F: '{gsub(/^ */,"",$2); print $2}')
+            [[ -d $new && ( -f $new/__manifest__.py || -f $new/__openerp__.py ) ]] && newp=$(dirname $new)
+            for d in ${opaths//,/ }; do
+                [[ -z $oldp && -d $d/$old && ( -f $d/$old/__manifest__.py || -f $d/$old/__openerp__.py ) ]] && oldp="$d"
+                [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp="$d"
+            done
+            dt=$(date +"%Y-%m-%d %H:%M:%S,000")
+            [[ -z $oldp || -z $newp ]] && echo "$dt $$ DAEMON ? $0: Module replacement $new ($newp) not found for $old ($oldp)!">>$LOGFILE && continue
+            [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced
+            [[ ! -d $oldp/_module_replaced/$old ]] && echo "$dt $$ DAEMON ? $0: Module $old ($oldp) replaced by $new ($newp)!">>$LOGFILE && mv $oldp/$old $oldp/_module_replaced/$old
+            [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
+        done
+        [[ $f -eq 0 ]] && restore_modules
+    fi
+}
+
+
 start_RHEL () {
     if [[ -d /etc/${xtl_id}/start.d ]] ; then
         if [[ $RUN_DEBUG -gt 0 ]]; then
@@ -385,6 +438,7 @@ start() {
     check_4_venv
     check_lessc
     set_queue
+    replace_modules
     local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$dt $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
     echo "$dt $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
