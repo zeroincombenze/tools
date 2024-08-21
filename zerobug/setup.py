@@ -24,7 +24,7 @@ if sys.version_info >= (3, 0):
             "pylint-odoo",
             "python-magic",
             "python-plus",
-            "z0lib",
+            "z0lib>=2.0.11",
         ],
     )
 else:
@@ -36,13 +36,13 @@ else:
             "pylint-odoo<=3.5.0",
             "python-magic",
             "python-plus",
-            "z0lib",
+            "z0lib>=2.0.11",
         ],
     )
 
 setup(
     name=name,
-    version="2.0.17",
+    version="2.0.18",
     description="Zeroincombenze continuous testing framework"
     " and tools for python and bash programs",
     long_description=long_description,
@@ -91,6 +91,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

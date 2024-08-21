@@ -215,9 +215,8 @@ do_test () {
         [[ -n $TRAVIS_TEST_PATTERN ]] && OPTS="$OPTS -p $TRAVIS_TEST_PATTERN"
         coverage_set
         run_traced "cd $PRJPATH/tests && DEV_ENVIRONMENT=$PRJNAME $(which zerobug) $OPTS"
-        if [[ ! -f $COVERAGE_DATA_FILE ]]; then
-            echo "Result coverage file $COVERAGE_DATA_FILE not found!"
-        fi
+        sts=$?
+        [[ ! -f $COVERAGE_DATA_FILE ]] && echo "Result coverage file $COVERAGE_DATA_FILE not found!"
     fi
     return $sts
 }
