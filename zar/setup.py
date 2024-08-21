@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.5",
+    version="2.0.6",
     description="Zeroincombenze Archive Replica",
     long_description=long_description,
     classifiers=[
@@ -64,5 +64,6 @@ setup(
     },
     zip_safe=False,
 )
+
 
 

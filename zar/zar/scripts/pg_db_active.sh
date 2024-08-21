@@ -41,7 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 db_act_list() {
@@ -121,12 +121,12 @@ db_act_list() {
     return 0
 }
 
-OPTOPTS=(h        a           C        c        G         k        L        n           p        s        U        V           v           w       z)
-OPTLONG=(help     kill-all-db count    count-db grant     kill-out lock     dry-run     pool     show     user     version     verbose     wait    last)
-OPTDEST=(opt_help act_kill4db act_ctra act_ctr  opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_user opt_version opt_verbose wait_db opt_last)
-OPTACTI=("+"      "1>"        "1>"     "1>"     1         "1>"     1        1           "="      1        "="      "*"         1           1       1)
-OPTDEFL=(0        0           0        0        0         0        0        0           -1       0        ""       ""          0           0       0)
-OPTMETA=("help"   "kill_all" "count"   "count"  ""        "kill"   ""       ""          "number" ""       "dbuser" "version"   "verbose"   "wait"  "")
+OPTOPTS=(h        a           C        c        G         k        L        n           p        P        s        U        V           v           w       z)
+OPTLONG=(help     kill-all-db count    count-db grant     kill-out lock     dry-run     pool     port     show     user     version     verbose     wait    last)
+OPTDEST=(opt_help act_kill4db act_ctra act_ctr  opt_grant act_kill opt_lock opt_dry_run pool     opt_port opt_show opt_user opt_version opt_verbose wait_db opt_last)
+OPTACTI=("+"      "1>"        "1>"     "1>"     1         "1>"     1        1           "="      "="      1        "="      "*"         1           1       1)
+OPTDEFL=(0        0           0        0        0         0        0        0           -1       ""       ""       ""          0           0       0)
+OPTMETA=("help"   "kill_all" "count"   "count"  ""        "kill"   ""       ""          "number" "dbport"  ""       "dbuser" "version"   "verbose"   "wait"  "")
 OPTHELP=("this help"
  "kill all sessions of DB!"
  "count all active connections"
@@ -136,6 +136,7 @@ OPTHELP=("this help"
  "lock DB to avoid new connections (may be used with -a)"
  "do nothing (dry-run)"
  "declare # of session pool"
+ "db port"
  "show pool size"
  "db user"
  "show version end exit"
@@ -151,19 +152,27 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Check/kill for postgres DB sessions"\
-  "(C) 2016-2023 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 PSQL=""
-for u in $opt_user $USER odoo openerp postgresql; do
-  if [[ -n "$u" ]]; then
-    psql -U$u -l &>/dev/null
-    if [[ $? -eq 0 ]]; then
-      dbuser=$USER
-      PSQL="psql -U$u -dtemplate1"
-      break
+for port in $opt_port 5432 5433 5434 5435 5435 5436 5437; do
+  for u in $opt_user $USER odoo openerp postgresql; do
+    if [[ -n "$u" ]]; then
+      [[ -n $port ]] && opt="-p$port" || opt=""
+      psql -U$u $opts -l &>/dev/null
+      if [[ $? -eq 0 ]]; then
+        dbuser=$u
+        if [[ -n $port ]];
+          dbport=$port
+          PSQL="psql -U$u -p$port -dtemplate1"
+        else
+          dbport=""
+          PSQL="psql -U$u -dtemplate1"
+        break
+      fi
     fi
-  fi
+  done
 done
 if [[ -z $PSQL ]]; then
     echo "Denied inquire with psql. Please configure user $USER to access via psql"
@@ -334,5 +343,3 @@ elif [ $opt_lock -gt 0 -a -n "$DB" ]; then
   fi
 fi
 exit $sts
-
-

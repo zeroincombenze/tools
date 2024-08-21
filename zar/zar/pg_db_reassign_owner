@@ -41,7 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 reassign_owner() {
@@ -108,5 +108,3 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 run_traced "reassign_owner \"$opt_db\" \"$opt_orig\" \"$opt_user\""
-
-

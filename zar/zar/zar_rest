@@ -48,18 +48,18 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 kill_process() {
 #kill_process(db)
-    run_traced "pg_db_active -wa \"$1\""
+    run_traced "$PG_DB_ACT -wa \"$1\""
 }
 
 backup_db() {
     local db=$1
     kill_process $db
-    run_traced "pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql \"$db\""
+    run_traced "$PG_DUMP -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql \"$db\""
 }
 
 check_4_table() {
@@ -67,21 +67,21 @@ check_4_table() {
     local DB=$1
     local tbl=$2
     local what=$3
-    local x
+    local x sql
     if [[ "$what" == "exists" ]]; then
-       x=$(psql -tc "select * from pg_tables where tablename = '$tbl';" $DB)
+       x=$($SQL -tc "select * from pg_tables where tablename = '$tbl';" $DB)
     elif [[ $what == "with_data" ]]; then
-       x=$(psql -tc "select * from $tbl limit 1;" $DB)
+       x=$($SQL -tc "select * from $tbl limit 1;" $DB)
     elif [[ $what == "active_data" ]]; then
-       x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
+       x=$($SQL -tc "select * from $tbl where active=true limit 1;" $DB)
     elif [[ $what == "reset_data" ]]; then
-       x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
+       x=$($SQL -tc "select * from $tbl where active=true limit 1;" $DB)
     else
        x=""
     fi
     if [[ -n "$x" ]]; then
       if [[ $what == "reset_data" ]]; then
-         psql -tc "update $tbl set active=false where active=true;" $DB
+         $SQL -tc "update $tbl set active=false where active=true;" $DB
       fi
       return 0
     fi
@@ -93,7 +93,7 @@ stop_services() {
     if [[ -z "$1" ]]; then
       return 1
     fi
-    local c i x DB tbl res wtm act wfid SVCS SVCS2
+    local c i x DB tbl res wtm act wfid SVCS SVCS2 sql
     DB="$1"
     SVCS="$(get_cfg_value 0 services_2_stop)"
     if [[ -z "$SVCS" ]]; then
@@ -143,8 +143,8 @@ stop_services() {
             ((wfid++))
             tblwf[$tbl]=$wfid
             if [[ $act == "with_data" && -z "${svc2run[$tbl]}" ]]; then
-              x=$(psql -AR\| -tc "select cron_name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
-              [[ -z $x ]] && x=$(psql -AR\| -tc "select name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              x=$($SQL -AR\| -tc "select cron_name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              [[ -z $x ]] && x=$($SQL -AR\| -tc "select name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
               if [[ -n "$x" ]]; then
                 svc2run[$tbl]="${svc2run[$tbl]} $x"
               fi
@@ -182,7 +182,7 @@ stop_services() {
           i=0
           while [ $i -lt $c ]; do
             res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
-            psql -tc "update $tbl set active=true where name='$res';" "$DB"
+            $SQL -tc "update $tbl set active=true where name='$res';" "$DB"
             ((i++))
           done
         fi
@@ -282,11 +282,11 @@ inherit_options() {
 }
 
 
-OPTOPTS=(h        c        d       e      K        l       m        N         n            o        R       T         U          V           v)
-OPTDEST=(opt_help opt_conf seldate opt_ex opt_cron opt_log opt_mail opt_newdb opt_dry_run  opt_name opt_rst test_mode opt_user   opt_version opt_verbose)
-OPTACTI=("+"      "="      "="     1      1        "="     1        "="       1            "="      1       1         "="        "*>"        1)
-OPTDEFL=(0        ""       ""      1      0        ""      -1       ""        0            ""       0       0         "postgres" ""          0)
-OPTMETA=("help"   "file"   "date"  ""     "cron"   "file" "mail"    "dbname"  "do nothing" "fname"  ""      "test"    "username" "version"   "verbose")
+OPTOPTS=(h        c        d       e      K        l       m        N         n            o        p        R       T         U          V           v)
+OPTDEST=(opt_help opt_conf seldate opt_ex opt_cron opt_log opt_mail opt_newdb opt_dry_run  opt_name opt_port opt_rst test_mode opt_user   opt_version opt_verbose)
+OPTACTI=("+"      "="      "="     1      1        "="     1        "="       1            "="      "="      1       1         "="        "*>"        1)
+OPTDEFL=(0        ""       ""      1      0        ""      -1       ""        0            ""       ""       0       0         "postgres" ""          0)
+OPTMETA=("help"   "file"   "date"  ""     "cron"   "file" "mail"    "dbname"  "do nothing" "fname"  "dbport" ""      "test"    "username" "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def zar.conf)"\
  "select date (format yyyymmdd)"\
@@ -297,6 +297,7 @@ OPTHELP=("this help"\
  "new db name"\
  "do nothing (dry-run)"\
  "input filename (def dbname-date)"\
+ "port (def 5432)"\
  "stop mail server and services"\
  "test mode (implies dry-run)"\
  "username (def postgres)"\
@@ -337,6 +338,15 @@ init_vars "$olddb"
 if [ -z "$DBSEL" ]; then
   DBSEL=".*"
   opt_ex=0
+fi
+if [[ -n $opt_port ]]; then
+  SQL="psql -U$opt_user -p$opt_port"
+  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
+  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
+else
+  SQL="psql -U$opt_user"
+  PG_DUMP="pg_dump -U$opt_user"
+  PG_DB_ACT="pg_db_active -U$opt_user"
 fi
 dblist=$(create_db_list_from_file "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 if [ "$BCKFORMAT" == "0" ]; then
@@ -503,10 +513,10 @@ if [ $dovalid -gt 0 ]; then
       else
         wlog "Should start restore $NEWDB"
       fi
-      run_traced "pg_db_active -k"
-      run_traced "pg_db_active -wa $NEWDB; dropdb --if-exists -U$opt_user $NEWDB"
+      run_traced "$PG_DB_ACT -k"
+      run_traced "$PG_DB_ACT -wa $NEWDB; dropdb --if-exists -U$opt_user $NEWDB"
       [ $opt_dry_run -eq 0 ] && eval $TDIR/$THIS -R "$NEWDB" &
-      run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+      run_traced "$SQL -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
       run_traced "reassign_owner \"$NEWDB\" \"$OLD_OWNER\" \"$NEW_OWNER\""
       if [ $opt_dry_run -eq 0 ]; then
         if [ $opt_mail -gt 0 ]; then
@@ -535,5 +545,3 @@ if [ $opt_dry_run -eq 0 ]; then
 fi
 wlog "== $ctr databases are restored"
 exit 0
-
-
