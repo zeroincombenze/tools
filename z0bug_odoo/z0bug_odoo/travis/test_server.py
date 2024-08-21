@@ -12,6 +12,7 @@ import sys
 
 from six import string_types
 
+from z0lib import z0lib
 from zerobug import z0testodoo
 
 try:
@@ -23,7 +24,7 @@ try:
         get_modules,
         get_modules_info,
     )
-    from travis_helpers import fail_msg, print_flush, success_msg
+    from travis_helpers import fail_msg, success_msg
 except ImportError:
     from .getaddons import (
         get_addons,
@@ -33,13 +34,13 @@ except ImportError:
         get_modules,
         get_modules_info,
     )
-    from .travis_helpers import fail_msg, print_flush, success_msg
+    from .travis_helpers import fail_msg, success_msg
 try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '2.0.20'
+__version__ = '2.0.21'
 
 LDIR = ('server/openerp', 'odoo/odoo', 'openerp', 'odoo')
 
@@ -238,12 +239,13 @@ def get_build_dir(odoo_full, version=None):
         if not odoo_version or odoo_version == "auto":
             odoo_version = tested_version
         elif odoo_version != tested_version:
-            print_flush("ERROR: invalid odoo %s version detected!" % tested_version)
+            z0lib.print_flush(
+                "ERROR: invalid odoo %s version detected!" % tested_version)
         travis_base_dir = os.path.abspath('%s/addons' % lpath)
     else:
-        print_flush("ERROR: no travis build dir detected!")
+        z0lib.print_flush("ERROR: no travis build dir detected!")
     if not odoo_version:
-        print_flush("ERROR: no odoo version detected!")
+        z0lib.print_flush("ERROR: no odoo version detected!")
     return travis_base_dir, odoo_version
 
 
@@ -299,7 +301,7 @@ def get_addons_to_check(
         exclude_list = parse_list(odoo_exclude)
         addons_list = [x for x in addons_list if x not in exclude_list]
         if travis_debug_mode > 1:
-            print_flush('DEBUG: exclude_list=%s' % odoo_exclude)
+            z0lib.print_flush('DEBUG: exclude_list=%s' % odoo_exclude)
 
     if odoo_test_select in (
         'APPLICATION',
@@ -456,9 +458,9 @@ def setup_server(
         server_options = []
     try:
         subprocess.check_call(["createdb", db])
-        print_flush("INFO: database %s created." % db)
+        z0lib.print_flush("INFO: database %s created." % db)
     except subprocess.CalledProcessError:
-        print_flush("INFO: Using previous %s database." % db)
+        z0lib.print_flush("INFO: Using previous %s database." % db)
     else:
         cmd_odoo = build_run_cmd_odoo(
             server_path,
@@ -471,7 +473,7 @@ def setup_server(
             scope='init',
             test_loglevel=get_log_level_init(travis_debug_mode),
         )
-        print_flush('>>> %s\n' % " ".join(cmd_strip_secret(cmd_odoo)))
+        z0lib.print_flush('>>> %s\n' % " ".join(cmd_strip_secret(cmd_odoo)))
         if travis_debug_mode < 8:
             try:
                 subprocess.check_call(cmd_odoo)
@@ -492,7 +494,7 @@ def run_from_env_var(env_name_startswith, environ):
         if environ_variable.startswith(env_name_startswith)
     ]
     for command in commands:
-        print_flush("command: %s" % command)
+        z0lib.print_flush("command: %s" % command)
         subprocess.call(command, shell=True)
 
 
@@ -536,7 +538,7 @@ def copy_attachments(dbtemplate, dbdest, data_dir):
     attach_tmpl_dir = os.path.join(attach_dir, dbtemplate)
     attach_dest_dir = os.path.join(attach_dir, dbdest)
     if os.path.isdir(attach_tmpl_dir) and not os.path.isdir(attach_dest_dir):
-        print_flush("copy %s %s" % (attach_tmpl_dir, attach_dest_dir))
+        z0lib.print_flush("copy %s %s" % (attach_tmpl_dir, attach_dest_dir))
         shutil.copytree(attach_tmpl_dir, attach_dest_dir)
 
 
@@ -630,8 +632,8 @@ def main(argv=None):
     server_path = get_server_path(odoo_full, odoo_branch or odoo_version, travis_home)
     script_name = get_server_script(server_path)
     if travis_debug_mode:
-        print_flush("DEBUG: server_path='%s'" % server_path)
-        print_flush("DEBUG: script_name='%s'" % script_name)
+        z0lib.print_flush("DEBUG: server_path='%s'" % server_path)
+        z0lib.print_flush("DEBUG: script_name='%s'" % script_name)
     odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
     if script_name != 'Script not found!':
         # script_path = get_script_path(server_path, script_name)
@@ -642,11 +644,11 @@ def main(argv=None):
         # script_path = ''
         addons_path = ''
     if script_name == 'Script not found!':
-        print_flush("ERROR: %s!" % script_name)
+        z0lib.print_flush("ERROR: %s!" % script_name)
         return 1
     set_sys_path()
     if travis_debug_mode:
-        print_flush('DEBUG: test_server.sys.path=%s' % sys.path)
+        z0lib.print_flush('DEBUG: test_server.sys.path=%s' % sys.path)
     coveragerc = set_coveragerc()
     conf_data = set_conf_data(addons_path, data_dir)
     create_server_conf(conf_data, odoo_version)
@@ -659,14 +661,15 @@ def main(argv=None):
     )
     tested_addons = ','.join(tested_addons_list)
 
-    print_flush("INFO: Working in %s" % travis_base_dir)
-    print_flush("INFO Using repo %s and addons path %s" % (odoo_full, addons_path))
+    z0lib.print_flush("INFO: Working in %s" % travis_base_dir)
+    z0lib.print_flush(
+        "INFO Using repo %s and addons path %s" % (odoo_full, addons_path))
 
     if not tested_addons:
-        print_flush("WARNING!\nNothing to test- exiting early.")
+        z0lib.print_flush("WARNING!\nNothing to test- exiting early.")
         return 0
     else:
-        print_flush("INFO: modules to test: %s" % tested_addons_list)
+        z0lib.print_flush("INFO: modules to test: %s" % tested_addons_list)
     # setup the preinstall modules without running the tests
     preinstall_modules = get_test_dependencies(addons_path, tested_addons_list)
 
@@ -674,7 +677,7 @@ def main(argv=None):
         set(preinstall_modules or [])
         - set(get_modules(os.environ.get('TRAVIS_BUILD_DIR')) or [])
     ) or ['base']
-    print_flush("INFO: modules to preinstall: %s\n" % preinstall_modules)
+    z0lib.print_flush("INFO: modules to preinstall: %s\n" % preinstall_modules)
     setup_server(
         dbtemplate,
         server_path,
@@ -760,13 +763,13 @@ def main(argv=None):
                     fname_conf = os.path.expanduser('~/.openerp_serverrc')
                 else:
                     fname_conf = os.path.expanduser('~/.odoorc')
-                print_flush('>>> cat %s' % fname_conf)
+                z0lib.print_flush('>>> cat %s' % fname_conf)
                 with open(fname_conf, 'r') as fd:
-                    print_flush(fd.read())
-                print_flush('\n>>> %s' % " ".join(cmd_strip_secret(command_call)))
+                    z0lib.print_flush(fd.read())
+                z0lib.print_flush('\n>>> %s' % " ".join(cmd_strip_secret(command_call)))
                 errors = 9 - travis_debug_mode
             else:
-                print_flush('>>> %s' % " ".join(cmd_strip_secret(command_call)))
+                z0lib.print_flush('>>> %s' % " ".join(cmd_strip_secret(command_call)))
                 pipe = subprocess.Popen(
                     command_call, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
                 )
@@ -818,6 +821,7 @@ def main(argv=None):
 
 if __name__ == '__main__':
     exit(main())
+
 
 
 

@@ -4,7 +4,8 @@ helpers shared by the various QA tools
 """
 from __future__ import print_function, unicode_literals
 
-import sys
+# mport sys
+# from z0lib.z0lib import print_flush as print_flush
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -35,14 +36,6 @@ def red(text):
 
 def yellow_light(text):
     return colorized(text, YELLOW_LIGHT)
-
-
-def print_flush(msg):
-    if sys.version_info[0] == 3:
-        print(msg, flush=True)
-    else:
-        print(msg)
-        sys.stdout.flush()
 
 
 fail_msg = red("FAIL")

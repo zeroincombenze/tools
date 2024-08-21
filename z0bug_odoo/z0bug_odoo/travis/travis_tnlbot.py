@@ -14,10 +14,11 @@ try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-try:
-    from travis_helpers import print_flush
-except ImportError:
-    from .travis_helpers import print_flush
+from z0lib import z0lib
+# try:
+#     from travis_helpers import print_flush
+# except ImportError:
+#     from .travis_helpers import print_flush
 
 
 def main(argv=None, database=None):
@@ -39,13 +40,13 @@ def main(argv=None, database=None):
     ctx = {}
     uid, ctx = clodoo.oerp_set_env(confn=fname_conf, db=database, ctx=ctx)
     if not uid:
-        print_flush(
+        z0lib.print_flush(
             'ERROR: Cannot connect to DB %s with user %s!'
             % (database, data['login_user'])
         )
         return 1
     if ctx['_cr']:
-        print_flush(
+        z0lib.print_flush(
             'ERROR: Cannot connect to DB %s via sql with user %s|'
             % (database, config.get('options', 'db_user'))
         )
@@ -53,7 +54,7 @@ def main(argv=None, database=None):
     query = "select name from ir_module_module where state='installed'"
     rows = clodoo.exec_sql(ctx, query, response=True)
     for row in rows:
-        print_flush('Module %s' % row[0])
+        z0lib.print_flush('Module %s' % row[0])
     return 0
 
 

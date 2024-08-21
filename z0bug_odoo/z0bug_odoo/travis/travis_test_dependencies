@@ -17,7 +17,8 @@ try:
     from os0 import os0
 except ImportError:
     import os0
-from travis_helpers import print_flush, reset, yellow, yellow_light, red
+from z0lib import z0lib
+from travis_helpers import reset, yellow, yellow_light, red
 
 
 def main(argv=None, database=None):
@@ -39,7 +40,7 @@ def main(argv=None, database=None):
                         modules.append(os.path.basename(root))
     modules = sorted(modules)
     if travis_debug_mode > 0:
-        print_flush('Modules %s' % modules)
+        z0lib.print_flush('Modules %s' % modules)
     if home and odoo_repo:
         for path in ('odoo', 'openerp'):
             rep_path = os.path.join(home, odoo_repo, path, 'addons')
@@ -52,7 +53,7 @@ def main(argv=None, database=None):
     if os.path.isdir(rep_path):
         paths.append(rep_path)
     if travis_debug_mode > 0:
-        print_flush('Paths %s' % paths)
+        z0lib.print_flush('Paths %s' % paths)
     # TODO> to refactor
     cmd = [os.path.join(home, 'tools', 'wok_code', 'odoo_dependencies.py'),
            '-A', 'tree',
@@ -66,9 +67,9 @@ def main(argv=None, database=None):
                      stderr=PIPE).communicate()
     sts = 0
     if travis_debug_mode > 0:
-        print_flush('')
-        print_flush(' '.join(cmd))
-    print_flush(reset(''))
+        z0lib.print_flush('')
+        z0lib.print_flush(' '.join(cmd))
+    z0lib.print_flush(reset(''))
     for ln in os0.u(out).split('\n'):
         tokens = ln.replace('  ', ' ').strip().split(' ')
         if ln.startswith('**'):
@@ -86,7 +87,7 @@ def main(argv=None, database=None):
         else:
             continue
         if travis_debug_mode > 0:
-            print_flush(text)
+            z0lib.print_flush(text)
     return sts
 
 if __name__ == "__main__":
