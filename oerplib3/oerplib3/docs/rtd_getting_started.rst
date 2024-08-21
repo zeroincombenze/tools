@@ -71,10 +71,10 @@ You can find source code on `github <https://github.com/zeroincombenze/tools.git
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.8.4/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/0.8.5/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.8.4/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/0.8.5/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
     :target: https://erp0.zeroincombenze.it

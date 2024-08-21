@@ -22,7 +22,7 @@ import oerplib3
 
 __version__ = "0.8.4"
 
-ODOO_VERSION_TO_TEST = ("7.0",)
+ODOO_VERSION_TO_TEST = ("7.0", "8.0")
 
 
 def build_odoo_param(param, odoo_version, multi=True):
