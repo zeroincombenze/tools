@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="odoo_score",
-    version="2.0.9",
+    version="2.0.10",
     description="Odoo super core",
     long_description='''
 Odoo supercore
@@ -33,7 +33,7 @@ and makes available a simple odoo shell.
     author="Antonio Maria Vigliotti",
     author_email="antoniomaria.vigliotti@gmail.com",
     license="Affero GPL",
-    install_requires=["z0lib", "future"],
+    install_requires=["z0lib>=2.0.11", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [
         "scripts/setup.info",
@@ -49,6 +49,4 @@ and makes available a simple odoo shell.
     },
     zip_safe=False,
 )
-
-
 
