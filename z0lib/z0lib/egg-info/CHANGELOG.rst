@@ -1,3 +1,9 @@
+2.0.11 (2024-07-13)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function os_system
+* [IMP] New function print_flush
+
 2.0.10 (2024-07-07)
 ~~~~~~~~~~~~~~~~~~~
 

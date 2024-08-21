@@ -50,20 +50,21 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 
 def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def run_traced(cmd,
-               verbose=None,
-               dry_run=None,
-               disable_alias=None,
-               is_alias=None,
-               rtime=False):
-    """Run system command with log (for trace) and return system status"""
+def print_flush(msg):
+    if sys.version_info[0] == 3:                                     # pragma: no cover
+        print(msg, flush=True)
+    else:
+        print(msg)
+
+
+def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
 
     def read_from_proc_n_echo(proc, outerr, rtime):
         log = ""
@@ -78,99 +79,55 @@ def run_traced(cmd,
                 log += ln
         return log
 
-    def call_os(args, verbose=False, with_shell=None, rtime=False):
-        prcout = prcerr = ""
-        # if sys.version_info[0] == 2:
-        #     if rtime:
-        #         try:
-        #             sts = call(" ".join(args), shell=True)
-        #         except OSError as e:
-        #             if verbose:
-        #                 print(e)
-        #             sts = 127
-        #         except BaseException:
-        #             sts = 126
-        #     else:
-        #         try:
-        #             proc = Popen(
-        #                 args if not with_shell else " ".join(args),
-        #                 stderr=PIPE,
-        #                 stdout=PIPE,
-        #                 shell=with_shell)
-        #             prcout, prcerr = proc.communicate()
-        #             sts = proc.returncode
-        #             prcout = prcout.decode("utf-8")
-        #             prcerr = prcerr.decode("utf-8")
-        #         except OSError as e:
-        #             if verbose:
-        #                 print(e)
-        #             sts = 127
-        #         except BaseException:
-        #             sts = 126
-        # else:
-        #     if rtime:
-        #         try:
-        #             sts = call(" ".join(args), shell=True)
-        #         except FileNotFoundError as e:  # noqa: F821
-        #             if verbose:
-        #                 print(e)
-        #             sts = 127
-        #         except BaseException:
-        #             sts = 126
-        #     else:
-        #         try:
-        #             with Popen(
-        #                     args if not with_shell else " ".join(args),
-        #                     stdin=PIPE,
-        #                     stdout=PIPE,
-        #                     stderr=PIPE,
-        #                     shell=with_shell
-        #             ) as proc:
-        #                 prcout, prcerr = proc.communicate()
-        #                 sts = proc.returncode
-        #                 prcout = prcout.decode("utf-8")
-        #                 prcerr = prcerr.decode("utf-8")
-        #         except FileNotFoundError as e:  # noqa: F821
-        #             if verbose:
-        #                 print(e)
-        #             sts = 127
-        #         except BaseException:
-        #             sts = 126
-        if sys.version_info[0] == 2:
-            try:
-                proc = Popen(
+    if verbose and not isinstance(args, (tuple, list)):
+        print('%s %s' % (">" if dry_run else "$", args))
+    prcout = prcerr = ""
+    if dry_run:
+        return 0, prcout, prcerr
+    if sys.version_info[0] == 2:
+        try:
+            proc = Popen(
+                args if not with_shell else " ".join(args),
+                stderr=PIPE,
+                stdout=PIPE,
+                shell=with_shell)
+            prcout = read_from_proc_n_echo(proc, "out", rtime)
+            prcerr = read_from_proc_n_echo(proc, "err", rtime)
+            sts = proc.wait()
+        except OSError as e:
+            if verbose:
+                print(e)
+            sts = 127
+        except BaseException:
+            sts = 126
+    else:
+        try:
+            with Popen(
                     args if not with_shell else " ".join(args),
-                    stderr=PIPE,
+                    stdin=PIPE,
                     stdout=PIPE,
-                    shell=with_shell)
+                    stderr=PIPE,
+                    shell=with_shell,
+            ) as proc:
                 prcout = read_from_proc_n_echo(proc, "out", rtime)
                 prcerr = read_from_proc_n_echo(proc, "err", rtime)
                 sts = proc.wait()
-            except OSError as e:
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
-        else:
-            try:
-                with Popen(
-                        args if not with_shell else " ".join(args),
-                        stdin=PIPE,
-                        stdout=PIPE,
-                        stderr=PIPE,
-                        shell=with_shell,
-                ) as proc:
-                    prcout = read_from_proc_n_echo(proc, "out", rtime)
-                    prcerr = read_from_proc_n_echo(proc, "err", rtime)
-                    sts = proc.wait()
-            except FileNotFoundError as e:  # noqa: F821
-                if verbose:
-                    print(e)
-                sts = 127
-            except BaseException:
-                sts = 126
-        return sts, prcout, prcerr
+        except FileNotFoundError as e:  # noqa: F821
+            if verbose:
+                print(e)
+            sts = 127
+        except BaseException:
+            sts = 126
+    return sts, prcout, prcerr
+
+
+def run_traced(cmd,
+               verbose=None,
+               dry_run=None,
+               disable_alias=None,
+               is_alias=None,
+               rtime=False):
+    """Run system command with log (for trace) and return system status"""
 
     def cmd_neutral_if(
         args, params=None, switches=None, no_params=None, no_switches=None
@@ -259,7 +216,7 @@ def run_traced(cmd,
             return 0, prcout, prcerr
         with_shell = False
         while 1:
-            sts, prcout, prcerr = call_os(
+            sts, prcout, prcerr = os_system(
                 args, verbose=verbose, with_shell=with_shell, rtime=rtime)
             if sts == 0 or with_shell or rtime:
                 break
@@ -400,7 +357,7 @@ def run_traced(cmd,
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(args, {})
         if opt_unk:
-            sts, prcout, prcerr = call_os(argv, verbose=verbose)
+            sts, prcout, prcerr = os_system(argv, verbose=verbose)
         else:
             os.mkdir(paths[0])
             sts = 0 if os.path.exists(paths[0]) else 1
@@ -422,7 +379,7 @@ def run_traced(cmd,
         if sts:
             pass
         elif opt_unk or params["-f"]:
-            sts, prcout, prcerr = call_os(argv, verbose=verbose)
+            sts, prcout, prcerr = os_system(argv, verbose=verbose)
         elif params["-R"]:
             shutil.rmtree(tgtpath)
         else:
