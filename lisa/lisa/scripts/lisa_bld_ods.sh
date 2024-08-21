@@ -381,6 +381,3 @@ if [ $opt_dry_run -eq 0 ]; then
 else
   echo "See $script_name.tmp to discover how to script works"
 fi
-
-
-

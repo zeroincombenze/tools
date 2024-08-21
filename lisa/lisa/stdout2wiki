@@ -88,6 +88,3 @@ while IFS=\| read l; do
 done < <(cat -- $opt_inp)
 (($opt_shl))&& echo "</syntaxhighlight>"
 exit $sts
-
-
-

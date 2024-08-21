@@ -50,6 +50,3 @@ over every Linux distribution.
     },
     zip_safe=False,
 )
-
-
-
