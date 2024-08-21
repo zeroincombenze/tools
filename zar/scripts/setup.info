@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.5",
+    version="2.0.6",
     description="Zeroincombenze Archive Replica",
     long_description=long_description,
     classifiers=[
@@ -25,7 +25,6 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -65,5 +64,6 @@ setup(
     },
     zip_safe=False,
 )
+
 
 

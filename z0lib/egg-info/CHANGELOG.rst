@@ -1,3 +1,15 @@
+2.0.11 (2024-07-13)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function os_system
+* [IMP] New function print_flush
+
+2.0.10 (2024-07-07)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_traced improvements
+* [IMP] Python 3.6 deprecated
+
 2.0.9 (2024-02-01)
 ~~~~~~~~~~~~~~~~~~
 

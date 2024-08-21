@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.5
+#__version__=2.0.6
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -377,7 +377,7 @@ create_db_list_from_pg() {
         cmd="${cmd}zi01234589|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|\\n"
         cmd="${cmd}test|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|\\n"
       else
-        cmd="psql -U$opt_user -Alt"
+        [[ -n $opt_port ]] && cmd="psql -U$opt_user -p$opt_port -Alt" || cmd="psql -U$opt_user -Alt"
       fi
       for db in $($cmd|sort -f|awk -F"|" '{ print $1 }'); do
         if [[ $db =~ $redb ]]; then
@@ -493,30 +493,29 @@ reassign_owner() {
     local DB=$1
     local OLD_OWNER=$2
     local NEW_OWNER=$3
-    local tbl
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
-    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
+    local tbl SQL
+    [[ -n $opt_port ]] && SQL="psql -Upostgres -p$opt_port" || SQL="psql -Upostgres"
+    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
+    run_traced "$SQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
     if [ $opt_dry_run -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
-      for tbl in $(psql -Upostgres -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($SQL -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
+        $SQL -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $SQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
-      for tbl in $(psql -Upostgres -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($SQL -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
+        $SQL -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $SQL -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
       done
       for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $DB); do
-        psql -Upostgres -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+        $SQL -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $SQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
     fi
-    [ -n "$OLD_OWNER" ] && run_traced "psql -Upostgres -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
+    [ -n "$OLD_OWNER" ] && run_traced "$SQL -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
 }
-
-

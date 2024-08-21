@@ -1,3 +1,8 @@
+2.0.6 (2024-08-21)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] pg_db_active with port for postgresql multi-version
+
 2.0.5 (2024-05-22)
 ~~~~~~~~~~~~~~~~~~
 

@@ -48,19 +48,20 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
-OPTOPTS=(h        d        f      l       n            s        t        U          V           v           w)
-OPTDEST=(opt_help opt_dst  opt_f  opt_log opt_dry_run  opt_src  opt_tbl  opt_user   opt_version opt_verbose opt_wep)
-OPTACTI=("+"      "="      "="    "="     1            "="      "="      "="        "*>"        1           1)
-OPTDEFL=(0        ""       "id"   ""      0            ""       ""       "postgres" ""          0           0)
-OPTMETA=("help"   "DBname" "name" "file"  "do nothing" "DBname" "table"  "username" "version"   "verbose"   "")
+OPTOPTS=(h        d        f      l       n            p        s        t        U          V           v           w)
+OPTDEST=(opt_help opt_dst  opt_f  opt_log opt_dry_run  opt_port opt_src  opt_tbl  opt_user   opt_version opt_verbose opt_wep)
+OPTACTI=("+"      "="      "="    "="     1            "="      "="      "="      "="        "*>"        1           1)
+OPTDEFL=(0        ""       "id"   ""      0            ""       ""       ""       "postgres" ""          0           0)
+OPTMETA=("help"   "DBname" "name" "file"  "do nothing" "dbport" "DBname" "table"  "username" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "destination DB name"\
  "field name to count (def id)"\
  "log filename (def /var/log/bckdb.log)"\
  "do nothing (dry-run)"\
+ "port (def 5432)"\
  "source DB name"\
  "table to copy"\
  "username (def postgres)"\
@@ -82,7 +83,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Copy table between DBs"\
-  "(C) 2015-2020 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -114,35 +115,36 @@ wlog "DEV=$HOST_DEV"
 opt_tbl=${opt_tbl//./_}
 PID=$$
 tmpfn=./tmp$PID
+[[ -n $opt_port ]] && SQL="psql -U$opt_user -p$opt_port" || SQL="psql -U$opt_user"
 echo "Stats before copy ..."
-[[ "$opt_f" == "id" ]] && psql -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-[[ "$opt_f" == "id" ]] && OLDNXT=$(psql -U$opt_user -Atc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
-psql -U$opt_user -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-psql -U$opt_user -Atec "select count($opt_f) from $opt_tbl;" $opt_src
-CTRBEF=$(psql -U$opt_user -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
+[[ "$opt_f" == "id" ]] && $SQL -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+[[ "$opt_f" == "id" ]] && OLDNXT=$($SQL -Atc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
+$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
+CTRBEF=$($SQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
 echo "Copy data from source DB $opt_src"
 run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
 if [ $opt_wep -ne 0 ]; then
   echo "Deleting table $opt_tbl from DB $opt_dst"
-  run_traced "psql -U$opt_user -Atec \"delete from $opt_tbl;\" $opt_dst"
+  run_traced "$SQL -Atec \"delete from $opt_tbl;\" $opt_dst"
 fi
 echo "Paste data into destination DB $opt_dst"
-run_traced "psql -U$opt_user -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
+run_traced "$SQL -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
 echo "Resulting stats ..."
-psql -U$opt_user -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-psql -U$opt_user -Atec "select count($opt_f) from $opt_tbl;" $opt_dst
-NXTID=$(psql -U$opt_user -Atc "select max($opt_f) from $opt_tbl;" $opt_dst)
+$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_dst
+NXTID=$($SQL -Atc "select max($opt_f) from $opt_tbl;" $opt_dst)
 # ((NXTID++))
 if [ $OLDNXT -gt $NXTID ]; then
   NXTID=$OLDNXT
 fi
-[[ "$opt_f" == "id" ]] && psql -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-[[ "$opt_f" == "id" ]] && run_traced "psql -U$opt_user -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
+[[ "$opt_f" == "id" ]] && $SQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+[[ "$opt_f" == "id" ]] && run_traced "$SQL -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
 echo "Currently stats after copy ..."
-[[ "$opt_f" == "id" ]] && psql -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-psql -U$opt_user -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-psql -U$opt_user -Atec "select count($opt_f) from $opt_tbl;" $opt_src
-CTRAFT=$(psql -U$opt_user -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
+[[ "$opt_f" == "id" ]] && $SQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
+CTRAFT=$($SQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
 ((DIF=CTRAFT-CTRBEF))
 if [ $opt_wep -ne 0 ]; then
   echo "$CTRAFT records replace $CTRBEF records"
@@ -153,5 +155,3 @@ else
 fi
 rm -f $tmpfn.*
 exit 0
-
-

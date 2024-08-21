@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 inherit_options() {
@@ -80,11 +80,11 @@ inherit_options() {
 }
 
 
-OPTOPTS=(h        c        e      K        l       n            o        R        T         U          V           v)
-OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_log opt_dry_run  opt_name opt_repl test_mode opt_user   opt_version opt_verbose)
-OPTACTI=("+"      "="      1      1        "="     1            "="      1        1         "="        "*>"        1)
-OPTDEFL=(0        ""       0      0        ""      0            ""       0        0         "postgres" ""          0)
-OPTMETA=("help"   "file"   ""     "cron"   "file"  "do nothing" "fname"  ""       "test"    "username" "version"   "verbose")
+OPTOPTS=(h        c        e      K        l       n            o        p        R        T         U          V           v)
+OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_log opt_dry_run  opt_name opt_port opt_repl test_mode opt_user   opt_version opt_verbose)
+OPTACTI=("+"      "="      1      1        "="     1            "="      "="      1        1         "="        "*>"        1)
+OPTDEFL=(0        ""       0      0        ""      0            ""       ""       0        0         "postgres" ""          0)
+OPTMETA=("help"   "file"   ""     "cron"   "file"  "do nothing" "fname"  "dbport" ""       "test"    "username" "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def zar.conf)"\
  "exact DB name (rather matches DB name)"\
@@ -92,6 +92,7 @@ OPTHELP=("this help"\
  "log filename (def /var/log/bckdb.log)"\
  "do nothing (dry-run)"\
  "output filename (def dbname-date)"\
+ "port (def 5432)"\
  "do not backup but just replica to backup host"\
  "test mode (implies dry-run)"\
  "username (def postgres)"\
@@ -138,6 +139,15 @@ else
 fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
+if [[ -n $opt_port ]]; then
+  SQL="psql -U$opt_user -p$opt_port"
+  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
+  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
+else
+  SQL="psql -U$opt_user"
+  PG_DUMP="pg_dump -U$opt_user"
+  PG_DB_ACT="pg_db_active -U$opt_user"
+fi
 wait_4_prod=$(get_cfg_value 0 wait_4_prod)
 ((ctr_wait=wait_4_prod/3))
 [ $ctr_wait -lt 10 ] && ctr_wait=10
@@ -186,12 +196,12 @@ if [ -n "$dblist" ]; then
       fi
     fi
     if [ "$BCK_ENV" != "DEV" -o -n "$opt_name" ]; then
-      run_traced "pg_db_active -k"
+      run_traced "$PG_DB_ACT -k"
       if [ $opt_dry_run -ne 0 -o $opt_repl -ne 0 ]; then
-        wlog "> pg_dump $PG_DUMP_OPT -U$opt_user -Fp -f $sqlfname \"$db\""
+        wlog "> $PG_DUMP $PG_DUMP_OPT -Fp -f $sqlfname \"$db\""
         [ ${test_mode:-0} -ne 0 ] && touch $sqlfname
       else
-        run_traced "pg_dump $PG_DUMP_OPT -U$opt_user -Fp -f $sqlfname \"$db\""
+        run_traced "$PG_DUMP $PG_DUMP_OPT -Fp -f $sqlfname \"$db\""
       fi
       if [[ -n $ODOO_FILESTORE_ROOT ]]; then
         filestore=$(for p in $(find $ODOO_FILESTORE_ROOT -maxdepth 2 -type d -name filestore 2>/dev/null); do find $p -maxdepth 2 -type d -name $db; done)
@@ -261,5 +271,3 @@ if [ -n "$dblist" ]; then
   popd >/dev/null
 fi
 exit 0
-
-
