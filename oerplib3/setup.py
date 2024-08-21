@@ -22,7 +22,7 @@ def names(fn, email=None):
 
 setup(
     name='oerplib3',
-    version='0.8.4',
+    version='0.8.5',
     description='Python3 oerlib porting',
     long_description=open('README.rst').read(),
     classifiers=[
@@ -33,6 +33,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Intended Audience :: Developers',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
