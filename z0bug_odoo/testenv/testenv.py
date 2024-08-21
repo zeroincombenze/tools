@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.20
+"""Test Environment v2.0.21
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -2978,6 +2978,7 @@ class MainTest(test_common.TransactionCase):
         merge="local",
         setup_list=[],
         data_dir=None,
+        precision=None,
     ):
         """Create all record from declared data.
         This function starts the test workflow creating the test environment.
@@ -3038,7 +3039,7 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.20 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.21 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(
@@ -3055,6 +3056,15 @@ class MainTest(test_common.TransactionCase):
         if lang:  # pragma: no cover
             self.install_language(lang)
         self._convert_test_data(group=group)
+        # TODO> TO TEST
+        # if precision:
+        #     DecimalPrecision = self.env["decimal.precision"]
+        #     for (k, v) in precision.items():
+        #         DecimalPrecision.search([("name", "=", k)]).write({"digits": v})
+        #         self._logger.info(
+        #             "DecimalPrecision[%s]=%d " % (k, v)
+        #         )
+        #     # DecimalPrecision.clear_caches()
         for resource in setup_list:
             resource_parent = self.parent_resource.get(resource)
             for xref in sorted(self.get_resource_data_list(resource, group=group)):
@@ -3683,6 +3693,7 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
+
 
 
 

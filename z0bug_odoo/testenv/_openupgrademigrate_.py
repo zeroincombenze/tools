@@ -7,15 +7,26 @@
 """openupgrade_(pre|post)_migrate v2.0.18
 This file contains 2 functions that execute all migration actions on the module and
 on the module items. The functions are called before and after installation.
-Thesefunctions are just hooks to OCA openupgrade in order to simplify the migration
+These functions are just hooks to OCA openupgrade in order to simplify the migration
 upgrade of modules, with simple declaration in __manifest__.py file.
 
 You can add following key in the __manifest__:
-'module_oldname': prior name of renamed module
+'migrated_from_module': (string) prior name of current module
+'migrate_deprecated': (string) new name of current module
+'migrate_model': (list) prior model name and new model name
+'merge_model': (list) prior model name and new model name
+'migrate_field': (list) model name, prior field name and new field name
 
 ACTIONS
-* Module renamed: call openupgrade.rename_xmlids() and mark old name module with
-  'to uninstall' if it is installed
+* 'migrated_from_module': call openupgrade.rename_xmlids() [post] and mark old name
+                          module with 'to uninstall' if it is installed [post] - Old
+                          module should contain 'migrate_deprecated' clause
+* 'migrate_deprecated': mark new name module with 'to install' if it is not installed
+                        [pre] - New module have to contain 'migrate_from_module' clause
+* 'migrate_model': call openupgrade.rename_xmlids() ... ? [post]
+* 'migrate_model': call openupgrade.rename_xmlids() ... ? [post]
+* 'migrate_field': call openupgrade.rename_xmlids() ... ? [post]
+
 Notice:
 __init__.py in current module root must contain the statement:
     from ._openupgrademigrate_ import openupgrade_migrate

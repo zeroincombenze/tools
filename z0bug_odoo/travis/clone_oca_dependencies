@@ -28,13 +28,13 @@ from __future__ import print_function
 import sys
 import os
 import os.path as osp
-import subprocess
+# import subprocess
 import logging
-from travis_helpers import print_flush
+# from travis_helpers import print_flush
 from z0lib import z0lib
 
 _logger = logging.getLogger()
-__version__ = '2.0.20'
+__version__ = '2.0.21'
 
 
 def create_deps():
@@ -74,7 +74,7 @@ def run_traced(command):
     else:
         cmd = command
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-        print_flush('INFO: calling %s' % cmd)
+        z0lib.print_flush('INFO: calling %s' % cmd)
     _logger.info('Calling %s', cmd)
     return z0lib.run_traced(cmd, verbose=False, dry_run=False)
 
@@ -103,7 +103,7 @@ def git_checkout(repo_dir, repo, git_org=None):
                 command = ['cp', '-r', '-L', srcdir, checkout_dir]
                 sts = run_traced(command)
         else:
-            print_flush('WARNING: Repository %s not found in local!' % repo)
+            z0lib.print_flush('WARNING: Repository %s not found in local!' % repo)
             _logger.info('WARNING: repository %s not found in local!' % repo)
 
     if os.environ.get('TRAVIS', '') == 'true' or not srcdir:
@@ -137,7 +137,7 @@ def deps_process_repo(deps, repo, repo_dir, build_dir, git_org=None):
         if osp.isfile(fn_reqfilename):
             deps['reqfilenames'].append(fn_reqfilename)
         else:
-            print_flush(
+            z0lib.print_flush(
                 'WARNING: repository %s without requirement list!' % repo)
             run_traced("list_requirements.py -p %s -O" % osp.dirname(fn_reqfilename))
         if repo:
@@ -180,7 +180,7 @@ def main(repo_dir, build_dir):
         os.makedirs(repo_dir)
     git_org, odoo_repo = os.environ.get("ODOO_REPO", "odoo/odoo").split('/')
     if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')):
-        print_flush('INFO: dependencies="%s"; build="%s"; git_org="%s"' % (
+        z0lib.print_flush('INFO: dependencies="%s"; build="%s"; git_org="%s"' % (
             repo_dir, build_dir, git_org))
     deps = create_deps()
     deps_process_repo(deps, None, repo_dir, build_dir, git_org=git_org)
@@ -201,6 +201,7 @@ if __name__ == '__main__':
                 sys.argv[2] if len(sys.argv) > 2 else None,
             )
         )
+
 
 
 

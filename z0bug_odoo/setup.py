@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.20",
+    version="2.0.21",
     description="Odoo testing framework",
     long_description=long_description,
     classifiers=[
@@ -44,7 +44,9 @@ setup(
     author=author,
     author_email=author_email,
     license="Affero GPL",
-    install_requires=["future", "python-magic", "zerobug", "gitPython", "Click"],
+    install_requires=[
+        "future", "python-magic", "zerobug", "gitPython", "Click", "z0lib>=2.0.11"
+    ],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
@@ -72,6 +74,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 
