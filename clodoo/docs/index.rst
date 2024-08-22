@@ -1,10 +1,10 @@
 .. clodoo documentation master file, created by
-   gen_readme.py on 2024-07-10 11:54:45
+   gen_readme.py on 2024-08-22 09:40:07
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 =======================================
-Welcome to clodoo 2.0.12 documentation!
+Welcome to clodoo 2.0.13 documentation!
 =======================================
 
 .. toctree::
@@ -34,10 +34,10 @@ Welcome to clodoo 2.0.12 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
