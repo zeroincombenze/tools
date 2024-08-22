@@ -198,16 +198,3 @@ elif [[ $act == "git-add" ]]; then
     [[ $PWD != $srcdir ]] && run_traced "cd $srcdir"
     run_traced "git status"
 fi
-
-
-
-
-
-
-
-
-
-
-
-
-

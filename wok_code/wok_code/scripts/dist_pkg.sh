@@ -380,14 +380,3 @@ if [[ $opt_fetch -eq 0 ]]; then
   fi
 fi
 exit $STS_SUCCESS
-
-
-
-
-
-
-
-
-
-
-

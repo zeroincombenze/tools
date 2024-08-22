@@ -1837,15 +1837,3 @@ def main(cli_args=None):
     parser.add_argument('dst_filepy', nargs='?')
     ctx = parser.parseoptargs(sys.argv[1:])
     return parse_file(ctx=ctx)
-
-
-
-
-
-
-
-
-
-
-
-

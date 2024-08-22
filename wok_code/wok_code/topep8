@@ -829,16 +829,3 @@ if [ $opt_verbose -gt 0 -a $sts -gt 0 ]; then
   echo "No file found!"
 fi
 exit $sts
-
-
-
-
-
-
-
-
-
-
-
-
-
