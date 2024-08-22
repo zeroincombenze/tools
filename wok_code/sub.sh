@@ -41,16 +41,3 @@ echo "  - HOME_DEV=$HOME_DEV"
 echo "  - PYTHON=$PYTHON ($(which $PYTHON))"
 echo "  - PYPATH=$PYPATH"
 exit 0
-
-
-
-
-
-
-
-
-
-
-
-
-

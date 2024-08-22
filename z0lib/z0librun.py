@@ -64,7 +64,28 @@ def print_flush(msg):
         print(msg)
 
 
-def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
+def join_args(args):
+    cmd = ""
+    for arg in args:
+        if "<" in arg or ">" in arg:
+            arg = "'%s'" % arg.replace("'", r"\'")
+        elif " " in arg:
+            if '"' in arg:
+                arg = '"%s"' % arg.replace('"', r"\"")
+            else:
+                arg = '"%s"' % arg
+        elif '"' in arg:
+            arg = '"%s"' % arg.replace('"', r"\"")
+        elif "'" in arg:
+            arg = '"%s"' % arg
+        else:
+            pass
+        cmd += " " + arg
+    return cmd.strip()
+
+
+def os_system_traced(
+        args, verbose=0, dry_run=None, with_shell=None, rtime=None, os_level=0):
 
     def read_from_proc_n_echo(proc, outerr, rtime):
         log = ""
@@ -79,25 +100,29 @@ def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
                 log += ln
         return log
 
+    joined_args = join_args(args) if isinstance(args, (tuple, list)) else args
     if verbose:
+        prompt = ">" if dry_run else "$"
+        prompt = ("  " * os_level) + prompt
         if isinstance(args, (tuple, list)):
-            print('%s %s' % (">" if dry_run else "$", " ".join(args)))
+            print('%s %s' % (prompt, joined_args))
         else:
-            print('%s %s' % (">" if dry_run else "$", args))
+            print('%s %s' % (prompt, args))
+    rtime = True if rtime is None else rtime
     prcout = prcerr = ""
     if dry_run:
         return 0, prcout, prcerr
     if sys.version_info[0] == 2:
         try:
             proc = Popen(
-                args if not with_shell else " ".join(args),
+                args if not with_shell else joined_args,
                 stderr=PIPE,
                 stdout=PIPE,
                 shell=with_shell)
             prcout = read_from_proc_n_echo(proc, "out", rtime)
             prcerr = read_from_proc_n_echo(proc, "err", rtime)
             sts = proc.wait()
-        except OSError as e:
+        except OSError as e:  # noqa: F821
             if verbose:
                 print(e)
             sts = 127
@@ -106,7 +131,7 @@ def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
     else:
         try:
             with Popen(
-                    args if not with_shell else " ".join(args),
+                    args if not with_shell else joined_args,
                     stdin=PIPE,
                     stdout=PIPE,
                     stderr=PIPE,
@@ -124,13 +149,23 @@ def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
     return sts, prcout, prcerr
 
 
+def os_system(
+        args, verbose=0, dry_run=None, with_shell=None, rtime=None, os_level=0):
+    return os_system_traced(args,
+                            verbose=verbose,
+                            dry_run=dry_run,
+                            with_shell=with_shell,
+                            rtime=rtime,
+                            os_level=os_level)[0]
+
+
 def run_traced(cmd,
-               verbose=None,
+               verbose=0,
                dry_run=None,
                disable_alias=None,
                is_alias=None,
                rtime=False):
-    """Run system command with log (for trace) and return system status"""
+    """Run system command with aliases log; return system status and trace log"""
 
     def cmd_neutral_if(
         args, params=None, switches=None, no_params=None, no_switches=None
@@ -208,7 +243,7 @@ def run_traced(cmd,
                 paths.append(arg)
         return argv, opt_unk, paths, params
 
-    def sh_any(args, verbose=None, dry_run=None):
+    def sh_any(args, verbose=0, dry_run=None):
         prcout = prcerr = ""
         if (
             cmd_neutral_if(args, params=['dir'])
@@ -219,14 +254,14 @@ def run_traced(cmd,
             return 0, prcout, prcerr
         with_shell = False
         while 1:
-            sts, prcout, prcerr = os_system(
+            sts, prcout, prcerr = os_system_traced(
                 args, verbose=verbose, with_shell=with_shell, rtime=rtime)
             if sts == 0 or with_shell or rtime:
                 break
             with_shell = True
         return sts, prcout, prcerr
 
-    def sh_cd(args, verbose=None, dry_run=None):
+    def sh_cd(args, verbose=0, dry_run=None):
         argv, opt_unk, paths, params = simple_parse(args, {})
         sts = 0
         tgtpath = paths[0] if paths else os.environ["HOME"]
@@ -236,7 +271,7 @@ def run_traced(cmd,
             sts = 1
         return sts, "", ""
 
-    def sh_cp(args, verbose=None, dry_run=None):
+    def sh_cp(args, verbose=0, dry_run=None):
         if dry_run:
             return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(
@@ -264,7 +299,7 @@ def run_traced(cmd,
             return 0, "", ""
         return sh_any(argv)
 
-    def sh_git(args, verbose=None, dry_run=None):
+    def sh_git(args, verbose=0, dry_run=None):
         if (
             cmd_neutral_if(args, params=['git', 'status'])
             or cmd_neutral_if(args, params=['git', 'branch'], no_switches=['-b'])
@@ -354,19 +389,19 @@ def run_traced(cmd,
                     is_alias=True)
         return sh_any(argv, verbose=verbose, dry_run=dry_run)
 
-    def sh_mkdir(args, verbose=None, dry_run=None):
+    def sh_mkdir(args, verbose=0, dry_run=None):
         prcout = prcerr = ""
         if dry_run:
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(args, {})
         if opt_unk:
-            sts, prcout, prcerr = os_system(argv, verbose=verbose)
+            sts, prcout, prcerr = os_system_traced(argv, verbose=verbose)
         else:
             os.mkdir(paths[0])
             sts = 0 if os.path.exists(paths[0]) else 1
         return sts, prcout, prcerr
 
-    def sh_rm(args, verbose=None, dry_run=None):
+    def sh_rm(args, verbose=0, dry_run=None):
         prcout = prcerr = ""
         if dry_run:
             return 0, prcout, prcerr
@@ -382,7 +417,7 @@ def run_traced(cmd,
         if sts:
             pass
         elif opt_unk or params["-f"]:
-            sts, prcout, prcerr = os_system(argv, verbose=verbose)
+            sts, prcout, prcerr = os_system_traced(argv, verbose=verbose)
         elif params["-R"]:
             shutil.rmtree(tgtpath)
         else:
@@ -477,6 +512,7 @@ class parseoptargs(object):
                         '--quiet',
                         help="silent mode",
                         action=CountAction,
+                        default=0,
                         dest="opt_verbose",
                     )
                     self.param_list.append('opt_verbose')
@@ -599,4 +635,3 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
-

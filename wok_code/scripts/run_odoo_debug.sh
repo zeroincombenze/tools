@@ -838,14 +838,3 @@ if [[ $drop_db -gt 0 ]]; then
 fi
 
 exit $sts
-
-
-
-
-
-
-
-
-
-
-

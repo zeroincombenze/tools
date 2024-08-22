@@ -211,15 +211,3 @@ class PleaseApache(object):
             or config.get("options", "longpolling_port"),
             "website_document_root": config.get("options", "website_document_root"),
         }
-
-
-
-
-
-
-
-
-
-
-
-

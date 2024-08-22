@@ -114,16 +114,3 @@ for f in $(find $tgtdir -maxdepth 2 -type d -name 'egg-info'); do
     fi
   fi
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
