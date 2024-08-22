@@ -273,13 +273,12 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def run_traced(self, cmd, verbose=None, disable_output=False, rtime=False):
+    def run_traced(self, cmd, verbose=None, rtime=None):
         verbose = verbose if verbose is not None else self.opt_args.verbose
+        rtime = rtime if rtime is not None else verbose > 1
         sts, stdout, stderr = z0lib.run_traced(
             cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime
         )
-        # if not disable_output:
-        #     print(stdout + stderr)
         return sts
 
     def add_argument(self, parser, arg):
@@ -353,7 +352,7 @@ class Please(object):
             )
         elif arg in ("-v", "--verbose"):
             parser.add_argument(
-                "-v", "--verbose", help="verbose mode", action="count", default=0
+                "-v", "--verbose", help="verbose mode", action="count", default=1
             )
         elif arg in ("-y", "--assume-yes"):
             parser.add_argument("-y", "--assume-yes", action="store_true")
@@ -893,28 +892,21 @@ class Please(object):
             [changelog_fqn, "-i", "--test-res-msg=\"%s\"" % test_cov_msg])
         return sts
 
-    def chain_python_cmd(self, pyfile, args, verbose=None):
-        #     cmd = [sys.executable]
-        #     cmd.append(pth.join(pth.dirname(__file__), pyfile))
-        #     for arg in args:
-        #         cmd.append(arg)
-        #     cmd = " ".join(cmd)
-        #     if self.opt_args.verbose:
-        #         print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
-        #     return call(cmd, shell=True) if not self.opt_args.dry_run else 0
-        verbose = verbose if verbose is not None else self.opt_args.verbose
-        return self.call_chained_python_cmd(pyfile, args, verbose=verbose)[0]
+    def chain_python_cmd(self, pyfile, args, verbose=None, rtime=None):
+        # call pyfile with args with rtime and return only sts
+        return self.call_chained_python_cmd(
+            pyfile, args, verbose=verbose, rtime=rtime)[0]
 
-    def call_chained_python_cmd(self, pyfile, args, verbose=None):
+    def call_chained_python_cmd(self, pyfile, args, verbose=None, rtime=None):
+        # call pyfile with args with rtime and return sts, stdout, stderr
         cmd = [sys.executable]
         cmd.append(pth.join(pth.dirname(__file__), pyfile))
         for arg in args:
             cmd.append(arg)
-        # cmd = " ".join(cmd)
-        # return z0lib.run_traced(cmd, verbose=False, dry_run=self.opt_args.dry_run)
         verbose = verbose if verbose is not None else self.opt_args.verbose
-        return z0lib.os_system(
-            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=True)
+        rtime = rtime if rtime is not None else verbose > 1
+        return z0lib.os_system_traced(
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime)
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()

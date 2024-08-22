@@ -68,7 +68,7 @@ Read furthermore info read `travis-ci phase
     package_data={'': [
         'scripts/setup.info',
         './template_travis.yml',
-        './travis',
+        'scripts/travis.sh',
         './travisrc',
         './travis.man'
     ]},

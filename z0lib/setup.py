@@ -49,4 +49,3 @@ setup(
     entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
     zip_safe=False,
 )
-
