@@ -19,7 +19,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -395,6 +395,15 @@ class PleaseCwd(object):
                                         rtime=True)
                 if sts:
                     break
+                target_dir = pth.expanduser(
+                    pth.join("~",
+                             ".local",
+                             "share",
+                             db_user.capitalize(),
+                             "filestore",
+                             db_name))
+                if pth.isdir(target_dir):
+                    please.run_traced("rm -fR" % target_dir, rtime=True)
         return sts
 
     def do_commit(self):
@@ -1196,6 +1205,7 @@ class PleaseCwd(object):
             please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
+
 
 
 

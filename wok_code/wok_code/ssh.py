@@ -1,31 +1,55 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
 import sys
+from cryptography.fernet import Fernet
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 
 def get_remote_user():
     local_user = os.environ["USER"]
     user = None
     default_user = None
-    for key, item in DATA[host].items():
-        if "users" in item and local_user not in item["users"]:
-            continue
-        if not default_user or key == local_user:
-            default_user = key
-        if (not root_user and key == local_user) or (root_user and key != local_user):
-            user = key
-            break
-    if not user:
-        user = default_user
+    if host:
+        for key, item in DATA[host].items():
+            if "users" in item and local_user not in item["users"]:
+                continue
+            if not default_user or key == local_user:
+                default_user = key
+            if (
+                    (not root_user and key == local_user)
+                    or (root_user and key != local_user)
+            ):
+                user = key
+                break
+        if not user:
+            user = default_user
+    else:
+        user = local_user
     return user
+
+
+def get_remote_pwd(path):
+    if not path:
+        path = os.getcwd()
+        if path.startswith(os.environ["HOME"]):
+            path = path.replace(os.environ["HOME"], "~", 1)
+    if path == "~":
+        path = "~/"
+    return path
+
+
+def get_pwd(host, user):
+    passwd = DATA[host][user].get("passwd")
+    if not passwd and KEY and DATA[host][user].get("crypt_password"):
+        passwd = Fernet(KEY).decrypt(DATA[host][user]["crypt_password"]).decode()
+    return passwd
 
 
 def get_cmd(host, user):
     param = DATA[host][user].get("param")
-    passwd = DATA[host][user].get("passwd")
+    passwd = get_pwd(host, user)
     if passwd:
         os.environ["SSHPASS"] = passwd
         return (
@@ -36,21 +60,21 @@ def get_cmd(host, user):
     return "ssh %s %s@%s" % (param, user, host) if param else "ssh %s@%s" % (user, host)
 
 
-def get_cmd_rsync(host, user, source, dest, recurse):
+def get_cmd_rsync(host, host_side, user, source, dest, recurse):
     param = DATA[host][user].get("param", "")
     port = ""
     if param.startswith("-p"):
         port = param.split(" ")[1]
         param = ""
-    passwd = DATA[host][user].get("passwd")
+    passwd = get_pwd(host, user)
     if recurse and not source.endswith("/"):
         source = "%s/" % source
     if recurse and not dest.endswith("/"):
         dest = "%s/" % dest
-    if source.startswith("@"):
-        source = "%s@%s:%s" % (user, host, source[1:])
-    elif dest.startswith("@"):
-        dest = "%s@%s:%s" % (user, host, dest[1:])
+    if host_side == "s":
+        source = "%s@%s:%s" % (user, host, source)
+    elif host_side == "d":
+        dest = "%s@%s:%s" % (user, host, dest)
     if passwd:
         os.environ["SSHPASS"] = passwd
         return "sshpass -e rsync -avz %s %s %s" % (param, source, dest)
@@ -59,27 +83,28 @@ def get_cmd_rsync(host, user, source, dest, recurse):
     return "rsync -avz %s %s %s" % (param, source, dest)
 
 
-def get_cmd_scp(host, user, source, dest, recurse):
+def get_cmd_scp(host, host_side, user, source, dest, recurse):
     param = DATA[host][user].get("param", "").replace("-p", "-P")
     if recurse:
         if param.startswith("-"):
             param += " -r"
         else:
             param = "-r"
-    passwd = DATA[host][user].get("passwd")
-    if source.startswith("@"):
-        source = "%s@%s:%s" % (user, host, source[1:])
-    elif dest.startswith("@"):
-        dest = "%s@%s:%s" % (user, host, dest[1:])
+    passwd = get_pwd(host, user)
+    if host_side == "s":
+        source = "%s@%s:%s" % (user, host, source)
+    elif host_side == "d":
+        dest = "%s@%s:%s" % (user, host, dest)
     if passwd:
         os.environ["SSHPASS"] = passwd
         return "sshpass -e scp %s %s %s" % (param, source, dest)
     return "scp %s %s %s" % (param, source, dest)
 
 
-def show_host(sel_host=None):
+def show_host(sel_host=None, glob=False):
     valid_hosts = []
     prior_host = ""
+    cur_user = get_remote_user()
     for host in DATA.keys():
         if sel_host and host != sel_host:
             continue
@@ -87,6 +112,8 @@ def show_host(sel_host=None):
             print("")
             prior_host = host
         for user in DATA[host].keys():
+            if not glob and user != cur_user:
+                continue
             if os.environ["USER"] not in DATA[host][user].get("users"):
                 print(
                     "      %-48.48s# %s"
@@ -118,20 +145,64 @@ def show_alias():
 
 
 def show_pwd():
+    if not host:
+        print("Missing host")
+        exit(1)
     user = get_remote_user()
     if host in DATA.keys():
         if user in DATA[host]:
-            passwd = DATA[host][user].get("passwd")
+            passwd = get_pwd(host, user)
             if passwd:
                 print("%s (%s)" % (passwd, user))
             else:
                 print("<certificate> (%s)" % user)
 
 
+def do_force_crypt():
+    for host in DATA.keys():
+        for user in DATA[host].keys():
+            if (
+                "passwd" in DATA[host][user]
+                and "crypt_password" not in DATA[host][user]
+            ):
+                passwd = Fernet(KEY).encrypt(DATA[host][user]["passwd"].encode())
+                del DATA[host][user]["passwd"]
+                DATA[host][user]["crypt_password"] = passwd
+    confn = os.path.join(os.environ["HOME"], ".ssh", "my_network.dat")
+    with open(confn, "w") as fd:
+        fd.write(str(DATA))
+
+
+def show_help():
+    print("ssh.py [-adlnvwz] [user@]host  # ssh")
+    print("ssh.py -[n][r]s[vz] [user@]host:source destination  # scp")
+    print("ssh.py -[n][r]s[vz] source [user@]host:destination  # scp")
+    print("ssh.py -[n][r]m[vz] [user@]host:source destination  # rsync")
+    print("ssh.py -[n][r]m[vz] source [user@]host:destination  # rsync")
+    print("")
+    print("  -a show aliases")
+    print("  -d show remote dir")
+    print("  -g list global hosts")
+    print("  -l list hosts")
+    print("  -m do mirror (rsync)")
+    print("  -n dry-run")
+    print("  -r recurse")
+    print("  -s do scp")
+    print("  -v verbose")
+    print("  -w show passwords")
+    print("  -Y force password encryption")
+    print("  -z use privilegiated user")
+
+
 # import pdb; pdb.set_trace()
 DATA = {}
 ALIAS = {}
 REV_ALIAS = {}
+KEY = None
+keyfn = os.path.join(os.environ["HOME"], ".ssh", "id_rsa.key")
+if os.path.isfile(keyfn):
+    with open(keyfn, "r") as fd:
+        KEY = fd.read().encode()
 confn = os.path.join(os.environ["HOME"], ".ssh", "my_network.dat")
 if os.path.isfile(confn):
     with open(confn, "r") as fd:
@@ -157,19 +228,23 @@ rsync = False
 sh_alias = False
 do_dir = False
 root_user = False
-ctr = 0
+force_crypt = False
+glob = False
+host_side = "d"
+if not sys.argv[1:]:
+    show_help()
+    exit(0)
 for param in sys.argv[1:]:
     if param.startswith("-"):
         if "h" in param:
-            print("ssh.py [-adlnvwz] host [user]  # ssh")
-            print("ssh.py -[n][r]s[vz] host [user] source destination  # scp")
-            print("ssh.py -[n][r]m[vz] host [user] source destination  # rsync")
-            # show_host()
+            show_help()
             exit(0)
         if "a" in param:
             sh_alias = True
         if "d" in param:
             do_dir = True
+        if "g" in param:
+            glob = True
         if "l" in param:
             list_host = True
         if "m" in param:
@@ -184,98 +259,93 @@ for param in sys.argv[1:]:
             verbose = True
         if "w" in param:
             list_pwd = True
+        if "Y" in param:
+            force_crypt = True
         if "z" in param:
             root_user = True
-    elif ctr == 0:
-        host = param
-        ctr += 1
-    elif ctr == 1:
-        user = param
-        ctr += 1
-    elif ctr == 2:
-        source = param
-        ctr += 1
-    elif ctr == 3:
-        dest = param
-        ctr += 1
-
-if (scp or rsync) and user and not source and not dest:
-    # ssh.py -m|s user@host:source dest
-    # ssh.py -m|s source user@host:dest
-    source = host
-    host = ""
-    dest = user
-    user = ""
-    if ":" in source and ":" not in dest:
-        host, source = source.split(":", 1)
-        source = "@" + source
-    elif ":" not in source and ":" in dest:
-        host, dest = dest.split(":", 1)
-        dest = "@" + dest
     else:
-        print("Invalid params! Use:")
-        print("ssh.py -m|s user@host:source dest")
-        print("ssh.py -m|s source user@host:dest")
-        exit(1)
-    if "@" in host:
-        user, host = host.split("@", 1)
-elif (scp or rsync) and user and source and not dest:
-    dest = source
-    source = user
-    user = ""
-elif do_dir and user and not source:
-    source = user
-    user = ""
+        if ":" in param and not host:
+            host, param = param.split(":", 1)
+            if "@" in host:
+                user, host = host.split("@", 1)
+            if not param:
+                param = get_remote_pwd(param)
+            if source:
+                host_side = "d"
+        if not source:
+            source = param
+        elif not dest:
+            dest = param
+        elif not host:
+            host = source
+            source = dest
+            dest = param
+        elif not user:
+            user = source
+            source = dest
+            dest = param
+        else:
+            print("Invalid params %s" % param)
+            exit(1)
 
+if not host and source and not dest:
+    host = source
+    source = None
 if host not in DATA and host in ALIAS:
     host = ALIAS[host]
 if list_host:
-    show_host(sel_host=host)
+    show_host(sel_host=host, glob=glob)
     exit(0)
 if sh_alias:
     show_alias()
     exit(0)
-if list_pwd:
-    show_pwd()
+if force_crypt:
+    do_force_crypt()
     exit(0)
 if host not in DATA:
     if host:
         print("Host %s not found!" % host)
-    show_host()
+    else:
+        print("Missing host")
     exit(1)
 
+if list_pwd:
+    show_pwd()
+    exit(0)
 if not user:
     user = get_remote_user()
 if not user:
     print("No user supplied!")
-    show_host(sel_host=host)
+    # show_host(sel_host=host)
     exit(1)
 if user not in DATA[host]:
     print("User %s not found for host %s!" % (user, host))
-    show_host(sel_host=host)
+    # show_host(sel_host=host)
     exit(1)
 if os.environ["USER"] not in DATA[host][user].get("users"):
     print("No valid connection parameter for current user!")
-    show_host(sel_host=host)
+    # show_host(sel_host=host)
     exit(1)
 
 if do_dir:
-    if not source:
-        print("No source path supplied!")
-        exit(1)
+    source = get_remote_pwd(source)
     cmd = get_cmd(host, user)
     cmd = "%s dir '%s'" % (cmd, source)
 elif scp or rsync:
+    if not source and dest:
+        source = get_remote_pwd(source)
     if not source:
         print("No source path supplied!")
         exit(1)
+    if not dest and source:
+        dest = get_remote_pwd(dest)
     if not dest:
         print("No destination path supplied!")
         exit(1)
     if rsync:
-        cmd = get_cmd_rsync(host, user, source, dest, recurse)
+        cmd = get_cmd_rsync(host, host_side, user, source, dest, recurse)
     else:
-        cmd = get_cmd_scp(host, user, source, dest, recurse)
+        cmd = get_cmd_scp(host, host_side, user, source, dest, recurse)
 else:
     cmd = get_cmd(host, user)
 if verbose:
@@ -283,6 +353,7 @@ if verbose:
 if dry_run:
     exit(0)
 exit(os.system(cmd))
+
 
 
 

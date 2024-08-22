@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.18
+__version__=2.0.19
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -601,3 +601,4 @@ if [[ -n "$ToRepeat" ]]; then
 fi
 sts=$STS_SUCCESS
 exit $sts
+

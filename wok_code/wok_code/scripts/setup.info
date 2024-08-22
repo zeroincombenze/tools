@@ -17,7 +17,7 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "clodoo", "z0lib", "python_plus",
+    "clodoo", "z0lib>=2.0.11", "python_plus",
     "future", "Babel", "lxml", "openpyxl", "pyyaml"
 ]
 if sys.version_info >= (3, 0):
@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.18",
+    version="2.0.19",
     description="Python developers tools",
     long_description=long_description,
     classifiers=[
@@ -66,9 +66,9 @@ setup(
             "scripts/please.sh",
             "scripts/config/*",
             "scripts/run_odoo_debug.sh",
-            "./please.man",
-            "./cvt_script",
+            "scripts/cvt_script.sh",
             "./cvt_script.man",
+            "./please.man",
             "./topep8",
             "./to_oca.2p8",
             "./to_zero.2p8",
@@ -84,6 +84,7 @@ setup(
             "cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main",
             "cvt_csv_2_xml.py = wok_code.scripts.cvt_csv_2_xml:main",
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
+            "cvt_script = wok_code.scripts.cvt_script:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
             "dist_pkg = wok_code.scripts.dist_pkg:main",
             "do_gitignore = wok_code.do_gitignore:main",
@@ -103,6 +104,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

@@ -1,3 +1,15 @@
+2.0.19 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] install_python_3_from_source.sh: fix bugs and improvements
+* [FIX] ssh.py: store encripted password
+* [IMP] run_odoo_debug: now can replace modules
+* [IMP] cvt_script executable
+* [IMP] deploy_odooo: more improvements
+* [IMP] please: minor improvements
+* [IMP] please clen db: remove filestore directories too
+
 2.0.18 (2024-07-10)
 ~~~~~~~~~~~~~~~~~~~
 

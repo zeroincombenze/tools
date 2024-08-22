@@ -32,7 +32,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -188,6 +188,10 @@ class OdooDeploy(object):
                     with open(tpath, "r") as fd:
                         stdout = fd.read()
                     return 0, stdout, ""
+        elif cmd in ("git remote -v", "git branch") and pth.isdir(".git"):
+            return z0lib.run_traced(
+                cmd, verbose=verbose, dry_run=False, disable_alias=True
+            )
         return z0lib.run_traced(
             cmd, verbose=verbose, dry_run=self.opt_args.dry_run, disable_alias=True
         )
@@ -295,7 +299,7 @@ class OdooDeploy(object):
     def _init_amend(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
@@ -329,19 +333,19 @@ class OdooDeploy(object):
     def _init_git_push(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.set_default_branch()
 
     def _init_merge(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.set_default_branch()
 
     def _init_status(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.set_default_branch()
 
     def _init_list(self):
@@ -350,13 +354,13 @@ class OdooDeploy(object):
     def _init_unstaged(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.set_default_branch()
 
     def _init_update(self):
         self.get_addons_from_config_file()
         if not self.repo_list and self.target_path:
-            self.get_repo_from_path()
+            self.get_repos_from_path()
         self.set_default_branch()
         if self.opt_args.link_upstream:
             self.repo_list += [x for x in self.opt_args.link_upstream
@@ -371,6 +375,15 @@ class OdooDeploy(object):
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
+        self.opt_args.keep_root_owner = True
+        if not self.opt_args.from_odoo_version:
+            x = re.search("[0-9]+", self.opt_args.odoo_branch)
+            if not x:
+                print("***** Missing from Odoo version!")
+                self.opt_args.from_odoo_version = self.opt_args.odoo_branch
+            self.opt_args.from_odoo_version = self.get_prior_odoo_version(
+                self.opt_args.odoo_branch)
+
         if self.opt_args.repos:
             for repo in self.opt_args.repos:
                 if repo not in self.repo_info:
@@ -381,7 +394,20 @@ class OdooDeploy(object):
                         root_path=self.opt_args.origin)
             self.sort_repo_list()
         else:
-            self.get_repo_from_path(root_path=self.opt_args.origin)
+            self.get_repos_from_path(root_path=self.opt_args.origin)
+
+    def get_prior_odoo_version(self, odoo_branch):
+        x = re.search("[0-9]+", odoo_branch)
+        if not x:
+            print("***** Missing from Odoo version!")
+            from_odoo_version = odoo_branch
+        else:
+            from_odoo_version = re.sub(
+                "[0-9]+",
+                str(eval(odoo_branch[x.start():x.end()]) - 1),
+                odoo_branch,
+                count=1)
+        return from_odoo_version
 
     def set_default_branch(self):
         if not self.repo_list:
@@ -578,7 +604,7 @@ class OdooDeploy(object):
             self.get_addons_from_config_file()
         self.sort_repo_list()
 
-    def get_repo_from_path(self, root_path=None):
+    def get_repos_from_path(self, root_path=None):
         path = root_path or self.target_path
         if path and pth.isdir(path):
             self.analyze_path(path, "OCB")
@@ -843,7 +869,7 @@ class OdooDeploy(object):
     def set_upstream(self, origin_path, repo):
         if repo != "OCB":
             origin_path = pth.join(origin_path, repo)
-        target_path = self.get_path_of_repo(repo)
+        target_path = self.get_path_of_repo(repo, root_path=self.opt_args.target_path)
         if os.getcwd() != target_path:
             self.run_traced("cd %s" % target_path)
         if not pth.isfile(".gitignore"):
@@ -967,8 +993,8 @@ class OdooDeploy(object):
         except FileNotFoundError:  # noqa: F821
             # Please do not remove following code: here where current dir was removed
             self.run_traced("cd %s" % root)
+        remote_branch = branch
         if branch:
-            remote_branch = branch
             alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
         else:
             alt_branches = []
@@ -1004,6 +1030,8 @@ class OdooDeploy(object):
         if sts:
             print("Invalid branch %s" % branch)
         if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
+            self.repo_info[repo]["PATH"] = tgtdir
+            self.repo_info[repo]["BRANCH"] = remote_branch
             self.set_upstream(self.opt_args.origin, repo)
         return sts, remote_branch
 
@@ -1030,7 +1058,7 @@ class OdooDeploy(object):
                         % (repo_branch, branch),
                         "Do checkout %s? " % branch):
                     return 1, repo_branch
-            sts = self.git_checkout(tgtdir, branch)
+            sts = self.git_checkout(repo, tgtdir, branch)
             if sts:
                 return sts, repo_branch
         cmd = "git pull origin %s" % branch
@@ -1049,7 +1077,7 @@ class OdooDeploy(object):
                 if re.match(regex, ln):
                     found = True
                     break
-        if found and self.opt_args.remove_unrelated_branch:
+        if found and not self.opt_args.keep_unrelated:
             self.run_traced(
                 "git push origin delete %s" % self.opt_args.odoo_branch)
             found = False
@@ -1107,33 +1135,46 @@ class OdooDeploy(object):
             print("")
         return sts, repo_branch
 
-    def git_checkout(self, target_path, branch, new_branch=False):
+    def git_checkout(self, repo, target_path, branch, new_branch=False):
         if os.getcwd() != target_path:
             self.run_traced(
                 "cd %s" % target_path,
             )
-        cmd = ("git checkout -b %s" if new_branch else "git checkout %s") % branch
-        sts, stdout, stderr = self.run_traced(cmd)
-        if sts:
-            print("Invalid branch %s" % branch)
-            print("")
-            cmd = ("git checkout -b %s" if new_branch
-                   else "git checkout %s") % self.master_branch
+        (
+            sts, repo_branch, git_url, stash_list, upstream,
+            last_date, status, stage, brief
+        ) = self.get_remote_info(verbose=False)
+        if new_branch and repo_branch != branch:
+            cmd = ("git checkout -b %s" if new_branch else "git checkout %s") % branch
             sts, stdout, stderr = self.run_traced(cmd)
             if sts:
-                print("Invalid branch %s" % self.master_branch)
+                print("Invalid branch %s" % branch)
+                print("")
+                if repo_branch != self.master_branch:
+                    cmd = ("git checkout -b %s" if new_branch
+                           else "git checkout %s") % self.master_branch
+                    sts, stdout, stderr = self.run_traced(cmd)
+                    if sts:
+                        print("Invalid branch %s" % self.master_branch)
+                    else:
+                        if new_branch:
+                            self.repo_info[repo]["BRANCH"] = branch
+                        sleep(1)
             else:
+                if new_branch:
+                    self.repo_info[repo]["BRANCH"] = branch
                 sleep(1)
         return sts
 
     def git_delete_unrelated_branch(self, target_path):
-        if os.getcwd() != target_path:
-            self.run_traced("cd %s" % target_path)
-        sts, stdout, stderr = self.run_traced("git branch")
-        for ln in stdout.split("\n"):
-            if not ln or ln.startswith("*"):
-                continue
-            self.run_traced("git branch -D %s" % ln.strip())
+        if not self.opt_args.keep_unrelated:
+            if os.getcwd() != target_path:
+                self.run_traced("cd %s" % target_path)
+            sts, stdout, stderr = self.run_traced("git branch")
+            for ln in stdout.split("\n"):
+                if not ln or ln.startswith("*"):
+                    continue
+                self.run_traced("git branch -D %s" % ln.strip())
 
     def rsync_origin_path(self, repo, origin_path, target_path):
         exclude_path = self.opt_args.exclude_path
@@ -1216,26 +1257,16 @@ class OdooDeploy(object):
             tgtdir,
             repo,
     ):
-        if pth.isdir(tgtdir) and not self.ask_4_confirm(
-                "Path %s alreasy exists" % tgtdir,
-                "Proceede anyway (y/n)? "):
-            return 1
-        sts = 127
-        for git_org in self.opt_args.git_orgs:
-            self.set_default_repo_info(
-                repo, git_org, self.opt_args.odoo_branch,
-                root_path=self.target_path)
-            sts, remote_branch = self.git_clone(
-                self.repo_info[repo]["URL"],
-                tgtdir,
-                compact=True if git_org in ("odoo", "oca") else False,
-                repo=repo,
-            )
-            if sts == 0:
-                break
+        sts = self.action_clone_1_repo(
+            repo,
+            branch=self.opt_args.from_odoo_version,
+            tgtdir=tgtdir,
+            master_branch=self.get_prior_odoo_version(self.opt_args.from_odoo_version)
+        )
         if sts:
             return sts, self.opt_args.odoo_branch
-        sts = self.git_checkout(tgtdir, self.opt_args.odoo_branch, new_branch=True)
+        sts = self.git_checkout(
+            repo, tgtdir, self.opt_args.odoo_branch, new_branch=True)
         if sts:
             return sts, self.opt_args.odoo_branch
         self.git_delete_unrelated_branch(tgtdir)
@@ -1291,6 +1322,69 @@ class OdooDeploy(object):
             print(",".join(self.addons_path))
         return 0
 
+    def action_clone_1_repo(self, repo, branch=None, tgtdir=None, master_branch=None):
+        branch = branch or self.opt_args.odoo_branch
+        tgtdir = tgtdir or self.get_path_of_repo(repo)
+        master_branch = master_branch or self.master_branch
+        bakdir = ""
+        if pth.isdir(tgtdir):
+            if self.opt_args.skip_if_exist:
+                return 0
+            elif not self.ask_4_confirm("Path %s of repo %s already exists!"
+                                        % (tgtdir, repo),
+                                        "Delete (y/n)? "):
+                if self.opt_args.continue_after_error:
+                    return 0
+            if self.repo_is_ocb(repo):
+                bakdir = "%s~" % tgtdir
+                if pth.isdir(bakdir):
+                    if os.getcwd() == bakdir:
+                        self.run_traced("cd %s" % pth.dirname(bakdir))
+                    cmd = "rm -fR %s" % bakdir
+                    self.run_traced(cmd)
+                cmd = "mv %s %s" % (tgtdir, bakdir)
+                self.run_traced(cmd)
+            elif not pth.islink(tgtdir):
+                if os.getcwd() == tgtdir:
+                    self.run_traced("cd %s" % pth.dirname(tgtdir))
+                cmd = "rm -fR %s" % tgtdir
+                self.run_traced(cmd)
+        for git_org in self.opt_args.git_orgs:
+            if repo == "OCB" and not self.opt_args.keep_root_owner:
+                git_org = "odoo"
+            self.set_default_repo_info(repo, git_org, branch)
+            sts, remote_branch = self.git_clone(
+                self.repo_info[repo]["URL"],
+                tgtdir,
+                branch,
+                master_branch=master_branch,
+                compact=True if git_org in ("odoo", "oca") else False,
+                repo=repo,
+            )
+            if sts == 0:
+                break
+        self.repo_info[repo]["STS"] = sts
+        if (
+            pth.isdir(tgtdir)
+            and self.repo_is_ocb(repo)
+            and bakdir
+            and pth.isdir(bakdir)
+        ):
+            for fn in os.listdir(bakdir):
+                if fn.startswith((".", "_")):
+                    continue
+                path = pth.join(bakdir, fn)
+                tgtfn = pth.join(tgtdir, fn)
+                if pth.exists(tgtfn):
+                    continue
+                if pth.isdir(path):
+                    cmd = "mv %s/ %s/" % (path, tgtfn)
+                    self.run_traced(cmd)
+                else:
+                    cmd = "mv %s %s" % (path, tgtfn)
+                    self.run_traced(cmd)
+        return sts
+
     def action_clone(self):
         sts = 127
         if (
@@ -1302,70 +1396,9 @@ class OdooDeploy(object):
                     "Proceede anyway (y/n)? "):
                 return 1
         for repo in self.repo_list:
-            bakdir = ""
-            tgtdir = self.get_path_of_repo(repo)
-            if pth.isdir(tgtdir):
-                if self.opt_args.skip_if_exist:
-                    sts = self.git_pull(repo)[0]
-                    if sts and not self.opt_args.continue_after_error:
-                        break
-                    continue
-                elif not self.ask_4_confirm("Path %s of repo %s already exists!"
-                                            % (tgtdir, repo),
-                                            "Delete (y/n)? "):
-                    if self.opt_args.continue_after_error:
-                        continue
-                    break
-                if self.repo_is_ocb(repo):
-                    bakdir = "%s~" % tgtdir
-                    if pth.isdir(bakdir):
-                        if os.getcwd() == bakdir:
-                            self.run_traced("cd %s" % pth.dirname(bakdir))
-                        cmd = "rm -fR %s" % bakdir
-                        self.run_traced(cmd)
-                    cmd = "mv %s %s" % (tgtdir, bakdir)
-                    self.run_traced(cmd)
-                elif not pth.islink(tgtdir):
-                    if os.getcwd() == tgtdir:
-                        self.run_traced("cd %s" % pth.dirname(tgtdir))
-                    cmd = "rm -fR %s" % tgtdir
-                    self.run_traced(cmd)
-            for git_org in self.opt_args.git_orgs:
-                if repo == "OCB" and not self.opt_args.keep_root_owner:
-                    git_org = "odoo"
-                self.set_default_repo_info(
-                    repo, git_org, self.opt_args.odoo_branch)
-                sts, remote_branch = self.git_clone(
-                    self.repo_info[repo]["URL"],
-                    tgtdir,
-                    self.opt_args.odoo_branch,
-                    master_branch=self.master_branch,
-                    compact=True if git_org in ("odoo", "oca") else False,
-                    repo=repo,
-                )
-                if sts == 0:
-                    break
-            self.repo_info[repo]["STS"] = sts
-            if (
-                    pth.isdir(tgtdir)
-                    and self.repo_is_ocb(repo)
-                    and bakdir
-                    and pth.isdir(bakdir)
-            ):
-                for fn in os.listdir(bakdir):
-                    if fn.startswith((".", "_")):
-                        continue
-                    path = pth.join(bakdir, fn)
-                    tgtfn = pth.join(tgtdir, fn)
-                    if pth.exists(tgtfn):
-                        continue
-                    if pth.isdir(path):
-                        cmd = "mv %s/ %s/" % (path, tgtfn)
-                        self.run_traced(cmd)
-                    else:
-                        cmd = "mv %s %s" % (path, tgtfn)
-                        self.run_traced(cmd)
-            if sts and not self.opt_args.continue_after_error:
+            sts1 = self.action_clone_1_repo(repo)
+            sts = sts if sts != 127 else sts1
+            if sts1 and not self.opt_args.continue_after_error:
                 break
         if self.opt_args.verbose:
             self.action_status()
@@ -1436,14 +1469,14 @@ class OdooDeploy(object):
 
     def action_new_branch(self):
         sts = 127
-        if (
-                self.opt_args.repos
-                and "OCB" not in self.opt_args.repos
-        ):
-            if not self.ask_4_confirm(
-                    "Clone repositories %s w/o OCB" % self.opt_args.repos,
-                    "Proceede anyway (y/n)? "):
-                return 1
+        # if (
+        #         self.opt_args.repos
+        #         and "OCB" not in self.opt_args.repos
+        # ):
+        #     if not self.ask_4_confirm(
+        #             "Clone repositories %s w/o OCB" % self.opt_args.repos,
+        #             "Proceede anyway (y/n)? "):
+        #         return 1
         for repo in self.repo_list:
             srcdir = self.get_path_of_repo(repo)
             if not pth.isdir(srcdir):
@@ -1458,7 +1491,7 @@ class OdooDeploy(object):
             tgtdir = self.get_path_of_repo(repo, root_path=self.target_path)
             sts, branch = self.git_new_branch(srcdir, tgtdir, repo)
             self.repo_info[repo]["STS"] = sts
-            if sts:
+            if sts and not self.opt_args.continue_after_error:
                 break
 
         if self.opt_args.verbose:
@@ -1526,6 +1559,12 @@ def main(cli_args=None):
         action="store_true",
     )
     parser.add_argument(
+        "--from-odoo-version",
+        help=(
+            "Clone from Odoo version"
+        ),
+    )
+    parser.add_argument(
         "-G",
         "--git-orgs",
         help="Git organizations, comma separated - " "May be: oca or zero",
@@ -1547,6 +1586,11 @@ def main(cli_args=None):
         "--keep-root-owner",
         action="store_true",
         help="Keep git_org organization owner instead of odoo/odoo",
+    )
+    parser.add_argument(
+        "--keep-unrelated",
+        action="store_true",
+        help="Keep unrelated branch when new-branch"
     )
     parser.add_argument(
         "-L", "--link-upstream",
@@ -1636,6 +1680,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

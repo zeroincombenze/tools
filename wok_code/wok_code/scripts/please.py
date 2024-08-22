@@ -38,7 +38,7 @@ import os.path as pth
 import sys
 import argparse
 import re
-from subprocess import call
+# from subprocess import call
 import itertools
 
 from z0lib import z0lib
@@ -60,7 +60,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 KNOWN_ACTIONS = [
     "help",
@@ -275,19 +275,11 @@ class Please(object):
 
     def run_traced(self, cmd, verbose=None, disable_output=False, rtime=False):
         verbose = verbose if verbose is not None else self.opt_args.verbose
-        # if rtime:
-        #     if self.opt_args.dry_run:
-        #         if self.opt_args.verbose:
-        #             print("> " + cmd)
-        #         return 0
-        #     if self.opt_args.verbose:
-        #         print("$ " + cmd)
-        #     return os.system(cmd)
         sts, stdout, stderr = z0lib.run_traced(
             cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime
         )
-        if not disable_output:
-            print(stdout + stderr)
+        # if not disable_output:
+        #     print(stdout + stderr)
         return sts
 
     def add_argument(self, parser, arg):
@@ -824,6 +816,16 @@ class Please(object):
             if not pth.isfile(cmd):
                 self.log_error("Internal package error: file %s not found!" % cmd)
                 return ""
+        if pth.basename(cmd) == cmd:
+            dir = pth.dirname(pth.abspath(__file__))
+            while True:
+                if pth.isfile(pth.join(dir, cmd)):
+                    cmd = pth.join(dir, cmd)
+                    break
+                if pth.basename(dir) == "scripts":
+                    dir = pth.dirname(dir)
+                else:
+                    break
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
@@ -891,23 +893,28 @@ class Please(object):
             [changelog_fqn, "-i", "--test-res-msg=\"%s\"" % test_cov_msg])
         return sts
 
-    def chain_python_cmd(self, pyfile, args):
-        cmd = [sys.executable]
-        cmd.append(pth.join(pth.dirname(__file__), pyfile))
-        for arg in args:
-            cmd.append(arg)
-        cmd = " ".join(cmd)
-        if self.opt_args.verbose:
-            print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
-        return call(cmd, shell=True) if not self.opt_args.dry_run else 0
+    def chain_python_cmd(self, pyfile, args, verbose=None):
+        #     cmd = [sys.executable]
+        #     cmd.append(pth.join(pth.dirname(__file__), pyfile))
+        #     for arg in args:
+        #         cmd.append(arg)
+        #     cmd = " ".join(cmd)
+        #     if self.opt_args.verbose:
+        #         print("%s %s" % (">" if self.opt_args.dry_run else "$", cmd))
+        #     return call(cmd, shell=True) if not self.opt_args.dry_run else 0
+        verbose = verbose if verbose is not None else self.opt_args.verbose
+        return self.call_chained_python_cmd(pyfile, args, verbose=verbose)[0]
 
-    def call_chained_python_cmd(self, pyfile, args):
+    def call_chained_python_cmd(self, pyfile, args, verbose=None):
         cmd = [sys.executable]
         cmd.append(pth.join(pth.dirname(__file__), pyfile))
         for arg in args:
             cmd.append(arg)
-        cmd = " ".join(cmd)
-        return z0lib.run_traced(cmd, verbose=False, dry_run=self.opt_args.dry_run)
+        # cmd = " ".join(cmd)
+        # return z0lib.run_traced(cmd, verbose=False, dry_run=self.opt_args.dry_run)
+        verbose = verbose if verbose is not None else self.opt_args.verbose
+        return z0lib.os_system(
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=True)
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()
@@ -1058,6 +1065,7 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

@@ -17,7 +17,7 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "clodoo", "z0lib", "python_plus",
+    "clodoo", "z0lib>=2.0.11", "python_plus",
     "future", "Babel", "lxml", "openpyxl", "pyyaml"
 ]
 if sys.version_info >= (3, 0):
@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.18",
+    version="2.0.19",
     description="Python developers tools",
     long_description=long_description,
     classifiers=[
@@ -104,6 +104,7 @@ setup(
     },
     zip_safe=False,
 )
+
 
 
 

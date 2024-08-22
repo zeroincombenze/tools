@@ -14,7 +14,7 @@ from z0lib import z0lib
 from zerobug import z0test
 
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -76,17 +76,16 @@ class RegressionTest:
             " --depth=1 --single-branch",
             stdout)
         self.find_cmd_in_stdout(
-            "odoo +unstaged +16.0 +odoo +https://github.com/odoo/odoo.git",
+            "odoo +16.0 +odoo",
             stdout)
         self.find_cmd_in_stdout(
-            "crm +unstaged +16.0 +oca +https://github.com/OCA/crm.git",
+            "crm +16.0 +oca",
             stdout)
         self.find_cmd_in_stdout(
-            "l10n-italy +unstaged +16.0 +oca"
-            " +https://github.com/OCA/l10n-italy.git",
+            "l10n-italy +16.0 +oca",
             stdout)
         self.find_cmd_in_stdout(
-            "web +unstaged +16.0 +oca +https://github.com/OCA/web.git",
+            "web +16.0 +oca",
             stdout)
 
     def test_03_clone_zero(self):
@@ -106,13 +105,13 @@ class RegressionTest:
             "git clone git@github.com:zeroincombenze/web.git .* -b 16.0",
             stdout)
         self.find_cmd_in_stdout(
-            "OCB +unstaged +16.0 +zero +.*/OCB.git",
+            "OCB +16.0 +zero",
             stdout)
         self.find_cmd_in_stdout(
-            "crm +unstaged +16.0 +zero +.*/crm.git",
+            "crm +16.0 +zero",
             stdout)
         self.find_cmd_in_stdout(
-            "web +unstaged +16.0 +zero +.*/web.git",
+            "web +16.0 +zero",
             stdout)
 
     def test_04_amend(self):
@@ -125,7 +124,7 @@ class RegressionTest:
             "git clone git@github.com:zeroincombenze/l10n-italy.git .* -b 16.0",
             stdout)
         self.find_cmd_in_stdout(
-            "l10n-italy +unstaged +16.0 +zero +.*/l10n-italy.git",
+            "l10n-italy +16.0 +zero",
             stdout)
 
     def test_05_update(self):
@@ -166,16 +165,16 @@ class RegressionTest:
             "cp .*/odoo-bin",
             stdout)
         self.find_cmd_in_stdout(
-            "OCB +unstaged +17.0 +zero +.*/OCB.git",
+            "OCB +17.0 +zero",
             stdout)
         self.find_cmd_in_stdout(
-            "crm +unstaged +17.0 +zero +.*/crm.git",
+            "crm +17.0 +zero",
             stdout)
         self.find_cmd_in_stdout(
-            "l10n-italy +unstaged +17.0 +zero +.*/l10n-italy.git",
+            "l10n-italy +17.0 +zero",
             stdout)
         self.find_cmd_in_stdout(
-            "web +unstaged +17.0 +zero +.*/web.git",
+            "web +17.0 +zero",
             stdout)
 
 

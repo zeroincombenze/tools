@@ -14,7 +14,7 @@ from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1
@@ -123,6 +123,7 @@ class RegressionTest:
         TMODARS = "-m test_module -b 12.0"
         DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
 
+        # import pdb; pdb.set_trace()
         cmd = "please zerobug -vfn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
