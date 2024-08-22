@@ -13,7 +13,7 @@ import glob
 import shutil
 import stat
 import subprocess
-from subprocess import PIPE, Popen
+# from subprocess import PIPE, Popen
 import re
 
 from string import Template
@@ -25,11 +25,10 @@ import unittest
 
 import magic
 
-from os0 import os0
 from z0lib import z0lib
-from python_plus import _c
+from python_plus import _c, str2bool
 
-__version__ = "2.0.16"
+__version__ = "2.0.18"
 
 # return code
 TEST_FAILED = 1
@@ -164,21 +163,6 @@ def sign_params(method):
         if sys.version_info[0] == 2 else list(signature(method).parameters))
 
 
-def print_flush(msg):
-    if sys.version_info[0] == 3:                                     # pragma: no cover
-        print(msg, flush=True)
-    else:
-        print(msg)
-        sys.stdout.flush()
-
-
-def os_run(cmd):
-    with Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-        outs, errs = proc.communicate(timeout=60)
-    return (outs.decode("utf-8") if outs else outs,
-            errs.decode("utf-8") if errs else errs)
-
-
 def check_for_requirements(requirements=None):
     if not requirements:
         if os.path.isfile("egg-info/__manifest__.rst"):
@@ -192,17 +176,17 @@ def check_for_requirements(requirements=None):
             with open(fqn, "r") as fd:
                 contents = fd.read()
         for ln in contents.split("\n"):
-            if ln.startswith(".. $set before_test"):
-                requirements = eval(ln[35:].strip())
+            if ln.startswith(".. $set pg_requirements"):
+                requirements = eval(ln[20:].strip())
                 break
     sts = 0
     if not requirements:
         return sts
     for (port, db) in requirements:
         vid = "oca" + str(port - 8260) if port > 8200 else "oca" + str(port - 8160)
-        outs, errs = os_run(["ss", "-lt"])
+        sts, outs, errs = z0lib.os_system(["ss", "-lt"])
         port_found = False
-        if outs:
+        if sts == 0 and outs:
             pattern = "0.0.0.0:" + str(port)
             for ln in outs.split("\n"):
                 if pattern in ln:
@@ -211,12 +195,12 @@ def check_for_requirements(requirements=None):
         if port_found:
             print("Instance %s running at %s [OK]" % (vid, port))
         else:
-            print("*** No Odoo instance running at port <%s> (instance %s)!" % (port,
-                                                                                vid))
+            print("*** No Odoo instance running at port <%s> (name %s)!" % (port,
+                                                                            vid))
             sts = 1
-        outs, errs = os_run(["psql", "-Atl"])
+        sts1, outs, errs = z0lib.os_system(["psql", "-Atl"], verbose=False)
         db_found = False
-        if outs:
+        if sts1 == 0 and outs:
             pattern = db + "|"
             for ln in outs.split("\n"):
                 if ln.startswith(pattern):
@@ -225,7 +209,7 @@ def check_for_requirements(requirements=None):
         if db_found:
             print("Instance %s with db %s, user admin/admin [OK]" % (vid, db))
         else:
-            print("*** No database <%s> found (instance %s)!" % (db, vid))
+            print("*** No database <%s> found (name %s)!" % (db, vid))
             sts = 1
     if sts:
         print("*** TEST FAILED!!!! ***")
@@ -928,12 +912,12 @@ class Z0test(object):
                     ctx[p] = getattr(opt_obj, p)
             for p in LX_OPT_CFG_B:
                 if hasattr(opt_obj, p):
-                    ctx[p] = os0.str2bool(getattr(opt_obj, p), None)
+                    ctx[p] = str2bool(getattr(opt_obj, p), None)
             for p in LX_OPT_CFG_N:
                 if hasattr(opt_obj, p) and getattr(opt_obj, p):
                     ctx[p] = int(getattr(opt_obj, p))
         for p in LX_SB:
-            ctx[p] = os0.str2bool(ctx[p], ctx[p])
+            ctx[p] = str2bool(ctx[p], ctx[p])
         return ctx
 
     def _get_this_fqn(self):
@@ -1150,7 +1134,7 @@ class Z0test(object):
                     test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
-                res, err = os_run(test_w_args)
+                sts, res, err = z0lib.os_system(test_w_args, verbose=True, rtime=True)
                 try:
                     ctx['ctr'] = int(res)
                 except BaseException:  # pragma: no cover
@@ -1249,9 +1233,9 @@ class Z0test(object):
                         test_w_args = [sys.executable] + [testname] + opt4childs
                     if ctx.get("opt_verbose"):
                         if ctx.get('dry_run', False):
-                            print_flush("    > " + " ".join(test_w_args))
+                            z0lib.print_flush("    > " + " ".join(test_w_args))
                         else:
-                            print_flush("    $ " + " ".join(test_w_args))
+                            z0lib.print_flush("    $ " + " ".join(test_w_args))
                     try:
                         sts = subprocess.call(test_w_args)
                     except OSError:
@@ -1321,9 +1305,9 @@ class Z0test(object):
                                 % ctx["COVERAGE_DATA_FILE"]
                             )
                             if ctx.get('dry_run', False):
-                                print_flush("    > " + cmd)
+                                z0lib.print_flush("    > " + cmd)
                             else:
-                                print_flush("    $ " + cmd)
+                                z0lib.print_flush("    $ " + cmd)
                         coveragerc = coveragerc.replace(
                             "[run]\n",
                             "[run]\ndata_file=%s\n\n" % ctx["COVERAGE_DATA_FILE"])
@@ -1332,12 +1316,12 @@ class Z0test(object):
                     cmd = "coverage erase --rcfile=%s" % ctx["COVERAGE_PROCESS_START"]
                     if ctx.get("opt_verbose"):
                         if ctx.get('dry_run', False):
-                            print_flush("    > " + cmd)
+                            z0lib.print_flush("    > " + cmd)
                         else:
-                            print_flush("    $ " + cmd)
+                            z0lib.print_flush("    $ " + cmd)
                     sts, stdout, stderr = z0lib.run_traced(cmd)
                     if sts:
-                        print_flush('Coverage not found!')
+                        z0lib.print_flush('Coverage not found!')
                         ctx['run4cover'] = False
         test_list = []
         if isinstance(unittest_list, (list, tuple)):
@@ -1371,7 +1355,7 @@ class Z0test(object):
         sts = self._exec_all_tests(test_list, ctx, Cls2Test)
         if ctx.get('run_on_top', False) and not ctx.get('_run_autotest', False):
             if sts == 0:
-                print_flush(success_msg)
+                z0lib.print_flush(success_msg)
                 if (
                         ctx.get("COVERAGE_DATA_FILE")
                         and ctx.get('run4cover', False)
@@ -1381,16 +1365,16 @@ class Z0test(object):
                            % ctx["COVERAGE_PROCESS_START"])
                     if ctx.get("opt_verbose"):
                         if ctx.get('dry_run', False):
-                            print_flush("    > " + cmd)
+                            z0lib.print_flush("    > " + cmd)
                         else:
-                            print_flush("    $ " + cmd)
+                            z0lib.print_flush("    $ " + cmd)
                     sts, stdout, stderr = z0lib.run_traced(cmd, verbose=0)
-                    print_flush(stdout + stderr)
+                    z0lib.print_flush(stdout + stderr)
                     if sts:
                         ctx['run4cover'] = False
                     sts = 0
             else:
-                print_flush(fail_msg)
+                z0lib.print_flush(fail_msg)
         return sts
 
     def msg_test(self, ctx, msg):
@@ -1405,12 +1389,12 @@ class Z0test(object):
             if ctx.get('WLOGCMD', None):
                 if ctx['WLOGCMD'] == "echo" or ctx['WLOGCMD'] == "wecho-1":
                     if not ctx.get('opt_noctr', None):
-                        print_flush(
+                        z0lib.print_flush(
                             "%sTest %d/%d: %s"
                             % (prfx, ctx['ctr'], ctx['max_test'], msg)
                         )
                     else:
-                        print_flush("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
+                        z0lib.print_flush("%sTest %d: %s" % (prfx, ctx['ctr'], msg))
 
     def test_result(self, ctx, msg, test_value, result_val, op=None):
         # This function is deprecated
@@ -1424,7 +1408,7 @@ class Z0test(object):
             raise KeyError("Invalid operator " + op)
         if not ctx.get('dry_run', False):
             if op == "=~" and not re.match(result_val, test_value):
-                print_flush(
+                z0lib.print_flush(
                     "Test '%s' failed: value '%s' does not match '%s'"
                     % (msg, test_value, result_val)
                 )
@@ -1434,7 +1418,7 @@ class Z0test(object):
                 else:
                     return TEST_FAILED
             elif op == "==" and test_value != result_val:  # pragma: no cover
-                print_flush(
+                z0lib.print_flush(
                     "Test '%s' failed: expected '%s', found '%s'"
                     % (msg, test_value, result_val)
                 )
@@ -1446,10 +1430,10 @@ class Z0test(object):
         return TEST_SUCCESS
 
     def test_failed(self, msg, first, second=None):
-        print_flush(msg)
-        print_flush("Value1='" + str(first) + "'")
+        z0lib.print_flush(msg)
+        z0lib.print_flush("Value1='" + str(first) + "'")
         if second:
-            print_flush("Value2='" + str(second) + "'")
+            z0lib.print_flush("Value2='" + str(second) + "'")
         self.successful = False
         if self.failfast:
             raise AssertionError
@@ -1457,21 +1441,21 @@ class Z0test(object):
     def assertTrue(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if not bool(expr):
             self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertFalse(self, expr, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if bool(expr):
             self.test_failed(msg or "Invalid value <<%s>>!" % expr, expr)
 
     def assertEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first != second:
             self.test_failed(
                 msg or "Value <<%s>> is different from <<%s>>!" % (first, second),
@@ -1480,7 +1464,7 @@ class Z0test(object):
     def assertNotEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first == second:
             self.test_failed(
                 msg or "Value <<%s>> is equal to <<%s>>!" % (first, second),
@@ -1489,7 +1473,7 @@ class Z0test(object):
     def assertIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first not in second:
             self.test_failed(
                 msg or "Value <<%s>> is not in <<%s>>!" % (first, second),
@@ -1498,7 +1482,7 @@ class Z0test(object):
     def assertNotIn(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first in second:
             self.test_failed(
                 msg or "Value <<%s>> is in <<%s>>!" % (first, second),
@@ -1507,7 +1491,7 @@ class Z0test(object):
     def assertLess(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first >= second:
             self.test_failed(
                 msg or "Value <<%s>> is greater or equal to <<%s>>!" % (first, second),
@@ -1516,7 +1500,7 @@ class Z0test(object):
     def assertLessEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first > second:
             self.test_failed(
                 msg or "Value <<%s>> is greater than <<%s>>!" % (first, second),
@@ -1525,7 +1509,7 @@ class Z0test(object):
     def assertGreater(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first <= second:
             self.test_failed(
                 msg or "Value <<%s>> is less or equal to <<%s>>!" % (first, second),
@@ -1534,7 +1518,7 @@ class Z0test(object):
     def assertGreaterEqual(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if first < second:
             self.test_failed(
                 msg or "Value <<%s>> is less than <<%s>>!" % (first, second),
@@ -1543,7 +1527,7 @@ class Z0test(object):
     def assertMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if not re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> does not match <<%s>>!" % (first, second),
@@ -1552,7 +1536,7 @@ class Z0test(object):
     def assertNotMatch(self, first, second, msg=None, msg_info=None):
         self.assert_counter += 1
         if msg_info:
-            print_flush(("%d. " % self.assert_counter) + msg_info)
+            z0lib.print_flush(("%d. " % self.assert_counter) + msg_info)
         if re.match(second, first):
             self.test_failed(
                 msg or "Value <<%s>> matches <<%s>>!" % (first, second),
@@ -1871,6 +1855,8 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+
+
 
 
 

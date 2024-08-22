@@ -12,7 +12,7 @@ except ImportError:
     import z0testlib
     z0test = z0testlib.Z0test()
 
-__version__ = "2.0.16"
+__version__ = "2.0.18"
 
 
 def version():
@@ -27,6 +27,8 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))
+
+
 
 
 

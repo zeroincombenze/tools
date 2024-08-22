@@ -24,8 +24,7 @@ if sys.version_info >= (3, 0):
             "pylint-odoo",
             "python-magic",
             "python-plus",
-            "os0",
-            "z0lib",
+            "z0lib>=2.0.11",
         ],
     )
 else:
@@ -37,14 +36,13 @@ else:
             "pylint-odoo<=3.5.0",
             "python-magic",
             "python-plus",
-            "os0",
-            "z0lib",
+            "z0lib>=2.0.11",
         ],
     )
 
 setup(
     name=name,
-    version="2.0.16",
+    version="2.0.18",
     description="Zeroincombenze continuous testing framework"
     " and tools for python and bash programs",
     long_description=long_description,
@@ -53,7 +51,6 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -94,6 +91,8 @@ setup(
     },
     zip_safe=False,
 )
+
+
 
 
 

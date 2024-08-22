@@ -4,19 +4,11 @@
 from __future__ import print_function
 
 import os
-import sys
+# import sys
+from z0lib import z0lib
 
 from coverage.cmdline import main as coverage_main
-# from coveralls import cli as coveralls_cli
-# from codecov import main as codecov_main
 
-
-def print_flush(msg):
-    if sys.version_info[0] == 3:
-        print(msg, flush=True)
-    else:
-        print(msg)
-        sys.stdout.flush()
 
 def combine_reports():
     if os.environ.get('MODULE_PATH') and os.environ.get('TRAVIS_BUILD_DIR'):
@@ -36,19 +28,9 @@ if __name__ == '__main__':
             not os.environ.get('LINT_CHECK') == '1'):
         if eval(os.environ.get('opt_mis', '0')):
             if travis_debug_mode > 1:
-                print_flush('DEBUG: coverage report --show-missing')
+                z0lib.print_flush('DEBUG: coverage report --show-missing')
             coverage_main(["report", "--show-missing"])
         else:
             if travis_debug_mode > 1:
-                print_flush('DEBUG: coverage report')
+                z0lib.print_flush('DEBUG: coverage report')
             coverage_main(["report"])
-        # print_flush('DEBUG: sending result to coveralls / codecov')
-        # if os.environ['TRAVIS'] == "true":
-        #     try:
-        #         coveralls_cli.main(argv=None)
-        #     except:
-        #         pass
-        #     try:
-        #         codecov_main(argv=None)
-        #     except:
-        #         pass

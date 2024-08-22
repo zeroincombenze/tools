@@ -53,15 +53,15 @@ test_01() {
     RES=$(list_requirements.py -qStpython -s ' ')
     test_result "list_requirements -qStpython" "$TRES" "$RES"
     #
-    TRES="astroid Click configparser coverage docopt docutils flake8 future GitPython isort lazy_object_proxy lxml MarkupSafe mock pbr polib pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyserial pytest python-magic PyWebDAV PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 websocket-client whichcraft wrapt z0bug_odoo zerobug"
+    TRES="astroid Click configparser coverage docopt docutils flake8 future GitPython isort lazy_object_proxy lxml MarkupSafe mccabe mock pbr polib pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyserial pytest python-magic PyWebDAV PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 websocket-client whichcraft wrapt z0bug_odoo zerobug"
     RES=$(list_requirements.py -qTtpython -s ' ')
     test_result "list_requirements -qTtpython" "$TRES" "$RES"
     #
-    TRES="clodoo odoorpc os0"
+    TRES="clodoo odoorpc oerplib3"
     RES=$(list_requirements.py -qRtpython -s ' ')
     test_result "list_requirements -qRtpython" "$TRES" "$RES"
     #
-    TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev python-dev python-setuptools"
+    TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev libxml2-dev libxslt1-dev python-dev python-setuptools python3-lxml python3.10-dev zlib1g-dev"
     RES=$(list_requirements.py -qSTRtbin -s ' ')
     test_result "list_requirements -qSTRtbin" "$TRES" "$RES"
     #
@@ -71,41 +71,41 @@ test_01() {
 }
 
 test_02() {
-    TRES="Babel,chardet,configparser,decorator,docutils,feedparser,future,gdata,gevent,html2text,Jinja2,lessc,lxml,Mako,num2words,numpy,passlib,Pillow,psutil,psycogreen,psycopg2-binary,pydot,pyparsing,pyPdf,pyPDF2,pyserial,Python-Chart,python-dateutil,python-ldap,python-openid,python-plus,python-stdnum,pytz,reportlab,simplejson,six,vatnumber,Werkzeug"
+    TRES="Babel,chardet,configparser,decorator,docutils,feedparser,future,gdata,gevent,html2text,Jinja2,lessc,lxml,Mako,num2words,numpy,odoo_score,passlib,Pillow,psutil,psycogreen,psycopg2-binary,pydot,pyparsing,pyPdf,pyPDF2,pyserial,Python-Chart,python-dateutil,python-ldap,python-openid,python-plus,python-stdnum,pytz,reportlab,simplejson,six,vatnumber,Werkzeug"
     RES=$(list_requirements.py -B -b12.0 -qtpython)
     test_result "list_requirements -B -b12.0 -qtpython" "$TRES" "$RES"
     #
-    TRES="astroid Babel chardet Click clodoo configparser coverage decorator docopt docutils feedparser flake8 future gdata gevent GitPython html2text isort Jinja2 lazy_object_proxy lessc lxml Mako MarkupSafe mock num2words numpy odoorpc os0 passlib pbr Pillow polib psutil psycogreen psycopg2-binary pycodestyle pycparser pydot pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyparsing pyPdf pyPDF2 pyserial pytest Python-Chart python-dateutil python-ldap python-magic python-openid python-plus python-stdnum pytz PyWebDAV3 PyYAML QUnitSuite reportlab restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 vatnumber websocket-client Werkzeug whichcraft wrapt z0bug_odoo zerobug"
+    TRES="astroid Babel chardet Click clodoo configparser coverage decorator docopt docutils feedparser flake8 future gdata gevent GitPython html2text isort Jinja2 lazy_object_proxy lessc lxml Mako MarkupSafe mccabe mock num2words numpy odoo_score odoorpc oerplib3 passlib pbr Pillow polib psutil psycogreen psycopg2-binary pycodestyle pycparser pydot pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyparsing pyPdf pyPDF2 pyserial pytest Python-Chart python-dateutil python-ldap python-magic python-openid python-plus python-stdnum pytz PyWebDAV3 PyYAML QUnitSuite reportlab restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 vatnumber websocket-client Werkzeug whichcraft wrapt z0bug_odoo zerobug"
     RES=$(list_requirements.py -BTR -b12.0 -qtpython -s ' ')
     test_result "list_requirements -BTR -b12.0 -qtpython" "$TRES" "$RES"
     #
-    TRES="asn1crypto astroid certifi Click clodoo configparser coverage cryptography docopt docutils flake8 future GitPython idna isort lazy_object_proxy lxml MarkupSafe mock odoorpc os0 pbr polib pyasn1 pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyOpenSSL pyserial pytest python-magic PyWebDAV3 PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 urllib3[secure] websocket-client whichcraft wrapt z0bug_odoo zerobug"
+    TRES="asn1crypto astroid certifi Click clodoo configparser coverage cryptography docopt docutils flake8 future GitPython idna isort lazy_object_proxy lxml MarkupSafe mccabe mock odoorpc oerplib3 pbr polib pyasn1 pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyOpenSSL pyserial pytest python-magic PyWebDAV3 PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 urllib3[secure] websocket-client whichcraft wrapt z0bug_odoo zerobug"
     RES=$(list_requirements.py -TRS -b12.0 -qtpython -s ' ')
     test_result "list_requirements -TRS -b12.0 -qtpython" "$TRES" "$RES"
     #
-    TRES="Babel chardet decorator feedparser gdata gevent html2text Jinja2 lessc Mako num2words numpy passlib Pillow psutil psycogreen psycopg2-binary pydot pyparsing pyPdf pyPDF2 Python-Chart python-dateutil python-ldap python-openid python-plus python-stdnum pytz reportlab six vatnumber Werkzeug"
+    TRES="Babel chardet decorator feedparser gdata gevent html2text Jinja2 lessc Mako num2words numpy odoo_score passlib Pillow psutil psycogreen psycopg2-binary pydot pyparsing pyPdf pyPDF2 Python-Chart python-dateutil python-ldap python-openid python-plus python-stdnum pytz reportlab six vatnumber Werkzeug"
     RES=$(list_requirements.py -BX -b12.0 -qtpython -s ' ')
     test_result "list_requirements -BX -b12.0 -qtpython" "$TRES" "$RES"
 }
 
 test_03() {
-    TRES="python=astroid,Click,configparser,coverage,docopt,docutils,flake8,future,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-odoo,pylint-plugin-utils,pyserial,pytest,python-magic,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,simplejson,six,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,zerobug"
+    TRES="astroid,Click,configparser,coverage,docopt,docutils,flake8,future,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-odoo,pylint-plugin-utils,pyserial,pytest,python-magic,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,simplejson,six,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,zerobug"
     RES=$(list_requirements.py -b10.0 -tpython -T)
     test_result "list_requirements -b10.0 -tpython -T" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=2.2.2,<3.4',decorator==3.4.0,docutils==0.16,feedparser==5.1.3,future,gdata==2.0.18,gevent==1.0.2,html2text,idna,Jinja2==2.7.3,'lxml>=3.3.5,<=3.4.1','Mako>=1.0.4',num2words,numpy,passlib==1.6.2,Pillow==3.4.1,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.5.4,<2.8.0',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.0.3,pyPDF2==1.28.4,pyPdf==1.13,pyserial==2.7,Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==2.4.19,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2014.10',reportlab==3.1.44,simplejson==3.5.3,six==1.9.0,urllib3[secure],vatnumber==1.2,Werkzeug==0.9.6"
+    TRES="asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=2.2.2,<3.4',decorator==3.4.0,docutils==0.16,feedparser==5.1.3,future,gdata==2.0.18,gevent==1.0.2,html2text,idna,Jinja2==2.7.3,'lxml>=3.3.5,<=3.4.1','Mako>=1.0.4','num2words<=0.5',numpy,odoo_score==1.0.1,passlib==1.6.2,Pillow==3.4.1,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.5.4,<2.8.0',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.0.3,pyPDF2==1.28.4,pyPdf==1.13,pyserial==2.7,Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==2.4.19,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2014.10',reportlab==3.1.44,simplejson==3.5.3,six==1.9.0,urllib3[secure],vatnumber==1.2,Werkzeug==0.9.6"
     RES=$(list_requirements.py -b8.0 -tpython -BSP)
     test_result "list_requirements -b8.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=2.2.2,<3.4',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=1.1.2,<=1.4.0',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0','lxml>=3.5.0,<=3.6.4','Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==3.4.1,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.7.4',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.1.10,pyPDF2==1.28.4,pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==2.4.27,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.11.11"
+    TRES="asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=2.2.2,<3.4',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=1.1.2,<1.3.0',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0','lxml>=3.5.0,<=3.6.4','Mako>=1.0.4','num2words<=0.5',numpy,'odoo_score>=2.0.0',passlib==1.6.5,Pillow==3.4.1,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.7.4',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.1.10,pyPDF2==1.28.4,pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==2.4.27,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,'Werkzeug>=0.11.11,<=0.11.15'"
     RES=$(list_requirements.py -b10.0 -tpython -BSP)
     test_result "list_requirements -b10.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=23.0,<38.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=1.5.0,<=21.12.0',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0','lxml>=4.2.3,<=4.6.5','Mako>=1.0.4',num2words,numpy,passlib==1.6.5,Pillow==4.0.0,psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
+    TRES="asn1crypto,Babel==2.3.4,certifi,chardet,configparser,'cryptography>=23.0,<38.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=1.5.0,<=21.12.0',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0','lxml>=4.2.3,<=4.6.5','Mako>=1.0.4','num2words>=0.5',numpy,'odoo_score>=2.0.0',passlib==1.6.5,'Pillow>=6.1.0,<=6.2.0',psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<19.0',pyparsing==2.1.10,'pyPDF2<2.0','pyPdf>=3.1.0','pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.14.1"
     RES=$(list_requirements.py -b12.0 -tpython -BSP)
     test_result "list_requirements -b12.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="python=asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,chardet,configparser,'cryptography>=23.0,<38.0',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=22.10.0,<=22.10.99',html2text,idna,Jinja2==2.10.1,'lessc>=3.0.0','lxml>=4.6.5','Mako>=1.0.4',num2words,numpy,'passlib>=1.7.0','Pillow>=7.0.0',psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=16.2.0,<23.0',pyparsing==2.1.10,'pyPDF2<2.0',pyPdf==1.13,'pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',qrcode==5.3,reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==0.16.1,zeep==2.4.0"
+    TRES="asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,chardet,configparser,'cryptography>38.0.2',decorator==4.0.10,docutils==0.16,feedparser==5.2.1,future,gdata==2.0.18,'gevent>=22.10.0,<=22.10.99',html2text,idna,Jinja2==2.11.2,'lessc>=3.0.0','lxml>=4.6.1,<=4.6.5','Mako>=1.0.4','matplotlib<3.3.0','num2words>=0.5',numpy,'odoo_score>=2.0.0','passlib>=1.7.0','pdfplumber<0.10.2','Pillow>=6.2.1',psutil==4.3.1,psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,pydot==1.2.3,'pyOpenSSL>=22.0.0,<23.0',pyparsing==2.1.10,'pyPDF2<2.0','pyPdf>=3.1.0','pyserial>=3.1.1',Python-Chart==1.39,python-dateutil==2.5.3,python-ldap==3.1.0,python-openid==2.2.5,python-plus,'python-stdnum>=1.8.1','pytz>=2016.7',qrcode==5.3,reportlab==3.3.0,'simplejson>=3.5.3','six>=1.10.0',urllib3[secure],vatnumber==1.2,Werkzeug==2.0.2,zeep==2.4.0"
     RES=$(list_requirements.py -b16.0 -tpython -BSP)
     test_result "list_requirements -b16.0 -tpython -BSP" "$TRES" "$RES"
 }
