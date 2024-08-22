@@ -6,7 +6,7 @@ import sys
 
 import re
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 RED = "\033[1;31m"
@@ -416,7 +416,7 @@ class PleaseZ0bug(object):
 
         args = self.build_run_odoo_base_args(branch=branch)
         print("#### Running Tests ... ####")
-        sts = please.chain_python_cmd("run_odoo_debug.py", args)
+        sts = please.chain_python_cmd("run_odoo_debug.py", args, verbose=True)
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
         if not please.opt_args.no_verify:
@@ -476,6 +476,7 @@ class PleaseZ0bug(object):
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
+
 
 
 

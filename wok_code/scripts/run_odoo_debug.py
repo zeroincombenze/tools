@@ -17,7 +17,7 @@ except ImportError:
 
 import psycopg2
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 
@@ -171,6 +171,11 @@ class RunOdoo(object):
             "-x", "--xmlrpc-port", metavar="PORT",
             help="Odoo http/rpc port",
         )
+        parser.add_argument(
+            "-Z", "--zero-replacement",
+            action="store_true",
+            help="Clear all module replacements",
+        )
         return parser
 
     def parse_args(self, cli_args):
@@ -292,6 +297,8 @@ class RunOdoo(object):
             opts += "u"
         if self.opt_args.web_server:
             opts += "w"
+        if self.opt_args.zero_replacement:
+            opts += "Z"
         if opts:
             cmd += (" -" + opts)
         if self.opt_args.odoo_branch:
@@ -493,6 +500,7 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 
 
 

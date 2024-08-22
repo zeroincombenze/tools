@@ -6,6 +6,7 @@ from . import arcangelo
 from . import cvt_csv_2_rst
 from . import cvt_csv_2_xml
 from . import cvt_csv_coa
+from . import cvt_script
 from . import deploy_odoo
 from . import dist_pkg
 from . import do_odoo_site

@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.18
+__version__=2.0.19
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -48,7 +48,7 @@ run_traced_debug() {
 }
 
 check_for_modules() {
-    local mods r xi xu XXX
+    local mods r xi xu XXX opts
     OPTI=
     xi=-i
     OPTU=
@@ -57,9 +57,10 @@ check_for_modules() {
     if [[ $opt_modules == "all" ]]; then
         OPTU="-uall"
     else
+        [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         mods=${opt_modules//,/ }
         for m in $mods; do
-            r=$(psql -U$DB_USER $opt_db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
+            r=$(psql $opts $opt_db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
             if [[ $r =~ uninstallable ]]; then
                 XXX="$XXX $m"
             elif [[ $r =~ (uninstalled|to install) ]]; then
@@ -152,7 +153,7 @@ replace_web_module() {
         z=""
         l=""
         param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
-        [[ $param == "Non" ]] && param=""
+        [[ $param == "None" ]] && param=""
         if [[ -n $param ]]; then
           for m in ${param//,/ }; do
               [[ $m =~ ^(web|web_kanban|None)$ ]] && continue
@@ -173,6 +174,59 @@ replace_web_module() {
         fi
     fi
 }
+
+
+restore_modules() {
+    local d m opaths p x
+    p=$$
+    if [[ -f $CONFN ]]; then
+        opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
+        for d in ${opaths//,/ }; do
+            [[ ! -d $d/_module_replaced ]] && continue
+            for m in $d/_module_replaced/*; do
+                m=$(basename $m)
+                [[ -d $d/$m && ! -L $d/$m ]] && continue
+                x=$(date +"%Y-%m-%d %H:%M:%S,000")
+                echo -e "$x $p DAEMON $opt_db $(basename $0): Original module $m restored"
+                [[ -L $d/$m ]] && run_traced_debug "rm -f $d/$m"
+                run_traced_debug "mv $d/_module_replaced/$m $d/$m"
+            done
+        done
+    fi
+}
+
+replace_modules() {
+# replace_modules()
+# Replace module by another from configuration file
+# server_wide_module_replacement = old_module:new_module,old_path:new_path
+    local d f m new newp old oldp opaths p param x
+    p=$$
+    if [[ -f $CONFN ]]; then
+        opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
+        f=0
+        param=$(grep -E ^server_wide_module_replacement $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+        for m in ${param//,/ }; do
+            f=1
+            oldp=""
+            newp=""
+            old=$(echo $m | awk -F: '{gsub(/^ */,"",$1); print $1}')
+            [[ -d $old && ( -f $old/__manifest__.py || -f $old/__openerp__.py ) ]] && oldp=$(dirname $old)
+            new=$(echo $m | awk -F: '{gsub(/^ */,"",$2); print $2}')
+            [[ -d $new && ( -f $new/__manifest__.py || -f $new/__openerp__.py ) ]] && newp=$(dirname $new)
+            for d in ${opaths//,/ }; do
+                [[ -z $oldp && -d $d/$old && ( -f $d/$old/__manifest__.py || -f $d/$old/__openerp__.py ) ]] && oldp="$d"
+                [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp="$d"
+            done
+            x=$(date +"%Y-%m-%d %H:%M:%S,000")
+            [[ -z $oldp || -z $newp ]] && echo -e "$x $p DAEMON $opt_db $(basename $0): Module replacement $new ($newp) not found for $old ($oldp)!" && continue
+            [[ ! -d $oldp/_module_replaced ]] && run_traced_debug "mkdir $oldp/_module_replaced"
+            [[ ! -d $oldp/_module_replaced/$old ]] && echo -e "$x $p DAEMON $opt_db $(basename $0): Module $old replaced by $new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
+            [[ ! -d $oldp/$old ]] && run_traced_debug "ln -s $newp/$new $oldp/$old"
+        done
+        [[ $f -eq 0 ]] && restore_modules
+    fi
+}
+
 
 set_confn() {
     local x
@@ -245,17 +299,18 @@ stop_bg_process() {
 }
 
 clean_old_templates() {
-    local c d m x
+    local c d m x opts
+    [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
     m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
         d="template_${x}_${odoo_maj}"
         [[ $opt_verbose -gt 1 ]] && echo "Searching for $d ..."
-        if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d"; then
+        if psql $opts -Atl|cut -d"|" -f1|grep -q "$d"; then
           run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
           c=$(pg_db_active -c "$d")
           [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$d\"" && continue
-          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
+          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
         fi
     done
 }
@@ -326,12 +381,12 @@ run_odoo_server() {
 }
 
 
-OPTOPTS=(h        B       b          c        C           d        D       e       f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           w       x)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     web     xmlrpc-port)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_web opt_rport)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         1       "=")
-OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          0       "")
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        B       b          c        C           d        D       e       f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           w       x           Z)
+OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     web     xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_web opt_rport   z0_repl)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         1       "="         1)
+OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          0       ""          0)
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   0       "port"      "")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
     "odoo branch"
@@ -362,7 +417,8 @@ OPTHELP=("this help"
     "show version"
     "verbose mode"
     "run as web server"
-    "set odoo http/xmlrpc port")
+    "set odoo http/xmlrpc port"
+    "clear all module replacements")
 OPTARGS=()
 
 parseoptargs "$@"
@@ -589,13 +645,12 @@ if [[ -n "$opt_modules" ]]; then
             OPTS="$OPTSIU"
         fi
     fi
+elif [[ $opt_lang -ne 0 ]]; then
+    OPTS=--load-language=it_IT
 else
-    if [[ $opt_lang -ne 0 ]]; then
-        OPTS=--load-language=it_IT
-    else
-        OPTS=""
-        OPTDB=""
-    fi
+    OPTS=""
+    OPTDB=""
+    [[ $z0_repl -ne 0 ]] && restore_modules || replace_modules
 fi
 
 if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || $opt_lang -ne 0 ]]; then
@@ -604,7 +659,6 @@ if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 ||
         [[ $opt_stop -gt 0 && $opt_keep -eq 0 ]] && drop_db=1
     fi
 fi
-
 
 ext_test=""
 if [[ $opt_nox -eq 0 && $opt_test -ne 0 && -d $PKGPATH/tests/concurrent_test ]]; then
@@ -655,7 +709,7 @@ if [[ -n $mod_test_cfg ]]; then
     [[ $? -ne 0 ]] && exit 1
 fi
 [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"
-replace_web_module
+# replace_web_module
 if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     run_traced "cd $TEST_VDIR"
     [[ $opt_dry_run -ne 0 && $opt_verbose -ne 0 ]] && echo "> source ./bin/activate"
@@ -690,28 +744,28 @@ if [[ $create_db -gt 0 ]]; then
     if [[ $opt_test -ne 0 ]]; then
         if [[ -n "$depmods" ]]; then
             fnparam="$LOGDIR/${UDI}.sh"
-            if [[ $opt_force -ne 0 ]] && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                run_traced "pg_db_active -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
+            if [[ $opt_force -ne 0 ]] && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+                run_traced "pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
                 c=$(pg_db_active -c "$TEMPLATE")
                 [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
-                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
+                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
             fi
-            if [[ $opt_force -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                [[ $odoo_maj -lt 10 ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
+            if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+                [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                 [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
                 [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
                 run_traced "$cmd"
             fi
         fi
-        if psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+        if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
             run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
             c=$(pg_db_active -c \"$opt_db\")
             [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
+            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts-Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
         fi
-        if [[ $opt_dry_run -ne 0 ]] || ! psql -U$DB_USER -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
-            [[ -n "$depmods" ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
-            [[ -z "$depmods" ]] && run_traced "psql -U$DB_USER template1 -c 'create database \"$opt_db\" owner $DB_USER template template1'"
+        if [[ $opt_dry_run -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+            [[ -n "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
+            [[ -z "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template template1'"
         fi
     fi
 fi
@@ -784,6 +838,7 @@ if [[ $drop_db -gt 0 ]]; then
 fi
 
 exit $sts
+
 
 
 

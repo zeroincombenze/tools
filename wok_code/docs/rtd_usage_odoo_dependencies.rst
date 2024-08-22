@@ -50,7 +50,7 @@ odoo_dependecies.py usage
       -x, --external-bin-dependencies
       -1, --no-depth
     
-    © 2020-21 by SHS-AV s.r.l.
+    © 2020-24 by SHS-AV s.r.l.
     
 
 |
@@ -66,10 +66,10 @@ odoo_dependecies.py usage
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -4,7 +4,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.17
+# Based on template 2.0.18
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -49,7 +49,7 @@ test_01() {
     # Test RST files
     local TESTSRC TESTRES
     TESTSRC=$TESTDIR/res/do_something
-    TESTRES=$TESTDIR/res/do_something.sh
+    TESTRES=$TESTDIR/res/do_something.tres.sh
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTSRC
 #
@@ -115,13 +115,14 @@ __version__=2.0.18
 main
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy $TESTSRC
+      cvt_script -kqy $TESTSRC
     fi
-    test_result "$RUNDIR/cvt_script -kqy $TESTSRC" "$TESTRES" "$TESTSRC" "diff"
+    test_result "cvt_script -kqy $TESTSRC" "$TESTRES" "$TESTSRC" "diff"
 }
 
 Z0BUG_setup() {
     [[ ! -d $TESTDIR/res ]] && mkdir $TESTDIR/res
+    build_cmd $RUNDIR/scripts/cvt_script.py
 }
 
 
@@ -147,8 +148,3 @@ Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 [[ "$(type -t Z0BUG_teardown)" == "function" ]] && Z0BUG_teardown
 exit $sts
-
-
-
-
-

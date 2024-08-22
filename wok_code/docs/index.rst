@@ -1,10 +1,10 @@
 .. wok_code documentation master file, created by
-   gen_readme.py on 2024-07-10 11:55:33
+   gen_readme.py on 2024-08-22 15:15:02
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 =========================================
-Welcome to wok_code 2.0.18 documentation!
+Welcome to wok_code 2.0.19 documentation!
 =========================================
 
 .. toctree::
@@ -43,10 +43,10 @@ Welcome to wok_code 2.0.18 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
