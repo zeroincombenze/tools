@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 def nakedname(path):
@@ -79,8 +79,11 @@ def os_system(args, verbose=False, dry_run=None, with_shell=None, rtime=False):
                 log += ln
         return log
 
-    if verbose and not isinstance(args, (tuple, list)):
-        print('%s %s' % (">" if dry_run else "$", args))
+    if verbose:
+        if isinstance(args, (tuple, list)):
+            print('%s %s' % (">" if dry_run else "$", " ".join(args)))
+        else:
+            print('%s %s' % (">" if dry_run else "$", args))
     prcout = prcerr = ""
     if dry_run:
         return 0, prcout, prcerr
@@ -596,3 +599,4 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
+
