@@ -51,7 +51,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.0.10
 
 
 store_cfg_param_value() {
@@ -978,11 +978,11 @@ load_colors() {
 
 travis_status() {
     local sts=0
-    grep -Eq "\| .*test.*FAIL" $1
+    grep -iEq "test (['\"][^'\"]+['\"] )?failed" $1
     if [[ $? -eq 0 ]]; then
       sts=1
     else
-      grep -Eq "\| .*test.*Success" $1 && sts=0 || sts=1
+      grep -iEq "\| .*test.*successfully" $1 && sts=0 || sts=1
     fi
     return $sts
 }
@@ -1276,3 +1276,4 @@ if [[ $sts -eq $STS_SUCCESS ]]; then
     fi
 fi
 exit $sts
+
