@@ -109,6 +109,7 @@ def os_system_traced(
         else:
             print('%s %s' % (prompt, args))
     rtime = True if rtime is None else rtime
+    with_shell = True if with_shell is None else with_shell
     prcout = prcerr = ""
     if dry_run:
         return 0, prcout, prcerr
@@ -150,7 +151,7 @@ def os_system_traced(
 
 
 def os_system(
-        args, verbose=0, dry_run=None, with_shell=None, rtime=None, os_level=0):
+        args, verbose=0, dry_run=None, with_shell=True, rtime=True, os_level=0):
     return os_system_traced(args,
                             verbose=verbose,
                             dry_run=dry_run,
