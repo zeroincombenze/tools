@@ -917,7 +917,6 @@ find_cur_py() {
     fi
     if [[ -n $opt_oever || -n $opt_oepath ]]; then
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      # [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
     fi
 }
 
