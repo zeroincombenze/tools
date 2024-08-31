@@ -18,7 +18,7 @@ Update bash script
  -T                   script with test_mode switch
  -U                   unit test script with z0testrc library
  -V --version         show version end exit
- -v --verbos          verbose mode
+ -v --verbose         verbose mode
  -w --no-warn         suppress warning messages
  -y --yes             assume yes
  -Z                   load zar library

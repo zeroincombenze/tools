@@ -59,7 +59,7 @@ BZR_PKGS="(aeroolib)"
 WGET_PKGS="(_FAULT_)"
 GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
-USE2TO3_PKGS="(vatnumber)"
+USE2TO3_PKGS="(vatnumber|feedparser)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 UNISOLATED_PKGS="(.?-|lxml)"
@@ -103,7 +103,7 @@ do_activate() {
   [[ $opt_verbose -gt 2 ]] && echo ">>> VIRTUAL_ENV=$VIRTUAL_ENV" && echo ">>> do_activate($*)"
   if [[ -z "$VIRTUAL_ENV" || $VIRTUAL_ENV != $VENV_DIR ]]; then
     [[ $opt_verbose -ge 3 || ( ! ${2}z =~ q && $opt_verbose -ne 0 ) ]] && echo "$FLAG source $VENV_DIR/bin/activate"
-    [[ ! -f $VENV_DIR/bin/activate ]] && echo "Fatal error! bin/activate not found in $(readlink -f $VENV_DIR)" && exit 1
+    [[ ! -f $VENV_DIR/bin/activate ]] && echo -e "${RED}Fatal error! bin/activate not found in $(readlink -f $VENV_DIR)${CLR}!" && exit 1
     [[ $opt_verbose -gt 3 ]] && set +x
     . $VENV_DIR/bin/activate
     [[ $opt_verbose -ge 3 && -n $NVM_DIR && -f $NVM_DIR/nvm.sh ]] && echo "$FLAG source $NVM_DIR/nvm.sh"
@@ -159,24 +159,38 @@ get_wkhtmltopdf_dwname() {
   #get_wkhtmltopdf_dwname(pkg FH DISTO MACHARCH)
   local pkg=$1 FH=$2 DISTO=$3 MACHARCH=$4 pkgext wkhtmltopdf_wget x y z
   DISTO=${DISTO,,}
-  [[ $DISTO =~ ^debian ]] && y="_" || y="-"
-  [[ "$FH" == "RHEL" ]] && x="." || x="_"
-  [[ $DISTO =~ ^(redhat|fedora) ]] && DISTO="centos7"
-  [[ "$DISTO" == "ubuntu20" ]] && DISTO="focal"
-  [[ "$DISTO" == "ubuntu18" ]] && DISTO="bionic"
-  [[ "$DISTO" == "ubuntu16" ]] && DISTO="xenial"
-  [[ "$DISTO" == "ubuntu14" ]] && DISTO="trusty"
-  [[ "$DISTO" == "debian10" ]] && DISTO="buster"
-  [[ "$DISTO" == "debian9" ]] && DISTO="stretch"
-  [[ "$DISTO" == "debian8" ]] && DISTO="jessie"
-  [[ "$FH" == "RHEL" ]] && pkgext=".rpm" || pkgext=".deb"
-  [[ "$FH" == "Debian" && "$MACHARCH" == "x86_64" ]] && MACHARCH="amd64"
+  [[ -z $FH && $DISTO =~ ^(redhat|fedora) ]] && FH="RHEL"
+  [[ -z $FH ]] && FH="Debian"
   reqver=$(echo "$pkg" | grep --color=never -Eo '[^!<=>]*' | tr -d "'" | sed -n '2 p')
-  [[ -z "$reqver" ]] && reqver="0.12.5"
+  [[ -z "$reqver" ]] && reqver="0.12.6"
+  if [[ "$FH" == "RHEL" ]]; then
+    x="."
+    y="-"
+    pkgext=".rpm"
+  else
+    x="_"
+    y="_"
+    pkgext=".deb"
+  fi
+  [[ $DISTO =~ ^(redhat|fedora) ]] && DISTO="centos7"
+  [[ $DISTO =~ ubuntu2 && $reqver == "0.12.5" ]] && DISTO="bionic"
+  [[ $DISTO =~ ubuntu2 && $reqver == "0.12.1" ]] && DISTO="trusty"
+  [[ $DISTO == "ubuntu24" ]] && DISTO="jammy"   # TODO
+  [[ $DISTO == "ubuntu22" ]] && DISTO="jammy"
+  [[ $DISTO == "ubuntu20" ]] && DISTO="focal"
+  [[ $DISTO == "ubuntu18" ]] && DISTO="bionic"
+  [[ $DISTO == "ubuntu16" ]] && DISTO="xenial"
+  [[ $DISTO == "ubuntu14" ]] && DISTO="trusty"
+  [[ $DISTO == "debian12" ]] && DISTO="bullseye"    #TODO
+  [[ $DISTO == "debian11" ]] && DISTO="bullseye"
+  [[ $DISTO == "debian10" ]] && DISTO="buster"
+  [[ $DISTO == "debian9" ]] && DISTO="stretch"
+  [[ $DISTO == "debian8" ]] && DISTO="jessie"
+  [[ "$FH" == "Debian" && "$MACHARCH" == "x86_64" ]] && MACHARCH="amd64"
   [[ "$FH" == "RHEL" && "$MACHARCH" == "x86_64" && $reqver =~ 0.12.[14] ]] && MACHARCH="amd64"
   z="wkhtmltopdf"
   if [[ ${reqver} =~ 0.12.6 ]]; then
-    reqver="0.12.6-1"
+    [[ "$DISTO" =~ (jammy|bullseye) ]] && reqver="0.12.6.1-2" || reqver="0.12.6-1"
     z="packaging"
     wkhtmltopdf_wget="wkhtmltox${y}${reqver}.${DISTO}${x}${MACHARCH}${pkgext}"
   elif [[ ${reqver} == "0.12.5" ]]; then
@@ -268,7 +282,11 @@ bin_install() {
       pkgext=$(echo wkhtmltopdf_wget | grep --color=never -Eo ".xz$")
       [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
       [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
-      wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
+      if [[ $opt_dry_run -eq 0 ]]; then
+        wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
+      else
+        touch wkhtmltox${pkgext}
+      fi
       size=$(stat -c %s wkhtmltox${pkgext})
       if [ $size -eq 0 ]; then
         echo "File wkhtmltox${pkgext} not found!"
@@ -319,7 +337,7 @@ pip_install_wget() {
     local d="" pfn="$1" x sts=126
     pfn="$1"
     [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
-    [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
     x=$(basename $d)
     run_traced "mkdir -p $VIRTUAL_ENV/tmp"
     run_traced "cd $VIRTUAL_ENV/tmp"
@@ -337,7 +355,7 @@ pip_install_git() {
     [[ $pfn =~ "future" ]] && d="git+https://github.com/PythonCharmers/python-future.git"
     [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
     [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
-    [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
     run_traced "$PIP install $d"
     sts=$?
     [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
@@ -407,12 +425,12 @@ pip_install() {
         [[ -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn)
       fi
       if [[ $pfn =~ ^(odoo|openerp)$ ]]; then
-        [[ -z $opt_oepath ]] && echo "Missed Odoo version to install (please use -o switches)!" && exit 1
+        [[ -z $opt_oepath ]] && echo -e "${RED}Missed Odoo version to install (please use -o switches)!${CLR}" && exit 1
         [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
         [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
       fi
-      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo "Invalid or not found source path $srcdir!" && exit 1
-      [[ -z $srcdir && $pfn =~ ^(odoo|openerp)$ ]] && echo "Odoo source not found!" && exit 1
+      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo -e "${RED}Invalid or not found source path $srcdir!${CLR}" && exit 1
+      [[ -z $srcdir && $pfn =~ ^(odoo|openerp)$ ]] && echo -e "${RED}Odoo source not found!${CLR}" && exit 1
     fi
     if [[ $pfn =~ $BIN_PKGS ]]; then
       bin_install "$pkg"
@@ -458,7 +476,7 @@ pip_install() {
     elif [[ $pfn =~ $WGET_PKGS ]]; then
       d=""
       [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
-      [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+      [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
       x=$(basename $d)
       run_traced "mkdir -p $VIRTUAL_ENV/tmp"
       run_traced "cd $VIRTUAL_ENV/tmp"
@@ -471,7 +489,7 @@ pip_install() {
       d=""
       [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
       [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
-      [[ -z "$d" ]] && echo "Unknown URL for $pfn" && return
+      [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
       run_traced "$PIP install $d"
       sts=$?
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
@@ -580,7 +598,7 @@ pip_install_req() {
   [[ $opt_verbose -lt 2 ]] && popts="$1 -q" || popts="$1"
   for f in ${opt_rfile//,/ }; do
     pfn=$(readlink -f $f)
-    [[ -z "$pfn" ]] && echo "File $f not found!" && continue
+    [[ -z "$pfn" ]] && echo -e "${RED}File $f not found!${CLR}" && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "(6) Analyzing file \e[36m$pfn\e[0m"
     flist=$(get_req_list "$pfn")
     [[ $opt_verbose -gt 2 ]] && echo "<<<$flist>>>$(get_req_list '$pfn' '' 'debug')"
@@ -644,7 +662,7 @@ check_bin_package() {
   curver=$($pkg --version 2>/dev/null | grep --color=never -Eo "[0-9]+\.[0-9]+\.?[0-9]*" | head -n1)
   if [[ -n "$reqver" ]]; then
     if [[ -z "$curver" ]]; then
-      echo "Package $pkg not installed!!!"
+      echo -e "${RED}Package $pkg not installed!${CLR}"
       if [[ $cmd == "amend" ]]; then
         bin_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -683,13 +701,13 @@ check_bin_package() {
         printf "Package %-40.40s OK %s \n" "${pkg}........................................" "${curver}"
       fi
     else
-      echo "Package $pkg not installed!!!"
+      echo -e "${RED}Package $pkg not installed!${CLR}"
       ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     fi
   fi
   if [[ -n "$curver" ]]; then
     x=$(readlink -e $(which $pkg 2>/dev/null) 2>/dev/null)
-    [[ -z "$x" ]] && echo "Corrupted VME: file $pkg not found!!"
+    [[ -z "$x" ]] && echo -e "${RED}Corrupted VME: file $pkg not found!${CLR}"
     if [[ -n "$x" && ! $x =~ ^$VENV && ! -L $VENV/bin/$pkg ]]; then
       [[ $opt_verbose -gt 0 ]] && echo "Warning: file $x is outside of virtual env"
       run_traced "ln -s $x $VENV/bin"
@@ -726,7 +744,7 @@ check_package() {
   elif [[ -n "$reqver" ]]; then
     curver=$($PIP show $pkg 2>/dev/null| grep "^[Vv]ersion" | awk -F: '{print $2}' | tr -d ', \r\n\(\)') || curver=
     if [[ -z "$curver" ]]; then
-      echo "Package $pkg not installed!!!"
+      echo -e "${RED}Package $pkg not installed!${CLR}"
       if [[ $cmd == "amend" ]]; then
         pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -752,7 +770,7 @@ check_package() {
     if [[ -n "$curver" ]]; then
       printf "Package %-40.40s OK %s\n" "${pkg}........................................" "${curver}"
     else
-      echo "Package $pkg not installed!!!"
+      echo -e "${RED}Package $pkg not installed!${CLR}"
       if [[ $cmd == "amend" ]]; then
         pip_install "$vpkg"
         [ $? -ne 0 ] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
@@ -813,7 +831,7 @@ pip_check_req() {
   local f pfn pkg cmd=$1 flist cmd
   for f in ${opt_rfile//,/ }; do
     pfn=$(readlink -f $f)
-    [[ -z "$pfn" ]] && echo "File $f not found!" && continue
+    [[ -z "$pfn" ]] && echo -e "${RED}File $f not found!${CLR}" && continue
     [[ $opt_verbose -gt 0 ]] && echo -e "(6) Analyzing file \e[36m$pfn\e[0m"
     flist=$(get_req_list "$pfn")
     [[ $opt_verbose -gt 1 ]] && echo "<<<$flist>>>$(get_req_list '$pfn' '' 'debug')"
@@ -899,7 +917,6 @@ find_cur_py() {
     fi
     if [[ -n $opt_oever || -n $opt_oepath ]]; then
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      # [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
     fi
 }
 
@@ -925,17 +942,17 @@ venv_mgr_check_src_path() {
     done
   fi
   if [[ -z "$VENV" ]]; then
-    echo "Missed virtual environment path!!"
+    echo -e "${RED}Missed virtual environment path!${CLR}"
     exit 1
   fi
   if [[ ! -d $VENV || ! -d $VENV/lib || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-    echo "Invalid virtual env $VENV!!"
+    echo -e "${RED}Invalid virtual env $VENV!${CLR}"
     exit 1
   fi
   find_cur_py
   if [[ -z "$PYTHON" ]]; then
-    [[ $2 != "create" ]] && echo "Virtual env $VENV without python!!"
-    [[ $2 == "create" ]] && echo "Python executable not found!!"
+    [[ $2 != "create" ]] && echo -e "${RED}Virtual env $VENV without python!${CLR}"
+    [[ $2 == "create" ]] && echo -e "${RED}Python executable not found!${CLR}"
     exit 1
   fi
   [[ $opt_verbose -gt 1 ]] && echo "### Python version $opt_pyver ... ###"
@@ -1022,7 +1039,7 @@ do_venv_mgr_test() {
   for f in $PYTHON $PIP; do
     f=$(echo $f | awk -F= '{print $1}')
     x=$(readlink -e $(which "$f" 2>/dev/null) 2>/dev/null)
-    [[ -z "$x" ]] && echo "Corrupted VME: file $f not found!!" && continue
+    [[ -z "$x" ]] && echo -e "${RED}Corrupted VME: file $f not found!${CLR}" && continue
     [[ -n "$x" && ! $x =~ ^$VENV ]] && echo "Warning: file $x is outside of virtual env"
   done
 }
@@ -1249,19 +1266,21 @@ do_venv_create() {
   fi
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   [[ $opt_verbose -ne 0 ]] && echo "# python$opt_pyver ..."
-  $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
+  venvexe=""
+  [[ $opt_pyver =~ ^3 ]] && $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
   if [[ -n $venvexe ]]; then
     [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     [[ -d $VENV ]] && p="$p --clear"
     [[ $opt_alone -ne 0 ]] && p="$p --copies"
   else
     venvexe=$(which virtualenv 2>/dev/null)
-    if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != $(echo $PYTHON | grep --color=never -Eo "python[23]") ]]; then
+    # --version from virtualenv is: virtualenv xx.y from /usr/local/lib/python3.10
+    if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != "python${opt_pyver:0:1}" ]]; then
       run_traced "$PYTHON -m pip install virtualenv -I --user"
       venvexe=$(which virtualenv 2>/dev/null)
     fi
     if [[ -z "$venvexe" ]]; then
-      echo "No virtualenv / venv package found!"
+      echo -e "${RED}No virtualenv / venv package found!${CLR}"
       exit 1
     fi
     v=$(virtualenv --version 2>&1 | grep --color=never -Eo "[0-9]+" | head -n1)
@@ -1277,9 +1296,11 @@ do_venv_create() {
   fi
   run_traced "$venvexe $p $VENV"
   sts=$?
-  for f in pip pip3 python python3 virtualenv; do
-    [[ -x $HOME/.local/bin/$f ]] && run_traced "rm -f $HOME/.local/bin/$f"
-  done
+  if [[ $sts -ne 0 || $opt_cc -ne 0 ]]; then
+    for f in pip pip3 python python3 virtualenv; do
+      [[ -x $HOME/.local/bin/$f ]] && run_traced "rm -f $HOME/.local/bin/$f"
+    done
+  fi
   [[ $sts -ne 0 ]] && return $sts
   if [[ -d ${VENV}~ ]]; then
       if [[ -z $(find ${VENV}~ -maxdepth 0 -empty) ]]; then
@@ -1292,11 +1313,18 @@ do_venv_create() {
   fi
 
   do_activate "$VENV"
-  venv_mgr_check_src_path "$VENV"
+  if [[ $opt_pyver =~ ^2 ]]; then
+    python2 --version 2>&1 | grep -Eq "[Pp]ython $opt_pyver" || echo "Invalid python version!!"
+    pip2 --version | grep -Eq "python $opt_pyver" || echo "Invalid pip version!!"
+  else
+    python3 --version 2>&1 | grep -Eq "[Pp]ython $opt_pyver" || echo "Invalid python version!!"
+    pip3 --version | grep -Eq "python $opt_pyver" || echo "Invalid pip version!!"
+  fi
+  venv_mgr_check_src_path "$VENV" "create"
   x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
   if [[ $x == "2" ]]; then
     run_traced "$PIP install \"pip<21.0\" -U"
-    # bugfix for packages with regexe like invoice2data
+    # bugfix for packages with regexpr like invoice2data
     run_traced "$PIP install regex==2021.3.17"
   else
     # PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
@@ -1390,13 +1418,15 @@ do_venv_pip() {
 
 validate_py_oe_vers() {
   local odoo_majver
-  if [[ -n $opt_oever && -z $opt_pyver ]]; then
+  if [[ -z $opt_pyver && -z $opt_oever ]]; then
+    echo -e "${RED}Missed python version to use!${CLR}" && exit 1
+  elif [[ -n $opt_oever && -z $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
     [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-9)/2+6))"
   elif [[ -n $opt_oever && -n $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
     if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then
-      echo "Invalid python version $opt_pyver for Odoo $opt_oever!"
+      echo -e "${RED}Invalid python version $opt_pyver for Odoo $opt_oever!${CLR}"
       exit 1
     fi
   fi
@@ -1533,7 +1563,7 @@ PRINTED_PIPVER=0
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"
 [[ -f $TDIR/list_requirements.py ]] && LIST_REQ="$TDIR/list_requirements.py" || LIST_REQ=""
-[[ -z $LIST_REQ ]] && echo "Command list_requirements.py not found!" && exit 1
+[[ -z $LIST_REQ ]] && echo -e "${RED}Command list_requirements.py not found!${CLR}" && exit 1
 chmod -c +x $LIST_REQ
 
 sts=126

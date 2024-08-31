@@ -313,7 +313,7 @@ Troubleshooting
 ChangeLog History
 -----------------
 
-2.0.10 (2024-08-22)
+2.0.11 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Minor improvements
