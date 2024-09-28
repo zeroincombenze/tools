@@ -10,6 +10,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import shutil
 
+from z0lib import z0lib
+
 try:
     import ConfigParser
 except ImportError:
@@ -332,7 +334,7 @@ class PleaseCwd(object):
                     ):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
-                    sts = please.run_traced(cmd)
+                    sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
                     if sts:
                         break
             logdir = please.get_logdir()
@@ -372,7 +374,7 @@ class PleaseCwd(object):
                 datetime.fromtimestamp(pth.getmtime(ffn))
             )
             if fn_ts < remove_ts:
-                sts = please.run_traced("rm -fR " + ffn, rtime=True)
+                sts = z0lib.os_system("rm -fR " + ffn, with_shell=True, rtime=True)
                 if sts:
                     break
 
@@ -403,7 +405,7 @@ class PleaseCwd(object):
                              "filestore",
                              db_name))
                 if pth.isdir(target_dir):
-                    please.run_traced("rm -fR" % target_dir, rtime=True)
+                    z0lib.os_system("rm -fR" % target_dir, with_shell=True, rtime=True)
         return sts
 
     def do_commit(self):
@@ -626,24 +628,28 @@ class PleaseCwd(object):
                 odoo_major_version = int(branch.split(".")[0])
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if please.opt_args.oca:
-                    sts = please.run_traced(
+                    sts = z0lib.os_system(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
                         % (branch, repo_name),
-                        rtime=True)
+                        with_shell=True, rtime=True)
                 else:
                     if repo_name == "marketplace":
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args)
+                        sts = please.chain_python_cmd(
+                            "gen_readme.py", args, rtime=True)
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.chain_python_cmd(
+                        "gen_readme.py", args, rtime=True)
                     if sts == 0:
                         args.append("-I")
-                        sts = please.chain_python_cmd("gen_readme.py", args)
+                        sts = please.chain_python_cmd(
+                            "gen_readme.py", args, rtime=True)
                     if sts == 0 and odoo_major_version <= 7:
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args)
+                        sts = please.chain_python_cmd(
+                            "gen_readme.py", args, rtime=True)
                 if sts == 0:
                     self.do_clean()
                 return sts
@@ -659,7 +665,8 @@ class PleaseCwd(object):
                     return sts
                 if not please.opt_args.oca:
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.chain_python_cmd(
+                        "gen_readme.py", args, rtime=True)
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
@@ -672,10 +679,12 @@ class PleaseCwd(object):
                     "Document template directory %s not found!" % self.docs_dir)
                 return 33 if not self.please.opt_args.dry_run else 0
             args = self.build_gen_readme_base_args(branch=self.branch)
-            sts = self.please.chain_python_cmd("gen_readme.py", args)
+            sts = self.please.chain_python_cmd(
+                "gen_readme.py", args, rtime=True)
             if sts == 0:
                 args.append("-I")
-                sts = please.chain_python_cmd("gen_readme.py", args)
+                sts = please.chain_python_cmd(
+                    "gen_readme.py", args, rtime=True)
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)

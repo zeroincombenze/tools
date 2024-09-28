@@ -363,6 +363,10 @@ FORCE_ALIAS3 = {
     "pygount": "pygount<=1.2.0",
     "pandas": "pandas>=0.22.0,<=1.1.0",
 }
+FORCE_ALIAS_OS = {
+    "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
+    "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
+}
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
     "cryptography",
@@ -797,7 +801,9 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         else:
             full_item = FORCE_ALIAS2.get(full_item, full_item)
     else:
-        if full_item in FORCE_ALIAS3:
+        if full_item in FORCE_ALIAS_OS:
+            full_item = FORCE_ALIAS_OS[full_item]
+        elif full_item in FORCE_ALIAS3:
             full_item = FORCE_ALIAS3[full_item]
         else:
             full_item = FORCE_ALIAS3.get(item, full_item)

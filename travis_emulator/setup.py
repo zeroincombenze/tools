@@ -63,7 +63,7 @@ Read furthermore info read `travis-ci phase
     author="Antonio Maria Vigliotti",
     author_email="antoniomaria.vigliotti@gmail.com",
     license="Affero GPL",
-    install_requires=["z0lib>=2.0.11", "future"],
+    install_requires=["z0lib>=2.0.12", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [
         "scripts/setup.info",

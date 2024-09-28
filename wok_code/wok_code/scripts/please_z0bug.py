@@ -6,6 +6,8 @@ import sys
 
 import re
 
+from z0lib import z0lib
+
 __version__ = "2.0.19"
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
@@ -238,7 +240,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd()
-            return please.run_traced(cmd, rtime=True)
+            return z0lib.os_system(cmd, with_shell=True, rtime=True)
         return sts
 
     def do_lint(self):
@@ -269,7 +271,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd, rtime=True)
+            return z0lib.os_system(cmd, with_shell=True, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
 
     def do_show(self):
@@ -280,7 +282,8 @@ class PleaseZ0bug(object):
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd)
+            sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
+            return 0 if please.opt_args.ignore_status else sts
         return please.do_iter_action("do_show", act_all_pypi=True, act_tools=False)
 
     def do_show_docs(self):
@@ -342,8 +345,8 @@ class PleaseZ0bug(object):
         elif please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            sts = please.run_traced(cmd)
-            return 0 if please.opt_args.ignore_status else 126
+            sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
+            return 0 if please.opt_args.ignore_status else sts
         return please.do_iter_action("do_summary", act_all_pypi=True, act_tools=False)
 
     def _do_test_odoo_pkg(self):
@@ -416,7 +419,8 @@ class PleaseZ0bug(object):
 
         args = self.build_run_odoo_base_args(branch=branch)
         print("#### Running Tests ... ####")
-        sts = please.chain_python_cmd("run_odoo_debug.py", args, verbose=True)
+        sts = please.chain_python_cmd(
+            "run_odoo_debug.py", args, verbose=True, rtime=True)
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
         if not please.opt_args.no_verify:
