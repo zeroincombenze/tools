@@ -64,19 +64,32 @@ def get_pwd(CONF, host, ruser):
     return passwd
 
 
-def get_cmd(CONF, host, ruser, via=None):
+def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
     via = via or CONF["RUSER"][host][ruser]["via"]
     param = CONF["RUSER"][host][ruser].get("param", "")
+    port = ""
+    if cmd == "rsync" and param.startswith("-p"):
+        port = param.split(" ")[1]
+        param = ""
     passwd = get_pwd(CONF, host, ruser)
     if via == "pwd" and passwd:
         os.environ["SSHPASS"] = passwd
-        return (
-            "sshpass -e ssh %s %s@%s" % (param, ruser, host)
-            if param
-            else "sshpass -e ssh %s@%s" % (ruser, host)
-        )
-    return "ssh %s %s@%s" % (param, ruser, host) if param else "ssh %s@%s" % (ruser,
-                                                                              host)
+        raw_cmd = "sshpass -e " + cmd
+    if param:
+        raw_cmd += (" " + param)
+    if opts:
+        raw_cmd += (" " + opts)
+    if port:
+        raw_cmd += " -e 'ssh -p %s'" % port
+    if cmd == "ssh":
+        raw_cmd += (" %s@%s" % (ruser, host))
+        if do_tunnel and CONF["RUSER"][host][ruser]["rhttp"]:
+            raw_cmd += (" -L 8069:127.0.0.1:%d" % CONF["RUSER"][host][ruser]["rhttp"])
+    return raw_cmd
+
+
+def get_cmd(CONF, host, ruser, via=None, do_tunnel=False):
+    return build_raw_cmd(CONF, "ssh", host, ruser, via=via, do_tunnel=do_tunnel)
 
 
 def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None):
@@ -125,11 +138,12 @@ def get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse, via=None):
     return cmd
 
 
-def show_host(CONF, sel_host=None, glob=False, cuser=None):
+def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
     valid_hosts = []
     cuser = cuser or os.environ["USER"]
     prior_host = ""
-    for host in CONF["RUSER"].keys():
+    # for host in CONF["RUSER"].keys():
+    for host in sorted(CONF["RUSER"].keys(), key=lambda x: CONF["REV_ALIAS"].get(x, x)):
         if sel_host and host != sel_host:
             continue
         alias = CONF["REV_ALIAS"].get(host, "")
@@ -146,7 +160,7 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None):
             prompt = "$" if gl == "l" else " "
             print(
                 "    %s %-64.64s # %s"
-                % (prompt, get_cmd(CONF, host, ruser),
+                % (prompt, get_cmd(CONF, host, ruser, do_tunnel=do_tunel),
                    CONF["RUSER"][host][ruser]["users"])
             )
             if gl == "l" and host not in valid_hosts:
@@ -176,6 +190,10 @@ def show_pwd(CONF, host, ruser=None):
                 print("<certificate> (%s)" % ruser)
 
 
+def encrypt_pwd(CONF, passwd):
+    return Fernet(CONF["KEY"]).encrypt(passwd.encode())
+
+
 def do_force_crypt(CONF):
     do_rewrite = False
     for host in CONF["RUSER"].keys():
@@ -184,8 +202,7 @@ def do_force_crypt(CONF):
                 "passwd" in CONF["RUSER"][host][ruser]
                 and "crypt_password" not in CONF["RUSER"][host][ruser]
             ):
-                passwd = Fernet(CONF["KEY"]).encrypt(
-                    CONF["RUSER"][host][ruser]["passwd"].encode())
+                passwd = encrypt_pwd(CONF, CONF["RUSER"][host][ruser]["passwd"])
                 del CONF["RUSER"][host][ruser]["passwd"]
                 CONF["RUSER"][host][ruser]["crypt_password"] = passwd
                 do_rewrite = True
@@ -196,25 +213,28 @@ def do_force_crypt(CONF):
 
 
 def show_help():
-    print("ssh.py [-adlnvwz] [user@]host  # ssh")
-    print("ssh.py -[n][r]s[vz] [user@]host:source destination  # scp")
-    print("ssh.py -[n][r]s[vz] source [user@]host:destination  # scp")
-    print("ssh.py -[n][r]m[vz] [user@]host:source destination  # rsync")
-    print("ssh.py -[n][r]m[vz] source [user@]host:destination  # rsync")
+    print("ssh.py [-dnptvwz] [user@]host                      # ssh")
+    print("ssh.py -[n]s[prvz] [user@]host:source destination  # scp")
+    print("ssh.py -[n]s[prvz] source [user@]host:destination  # scp")
+    print("ssh.py -[n]m[pvz] [user@]host:source destination   # rsync")
+    print("ssh.py -[n]m[pvz] source [user@]host:destination   # rsync")
+    print("ssh,py -[aeglwY] [user@][host]                     # utilities")
     print("")
     print("  -a show aliases")
     print("  -d show remote dir")
+    print("  -e encrypy password")
     print("  -g list global hosts")
     print("  -l list user hosts")
     print("  -m do mirror (rsync)")
     print("  -p prefer password")
     print("  -n dry-run")
-    print("  -r recurse")
+    print("  -r recurse (scp)")
     print("  -s do scp")
+    print("  -t activate tunneling")
     print("  -v verbose")
     print("  -w show password")
     print("  -Y force password encryption")
-    print("  -z use privilegiated user")
+    print("  -z use alternate remote user")
 
 
 def load_config():
@@ -226,6 +246,7 @@ def load_config():
     #               - 'crypt_password' -> Encrypted remote password
     #               - 'param' -> ssh params, i.e. '-p 4322'
     #               - 'via' -> 'cert' (default w/o pwd), 'pwd'
+    #               - 'rhttp' - > remote http port for tunneling
     #   CUSER
     #       host
     #           cuser
@@ -283,6 +304,7 @@ host = None
 ruser = None
 source = None
 dest = None
+passwd = None
 verbose = False
 dry_run = False
 recurse = False
@@ -292,6 +314,8 @@ scp = False
 rsync = False
 sh_alias = False
 do_dir = False
+do_tunel = False
+do_encrypt = False
 root_user = False
 force_crypt = False
 glob = False
@@ -309,6 +333,8 @@ for param in sys.argv[1:]:
             sh_alias = True
         if "d" in param:
             do_dir = True
+        if "e" in param:
+            do_encrypt = True
         if "g" in param:
             glob = True
             list_host = True
@@ -324,6 +350,8 @@ for param in sys.argv[1:]:
             recurse = True
         if "s" in param:
             scp = True
+        if "t" in param:
+            do_tunel = True
         if "v" in param:
             verbose = True
         if "w" in param:
@@ -332,6 +360,8 @@ for param in sys.argv[1:]:
             force_crypt = True
         if "z" in param:
             root_user = True
+    elif do_encrypt and not passwd:
+        passwd = param
     else:
         host, param = spit_host_param(host, param)
         ruser, host = split_user_host(ruser, host)
@@ -355,6 +385,13 @@ for param in sys.argv[1:]:
             print("Invalid params %s" % param)
             exit(1)
 
+if do_encrypt and passwd:
+    print(encrypt_pwd(CONF, passwd))
+    exit(0)
+if do_tunel and (scp or rsync or do_dir):
+    print("Cannot do tunnelling with scp or rsync or dir!")
+    exit(1)
+
 if not host and source and not dest:
     host = source
     host_side = "s"
@@ -363,7 +400,7 @@ if host not in CONF["RUSER"] and host in CONF["ALIAS"]:
     host = CONF["ALIAS"][host]
 
 if list_host:
-    show_host(CONF, sel_host=host, glob=glob)
+    show_host(CONF, sel_host=host, glob=glob, do_tunnel=do_tunel)
     exit(0)
 if sh_alias:
     show_alias(CONF)
@@ -413,7 +450,9 @@ elif scp or rsync:
     else:
         cmd = get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse)
 else:
-    cmd = get_cmd(CONF, host, ruser, via=via_pwd)
+    cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunel)
+    if do_tunel:
+        print("##### You can browse remote webpage at http://localhost:8069 #####")
 if verbose:
     print(cmd)
 if dry_run:
