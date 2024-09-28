@@ -59,7 +59,7 @@ BZR_PKGS="(aeroolib)"
 WGET_PKGS="(_FAULT_)"
 GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
-USE2TO3_PKGS="(vatnumber)"
+USE2TO3_PKGS="(vatnumber|feedparser)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 UNISOLATED_PKGS="(.?-|lxml)"
@@ -917,7 +917,6 @@ find_cur_py() {
     fi
     if [[ -n $opt_oever || -n $opt_oepath ]]; then
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      # [[ $PIPVER -gt 23 ]] && run_traced "$PIP install 'pip<23.0' -Uq"
     fi
 }
 
@@ -1267,14 +1266,16 @@ do_venv_create() {
   fi
   [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
   [[ $opt_verbose -ne 0 ]] && echo "# python$opt_pyver ..."
-  $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
+  venvexe=""
+  [[ $opt_pyver =~ ^3 ]] && $PYTHON -m venv --help &>/dev/null && venvexe="$PYTHON -m venv"
   if [[ -n $venvexe ]]; then
     [[ $opt_spkg -ne 0 ]] && p="--system-site-packages"
     [[ -d $VENV ]] && p="$p --clear"
     [[ $opt_alone -ne 0 ]] && p="$p --copies"
   else
     venvexe=$(which virtualenv 2>/dev/null)
-    if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != $(echo $PYTHON | grep --color=never -Eo "python[23]") ]]; then
+    # --version from virtualenv is: virtualenv xx.y from /usr/local/lib/python3.10
+    if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != "python${opt_pyver:0:1}" ]]; then
       run_traced "$PYTHON -m pip install virtualenv -I --user"
       venvexe=$(which virtualenv 2>/dev/null)
     fi
@@ -1417,7 +1418,9 @@ do_venv_pip() {
 
 validate_py_oe_vers() {
   local odoo_majver
-  if [[ -n $opt_oever && -z $opt_pyver ]]; then
+  if [[ -z $opt_pyver && -z $opt_oever ]]; then
+    echo -e "${RED}Missed python version to use!${CLR}" && exit 1
+  elif [[ -n $opt_oever && -z $opt_pyver ]]; then
     odoo_majver=$(echo $opt_oever|cut -d. -f1)
     [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-9)/2+6))"
   elif [[ -n $opt_oever && -n $opt_pyver ]]; then
