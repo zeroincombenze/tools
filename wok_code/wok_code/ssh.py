@@ -64,6 +64,10 @@ def get_pwd(CONF, host, ruser):
     return passwd
 
 
+def get_vpn_name(CONF, host, ruser):
+    return CONF["RUSER"][host][ruser].get("vpn", "")
+
+
 def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
     via = via or CONF["RUSER"][host][ruser]["via"]
     param = CONF["RUSER"][host][ruser].get("param", "")
@@ -72,6 +76,7 @@ def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
         port = param.split(" ")[1]
         param = ""
     passwd = get_pwd(CONF, host, ruser)
+    raw_cmd = cmd
     if via == "pwd" and passwd:
         os.environ["SSHPASS"] = passwd
         raw_cmd = "sshpass -e " + cmd
@@ -157,7 +162,12 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
                 else:
                     print(host)
                 prior_host = host
-            prompt = "$" if gl == "l" else " "
+            if get_vpn_name(CONF, host, ruser) and gl == "l":
+                prompt = ">"
+            elif gl == "l":
+                prompt = "$"
+            else:
+                prompt = " "
             print(
                 "    %s %-64.64s # %s"
                 % (prompt, get_cmd(CONF, host, ruser, do_tunnel=do_tunel),
@@ -246,7 +256,8 @@ def load_config():
     #               - 'crypt_password' -> Encrypted remote password
     #               - 'param' -> ssh params, i.e. '-p 4322'
     #               - 'via' -> 'cert' (default w/o pwd), 'pwd'
-    #               - 'rhttp' - > remote http port for tunneling
+    #               - 'rhttp' -> remote http port for tunneling
+    #               - 'vpn': -> vpn name required
     #   CUSER
     #       host
     #           cuser
@@ -430,6 +441,9 @@ if os.environ["USER"] not in CONF["RUSER"][host][ruser].get("users"):
     print("No valid connection parameter between current and remote user!")
     exit(1)
 
+vpn_name = get_vpn_name(CONF, host, ruser)
+if vpn_name:
+    print("##### You should activate %s before issue this commmad #####" % vpn_name)
 if do_dir:
     source = get_remote_path(source)
     cmd = get_cmd(CONF, host, ruser, via=via_pwd)
