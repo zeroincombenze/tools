@@ -86,6 +86,7 @@ def join_args(args):
 
 def os_system_traced(
         args, verbose=0, dry_run=None, with_shell=None, rtime=None, os_level=0):
+    # Execute <os.system> like function and return sts, stdout, stderr
 
     def read_from_proc_n_echo(proc, outerr, rtime):
         log = ""
@@ -152,6 +153,7 @@ def os_system_traced(
 
 def os_system(
         args, verbose=0, dry_run=None, with_shell=True, rtime=True, os_level=0):
+    # Execute <os.system> like function (return just sts)
     return os_system_traced(args,
                             verbose=verbose,
                             dry_run=dry_run,
@@ -425,11 +427,6 @@ def run_traced(cmd,
             os.unlink(tgtpath)
         return sts, prcout, prcerr
 
-    if verbose:
-        if is_alias:
-            print('%s %s' % ("  >" if dry_run else "  $", cmd))
-        else:
-            print('%s %s' % (">" if dry_run else "$", cmd))
     args = shlex.split(cmd)
     if not disable_alias:
         method = {
@@ -444,6 +441,11 @@ def run_traced(cmd,
             "cd": sh_cd,
         }.get(args[0])
     if method:
+        if verbose and method not in ("sh_mkdir", "sh_rm"):
+            if is_alias:
+                print('%s %s' % ("  >" if dry_run else "  $", cmd))
+            else:
+                print('%s %s' % (">" if dry_run else "$", cmd))
         return method(args, verbose=verbose, dry_run=dry_run)
     return sh_any(args, verbose=verbose, dry_run=dry_run)
 
