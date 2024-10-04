@@ -761,7 +761,7 @@ if [[ $create_db -gt 0 ]]; then
             run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
             c=$(pg_db_active -c \"$opt_db\")
             [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts-Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
+            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
         fi
         if [[ $opt_dry_run -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
             [[ -n "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"

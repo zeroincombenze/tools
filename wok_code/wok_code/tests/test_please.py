@@ -123,7 +123,6 @@ class RegressionTest:
         TMODARS = "-m test_module -b 12.0"
         DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
 
-        # import pdb; pdb.set_trace()
         cmd = "please zerobug -vfn"
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)

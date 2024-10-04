@@ -240,7 +240,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd()
-            return z0lib.os_system(cmd, with_shell=True, rtime=True)
+            return please.run_traced(cmd, with_shell=True, rtime=True)
         return sts
 
     def do_lint(self):
@@ -271,7 +271,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return z0lib.os_system(cmd, with_shell=True, rtime=True)
+            return please.run_traced(cmd, with_shell=True, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
 
     def do_show(self):

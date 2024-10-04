@@ -10,7 +10,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import shutil
 
-from z0lib import z0lib
+# from z0lib import z0lib
 
 try:
     import ConfigParser
@@ -334,7 +334,7 @@ class PleaseCwd(object):
                     ):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
-                    sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
+                    sts = please.run_traced(cmd, with_shell=True, rtime=True)
                     if sts:
                         break
             logdir = please.get_logdir()
@@ -374,7 +374,7 @@ class PleaseCwd(object):
                 datetime.fromtimestamp(pth.getmtime(ffn))
             )
             if fn_ts < remove_ts:
-                sts = z0lib.os_system("rm -fR " + ffn, with_shell=True, rtime=True)
+                sts = please.run_traced("rm -fR " + ffn, with_shell=True, rtime=True)
                 if sts:
                     break
 
@@ -405,7 +405,8 @@ class PleaseCwd(object):
                              "filestore",
                              db_name))
                 if pth.isdir(target_dir):
-                    z0lib.os_system("rm -fR" % target_dir, with_shell=True, rtime=True)
+                    please.run_traced(
+                        "rm -fR" % target_dir, with_shell=True, rtime=True)
         return sts
 
     def do_commit(self):
@@ -628,7 +629,7 @@ class PleaseCwd(object):
                 odoo_major_version = int(branch.split(".")[0])
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if please.opt_args.oca:
-                    sts = z0lib.os_system(
+                    sts = please.run_traced(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
                         % (branch, repo_name),
                         with_shell=True, rtime=True)

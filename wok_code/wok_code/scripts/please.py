@@ -273,11 +273,12 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def run_traced(self, cmd, verbose=None, rtime=None):
+    def run_traced(self, cmd, verbose=None, rtime=None, with_shell=None):
         verbose = verbose if verbose is not None else self.opt_args.verbose
         rtime = rtime if rtime is not None else verbose > 1
-        sts, stdout, stderr = z0lib.run_traced(
-            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime
+        sts, stdout, stderr = z0lib.os_system_traced(
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime,
+            with_shell=with_shell
         )
         return sts
 

@@ -880,6 +880,8 @@ class MigrateFile(MigrateMeta):
         if not self.opt_args.test_res_msg:
             return False
         test_res_msg = self.opt_args.test_res_msg.replace("\\n", "\n")
+        if test_res_msg.startswith('"') or test_res_msg.startswith("'"):
+            test_res_msg = test_res_msg[1: -1]
         x = re.search("[0-9]+ TestPoint", test_res_msg)
         if x and "\n" in test_res_msg:
             left_mesg, suppl = test_res_msg.split("\n", 1)
@@ -910,7 +912,7 @@ class MigrateFile(MigrateMeta):
                 last_date = ln[i_start: i_end]
                 title_lineno = lineno
                 continue
-            if qua_lineno < 0 and ln.startswith("* [QUA]"):
+            if qua_lineno < 0 and re.match(r"['\"]*\* *\[QUA\]", ln):
                 qua_lineno = lineno
             if last_date and ln.startswith("*"):
                 found_list = True
