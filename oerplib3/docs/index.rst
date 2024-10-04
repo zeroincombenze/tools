@@ -1,10 +1,10 @@
 .. oerplib3 documentation master file, created by
-   gen_readme.py on 2024-08-21 18:50:58
+   gen_readme.py on 2024-10-04 15:02:41
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ========================================
-Welcome to oerplib3 0.8.5 documentation!
+Welcome to oerplib3 2.0.0 documentation!
 ========================================
 
 .. toctree::
@@ -33,14 +33,14 @@ Welcome to oerplib3 0.8.5 documentation!
 .. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
-.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-0.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/0.8.5/dev
+.. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.0/dev
     :alt: Technical Documentation
-.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-0.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/0.8.5/man
+.. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.0/man
     :alt: Technical Documentation
-.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-0.svg
-    :target: https://erp0.zeroincombenze.it
+.. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
+    :target: https://erp2.zeroincombenze.it
     :alt: Try Me
 .. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
    :target: https://www.zeroincombenze.it/

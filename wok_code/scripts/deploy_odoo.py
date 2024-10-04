@@ -16,6 +16,7 @@ import os
 import os.path as pth
 from time import sleep
 import re
+
 from z0lib import z0lib
 
 try:
@@ -820,7 +821,7 @@ class OdooDeploy(object):
                 )
         return tgtdir
 
-    def get_remote_info(self, verbose=True, short=False):
+    def get_remote_info(self, verbose=True, short=False, real_branch=False):
         verbose = verbose and self.opt_args.verbose
         branch = self.master_branch
         stash_list = url = upstream = last_date = git_stat = stage = brief = ""
@@ -829,6 +830,8 @@ class OdooDeploy(object):
             for ln in stdout.split("\n"):
                 if ln.startswith("*"):
                     branch = ln[2:]
+                    if not real_branch and branch == "master":
+                        branch = "18.0"
                     break
         if short:
             return sts, branch
@@ -1282,8 +1285,12 @@ class OdooDeploy(object):
         return self.action_status()
 
     def action_status(self, format=None):
+        if not self.target_path and "OCB" in self.repo_info:
+            target_path = self.repo_info["OCB"]["PATH"]
+        else:
+            target_path = self.target_path
         print("Odoo main version..........: %s" % self.master_branch)
-        print("Odoo root path.............: %s" % self.target_path)
+        print("Odoo root path.............: %s" % target_path)
         if self.opt_args.config:
             print("Odoo configuration file....: %s" % self.opt_args.config)
         fmt_list = format.split(",") if format else self.opt_args.format.split(",")

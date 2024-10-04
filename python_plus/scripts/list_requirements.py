@@ -56,7 +56,7 @@ REQVERSION = {
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {
-        "15.0": {">=2.6.1,<38.0"},
+        "15.0": ">=2.6.1,<38.0",
         "16.0": "PYVER",
         "2.7": ">=2.2.2,<3.4",
         "3.7": ">=2.6.1,<38.0",
@@ -93,6 +93,10 @@ REQVERSION = {
         "6.1": "==0.4.2",
         "7.0": ">=0.4.7,<=0.4.10",       # by odoo documentation + test
         "3.7": ">=0.4.13",
+    },
+    "holidays": {
+        "2.7": "<0.10",
+        "3.7": ">=0.10",
     },
     "importlib-metadata": {"3.7": "==4.8.3"},
     "invoice2data": {"2.7": "<0.4", "3.6": ">=0.4"},
@@ -235,7 +239,7 @@ REQVERSION = {
         "6.1": "==2.4.15",
         "7.0": "==2.4.19",
         "10.0": "==2.4.27",
-        "11.0": "==2.5.28",
+        "11.0": ">=3.0.0,<3.1.0",
         "13.0": "==3.1.0",
         "15.0": ">=3.1.0,<=3.4.4",
     },
@@ -391,6 +395,10 @@ FORCE_ALIAS3 = {
     "importlib-metadata": "importlib-metadata==4.8.3",
     "pygount": "pygount<=1.2.0",
     # "pandas": "pandas>=0.22.0,<=1.1.0",
+}
+FORCE_ALIAS_OS = {
+    "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
+    "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
 }
 FORCE_ALIAS_OS = {
     "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",

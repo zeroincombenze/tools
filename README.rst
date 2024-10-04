@@ -113,18 +113,94 @@ Current version via Git
 ChangeLog History
 -----------------
 
-python_plus: 2.0.15 (2024-07-12)
+python_plus: 2.0.15 (2024-10-02)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem.py: some packages line invoice2data on python 10.0
+* [FIX] vem: upgrade wkhtmltopdf naming
 * [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
 * [IMP] list_requirements.py: package versions improvements
 
 
-oerplib3: 0.8.5 (2024-07-12)
+z0lib: 2.0.12 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system with verbose
+
+
+wok_code: 2.0.19 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] install_python_3_from_source.sh: fix bugs and improvements
+* [FIX] ssh.py: store encripted password
+* [IMP] run_odoo_debug: now can replace modules
+* [IMP] cvt_script executable
+* [IMP] deploy_odooo: more improvements
+* [IMP] please: minor improvements
+* [IMP] please clen db: remove filestore directories too
+
+
+travis_emulator: 2.0.11 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+
+
+clodoo: 2.0.13 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Depends on z0lib>=2.0.11
+
+
+zerobug: 2.0.18 (2024-08-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Some function now are move in z0lib>=2.0..1
+* [IMP] Python 3.6 deprecated
+
+
+zar: 2.0.6 (2024-08-21)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] pg_db_active with port for postgresql multi-version
+
+
+z0bug_odoo: 2.0.21 (2024-08-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Depends on z0lib>=2.0.11
+
+
+oerplib3: 0.8.5 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] Python 3.10 porting
+
+
+odoo_score: 2.0.10 (2024-08-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Depends on z0lib>=2.0.11
+
+
+lisa: 2.0.5 (2024-08-18)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements
+
+
+lisa: 2.0.4 (2024-08-12)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: fixes & improvements
+
+
+z0lib: 2.0.11 (2024-07-13)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New function os_system
+* [IMP] New function print_flush
 
 
 z0bug_odoo: 2.0.20 (2024-07-10)
@@ -483,115 +559,6 @@ z0lib: 2.0.8 (2023-10-16)
 * [FIX] parseopt
 
 
-clodoo: 2.0.7 (2023-09-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Some fixes due old wrong code (id -> name)
-
-
-z0bug_odoo: 2.0.12 (2023-09-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: validate_records with 2 identical template records
-
-
-zar: 2.0.4 (2023-09-08)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Backup filestore
-* [FIX] Remote copy to /dev/null
-
-
-lisa: 2.0.3 (2023-09-07
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
-
-
-
-zar: 2.0.3 (2023-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] DB name with hyphen (-)
-
-
-wok_code: 2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py: minor fixes
-* [IMP] gen_readme.py: manifest author priority
-* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
-* [IMP] gen_readme.py: link to authors on README.rst and index.html
-* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
-* [FIX] license_mgnt: best organization recognition
-* [IMP] license_mgnt: powerp renamed to librerp
-* [FIX] run_odoo_debug: no doc neither translate after test error
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-* [FIX] deploy_odoo: minor fixes
-* [FIX] odoo_translation: sometime did not translate
-* [IMP] odoo_translation: best performance
-
-
-z0lib: 2.0.7 (2023-07-20)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced return system exit code
-* [IMP] run_traced: new rtime parameter to show rtime output
-* [IMP] New main
-
-
-python_plus: 2.0.10 (2023-07-18)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: werkzeug for Odoo 16.0
-* [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
-* [IMP] pip install packages with use2to3 is backupgrdae to < 23
-
-
-zerobug: 2.0.9 (2023-07-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] zerobug implementation with unittest
-* [FIX] z0testlib.py: build_odoo_env, odoo-bin / openerp-server are executable
-* [FIX] z0testlib.py: minor fixes
-
-
-wok_code: 2.0.10 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
-* [IMP] please replace now do "please docs" before
-* [IMP] please docs now do "please clean" after
-* [IMP] please lint and zerobug now do "pre-commit run" before (--no-verify)
-* [IMP] please test and zerobug now do "please translate" after (--no-translate)
-* [IMP] please update: new switches --vme --odoo-venv
-* [IMP] please clean db: new action replace old wep-db
-* [IMP] please version: new interface
-* [IMP] please show docs: new interface
-* [REF] run_odoo_debug: partial refactoring
-* [IMP] run_odoo_debug: new switch --daemon
-* [IMP] arcangelo: new swicth --string-normalization
-* [FIX] please test / run_odoo_debug: minor fixes
-
-
-travis_emulator: 2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis: check for dropped DB and abort if still exist
-* [IMP] travis: action show as alias of show-log for please integration
-
-
-clodoo: 2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Incorporated new pypi oerlib3
-* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
-* [IMP] New param IS_MULTI
-
-
 oerplib3: 0.8.4 (2023-05-06)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -602,12 +569,6 @@ os0: 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Stable version
-
-
-lisa: 2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
 
 
 os0: 1.0.3.1 (2021-12-23)
