@@ -152,7 +152,7 @@ fi
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9)$ && $PYVER != "2.7" ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9|10)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
         echo "Please install python 3.9 typing fowllowing command:"
         echo ""

@@ -184,7 +184,7 @@ def check_for_requirements(requirements=None):
         return sts
     for (port, db) in requirements:
         vid = "oca" + str(port - 8260) if port > 8200 else "oca" + str(port - 8160)
-        sts, outs, errs = z0lib.os_system(["ss", "-lt"])
+        sts, outs, errs = z0lib.os_system_traced(["ss", "-lt"])
         port_found = False
         if sts == 0 and outs:
             pattern = "0.0.0.0:" + str(port)
@@ -198,7 +198,7 @@ def check_for_requirements(requirements=None):
             print("*** No Odoo instance running at port <%s> (name %s)!" % (port,
                                                                             vid))
             sts = 1
-        sts1, outs, errs = z0lib.os_system(["psql", "-Atl"], verbose=False)
+        sts1, outs, errs = z0lib.os_system_traced(["psql", "-Atl"], verbose=False)
         db_found = False
         if sts1 == 0 and outs:
             pattern = db + "|"
@@ -1134,7 +1134,8 @@ class Z0test(object):
                     test_w_args = [sys.executable] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
-                sts, res, err = z0lib.os_system(test_w_args, verbose=True, rtime=True)
+                sts, res, err = z0lib.os_system_traced(
+                    test_w_args, verbose=True, rtime=True)
                 try:
                     ctx['ctr'] = int(res)
                 except BaseException:  # pragma: no cover

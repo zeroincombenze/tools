@@ -275,13 +275,16 @@ def run_traced(cmd,
         with_shell = False
         while 1:
             sts, prcout, prcerr = os_system_traced(
-                args, verbose=verbose, with_shell=with_shell, rtime=rtime)
+                args, verbose=verbose, dry_run=dry_run,
+                with_shell=with_shell, rtime=rtime)
             if sts == 0 or with_shell or rtime:
                 break
             with_shell = True
         return sts, prcout, prcerr
 
     def sh_cd(args, verbose=0, dry_run=None):
+        if verbose:
+            echo_cmd_verbose(cmd, dry_run=dry_run)
         argv, opt_unk, paths, params = simple_parse(args, {})
         sts = 0
         tgtpath = paths[0] if paths else os.environ["HOME"]
@@ -293,6 +296,8 @@ def run_traced(cmd,
 
     def sh_cp(args, verbose=0, dry_run=None):
         if dry_run:
+            if verbose:
+                echo_cmd_verbose(cmd, dry_run=dry_run)
             return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(
             args, {
@@ -304,6 +309,8 @@ def run_traced(cmd,
             }
         )
         if not opt_unk and paths[0] and paths[1]:
+            if verbose:
+                echo_cmd_verbose(cmd, dry_run=dry_run)
             if (
                 paths[1]
                 and os.path.basename(paths[1]) != os.path.basename(paths[0])
@@ -447,8 +454,12 @@ def run_traced(cmd,
         elif opt_unk or params["-f"]:
             sts, prcout, prcerr = os_system_traced(argv, verbose=verbose)
         elif params["-R"]:
+            if verbose:
+                echo_cmd_verbose(args, dry_run=dry_run)
             shutil.rmtree(tgtpath)
         else:
+            if verbose:
+                echo_cmd_verbose(args, dry_run=dry_run)
             os.unlink(tgtpath)
         return sts, prcout, prcerr
 
@@ -466,12 +477,6 @@ def run_traced(cmd,
             "cd": sh_cd,
         }.get(args[0])
     if method:
-        if verbose and method not in ("sh_mkdir", "sh_rm"):
-            # if is_alias:
-            #     print('%s %s' % ("  >" if dry_run else "  $", cmd))
-            # else:
-            #     print('%s %s' % (">" if dry_run else "$", cmd))
-            echo_cmd_verbose(cmd, dry_run=dry_run)
         return method(args, verbose=verbose, dry_run=dry_run)
     return sh_any(args, verbose=verbose, dry_run=dry_run)
 
