@@ -64,6 +64,21 @@ def print_flush(msg):
         print(msg)
 
 
+def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):
+    prompt = ">" if dry_run else "$"
+    prompt = ("  " * os_level) + prompt
+    if isinstance(args, (tuple, list)):
+        if flush and sys.version_info[0] == 3:
+            print("%s %s" % (prompt, join_args(args)), flush=flush)
+        else:
+            print("%s %s" % (prompt, join_args(args)))
+    else:
+        if flush and sys.version_info[0] == 3:
+            print("%s %s" % (prompt, args), flush=flush)
+        else:
+            print("%s %s" % (prompt, args))
+
+
 def join_args(args):
     cmd = ""
     for arg in args:
@@ -103,12 +118,14 @@ def os_system_traced(
 
     joined_args = join_args(args) if isinstance(args, (tuple, list)) else args
     if verbose:
-        prompt = ">" if dry_run else "$"
-        prompt = ("  " * os_level) + prompt
-        if isinstance(args, (tuple, list)):
-            print('%s %s' % (prompt, joined_args))
-        else:
-            print('%s %s' % (prompt, args))
+        # prompt = ">" if dry_run else "$"
+        # prompt = ("  " * os_level) + prompt
+        # if isinstance(args, (tuple, list)):
+        #     print('%s %s' % (prompt, joined_args))
+        # else:
+        #     print('%s %s' % (prompt, args))
+        echo_cmd_verbose(args, dry_run=dry_run, os_level=os_level)
+
     rtime = True if rtime is None else rtime
     with_shell = True if with_shell is None else with_shell
     prcout = prcerr = ""
@@ -247,14 +264,14 @@ def run_traced(cmd,
         return argv, opt_unk, paths, params
 
     def sh_any(args, verbose=0, dry_run=None):
-        prcout = prcerr = ""
-        if (
-            cmd_neutral_if(args, params=['dir'])
-            or cmd_neutral_if(args, params=['ls'])
-        ):
-            dry_run = False
-        if dry_run:
-            return 0, prcout, prcerr
+        # prcout = prcerr = ""
+        # if (
+        #     cmd_neutral_if(args, params=['dir'])
+        #     or cmd_neutral_if(args, params=['ls'])
+        # ):
+        #     dry_run = False
+        # if dry_run:
+        #     return 0, prcout, prcerr
         with_shell = False
         while 1:
             sts, prcout, prcerr = os_system_traced(
@@ -309,8 +326,8 @@ def run_traced(cmd,
             or cmd_neutral_if(args, params=['git', 'remote'], switches=['-v'])
         ):
             dry_run = False
-        if dry_run:
-            return 0, "", ""
+        # if dry_run:
+        #     return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(
             args, {
                 "-b": "",
@@ -364,6 +381,8 @@ def run_traced(cmd,
             tgt = os.path.join(paths[2] if len(paths) > 2 else "./",
                                os.path.basename(srcpath))
             if os.path.isdir(tgt):
+                if verbose:
+                    echo_cmd_verbose(args, dry_run=dry_run)
                 return 1, "", ""
             os.mkdir(tgt)
             if repo in ("OCB", "odoo"):
@@ -383,6 +402,8 @@ def run_traced(cmd,
                             verbose=verbose,
                             dry_run=dry_run,
                             is_alias=True)
+                if verbose:
+                    echo_cmd_verbose(args, dry_run=dry_run)
                 return 0, "", ""
             else:
                 return run_traced(
@@ -395,6 +416,8 @@ def run_traced(cmd,
     def sh_mkdir(args, verbose=0, dry_run=None):
         prcout = prcerr = ""
         if dry_run:
+            if verbose:
+                echo_cmd_verbose(args, dry_run=dry_run)
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(args, {})
         if opt_unk:
@@ -407,6 +430,8 @@ def run_traced(cmd,
     def sh_rm(args, verbose=0, dry_run=None):
         prcout = prcerr = ""
         if dry_run:
+            if verbose:
+                echo_cmd_verbose(args, dry_run=dry_run)
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(
             args,
@@ -442,10 +467,11 @@ def run_traced(cmd,
         }.get(args[0])
     if method:
         if verbose and method not in ("sh_mkdir", "sh_rm"):
-            if is_alias:
-                print('%s %s' % ("  >" if dry_run else "  $", cmd))
-            else:
-                print('%s %s' % (">" if dry_run else "$", cmd))
+            # if is_alias:
+            #     print('%s %s' % ("  >" if dry_run else "  $", cmd))
+            # else:
+            #     print('%s %s' % (">" if dry_run else "$", cmd))
+            echo_cmd_verbose(cmd, dry_run=dry_run)
         return method(args, verbose=verbose, dry_run=dry_run)
     return sh_any(args, verbose=verbose, dry_run=dry_run)
 
