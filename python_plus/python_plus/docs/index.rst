@@ -1,9 +1,5 @@
 .. python_plus documentation master file, created by
-<<<<<<< HEAD
-   gen_readme.py on 2024-08-23 12:15:43
-=======
-   gen_readme.py on 2024-08-29 20:49:47
->>>>>>> db53e4916553afc932ce88c9d854057ccf50ae51
+   gen_readme.py on 2024-10-04 07:09:45
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

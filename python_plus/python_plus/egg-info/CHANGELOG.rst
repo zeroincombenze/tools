@@ -1,4 +1,4 @@
-2.0.15 (2024-08-22)
+2.0.15 (2024-10-02)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem.py: some packages line invoice2data on python 10.0
