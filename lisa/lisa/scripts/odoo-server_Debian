@@ -31,11 +31,11 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.5 (Debian)
+# version: 2.0.6 (Debian)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2022 by zeroincombenze® <http://wiki.zeroincombenze.it>
+# (C) 2015-2025 by zeroincombenze® <http://wiki.zeroincombenze.it>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -367,7 +367,7 @@ replace_modules() {
             done
             dt=$(date +"%Y-%m-%d %H:%M:%S,000")
             [[ -z $oldp || -z $newp ]] && echo "$dt $$ DAEMON ? $0: Module replacement $new ($newp) not found for $old ($oldp)!">>$LOGFILE && continue
-            [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced
+            [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced && chown odoo:odoo $oldp/_module_replaced
             [[ ! -d $oldp/_module_replaced/$old ]] && echo "$dt $$ DAEMON ? $0: Module $old ($oldp) replaced by $new ($newp)!">>$LOGFILE && mv $oldp/$old $oldp/_module_replaced/$old
             [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
         done

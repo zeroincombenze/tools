@@ -53,7 +53,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.5
+__version__=2.0.6
 
 
 get_arch () {
@@ -381,3 +381,4 @@ if [ $opt_dry_run -eq 0 ]; then
 else
   echo "See $script_name.tmp to discover how to script works"
 fi
+

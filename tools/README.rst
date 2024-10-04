@@ -113,7 +113,35 @@ Current version via Git
 ChangeLog History
 -----------------
 
-travis_emulator: 2.0.10 (2024-08-22)
+python_plus: 2.0.15 (2024-10-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
+* [FIX] vem: upgrade wkhtmltopdf naming
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
+
+z0lib: 2.0.12 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system with verbose
+
+
+wok_code: 2.0.19 (2024-08-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] install_python_3_from_source.sh: fix bugs and improvements
+* [FIX] ssh.py: store encripted password
+* [IMP] run_odoo_debug: now can replace modules
+* [IMP] cvt_script executable
+* [IMP] deploy_odooo: more improvements
+* [IMP] please: minor improvements
+* [IMP] please clen db: remove filestore directories too
+
+
+travis_emulator: 2.0.11 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Minor improvements
@@ -173,14 +201,6 @@ z0lib: 2.0.11 (2024-07-13)
 
 * [IMP] New function os_system
 * [IMP] New function print_flush
-
-
-python_plus: 2.0.15 (2024-07-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem.py: some packages line invoice2data on python 10.0
-* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
-* [IMP] list_requirements.py: package versions improvements
 
 
 z0bug_odoo: 2.0.20 (2024-07-10)
@@ -537,58 +557,6 @@ z0lib: 2.0.8 (2023-10-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] parseopt
-
-
-clodoo: 2.0.7 (2023-09-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Some fixes due old wrong code (id -> name)
-
-
-z0bug_odoo: 2.0.12 (2023-09-12)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: validate_records with 2 identical template records
-
-
-zar: 2.0.4 (2023-09-08)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Backup filestore
-* [FIX] Remote copy to /dev/null
-
-
-lisa: 2.0.3 (2023-09-07)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
-
-
-
-zar: 2.0.3 (2023-09-06)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] DB name with hyphen (-)
-
-
-wok_code: 2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py: minor fixes
-* [IMP] gen_readme.py: manifest author priority
-* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
-* [IMP] gen_readme.py: link to authors on README.rst and index.html
-* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
-* [FIX] license_mgnt: best organization recognition
-* [IMP] license_mgnt: powerp renamed to librerp
-* [FIX] run_odoo_debug: no doc neither translate after test error
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-* [FIX] deploy_odoo: minor fixes
-* [FIX] odoo_translation: sometime did not translate
-* [IMP] odoo_translation: best performance
 
 
 oerplib3: 0.8.4 (2023-05-06)

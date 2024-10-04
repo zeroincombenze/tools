@@ -10,7 +10,7 @@ Travis emulator usage
 
 ::
 
-    Usage: travis [-h][-A regex][-BC][-D number][-E][-e iso][-Ffk][-j pyver][-L number][-l dir][-mn][-O git-org][-P file:line][-p pattern][-Q file][-qr][-S false|true][-T regex][-Vv][-X 0|1][-Y file][-Z] action sub sub2
+    Usage: travis.sh [-h][-A regex][-BC][-D number][-E][-e iso][-Ffk][-j pyver][-L number][-l dir][-mn][-O git-org][-P file:line][-p pattern][-Q file][-qr][-S false|true][-T regex][-Vv][-X 0|1][-Y file][-Z] action sub sub2
     Travis-ci emulator for local developer environment
     Action may be: (help,emulate,force-lint,lint,force-test,test,force-test-multi,test-multi,force-testdeps,testdeps,force-translate,translate,chkconfig,parseyaml,show,show-log,show-color,summary,wep-db)
      -h --help            this help
