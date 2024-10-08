@@ -5,8 +5,8 @@ xtl_pidfile=/var/run/${xtl_id}/${xtl_name}.pid
 xtl_logfile=/var/log/${xtl_id}/${xtl_name}.log
 xtl_cfgfile=/etc/${xtl_id}/${xtl_name}.conf
 xtl_altcfgfile=/etc/${xtl_name}.conf
-xtl_version=10
-xtl_fversion=10.0
+xtl_version=18
+xtl_fversion=18.0
 xtl_user=odoo
 xtl_test=0
 xtl_sudo=0
@@ -89,20 +89,20 @@ fi
 # search for execution command script
 xtl_org=$(echo $(basename $0)|grep --color=never -Eo "(oca|librerp|zero|powerp)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16)")
-[[ $DRY_RUN -gt 0 ]] && echo "mult=${mult}" && echo "ORG=$ORG"
+mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16|17|18)")
+[[ $DRY_RUN -gt 0 ]] && echo "Odoo ver=${xtl_fversion}" && echo "mult=${mult}" && echo "ORG=$ORG"
 DAEMON=""
 VENV_DIR=""
-[[ $DRY_RUN -gt 0 ]] && echo "find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name \"${ORG}*${mult}*\" -o -name \"ODOO*${mult}*\" -o -name \"openerp*${mult}*\""
-LL=$(find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name "${ORG}*${mult}*" -o -name "ODOO*${mult}*" -o -name "openerp*${mult}*")
-[[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
-for fn in $LL; do
-  [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in $LL"
-  [[ -n "$mult" && ! $fn =~ [0-9]+ ]] && continue
-  [[ -z "$mult" && $fn =~ [0-9]+ ]] && continue
-  mime=$(file --mime-type -b $fn)
-  [[ $mime =~ text/.*python || "${fn: -3}" == ".py" ]] && DAEMON=$fn && break
-done
+#[[ $DRY_RUN -gt 0 ]] && echo "find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name \"${ORG}*${mult}*\" -o -name \"ODOO*${mult}*\" -o -name \"openerp*${mult}*\""
+#LL=$(find /usr/local/bin /usr/bin -maxdepth 1 -type f -executable -name "${ORG}*${mult}*" -o -name "ODOO*${mult}*" -o -name "openerp*${mult}*")
+#[[ $DRY_RUN -gt 0 ]] && echo "LL=$LL"
+#for fn in $LL; do
+#  [[ $DRY_RUN -gt 0 ]] && echo "> for $fn in $LL"
+#  [[ -n "$mult" && ! $fn =~ [0-9]+ ]] && continue
+#  [[ -z "$mult" && $fn =~ [0-9]+ ]] && continue
+#  mime=$(file --mime-type -b $fn)
+#  [[ $mime =~ text/.*python || "${fn: -3}" == ".py" ]] && DAEMON=$fn && break
+#done
 if [[ -z "$DAEMON" ]]; then
   if [[ -n "$CONFIGFILE" ]]; then
     [[ $DRY_RUN -gt 0 ]] && echo "CONFIGFILE=$CONFIGFILE"
@@ -145,9 +145,9 @@ fi
 NAME=${xtl_name}
 DESC="${xtl_Id} Server Daemon ($NAME)"
 # pidfile
-PIDFILE=${xtl_pidfile}
+PIDFILE="$(grep -E ^pidfile $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
 LOCKFILE=/var/lock/subsys/${NAME}
-LOGFILE=${xtl_logfile}
+LOGFILE="$(grep -E ^logfile $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
 # Additional options that are passed to the Daemon.
 if [[ "$FH" == "Debian" ]]; then
   DAEMON_OPTS="--logfile=$LOGFILE"
@@ -161,6 +161,12 @@ DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 RETVAL=0
 
 
+log_mesg() {
+    [[ $DRY_RUN -gt 0 ]] && echo $1
+    [[ $DRY_RUN -eq 0 ]] && echo $1>>$LOGFILE
+}
+
+
 set_queue() {
     local dt p
     if [[ -f $CONFIGFILE ]]; then
@@ -169,7 +175,7 @@ set_queue() {
         ch=$(grep ^channels $CONFIGFILE|awk -F= '{print $2}'|tr -d ' ')
         [[ -z $ch ]] && ch="root:1"
         dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo "$dt $$ DAEMON ? $0: export ODOO_CONNECTOR_CHANNELS=\"$ch\"">>$LOGFILE
+        log_mesg "$dt $$ DAEMON ? $0: export ODOO_CONNECTOR_CHANNELS=\"$ch\""
         export ODOO_CONNECTOR_CHANNELS="$ch"
       fi
     fi
@@ -187,11 +193,11 @@ set_lessc() {
     if [[ $lv -ge $minv ]]; then
       if [[ $EUID -eq 0 ]]; then
         [[ -x /usr/bin/lessc ]] && rm -f /usr/bin/lessc
-        echo "$dt $$ DAEMON ? $0: ln -s $f /usr/bin">>$LOGFILE
+        log_mesg "$dt $$ DAEMON ? $0: ln -s $f /usr/bin"
         ln -s $f /usr/bin
       else
         p=$(dirname $f)
-        echo "$dt $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
+        log_mesg "$dt $$ DAEMON ? $0: export PATH=$p:$PATH"
         export PATH=$p:$PATH
       fi
     fi
@@ -205,8 +211,8 @@ check_lessc() {
     [[ -z "$lv" ]] && lv=0
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ $lv -lt 30000 ]]; then
-      echo "$dt $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)">>$LOGFILE
-      echo "$dt $$ DAEMON ? $0: Searching for lessc ...">>$LOGFILE
+      log_mesg "$dt $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)"
+      log_mesg "$dt $$ DAEMON ? $0: Searching for lessc ..."
       for d in $HOME/.npm-global $HOME/node_modules /usr/lib/node_modules; do
         if [[ -d $d ]]; then
           if [[ -x $d/less/bin/lessc ]]; then
@@ -229,10 +235,10 @@ check_lessc() {
       set_lessc $alt_less 20000
     elif [[ $lv -gt 0 ]]; then
       local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-      echo "$dt $$ DAEMON ? $0: $(which lessc) --version: $(lessc --version 2>/dev/null)">>$LOGFILE
+      log_mesg "$dt $$ DAEMON ? $0: $(which lessc) --version: $(lessc --version 2>/dev/null)"
     else
       local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-      echo "$dt $$ DAEMON-ERROR ? $0: Command lessc not found!">>$LOGFILE
+      log_mesg "$dt $$ DAEMON-ERROR ? $0: Command lessc not found!"
     fi
 }
 
@@ -251,16 +257,16 @@ check_4_venv() {
     [[ -n $x && $(ps -ef|grep -Evq "^postgres.* /.*/postgresql") ]] && sleep 8
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     if [[ -n "$VENV_DIR" && -f $VENV_DIR/bin/activate ]]; then
-        echo "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate" >> $LOGFILE
-        [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
+        log_mesg "$dt $$ DAEMON ? $0: cd $VENV_DIR; source ./bin/activate"
+        # [[ $DRY_RUN -gt 0 ]] && echo "cd $VENV_DIR" && echo "source ./bin/activate"
         cd $VENV_DIR
         source ./bin/activate
-        [[ ${xtl_version} -lt 11 ]] && echo "$dt $$ DAEMON ? $0: $(which python) $(python --version)" >> $LOGFILE
-        [[ ${xtl_version} -ge 11 ]] && echo "$dt $$ DAEMON ? $0: $(which python3) $(python3 --version)" >> $LOGFILE
-        [[ $(uname -r) =~ ^3 && $(head -n1 $DAEMON|grep -E "^#\!.*env python") ]] && sed -E "s|^#\!.*env python|^#\!$VENV_DIR/bin/python|" -i $DAEMON && echo "$dt $$ DAEMON ? $0: $DAEMON[0]=\"#\!$VENV_DIR/bin/python\"" >> $LOGFILE
+        [[ ${xtl_version} -lt 11 ]] && log_mesg "$dt $$ DAEMON ? $0: $(which python|tr -d "\n") $(python --version 2>&1|tr -d "\n")"
+        [[ ${xtl_version} -ge 11 ]] && log_mesg "$dt $$ DAEMON ? $0: $(which python3|tr -d "\n") $(python3 --version 2>&1|tr -d "\n")"
+        [[ $(uname -r) =~ ^3 && $(head -n1 $DAEMON|grep -E "^#\!.*env python") ]] && sed -E "s|^#\!.*env python|^#\!$VENV_DIR/bin/python|" -i $DAEMON && log_mesg "$dt $$ DAEMON ? $0: $DAEMON[0]=\"#\!$VENV_DIR/bin/python\""
     else
         VENV_DIR=""
-        echo "$dt $$ DAEMON ? $0: No virtual environment found for ${DAEMON}!" >> $LOGFILE
+        log_mesg "$dt $$ DAEMON ? $0: No virtual environment found for ${DAEMON}!"
     fi
 }
 
@@ -270,36 +276,36 @@ check_privsep_dir() {
     local d dt f p ur ugr uu x xx
     local grp=$(id -g ${USER_RUN})
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && echo "$dt $$ DAEMON ? $0: Development Environment">>$LOGFILE
-    [[ -z "$HOSTNAME_DEV" || ! $HOSTNAME =~ $HOSTNAME_DEV ]] && echo "$dt $$ DAEMON ? $0: Production Environment">>$LOGFILE
+    [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && log_mesg "$dt $$ DAEMON ? $0: Development Environment"
+    [[ -z "$HOSTNAME_DEV" || ! $HOSTNAME =~ $HOSTNAME_DEV ]] && log_mesg "$dt $$ DAEMON ? $0: Production Environment"
     for f in $LOGFILE $PIDFILE; do
         ur=${USER_RUN}
         ugr=${USER_RUN}:${grp}
         [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && p=0775 || p=0755
         d=$(dirname $f)
-        [[ ! -d $d ]] && echo "$dt $$ DAEMON ? $0: mkdir $d">>$LOGFILE && mkdir $d
+        [[ ! -d $d ]] && log_mesg "$dt $$ DAEMON ? $0: mkdir $d" && mkdir $d
         uu=$(stat -c %U $d)
         if [[ ${uu} != ${ur} ]]; then
-            echo "$dt $$ DAEMON ? $0: Invalid path $d owner $uu: expected ${ur}!">>$LOGFILE
-            echo "$dt $$ DAEMON ? $0: chown ${ugr} $d">>$LOGFILE && chown ${ugr} $d
+            log_mesg "$dt $$ DAEMON ? $0: Invalid path $d owner $uu: expected ${ur}!"
+            log_mesg "$dt $$ DAEMON ? $0: chown ${ugr} $d" && chown ${ugr} $d
         fi
         xx="0$(stat -c %a $d)"
         if [[ ${xx} != ${p} ]]; then
-            echo "$dt $$ DAEMON ? $0: Invalid path $d protection $xx: expected ${p}!">>$LOGFILE
-            echo "$dt $$ DAEMON ? $0: chmod ${p} $d">>$LOGFILE && chmod ${p} $d
+            log_mesg "$dt $$ DAEMON ? $0: Invalid path $d protection $xx: expected ${p}!"
+            log_mesg "$dt $$ DAEMON ? $0: chmod ${p} $d" && chmod ${p} $d
         fi
         [[ ! -f $f ]] && touch $f && chown ${ugr} $f
         [[ ! -f $f ]] && continue
         uu=$(stat -c %U $f)
         [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && p=0664 || p=0644
         if [[ ${uu} != ${ur} ]]; then
-            [[ "$uu" != "${USER_RUN}" ]] && echo "$x $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!">>$LOGFILE
-            echo "$dt $$ DAEMON ? $0: chown ${ugr} $f">>$LOGFILE && chown ${ugr} $f
+            [[ "$uu" != "${USER_RUN}" ]] && log_mesg "$x $$ DAEMON ? $0: Invalid file $f owner $uu: expected ${ur}!"
+            log_mesg "$dt $$ DAEMON ? $0: chown ${ugr} $f" && chown ${ugr} $f
         fi
         xx="0$(stat -c %a $f)"
         if [[ ${xx} != ${p} ]]; then
-            echo "$dt $$ DAEMON ? $0: Invalid file $f protection $xx: expected ${p}!">>$LOGFILE
-            echo "$dt $$ DAEMON ? $0: chmod ${p} $f">>$LOGFILE && chmod ${p} $f
+            log_mesg "$dt $$ DAEMON ? $0: Invalid file $f protection $xx: expected ${p}!"
+            log_mesg "$dt $$ DAEMON ? $0: chmod ${p} $f" && chmod ${p} $f
         fi
     done
 }
@@ -316,7 +322,7 @@ set_publicsep_dir() {
         [[ ! -f $f ]] && continue
         uu=$(stat -c %U $f)
         if [[ ${uu} != ${ur} ]]; then
-            echo "$dt $$ DAEMON ? $0: chown ${ugr} $f">>$LOGFILE && chown ${ugr} $f
+            log_mesg "$dt $$ DAEMON ? $0: chown ${ugr} $f" && chown ${ugr} $f
             [[ -n "$HOSTNAME_DEV" && $HOSTNAME =~ $HOSTNAME_DEV ]] && chmod 0664 $f || chmod 0644 $f
         fi
     done
@@ -334,7 +340,7 @@ restore_modules() {
                 m=$(basename $m)
                 [[ -d $d/$m && ! -L $d/$m ]] && continue
                 dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-                echo "$dt $$ DAEMON ? $0: Original module $m restored">>$LOGFILE
+                log_mesg "$dt $$ DAEMON ? $0: Original module $m restored"
                 [[ -L $d/$m ]] && rm -f $d/$m
                 mv $d/_module_replaced/$m $d/$m
             done
@@ -353,22 +359,25 @@ replace_modules() {
         opaths="$(grep -E ^addons_path $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
         f=0
         param=$(grep -E ^server_wide_module_replacement $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')
+        [[ $DRY_RUN -gt 0 && -n $param ]] && log_mesg "Searching for module replacement (server_wide_module_replacement=$param)"
         for m in ${param//,/ }; do
             f=1
             oldp=""
             newp=""
             old=$(echo $m | awk -F: '{gsub(/^ */,"",$1); print $1}')
             [[ -d $old && ( -f $old/__manifest__.py || -f $old/__openerp__.py ) ]] && oldp=$(dirname $old)
+            [[ $DRY_RUN -gt 0 && -n $oldp ]] && log_mesg "Found $oldp path to replace..."
             new=$(echo $m | awk -F: '{gsub(/^ */,"",$2); print $2}')
             [[ -d $new && ( -f $new/__manifest__.py || -f $new/__openerp__.py ) ]] && newp=$(dirname $new)
+            [[ $DRY_RUN -gt 0 && -n $newp ]] && log_mesg "Found $newp replacement path ..."
             for d in ${opaths//,/ }; do
                 [[ -z $oldp && -d $d/$old && ( -f $d/$old/__manifest__.py || -f $d/$old/__openerp__.py ) ]] && oldp="$d"
                 [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp="$d"
             done
             dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-            [[ -z $oldp || -z $newp ]] && echo "$dt $$ DAEMON ? $0: Module replacement $new ($newp) not found for $old ($oldp)!">>$LOGFILE && continue
-            [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced && chown odoo:odoo $oldp/_module_replaced
-            [[ ! -d $oldp/_module_replaced/$old ]] && echo "$dt $$ DAEMON ? $0: Module $old ($oldp) replaced by $new ($newp)!">>$LOGFILE && mv $oldp/$old $oldp/_module_replaced/$old
+            [[ -z $oldp || -z $newp ]] && log_mesg "$dt $$ DAEMON ? $0: Module replacement $new ($newp) not found for $old ($oldp)!" && continue
+            [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced && chown $USER_RUN:$USER_RUN $oldp/_module_replaced
+            [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$dt $$ DAEMON ? $0: Module $old ($oldp) replaced by $new ($newp)!" && mv $oldp/$old $oldp/_module_replaced/$old
             [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
         done
         [[ $f -eq 0 ]] && restore_modules
@@ -378,7 +387,7 @@ replace_modules() {
 
 start_RHEL () {
     if [[ -d /etc/${xtl_id}/start.d ]] ; then
-        if [[ $RUN_DEBUG -gt 0 ]]; then
+        if [[ $DRY_RUN -gt 0 ]]; then
           echo "> run-parts --exit-on-error /etc/${xtl_id}/start.d"
           run-parts --exit-on-error /etc/${xtl_id}/start.d
         elif [[ $DRY_RUN -gt 0 ]]; then
@@ -391,7 +400,7 @@ start_RHEL () {
         [[ $RETVAL -ne 0 ]] && return $RETVAL
     fi
 
-    if [[ $RUN_DEBUG -gt 0 ]]; then
+    if [[ $DRY_RUN -gt 0 ]]; then
       echo "> daemon --user ${USER_RUN} --check ${NAME} \"/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &\""
       daemon --user ${USER_RUN} --check ${NAME} "/usr/bin/setsid ${DAEMON} ${DAEMON_OPTS} &"
     elif [[ $DRY_RUN -gt 0 ]]; then
@@ -408,7 +417,7 @@ start_RHEL () {
 
 start_Debian () {
     if [[ -z "$USE_SUDO" || $USE_SUDO -eq 0 ]]; then
-      if [[ $RUN_DEBUG -gt 0 ]]; then
+      if [[ $DRY_RUN -gt 0 ]]; then
         echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
         start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER_RUN} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}
       elif [[ $DRY_RUN -gt 0 ]]; then
@@ -418,7 +427,7 @@ start_Debian () {
       fi
       RETVAL=$?
     else
-      if [[ $RUN_DEBUG -gt 0 ]]; then
+      if [[ $DRY_RUN -gt 0 ]]; then
         echo "> sudo -u ${USER_RUN} -bn ${DAEMON} ${DAEMON_OPTS}"
         ${DAEMON} ${DAEMON_OPTS}
       elif [[ $DRY_RUN -gt 0 ]]; then
@@ -436,12 +445,12 @@ start() {
     echo "Starting ${DESC}"
     check_privsep_dir
     check_4_venv
-    check_lessc
+    [[ ${xtl_version} -ge 10 ]] && check_lessc
     set_queue
     replace_modules
     local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ -n $ODOO_CONNECTOR_CHANNELS ]] && echo "$dt $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\"">>$LOGFILE
-    echo "$dt $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
+    [[ -n $ODOO_CONNECTOR_CHANNELS ]] && log_mesg "$dt $$ DAEMON ? $0: ODOO_CONNECTOR_CHANNELS=\"$ODOO_CONNECTOR_CHANNELS\""
+    log_mesg "$dt $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}"
     if [ "$FH" == "RHEL" ]; then
         start_RHEL
     elif [ "$FH" == "Debian" ]; then
@@ -451,13 +460,13 @@ start() {
         exit 1
     fi
     RETVAL=$?
-    [[ $RETVAL -ne 0 ]] && echo "$dt $$ DAEMON-ERROR ? $0: Start daemon return code = $RETVAL!">>$LOGFILE
-    if [[ $RUN_DEBUG -gt 0 ]]; then
+    [[ $RETVAL -ne 0 ]] && log_mesg "$dt $$ DAEMON-ERROR ? $0: Start daemon return code = $RETVAL!"
+    if [[ $DRY_RUN -eq 0 ]]; then
         local ctr=5 pid="1" x
         while ((ctr--)); do
-          [[ ! -f $PIDFILE ]] && echo "PID file $PIDFILE not found!" || pid=$(cat $PIDFILE)
+          [[ ! -f $PIDFILE ]] && log_mesg "PID file $PIDFILE not found!" || pid=$(cat $PIDFILE)
           x=$(ps -ef|grep -E " $pid +[0-9]+ .*odoo-bin")
-          [[ -z $x ]] && echo "Process $pid not found!" || echo "$x"
+          [[ -z $x ]] && log_mesg "Process $pid not found!" || log_mesg "$x"
           sleep 1
         done
     fi
@@ -468,16 +477,16 @@ stop_by_ps() {
     local pid ctr dt x
     dt=$(date +"%Y-%m-%d %H:%M:%S,000")
     x="Stop daemon error! Searching for process to kill ..."
-    echo $x
-    echo "$dt $$ DAEMON-ERROR ? $0: $x">>$LOGFILE
+    # echo $x
+    log_mesg "$dt $$ DAEMON-ERROR ? $0: $x"
     [[ ${xtl_version} -lt 11 ]] && py=python || py=python3
     ctr=3
     pid=$(ps -ef | grep "$py .*$DAEMON.*$CONFIGFILE" | grep -v grep | awk '{print $2}' | head -n1)
     while [[ -n "$pid" ]]; do
         kill $pid
         x="Killed process $pid!"
-        echo $x
-        echo "$dt $$ DAEMON-ERROR ? $0: $x">>$LOGFILE
+        # echo $x
+        log_mesg "$dt $$ DAEMON-ERROR ? $0: $x"
         sleep 1
         ((ctr--))
         [[ $ctr -eq 0 ]] && break
@@ -545,7 +554,7 @@ stop() {
     fi
     RETVAL=$?
     local dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-    echo "$dt $$ DAEMON ? $0: stop process $PIDFILE">>$LOGFILE
+    log_mesg "$dt $$ DAEMON ? $0: stop process $PIDFILE"
     set_publicsep_dir
     return $RETVAL
 }
