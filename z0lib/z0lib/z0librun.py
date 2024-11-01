@@ -18,7 +18,7 @@ Area managed:
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from future import standard_library
+# from future import standard_library
 from past.builtins import basestring
 
 import argparse
@@ -29,9 +29,9 @@ import os
 from builtins import object
 import shutil
 import shlex
-from subprocess import PIPE, Popen
+from subprocess import PIPE, DEVNULL, Popen
 # from python_plus import qsplit
-standard_library.install_aliases()  # noqa: E402
+# standard_library.install_aliases()  # noqa: E402
 
 
 # Apply for configuration file (True/False)
@@ -50,7 +50,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 
 
 def nakedname(path):
@@ -108,12 +108,13 @@ def os_system_traced(
         while True:
             ln = proc.stderr.readline() if outerr == "err" else proc.stdout.readline()
             if not ln:
-                break
-            else:
-                ln = ln.decode("utf8")
-                if rtime:
-                    print(ln, end="")
-                log += ln
+                if proc.poll() is None:
+                    break
+                continue
+            ln = ln.decode("utf8")
+            if rtime:
+                print(ln, end="", flush=True)
+            log += ln
         return log
 
     joined_args = join_args(args) if isinstance(args, (tuple, list)) else args
@@ -137,7 +138,8 @@ def os_system_traced(
                 args if not with_shell else joined_args,
                 stderr=PIPE,
                 stdout=PIPE,
-                shell=with_shell)
+                shell=with_shell,
+                executable="/bin/bash" if with_shell else None)
             prcout = read_from_proc_n_echo(proc, "out", rtime)
             prcerr = read_from_proc_n_echo(proc, "err", rtime)
             sts = proc.wait()
@@ -151,10 +153,10 @@ def os_system_traced(
         try:
             with Popen(
                     args if not with_shell else joined_args,
-                    stdin=PIPE,
                     stdout=PIPE,
                     stderr=PIPE,
                     shell=with_shell,
+                    executable="/bin/bash" if with_shell else None,
             ) as proc:
                 prcout = read_from_proc_n_echo(proc, "out", rtime)
                 prcerr = read_from_proc_n_echo(proc, "err", rtime)
@@ -171,12 +173,48 @@ def os_system_traced(
 def os_system(
         args, verbose=0, dry_run=None, with_shell=True, rtime=True, os_level=0):
     # Execute <os.system> like function (return just sts)
-    return os_system_traced(args,
-                            verbose=verbose,
-                            dry_run=dry_run,
-                            with_shell=with_shell,
-                            rtime=rtime,
-                            os_level=os_level)[0]
+
+    joined_args = join_args(args) if isinstance(args, (tuple, list)) else args
+    if verbose:
+        echo_cmd_verbose(args, dry_run=dry_run, os_level=os_level)
+
+    rtime = True if rtime is None else rtime
+    with_shell = True if with_shell is None else with_shell
+    if dry_run:
+        return 0
+    if sys.version_info[0] == 2:
+        try:
+            proc = Popen(
+                args if not with_shell else joined_args,
+                stdout=None if rtime else DEVNULL,
+                stderr=None if rtime else DEVNULL,
+                shell=with_shell,
+                executable="/bin/bash" if with_shell else None)
+            sts = proc.wait()
+        except OSError as e:  # noqa: F821
+            if verbose:
+                print(e)
+            sts = 127
+        except BaseException:
+            sts = 126
+    else:
+        try:
+            with Popen(
+                    args if not with_shell else joined_args,
+                    stdin=sys.stdin,
+                    stdout=None if rtime else DEVNULL,
+                    stderr=None if rtime else DEVNULL,
+                    shell=with_shell,
+                    executable="/bin/bash" if with_shell else None,
+            ) as proc:
+                sts = proc.wait()
+        except FileNotFoundError as e:  # noqa: F821
+            if verbose:
+                print(e)
+            sts = 127
+        except BaseException:
+            sts = 126
+    return sts
 
 
 def run_traced(cmd,
@@ -669,3 +707,4 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
+

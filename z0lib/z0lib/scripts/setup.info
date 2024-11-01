@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.12",
+    version="2.0.13",
     description="Bash zeroincombenze lib",
     long_description=long_description,
     classifiers=[
@@ -50,3 +50,4 @@ setup(
     entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
     zip_safe=False,
 )
+
