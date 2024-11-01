@@ -17,7 +17,9 @@ from z0lib import z0lib
 __version__ = "2.0.19"
 
 
-IGNORE_DIRS = (".idea", ".git", "egg-info", "setup")
+IGNORE_DIRS_BASE = [".idea", ".git", "egg-info", "setup"]
+IGNORE_DIRS_NDOC = ["readme", "static"]
+IGNORE_DIRS_NLOG = ["logs"]
 REGEX_CM = re.compile("(^ *#|^.* #)")
 REGEX_OE = re.compile(r"([\"'])https?://www.openerp.com([\"'])")
 REGEX_OO = re.compile(r"([\"'])https?://(www.)?odoo.com([\"'])")
@@ -76,6 +78,7 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
         or ((base.endswith(".po") or base.endswith(".pot")) and opt_args.ignore_po)
         or (base.startswith("README") and opt_args.ignore_doc)
         or (base.startswith("LICENSE") and opt_args.ignore_doc)
+        or (base == "index.html" and opt_args.ignore_doc)
     ):
         return
     elif pth.isfile(left_path):
@@ -168,8 +171,14 @@ def remove_comment(opt_args, root, files, compare_path=None):
     def remove_identical_files(left_dir, right_dir, fn):
         left_path = pth.join(left_dir, fn)
         right_path = pth.join(right_dir, fn)
+        if opt_args.ignore_doc and fn.endswith(".py"):
+            cmd = "diff -rZbB -I \"^ *#\" %s %s"
+        elif opt_args.ignore_doc and not fn.endswith(".py"):
+            cmd = "diff -rZbB %s %s"
+        else:
+            cmd = "diff -rEbZbB %s %s"
         sts, stdout, stderr = z0lib.run_traced(
-            "diff -r %s %s" % (left_path, right_path),
+            cmd % (left_path, right_path),
             verbose=False,
             dry_run=opt_args.dry_run,
         )
@@ -240,10 +249,11 @@ def rm_dir(opt_args, path):
 
 
 def main(cli_args=None):
+    global IGNORE_DIRS
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Compare 2 paths after formatted them in the same way",
-        epilog="© 2021-2023 by SHS-AV s.r.l.",
+        epilog="© 2021-2024 by SHS-AV s.r.l.",
     )
     parser.add_argument("-b", "--odoo-version")
     parser.add_argument(
@@ -260,6 +270,10 @@ def main(cli_args=None):
         "-i", "--ignore-po",
         action="store_true",
         help="ignore PO files")
+    parser.add_argument(
+        "-I", "--ignore-log",
+        action="store_true",
+        help="ignore log files")
     parser.add_argument("-l", "--from-left-version", metavar="ODOO-VERSION")
     parser.add_argument("-m", "--meld", action="store_true", help="Use meld")
     parser.add_argument("-o", "--from-right-version", metavar="ODOO-VERSION")
@@ -326,6 +340,11 @@ def main(cli_args=None):
             "GIT_ORGID", odoo_vid=opt_args.right_path, multi=True
         )
 
+    IGNORE_DIRS = IGNORE_DIRS_BASE
+    if opt_args.ignore_doc:
+        IGNORE_DIRS += IGNORE_DIRS_NDOC
+    if opt_args.ignore_log:
+        IGNORE_DIRS += IGNORE_DIRS_NLOG
     left_base, right_base = get_names(opt_args.left_path, opt_args.right_path)
     left_diff_path = pth.join(diff_path, left_base)
     right_diff_path = pth.join(diff_path, right_base)

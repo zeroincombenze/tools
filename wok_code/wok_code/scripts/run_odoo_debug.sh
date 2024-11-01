@@ -179,6 +179,7 @@ replace_web_module() {
 restore_modules() {
     local d m opaths p x
     p=$$
+    set -x  #debug
     if [[ -f $CONFN ]]; then
         opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
         for d in ${opaths//,/ }; do
@@ -193,6 +194,7 @@ restore_modules() {
             done
         done
     fi
+    set +x  #debug
 }
 
 replace_modules() {
@@ -381,12 +383,12 @@ run_odoo_server() {
 }
 
 
-OPTOPTS=(h        B       b          c        C           d        D       e       f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           w       x           Z)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     web     xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_web opt_rport   z0_repl)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         1       "="         1)
-OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          0       ""          0)
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   0       "port"      "")
+OPTOPTS=(h        B       b          c        C           d        D       e       f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       x           Z)
+OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_rport   z0_repl)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="         1)
+OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""          0)
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"      "")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
     "odoo branch"
@@ -416,6 +418,7 @@ OPTHELP=("this help"
     "upgrade module (conflict with -e -i -I -T)"
     "show version"
     "verbose mode"
+    "virtual environment path"
     "run as web server"
     "set odoo http/xmlrpc port"
     "clear all module replacements")
@@ -508,8 +511,12 @@ script=$(build_odoo_param BIN "$odoo_root" search)
 [[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
 export ODOO_RUNDIR=$(dirname $script)
 TEST_VDIR=""
-[[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
-[[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+if [[ -n $opt_venv ]]; then
+    export TEST_VDIR="$opt_venv"
+else
+    [[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
+    [[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+fi
 [[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
 [[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && echo "# Found $TEST_VDIR virtual directory"
 set_log_filename

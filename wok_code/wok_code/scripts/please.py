@@ -392,9 +392,9 @@ class Please(object):
         parser.add_argument("action", nargs="?")
         return parser
 
-    def pickle_params(self, cmd_subst=None, rm_obj=None, slist=[]):
-        """Command line has the follow format:  action object [switches] [sub-action]
-        This function returns a string with the command line list with single value
+    def pickle_params(self, cmd_subst=None, rm_obj=None, slist=[], inherit_opts=[]):
+        """Command line has the follow format: <<action object [switches] [sub-action]>>
+        This function returns a string from command line args with single value
         enclosed by quote if needed (i.e ['a>b'] -> ['"a>b"'] and specific adjustment:
         * action can be replaced by cmd_subst parameter
         * object can be removed by rm_obj flag
@@ -413,8 +413,14 @@ class Please(object):
             - ['--a=x', '--b=y']: action obj --a=x -> action obj --b=y
             - ['--a=x', '']: action obj --a=x -> action obj
             - ['--a=x', '']: action obj --a=x -> action obj
+        * special switches can inherit from curent environment by inherit_opts:
+            - ['-v'] inherits current verbose (-v or --verbose)
         Returned value can be applied to python call()
         """
+        inherit_opts = inherit_opts or ["-v"]
+        inherit_found = {k: False for k in inherit_opts}
+        if "-q" in inherit_found:
+            inherit_found["-v"] = True
         params = ""
         ignore_arg = False
         for arg in self.cli_args:
@@ -429,12 +435,14 @@ class Please(object):
                     if arg == k:
                         arg = v
                     elif arg.startswith("--") and k.startswith("--"):
+                        # --switch=value
                         if arg.split("=", 1)[0] == k:
                             arg = v + "=" + arg.split("=", 1)[1] if v else None
                     elif (
                             arg.startswith("-") and not arg.startswith("--")
                             and k.startswith("-") and not k.startswith("--")
                     ):
+                        # -s value or -svalue
                         if k[1] in arg and "*" in k:
                             if arg.endswith(k[1]):
                                 ignore_arg = True
@@ -443,6 +451,12 @@ class Please(object):
                             arg = arg.replace(k[1], v)
             if arg is None or arg == self.objname and rm_obj:
                 continue
+            for kk in ("-v", "--verbose"):
+                if (
+                        arg.startswith(kk)
+                        and any([arg.startswith(k) for k in inherit_opts])
+                ):
+                    inherit_found[kk] = True
             if "<" in arg or ">" in arg:
                 arg = "'%s'" % arg.replace("'", r"\'")
             elif " " in arg:
@@ -455,6 +469,9 @@ class Please(object):
             elif "'" in arg:
                 arg = '"%s"' % arg
             params += arg + " "
+        for (k, v) in inherit_found.items():
+            if not v:
+                params += k + " "
         return params.strip()
 
     def parse_top_cli_args(self, cli_args=[]):

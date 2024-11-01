@@ -460,7 +460,7 @@ class PleaseZ0bug(object):
                             ("--no-verify", ""),
                             ("--no-translate", "")]
             please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=sub_list)
+                rm_obj=True, slist=sub_list, inherit_opts=["-v"])
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.run_traced(cmd, rtime=True)
         return please.do_iter_action("do_test", act_all_pypi=True, act_tools=False)

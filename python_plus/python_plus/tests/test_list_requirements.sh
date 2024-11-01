@@ -46,6 +46,7 @@ __version__=2.0.11
 
 
 test_01() {
+    pyver=$(python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
     RES=$(list_requirements.py -V 2>&1)
     # test_result "list_requirements -V" "$__version__" "$RES"
     #
@@ -61,7 +62,12 @@ test_01() {
     RES=$(list_requirements.py -qRtpython -s ' ')
     test_result "list_requirements -qRtpython" "$TRES" "$RES"
     #
-    TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev libxml2-dev libxslt1-dev python-dev python-setuptools python3-lxml python3.10-dev zlib1g-dev"
+    if [[ $pyver =~ 2 ]]; then
+        TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev libxml2-dev libxslt1-dev python-dev python-setuptools python3 python3-lxml zlib1g-dev"
+    else
+        # TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev libxml2-dev libxslt1-dev python-dev python-setuptools python3-lxml python${pyver}-dev zlib1g-dev"
+        TRES="build-essential expect-dev libffi-dev libpq-dev libssl-dev libxml2-dev libxslt1-dev python-dev python-setuptools python3-lxml python3.10-dev zlib1g-dev"
+    fi
     RES=$(list_requirements.py -qSTRtbin -s ' ')
     test_result "list_requirements -qSTRtbin" "$TRES" "$RES"
     #

@@ -189,7 +189,7 @@ class RegressionTest:
         return sts
 
     def check_4_exec(self, z0ctx):
-        test_python = os.path.join(self.venv_dir, 'test.py')
+        test_python = os.path.join(self.venv_dir, 'test_python.py')
         if not z0ctx['dry_run']:
             with open(test_python, 'w') as fd:
                 fd.write(TEST_PYTHON)

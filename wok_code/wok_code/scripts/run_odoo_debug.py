@@ -4,7 +4,7 @@ import os
 import re
 import sys
 import argparse
-from subprocess import call
+# from subprocess import call
 
 try:
     import ConfigParser
@@ -14,7 +14,7 @@ try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-
+from z0lib import z0lib
 import psycopg2
 
 __version__ = "2.0.19"
@@ -39,7 +39,7 @@ class RunOdoo(object):
             formatter_class=argparse.RawDescriptionHelpFormatter,
             description=("Run odoo for debug or for regression test"),
             epilog=(
-                "© 2015-2023 by SHS-AV s.r.l.\n"
+                "© 2015-2024 by SHS-AV s.r.l.\n"
                 "Author: antoniomaria.vigliotti@gmail.com\n"
                 "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
             ),
@@ -445,22 +445,28 @@ class RunOdoo(object):
         return 0
 
     def export_i18n(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
     def install_modules(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
     def import_i18n(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
     def update_modules(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
     def run_tests(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
     def run(self):
-        return call(self.prepare_os_cmd(), shell=True)
+        return z0lib.os_system(
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
 
 
 def main(cli_args=None):
