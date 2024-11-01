@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.6
+#__version__=2.0.7
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -112,7 +112,7 @@ conf_default() {
 init_vars() {
 #init_vars(dbsel)
     local x r
-    dbsel=$1
+    dbsel="$1"
     declare -g PGDIR RMTBCKDIR DBCKDIR HOST_PRD HOST_DEV URL_PRD URL_DEV
     declare -g BCKFORMAT TAR_EXT TAR_OPT PG_DUMP_OPT ORIG_OWN
     declare -g REST2 TEST_DB NEWDBS REDB OE_OWN PRD_OE_OWN DEV_OE_OWN
@@ -120,11 +120,12 @@ init_vars() {
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
     declare -g NAA NAB NAC NAD NAE NAF NAG NAH
     declare -g EXCL_LIST
+    declare -g PSQL PG_DUMP PG_DB_ACT
     local sfx selsfx XDB
     if [ ${test_mode:-0} -ne 0 ]; then
       PGDIR=$(findpkg "" "$TESTDIR")
     else
-      PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "12.0 11.0 10.0 9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.3 8.2")
+      PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.3 8.2")
       [[ -z $PGDIR ]] && PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql")
       if [ -z "$PGDIR" ]; then
         wlog "No postgres directory found!"
@@ -244,22 +245,27 @@ init_vars() {
       NAA=$opt_km
     fi
     if [ -z "$OE_OWN" ]; then
-      if [ "$BCK_ENV" == "PRD" ]; then
+      if [ "$BCK_ENV" != "DEV" ]; then
         OE_OWN=$PRD_OE_OWN
-      elif [ "$BCK_ENV" == "DEV" ]; then
-        OE_OWN=$DEV_OE_OWN
       else
-        OE_OWN="odoo"
+        OE_OWN=$DEV_OE_OWN
       fi
     fi
-    if [ -z "$OE_OWN" ]; then
-      OE_OWN="odoo"
+    [[ -z "$OE_OWN" ]] && OE_OWN="odoo"
+    if [[ -n $opt_port ]]; then
+      PSQL="psql -U$opt_user -p$opt_port"
+      PG_DUMP="pg_dump -U$opt_user -p$opt_port"
+      PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
+    else
+      PSQL="psql -U$opt_user"
+      PG_DUMP="pg_dump -U$opt_user"
+      PG_DB_ACT="pg_db_active -U$opt_user"
     fi
 }
 
 set_db_vars() {
 #set_db_vars(db)
-    dbsel=$1
+    dbsel="$1"
     declare -g XDB XNC XNA
     local sfx x
     for sfx in A B C D E F G H; do
@@ -279,18 +285,18 @@ expand_tar() {
 #expand_tar(db [sqlfname])
 # current dir must be BCKDIR
     local src s x
-    local db=$1
+    local db="$1"
     if [ "$BCKFORMAT" != "0" ]; then
       for x in $TAR_EXT; do
         if [ -f "$db$x" ]; then
-          src=$db$x
+          src="$db$x"
           break
         fi
       done
       if [ -n "$src" ]; then
         if [[ -f $src.bak ]]; then
           for x in "" z j J ""; do
-            run_traced "tar $TAR_OPT -x${x}f $src.bak $2"
+            run_traced "tar $TAR_OPT -x${x}f \"$src.bak\" $2"
             [[ $? -eq 0 ]] && break
           done
           rm -f $src.bak
@@ -298,15 +304,15 @@ expand_tar() {
         if [ -f "$src" ]; then
           chown $PG_OWN $src
           if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
-            run_traced "tar $TAR_OPT -x${BCKFORMAT}f $src $2"
+            run_traced "tar $TAR_OPT -x${BCKFORMAT}f \"$src\" $2"
           else
-            run_traced "tar $TAR_OPT -xf $src $2"
+            run_traced "tar $TAR_OPT -xf \"$src\" $2"
           fi
           if [ $? -ne 0 ]; then
             s=1
             for x in z j J ""; do
               if [ "$x" != "$BCKFORMAT" ]; then
-                run_traced "tar $TAR_OPT -x${x}f $src $2"
+                run_traced "tar $TAR_OPT -x${x}f \"$src\" $2"
                 if [ $? -eq 0 ]; then
                   s=0
                   break
@@ -314,7 +320,7 @@ expand_tar() {
               fi
             done
             if [ $s -ne 0 ]; then
-              run_traced "mv -f $src ${src}.bak"
+              run_traced "mv -f \"$src\" \"${src}.bak\""
             fi
           fi
         fi
@@ -326,18 +332,18 @@ compress_tar() {
 #compress_tar(db sqlfname)
 # current dir must be BCKDIR
     local src x sts fn
-    local db=$1
+    local db="$1"
     if [ -f "$db-*.sql" ]; then
       chown $PG_OWN $db-*.sql
     fi
     if [ "$BCKFORMAT" != "0" ]; then
-      src=$db
+      src="$db"
       x=$(echo $TAR_EXT|awk '{print $1}')
-      src=$db$x
+      src="$db$x"
       if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
-        run_traced "tar $TAR_OPT -c${BCKFORMAT}f $src $db-*.sql $db-filestore.gz"
+        run_traced "tar $TAR_OPT -c${BCKFORMAT}f \"$src\" $db-*.sql \"$db-filestore.gz\""
       else
-        run_traced "tar $TAR_OPT -cf $src $db-*.sql"
+        run_traced "tar $TAR_OPT -cf \"$src\" $db-*.sql"
       fi
       sts=$?
       if [[ $sts -eq $STS_SUCCESS ]]; then
@@ -353,7 +359,7 @@ compress_tar() {
 create_db_list_from_pg() {
 # create_db_list_from_pg(dbsel pgsql_dir bck_dir bck_db)
     local dblist=
-    local PGDIR=$2
+    local PGDIR="$2"
     local bckdir cmd dbsel f flst redb sfx x XDB
     if [ -z $3 ]; then
       bckdir="$DBCKDIR"
@@ -361,9 +367,9 @@ create_db_list_from_pg() {
       bckdir=$3
     fi
     flst="$HOME/db_pgsql.lst"
-    dbsel=$1
+    dbsel="$1"
     if [ -n "$dbsel" ]; then
-      redb=$4
+      redb="$4"
       if [ -z "$redb" ]; then
         redb="test"
       fi
@@ -384,13 +390,13 @@ create_db_list_from_pg() {
           slog "DB $db is backup copy"
         else
           for sfx in A B C D E F G H; do
-            x=DB$sfx
+            x="DB$sfx"
             XDB=${!x}
             f=0
             if [ -n "$XDB" ]; then
               if [[ $db =~ $XDB ]]; then
                 if [ ${opt_ex:-0} -ne 0 ]; then
-                  if [ "$BCK_ENV" == "PRD" ]; then
+                  if [ "$BCK_ENV" != "DEV" ]; then
                     if [[ ! " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
                       dblist="$dblist $dbsel"
                       f=1
@@ -398,7 +404,7 @@ create_db_list_from_pg() {
                     break
                   fi
                 else
-                  if [ "$BCK_ENV" == "PRD" ]; then
+                  if [ "$BCK_ENV" != "DEV" ]; then
                     if [[ ! " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
                       dblist="$dblist $db"
                       f=1
@@ -493,29 +499,29 @@ reassign_owner() {
     local DB=$1
     local OLD_OWNER=$2
     local NEW_OWNER=$3
-    local tbl SQL
-    [[ -n $opt_port ]] && SQL="psql -Upostgres -p$opt_port" || SQL="psql -Upostgres"
-    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
-    run_traced "$SQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
+    local tbl PSQL
+    [[ -n $opt_port ]] && PSQL="psql -Upostgres -p$opt_port" || PSQL="psql -Upostgres"
+    run_traced "$PSQL -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
+    run_traced "$PSQL -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
     if [ $opt_dry_run -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
-      for tbl in $($SQL -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
-        $SQL -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        $SQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($PSQL -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
+        $PSQL -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $PSQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
-      for tbl in $($SQL -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
-        $SQL -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        $SQL -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
+      for tbl in $($PSQL -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
+        $PSQL -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $PSQL -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
       done
       for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $DB); do
-        $SQL -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
-        $SQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+        $PSQL -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        $PSQL -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
       done
     fi
-    [ -n "$OLD_OWNER" ] && run_traced "$SQL -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
+    [ -n "$OLD_OWNER" ] && run_traced "$PSQL -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
 }
