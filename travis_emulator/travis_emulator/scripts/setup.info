@@ -68,7 +68,7 @@ Read furthermore info read `travis-ci phase
     package_data={"": [
         "scripts/setup.info",
         "./template_travis.yml",
-        "scripts/travis.sh",
+        "./travis",
         "./travisrc",
         "./travis.man"
     ]},
@@ -81,4 +81,3 @@ Read furthermore info read `travis-ci phase
     },
     zip_safe=False,
 )
-

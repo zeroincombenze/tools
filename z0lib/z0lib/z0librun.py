@@ -105,16 +105,19 @@ def os_system_traced(
 
     def read_from_proc_n_echo(proc, outerr, rtime):
         log = ""
+        ctr = 3
         while True:
             ln = proc.stderr.readline() if outerr == "err" else proc.stdout.readline()
             if not ln:
-                if proc.poll() is None:
+                if ctr == 0 or proc.poll() is None:
                     break
+                ctr -= 1
                 continue
             ln = ln.decode("utf8")
             if rtime:
                 print(ln, end="", flush=True)
             log += ln
+            ctr = 3
         return log
 
     joined_args = join_args(args) if isinstance(args, (tuple, list)) else args
@@ -147,7 +150,9 @@ def os_system_traced(
             if verbose:
                 print(e)
             sts = 127
-        except BaseException:
+        except BaseException as e:
+            if verbose:
+                print(e)
             sts = 126
     else:
         try:
@@ -165,7 +170,9 @@ def os_system_traced(
             if verbose:
                 print(e)
             sts = 127
-        except BaseException:
+        except BaseException as e:
+            if verbose:
+                print(e)
             sts = 126
     return sts, prcout, prcerr
 
@@ -195,7 +202,9 @@ def os_system(
             if verbose:
                 print(e)
             sts = 127
-        except BaseException:
+        except BaseException as e:
+            if verbose:
+                print(e)
             sts = 126
     else:
         try:
@@ -212,7 +221,9 @@ def os_system(
             if verbose:
                 print(e)
             sts = 127
-        except BaseException:
+        except BaseException as e:
+            if verbose:
+                print(e)
             sts = 126
     return sts
 

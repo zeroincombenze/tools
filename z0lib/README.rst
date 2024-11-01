@@ -101,6 +101,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.13 (2024-10-31)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
+
 2.0.12 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
 
