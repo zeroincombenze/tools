@@ -1008,7 +1008,6 @@ set_log_filename() {
       LOGFILE="$LOGDIR/${UMLI}.log"
     fi
     OLD_LOGFILE=${LOGFILE/.log/_old.log}
-    # set +x  #debug
 }
 
 

@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 
 OPTOPTS=(h        d        f      l       n            p        s        t        U          V           v           w)
@@ -115,36 +115,36 @@ wlog "DEV=$HOST_DEV"
 opt_tbl=${opt_tbl//./_}
 PID=$$
 tmpfn=./tmp$PID
-[[ -n $opt_port ]] && SQL="psql -U$opt_user -p$opt_port" || SQL="psql -U$opt_user"
+[[ -n $opt_port ]] && PSQL="psql -U$opt_user -p$opt_port" || PSQL="psql -U$opt_user"
 echo "Stats before copy ..."
-[[ "$opt_f" == "id" ]] && $SQL -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-[[ "$opt_f" == "id" ]] && OLDNXT=$($SQL -Atc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
-$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
-CTRBEF=$($SQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
+[[ "$opt_f" == "id" ]] && $PSQL -U$opt_user -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+[[ "$opt_f" == "id" ]] && OLDNXT=$($PSQL -Atc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
+$PSQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$PSQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
+CTRBEF=$($PSQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
 echo "Copy data from source DB $opt_src"
 run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
 if [ $opt_wep -ne 0 ]; then
   echo "Deleting table $opt_tbl from DB $opt_dst"
-  run_traced "$SQL -Atec \"delete from $opt_tbl;\" $opt_dst"
+  run_traced "$PSQL -Atec \"delete from $opt_tbl;\" $opt_dst"
 fi
 echo "Paste data into destination DB $opt_dst"
-run_traced "$SQL -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
+run_traced "$PSQL -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
 echo "Resulting stats ..."
-$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_dst
-NXTID=$($SQL -Atc "select max($opt_f) from $opt_tbl;" $opt_dst)
+$PSQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$PSQL -Atec "select count($opt_f) from $opt_tbl;" $opt_dst
+NXTID=$($PSQL -Atc "select max($opt_f) from $opt_tbl;" $opt_dst)
 # ((NXTID++))
 if [ $OLDNXT -gt $NXTID ]; then
   NXTID=$OLDNXT
 fi
-[[ "$opt_f" == "id" ]] && $SQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-[[ "$opt_f" == "id" ]] && run_traced "$SQL -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
+[[ "$opt_f" == "id" ]] && $PSQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+[[ "$opt_f" == "id" ]] && run_traced "$PSQL -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
 echo "Currently stats after copy ..."
-[[ "$opt_f" == "id" ]] && $SQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-$SQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
-$SQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
-CTRAFT=$($SQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
+[[ "$opt_f" == "id" ]] && $PSQL -Atec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+$PSQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
+$PSQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
+CTRAFT=$($PSQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
 ((DIF=CTRAFT-CTRBEF))
 if [ $opt_wep -ne 0 ]; then
   echo "$CTRAFT records replace $CTRBEF records"

@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='lisa',
-    version='2.0.5',
+    version='2.0.6',
     description='Linux Install Simplifier App',
     long_description="""
 Interactive tool to install, update, remove, query and manage software
@@ -50,3 +50,4 @@ over every Linux distribution.
     },
     zip_safe=False,
 )
+

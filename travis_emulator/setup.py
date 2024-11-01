@@ -68,17 +68,17 @@ Read furthermore info read `travis-ci phase
     package_data={"": [
         "scripts/setup.info",
         "./template_travis.yml",
-        "scripts/travis.sh",
+        # "scripts/travis.sh",
+        "./travis",
         "./travisrc",
         "./travis.man"
     ]},
     entry_points={
         "console_scripts": [
-            "travis = travis_emulator.scripts.travis:main",
+            # "travis = travis_emulator.scripts.travis:main",
             "travis_emulator-info = travis_emulator.scripts.main:main",
             "make_travis_conf = travis_emulator.make_travis_conf:make_travis_conf",
         ]
     },
     zip_safe=False,
 )
-

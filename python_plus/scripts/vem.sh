@@ -3,7 +3,7 @@
 # Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # -------------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
@@ -1276,7 +1276,7 @@ do_venv_create() {
     venvexe=$(which virtualenv 2>/dev/null)
     # --version from virtualenv is: virtualenv xx.y from /usr/local/lib/python3.10
     if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != "python${opt_pyver:0:1}" ]]; then
-      run_traced "$PYTHON -m pip install virtualenv -I --user"
+      [[ $opt_pyver =~ ^3 ]] && run_traced "$PYTHON -m pip install virtualenv -I --user" || run_traced "$PYTHON -m pip install virtualenv -I"
       venvexe=$(which virtualenv 2>/dev/null)
     fi
     if [[ -z "$venvexe" ]]; then

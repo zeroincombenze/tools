@@ -75,6 +75,8 @@ def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
     if cmd == "rsync" and param.startswith("-p"):
         port = param.split(" ")[1]
         param = ""
+    elif cmd == "scp" and param.startswith("-p"):
+        param = param.replace("-p", "-P", 1)
     passwd = get_pwd(CONF, host, ruser)
     raw_cmd = cmd
     if via == "pwd" and passwd:
@@ -93,18 +95,19 @@ def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
     return raw_cmd
 
 
-def get_cmd(CONF, host, ruser, via=None, do_tunnel=False):
-    return build_raw_cmd(CONF, "ssh", host, ruser, via=via, do_tunnel=do_tunnel)
+def get_cmd(CONF, host, ruser, opts="", via=None, do_tunnel=False):
+    return build_raw_cmd(
+        CONF, "ssh", host, ruser, opts=opts, via=via, do_tunnel=do_tunnel)
 
 
 def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None):
-    via = via or CONF["RUSER"][host][ruser]["via"]
-    param = CONF["RUSER"][host][ruser].get("param", "")
-    port = ""
-    if param.startswith("-p"):
-        port = param.split(" ")[1]
-        param = ""
-    passwd = get_pwd(CONF, host, ruser)
+    # via = via or CONF["RUSER"][host][ruser]["via"]
+    # param = CONF["RUSER"][host][ruser].get("param", "")
+    # port = ""
+    # if param.startswith("-p"):
+    #     port = param.split(" ")[1]
+    #     param = ""
+    # passwd = get_pwd(CONF, host, ruser)
     if recurse and not source.endswith("/"):
         source = "%s/" % source
     if recurse and not dest.endswith("/"):
@@ -113,33 +116,39 @@ def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None)
         source = "%s@%s:%s" % (ruser, host, source)
     elif host_side == "d":
         dest = "%s@%s:%s" % (ruser, host, dest)
-    if via == "pwd" and passwd:
-        os.environ["SSHPASS"] = passwd
-        cmd = "sshpass -e rsync -avz"
-    else:
-        cmd = "rsync -avz"
-    if port:
-        cmd += " -e 'ssh -p %s'" % port
-    cmd += " %s %s %s" % (param, source, dest)
+    # if via == "pwd" and passwd:
+    #     os.environ["SSHPASS"] = passwd
+    #     cmd = "sshpass -e rsync -avz"
+    # else:
+    #     cmd = "rsync -avz"
+    # if port:
+    #     cmd += " -e 'ssh -p %s'" % port
+    # cmd += " %s %s %s" % (param, source, dest)
+    cmd = build_raw_cmd(
+        CONF, "rsync", host, ruser, via=via, opts="-avz")
+    cmd += " %s %s" % (source, dest)
     return cmd
 
 
 def get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse, via=None):
-    via = via or CONF["RUSER"][host][ruser]["via"]
-    param = CONF["RUSER"][host][ruser].get("param", "")
-    passwd = get_pwd(CONF, host, ruser)
+    # via = via or CONF["RUSER"][host][ruser]["via"]
+    # param = CONF["RUSER"][host][ruser].get("param", "")
+    # passwd = get_pwd(CONF, host, ruser)
     if host_side == "s":
         source = "%s@%s:%s" % (ruser, host, source)
     elif host_side == "d":
         dest = "%s@%s:%s" % (ruser, host, dest)
-    if via == "pwd" and passwd:
-        os.environ["SSHPASS"] = passwd
-        cmd = "sshpass -e scp"
-    else:
-        cmd = "scp"
-    if recurse:
-        cmd += " -r"
-    cmd += " %s %s %s" % (param, source, dest)
+    # if via == "pwd" and passwd:
+    #     os.environ["SSHPASS"] = passwd
+    #     cmd = "sshpass -e scp"
+    # else:
+    #     cmd = "scp"
+    # if recurse:
+    #     cmd += " -r"
+    # cmd += " %s %s %s" % (param, source, dest)
+    cmd = build_raw_cmd(
+        CONF, "scp", host, ruser, via=via, opts="-r" if recurse else None)
+    cmd += " %s %s" % (source, dest)
     return cmd
 
 
@@ -335,65 +344,66 @@ via_pwd = False
 if not sys.argv[1:]:
     show_help()
     exit(0)
-for param in sys.argv[1:]:
-    if param.startswith("-"):
-        if "h" in param:
+for arg in sys.argv[1:]:
+    if arg.startswith("-"):
+        if "h" in arg:
             show_help()
             exit(0)
-        if "a" in param:
+        if "a" in arg:
             sh_alias = True
-        if "d" in param:
+        if "d" in arg:
             do_dir = True
-        if "e" in param:
+        if "e" in arg:
             do_encrypt = True
-        if "g" in param:
+        if "g" in arg:
             glob = True
             list_host = True
-        if "l" in param:
+        if "l" in arg:
             list_host = True
-        if "m" in param:
+        if "m" in arg:
             rsync = True
-        if "n" in param:
+        if "n" in arg:
             dry_run = True
-        if "p" in param:
+        if "p" in arg:
             via_pwd = "pwd"
-        if "r" in param:
+        if "r" in arg:
             recurse = True
-        if "s" in param:
+        if "s" in arg:
             scp = True
-        if "t" in param:
+        if "t" in arg:
             do_tunel = True
-        if "v" in param:
+        if "v" in arg:
             verbose = True
-        if "w" in param:
+        if "w" in arg:
             list_pwd = True
-        if "Y" in param:
+        if "Y" in arg:
             force_crypt = True
-        if "z" in param:
+        if "z" in arg:
             root_user = True
     elif do_encrypt and not passwd:
-        passwd = param
+        passwd = arg
     else:
-        host, param = spit_host_param(host, param)
-        ruser, host = split_user_host(ruser, host)
-        if not param:
-            param = get_remote_path(param)
-        if host or ruser:
-            host_side = "d" if source else "s"
+        if not host and not ruser:
+            host, arg = spit_host_param(host, arg)
+            ruser, host = split_user_host(ruser, host)
+            if host or ruser:
+                host_side = "d" if source else "s"
+        if not arg:
+            arg = get_remote_path(arg)
         if not source:
-            source = param
+            source = arg
         elif not dest:
-            dest = param
+            dest = arg
         elif not host:
             host = source
             source = dest
-            dest = param
+            dest = arg
         elif not ruser:
             ruser = source
             source = dest
-            dest = param
+            dest = arg
         else:
-            print("Invalid params %s" % param)
+            print("Invalid params %s" % arg)
             exit(1)
 
 if do_encrypt and passwd:

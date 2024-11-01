@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 
 kill_process() {
@@ -69,19 +69,19 @@ check_4_table() {
     local what=$3
     local x sql
     if [[ "$what" == "exists" ]]; then
-       x=$($SQL -tc "select * from pg_tables where tablename = '$tbl';" $DB)
+       x=$($PSQL -tc "select * from pg_tables where tablename = '$tbl';" $DB)
     elif [[ $what == "with_data" ]]; then
-       x=$($SQL -tc "select * from $tbl limit 1;" $DB)
+       x=$($PSQL -tc "select * from $tbl limit 1;" $DB)
     elif [[ $what == "active_data" ]]; then
-       x=$($SQL -tc "select * from $tbl where active=true limit 1;" $DB)
+       x=$($PSQL -tc "select * from $tbl where active=true limit 1;" $DB)
     elif [[ $what == "reset_data" ]]; then
-       x=$($SQL -tc "select * from $tbl where active=true limit 1;" $DB)
+       x=$($PSQL -tc "select * from $tbl where active=true limit 1;" $DB)
     else
        x=""
     fi
     if [[ -n "$x" ]]; then
       if [[ $what == "reset_data" ]]; then
-         $SQL -tc "update $tbl set active=false where active=true;" $DB
+         $PSQL -tc "update $tbl set active=false where active=true;" $DB
       fi
       return 0
     fi
@@ -90,20 +90,20 @@ check_4_table() {
 
 stop_services() {
 # stop_services(DB quickmode)
-    if [[ -z "$1" ]]; then
-      return 1
-    fi
+    [[ -z "$1" ]] && return 1
     local c i x DB tbl res wtm act wfid SVCS SVCS2 sql
     DB="$1"
     SVCS="$(get_cfg_value 0 services_2_stop)"
     if [[ -z "$SVCS" ]]; then
-      SVCS="ir_mail_server fetchmail_server base_action_rule ir_cron"
+      SVCS="ir_mail_server fetchmail_server ir_cron"
+      x=$($PSQL -AR\| -tc "select tablename from pg_tables where schemaname = 'public' and tablename = 'base_action_rule'" $DB)
+      [[ -n $x ]] && SVCS="$SVCS base_action_rule"
     else
       SVCS=${SVCS//,/ }
     fi
     SVCS2="$(get_cfg_value 0 services_2_restart)"
     if [[ -z "$SVCS2" ]]; then
-      SVCS2="base_action_rule"
+      [[ -n $x ]] && SVCS2="base_action_rule"
     else
       SVCS2=${SVCS2//,/ }
     fi
@@ -143,8 +143,8 @@ stop_services() {
             ((wfid++))
             tblwf[$tbl]=$wfid
             if [[ $act == "with_data" && -z "${svc2run[$tbl]}" ]]; then
-              x=$($SQL -AR\| -tc "select cron_name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
-              [[ -z $x ]] && x=$($SQL -AR\| -tc "select name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              x=$($PSQL -AR\| -tc "select cron_name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
+              [[ -z $x ]] && x=$($PSQL -AR\| -tc "select name from $tbl where active=true;" "$DB" 2>/dev/null|tr "\n" " ")
               if [[ -n "$x" ]]; then
                 svc2run[$tbl]="${svc2run[$tbl]} $x"
               fi
@@ -182,12 +182,21 @@ stop_services() {
           i=0
           while [ $i -lt $c ]; do
             res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
-            $SQL -tc "update $tbl set active=true where name='$res';" "$DB"
+            $PSQL -tc "update $tbl set active=true where name='$res';" "$DB"
             ((i++))
           done
         fi
       fi
     done
+    if [[ $act == "reset_data" ]]; then
+      tbl="ir_config_parameter"
+      x=$($PSQL -tc "select * from $tbl where key = 'database.is_neutralized'" $DB)
+      if [[ -z $x ]]; then
+        $PSQL -tc "insert into $tbl (key,value) values ('database.is_neutralized', 'True')" "$DB"
+      else
+        $PSQL -tc "update $tbl set value='True' where key='database.is_neutralized';" "$DB"
+      fi
+    fi
     return 0
 }
 
@@ -298,7 +307,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "input filename (def dbname-date)"\
  "port (def 5432)"\
- "stop mail server and services"\
+ "neutralize db (stop mail server and services)"\
  "test mode (implies dry-run)"\
  "username (def postgres)"\
  "show version"\
@@ -328,26 +337,38 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
-if [ $opt_rst -gt 0 ]; then
-  stop_services "$olddb"
-  exit $?
-fi
-wlog "=== Starting restore/duplicate $__version__ by $opt_user ==="
 
 init_vars "$olddb"
+
+if [ $opt_rst -gt 0 ]; then
+  wlog "=== Starting DB neutralization $__version__ by $opt_user ==="
+  dblist="$olddb"
+  if [[ -n $olddb ]]; then
+    stop_services "$olddb"
+  else
+    dblist=$(create_db_list_from_pg ".*" "$PGDIR" "$DBCKDIR" "$REDB")
+    for olddb in $dblist; do
+      stop_services "$olddb"
+    done
+  fi
+  exit $?
+fi
+
+wlog "=== Starting restore/duplicate $__version__ by $opt_user ==="
+
 if [ -z "$DBSEL" ]; then
   DBSEL=".*"
   opt_ex=0
 fi
-if [[ -n $opt_port ]]; then
-  SQL="psql -U$opt_user -p$opt_port"
-  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
-  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
-else
-  SQL="psql -U$opt_user"
-  PG_DUMP="pg_dump -U$opt_user"
-  PG_DB_ACT="pg_db_active -U$opt_user"
-fi
+#if [[ -n $opt_port ]]; then
+#  PSQL="psql -U$opt_user -p$opt_port"
+#  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
+#  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
+#else
+#  PSQL="psql -U$opt_user"
+#  PG_DUMP="pg_dump -U$opt_user"
+#  PG_DB_ACT="pg_db_active -U$opt_user"
+#fi
 dblist=$(create_db_list_from_file "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 if [ "$BCKFORMAT" == "0" ]; then
   wlog "-- Backupped DBs stored in sql files --"
@@ -516,7 +537,7 @@ if [ $dovalid -gt 0 ]; then
       run_traced "$PG_DB_ACT -k"
       run_traced "$PG_DB_ACT -wa $NEWDB; dropdb --if-exists -U$opt_user $NEWDB"
       [ $opt_dry_run -eq 0 ] && eval $TDIR/$THIS -R "$NEWDB" &
-      run_traced "$SQL -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+      run_traced "$PSQL -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
       run_traced "reassign_owner \"$NEWDB\" \"$OLD_OWNER\" \"$NEW_OWNER\""
       if [ $opt_dry_run -eq 0 ]; then
         if [ $opt_mail -gt 0 ]; then

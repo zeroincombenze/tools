@@ -86,7 +86,7 @@ test_04() {
     local db RES TRES
     for db in zi01234567 zi01234589; do
       if [ -f $OUTF ]; then
-        grep "pg_dump .*/$db.*\.sql .*$db" $OUTF  &>/dev/null
+        grep "pg_dump .*/$db.*\.sql.*$db" $OUTF  &>/dev/null
         RES=$?
       else
         RES=1

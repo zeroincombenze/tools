@@ -48,7 +48,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.6
+__version__=2.0.7
 
 
 inherit_options() {
@@ -119,6 +119,7 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
+
 wlog "=== Starting backup $__version__ by $opt_user ==="
 
 init_vars "$dbsel"
@@ -139,15 +140,15 @@ else
 fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
-if [[ -n $opt_port ]]; then
-  SQL="psql -U$opt_user -p$opt_port"
-  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
-  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
-else
-  SQL="psql -U$opt_user"
-  PG_DUMP="pg_dump -U$opt_user"
-  PG_DB_ACT="pg_db_active -U$opt_user"
-fi
+#if [[ -n $opt_port ]]; then
+#  PSQL="psql -U$opt_user -p$opt_port"
+#  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
+#  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
+#else
+#  PSQL="psql -U$opt_user"
+#  PG_DUMP="pg_dump -U$opt_user"
+#  PG_DB_ACT="pg_db_active -U$opt_user"
+#fi
 wait_4_prod=$(get_cfg_value 0 wait_4_prod)
 ((ctr_wait=wait_4_prod/3))
 [ $ctr_wait -lt 10 ] && ctr_wait=10
@@ -187,9 +188,9 @@ if [ -n "$dblist" ]; then
         wlog "\$ $ZAR_PURGE $OPTS -i -e $db"
         eval $ZAR_PURGE $OPTS -i -e "'$db'"
       fi
-      sqlfname=$DBCKDIR/$db-$dtc.sql
+      sqlfname="$DBCKDIR/$db-$dtc.sql"
     else
-      sqlfname=$opt_name
+      sqlfname="$opt_name"
       if [ -f $sqlfname ]; then
         echo "File $sqlfname already exists!"
         exit 1
@@ -198,10 +199,10 @@ if [ -n "$dblist" ]; then
     if [ "$BCK_ENV" != "DEV" -o -n "$opt_name" ]; then
       run_traced "$PG_DB_ACT -k"
       if [ $opt_dry_run -ne 0 -o $opt_repl -ne 0 ]; then
-        wlog "> $PG_DUMP $PG_DUMP_OPT -Fp -f $sqlfname \"$db\""
-        [ ${test_mode:-0} -ne 0 ] && touch $sqlfname
+        wlog "> $PG_DUMP $PG_DUMP_OPT -Fp -f \"$sqlfname\" \"$db\""
+        [ ${test_mode:-0} -ne 0 ] && touch "$sqlfname"
       else
-        run_traced "$PG_DUMP $PG_DUMP_OPT -Fp -f $sqlfname \"$db\""
+        run_traced "$PG_DUMP $PG_DUMP_OPT -Fp -f \"$sqlfname\" \"$db\""
       fi
       if [[ -n $ODOO_FILESTORE_ROOT ]]; then
         filestore=$(for p in $(find $ODOO_FILESTORE_ROOT -maxdepth 2 -type d -name filestore 2>/dev/null); do find $p -maxdepth 2 -type d -name $db; done)
@@ -220,24 +221,24 @@ if [ -n "$dblist" ]; then
         else
           rmtfn=$(basename "$sqlfname")
           if [ $opt_dry_run -ne 0 ]; then
-            wlog "> scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+            wlog "> scp \"$sqlfname\" $URL_DEV:$RMTBCKDIR/$rmtfn"
           else
-            run_traced "scp $sqlfname $URL_DEV:$RMTBCKDIR/$rmtfn"
+            run_traced "scp \"$sqlfname\" $URL_DEV:$RMTBCKDIR/$rmtfn"
           fi
         fi
       fi
       ((ctr++))
-    else
-      wlog "Waiting for backup file $sqlfname from production host"
+    elif [ "$BCK_ENV" == "DEV" ]; then
+      wlog "Waiting for backup file \"$sqlfname\" from production host"
       if [ $opt_dry_run -eq 0 ]; then
         wctr=$ctr_wait
         [ $ctr_wait -gt 10 ] && ((ctr_wait--))
-        while [ ! -f $sqlfname -a $wctr -gt 0 ]; do
+        while [ ! -f "$sqlfname" -a $wctr -gt 0 ]; do
           sleep 180
           ((wctr--))
         done
       fi
-      if [ -f $sqlfname ]; then
+      if [ -f "$sqlfname" ]; then
         wlog "Received $sqlfname"
         ((ctr++))
       else
@@ -245,7 +246,7 @@ if [ -n "$dblist" ]; then
       fi
     fi
     if [ -z "$opt_name" ]; then
-      compress_tar "$db" $sqlfname
+      compress_tar "$db" "$sqlfname"
     fi
   done
   if [ "$BCK_ENV" != "DEV" -o -n "$opt_name" ]; then
