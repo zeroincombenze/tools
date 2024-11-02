@@ -7,10 +7,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 Installation
@@ -23,19 +23,16 @@ Stable version via Python Package
 
     pip install python_plus
 
-
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
 
 Upgrade
 -------

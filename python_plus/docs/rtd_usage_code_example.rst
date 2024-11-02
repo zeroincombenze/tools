@@ -8,6 +8,8 @@ Digest of code_example
 Code example
 ------------
 
+Simple examples of code
+
 class / type test
 ~~~~~~~~~~~~~~~~~
 

@@ -15,6 +15,8 @@ python-plus adds various features to python 2 and python 3 programs.
 It is designed to be used as integration of pypi future to help to port your code from
 Python 2 to Python 3 and still have it run on Python 2.
 
+Python supplemental features
+----------------------------
 
 list_requirements.py: list environment requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,6 +42,8 @@ Usage
 
 Code example
 ------------
+
+Simple examples of code
 
 class / type test
 ~~~~~~~~~~~~~~~~~
@@ -163,26 +167,29 @@ vem is an interactive tool with some nice features to manage standard virtual en
 Action is one of:
 
 * help
-* amend [OPTIONS] [SRC_VENV]
-* check [OPTIONS] [SRC_VENV]
+* amend [OPTIONS] [VENV]
+* check [OPTIONS] [VENV]
 * cp [OPTIONS] SRC_VENV TGT_ENV
 * create -p PYVER [OPTIONS] [VENV]
 * exec [OPTIONS] [VENV] CMD
 * info [OPTIONS] [VENV] PKG
+* inspect [OPTIONS] [VENV]
 * install [OPTIONS] [VENV] PKG
 * merge [OPTIONS] SRC_VENV TGT_ENV
 * mv [OPTIONS] SRC_VENV TGT_ENV
-* update [OPTIONS] [VENV] PKG
-* uninstall [OPTIONS] [VENV] PKG
-* test [OPTIONS] [VENV]
-* reset [OPTIONS] [VENV]
+* python VENV
+* shell VENV
 * show [OPTIONS] [VENV] PKG
+* uninstall [OPTIONS] [VENV] PKG
+* update [OPTIONS] [VENV] PKG
+* test VENV
 
-amend [OPTIONS] [SRC_VENV]
-      Amend package versions against requirements.  May used after 'create' or 'reset' when requirements are changed.
 
-check [OPTIONS] [SRC_VENV]
-      Compare package versions against requirements.  May be used after 'create' or 'reset' to check virtual environment
+amend [OPTIONS] [VENV]
+      Amend package versions against requirements.  May used after 'create' when requirements are changed.
+
+check [OPTIONS] [VENV]
+      Compare package versions against requirements.  May be used after 'create' to check virtual environment
       consistency.
 
 cp [OPTIONS] SRC_VENV TGT_ENV
@@ -202,20 +209,38 @@ exec [OPTIONS] [SRC_VENV] CMD ...
       Execute a command in virtual environment. Enclose command by quotes.
 
 info [OPTIONS] [SRC_VENV] PKG
-      Show information about pypi package if installed in virtual environment (alias of show)
+      Show information about pypi package if installed in virtual environment (alias of show).
+
+inspect [OPTIONS] [VENV]
+      Show internal configuration.
 
 install [OPTIONS] [SRC_VENV] PKG
       Install pypi package or bin package into virtual environment.
-      Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc
+      Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc.
+
+merge [OPTIONS] SRC_VENV TGT_ENV
+      Merge 2 virtual environments.
+
+mv [OPTIONS] SRC_VENV TGT_ENV
+      Move a virtual environment.
+
+python VENV
+      Execute python interpreter of virtual environment with packages.
+
+shell VENV
+       Execute bash inside virtual environment, with packages commands.
 
 show [OPTIONS] [SRC_VENV] PKG
-      Show information about pypi package if installed in virtual environment (alias of info)
+      Show information about pypi package if installed in virtual environment (alias of info).
 
 uninstall [OPTIONS] [SRC_VENV] PKG
       Uninstall pypi package from virtual environment.
 
 update [OPTIONS] [SRC_VENV] PKG
       Upgrade pypi package in virtual environment.
+
+test VENV
+      Execute pip check inside vritual environment.
 
 
 
@@ -226,10 +251,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -244,19 +269,16 @@ Stable version via Python Package
 
     pip install python_plus
 
-
-|
-
 Current version via Git
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
     cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
-    ./install_tools.sh -p
-    source /opt/odoo/devel/activate_tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
 
 
 
