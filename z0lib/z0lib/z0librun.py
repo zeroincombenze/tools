@@ -29,7 +29,11 @@ import os
 from builtins import object
 import shutil
 import shlex
-from subprocess import PIPE, DEVNULL, Popen
+if sys.version_info[0] == 2:
+    from subprocess import PIPE, Popen
+    DEVNULL = open("/dev/null", "w").fileno()
+else:
+    from subprocess import PIPE, DEVNULL, Popen
 # from python_plus import qsplit
 # standard_library.install_aliases()  # noqa: E402
 

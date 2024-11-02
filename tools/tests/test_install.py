@@ -72,7 +72,7 @@ def parse_opts(cli_args=[]):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Tools install test.",
         epilog=(
-            "© 2022-2023 by SHS-AV s.r.l.\n"
+            "© 2022-2024 by SHS-AV s.r.l.\n"
             "Author: antoniomaria.vigliotti@gmail.com\n"
             "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
         ),

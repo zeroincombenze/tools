@@ -143,6 +143,7 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+[[ -z $PYVER ]] && PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
@@ -154,9 +155,9 @@ fi
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
     if [[ ! $PYVER =~ ^3\.(7|8|9|10)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
-        echo "Please install python 3.9 typing fowllowing command:"
+        echo "Please install python 3.10 typing following command:"
         echo ""
-        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.9"
+        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.10"
         echo ""
         exit 1
     fi

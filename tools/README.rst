@@ -72,10 +72,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -113,6 +113,18 @@ Current version via Git
 ChangeLog History
 -----------------
 
+z0lib: 2.0.13 (2024-10-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
+
+
+lisa: 2.0.6 (2024-10-04)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: replaced path owned by odoo
+
+
 python_plus: 2.0.15 (2024-10-02)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -133,7 +145,7 @@ wok_code: 2.0.19 (2024-08-22)
 
 * [FIX] please python 3.9+
 * [FIX] install_python_3_from_source.sh: fix bugs and improvements
-* [FIX] ssh.py: store encripted password
+* [FIX] ssh.py: store encrypted password
 * [IMP] run_odoo_debug: now can replace modules
 * [IMP] cvt_script executable
 * [IMP] deploy_odooo: more improvements
@@ -551,12 +563,6 @@ zerobug: 2.0.10 (2023-11-10)
 * [IMP] New switch -f failfast
 * [IMP] Test signature like unittest2 and old zerobug signature
 * [IMP] Test flow without return status (like unitest2)
-
-
-z0lib: 2.0.8 (2023-10-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] parseopt
 
 
 oerplib3: 0.8.4 (2023-05-06)
