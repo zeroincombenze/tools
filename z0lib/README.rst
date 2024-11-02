@@ -1,5 +1,5 @@
 ============
-z0lib 2.0.12
+z0lib 2.0.13
 ============
 
 
@@ -15,7 +15,7 @@ z0lib is a simple bash and python library.
 
 It was created to give support to bash and python software.
 The package has both bash version and both python version of functions.
-Since 2022, bash development was abandoned and only python code is stil upgraded.
+Since 2022, bash development was abandoned and only python code is still upgraded.
 
 .. important::
 
@@ -31,11 +31,17 @@ The available libraries are:
 Features
 --------
 
-Description,bash,python,Note(s)
-run_traced,✅,✅,Run os command with trace
-xuname,✅,❌,OS indentity (python has native function)
-parseoptargs,✅,❌,Command line parser (python has native function)
-link_cfg,✅,❌,Get values from configuration file (python has native function)
++--------------+------+--------+-----------------------------------------------------------------+
+| Description  | bash | python | Note(s)                                                         |
++--------------+------+--------+-----------------------------------------------------------------+
+| run_traced   | ✅   | ✅     | Run os command with trace                                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| xuname       | ✅   | ❌     | OS indentity (python has native function)                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| parseoptargs | ✅   | ❌     | Command line parser (python has native function)                |
++--------------+------+--------+-----------------------------------------------------------------+
+| link_cfg     | ✅   | ❌     | Get values from configuration file (python has native function) |
++--------------+------+--------+-----------------------------------------------------------------+
 
 
 
@@ -46,10 +52,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -100,6 +106,11 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.0.13 (2024-10-31)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
 
 2.0.12 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
@@ -234,10 +245,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

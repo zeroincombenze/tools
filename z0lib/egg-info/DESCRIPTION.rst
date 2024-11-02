@@ -2,7 +2,7 @@ z0lib is a simple bash and python library.
 
 It was created to give support to bash and python software.
 The package has both bash version and both python version of functions.
-Since 2022, bash development was abandoned and only python code is stil upgraded.
+Since 2022, bash development was abandoned and only python code is still upgraded.
 
 .. important::
 
