@@ -1,6 +1,8 @@
 Code example
 ------------
 
+Simple examples of code
+
 class / type test
 ~~~~~~~~~~~~~~~~~
 

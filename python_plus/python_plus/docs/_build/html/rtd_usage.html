@@ -46,6 +46,7 @@
 <h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
 <section id="code-example">
 <h2>Code example<a class="headerlink" href="#code-example" title="Link to this heading"></a></h2>
+<p>Simple examples of code</p>
 <section id="class-type-test">
 <h3>class / type test<a class="headerlink" href="#class-type-test" title="Link to this heading"></a></h3>
 <p>Test if a string is unicode.</p>
@@ -155,25 +156,27 @@
 <p>Action is one of:</p>
 <ul class="simple">
 <li><p>help</p></li>
-<li><p>amend [OPTIONS] [SRC_VENV]</p></li>
-<li><p>check [OPTIONS] [SRC_VENV]</p></li>
+<li><p>amend [OPTIONS] [VENV]</p></li>
+<li><p>check [OPTIONS] [VENV]</p></li>
 <li><p>cp [OPTIONS] SRC_VENV TGT_ENV</p></li>
 <li><p>create -p PYVER [OPTIONS] [VENV]</p></li>
 <li><p>exec [OPTIONS] [VENV] CMD</p></li>
 <li><p>info [OPTIONS] [VENV] PKG</p></li>
+<li><p>inspect [OPTIONS] [VENV]</p></li>
 <li><p>install [OPTIONS] [VENV] PKG</p></li>
 <li><p>merge [OPTIONS] SRC_VENV TGT_ENV</p></li>
 <li><p>mv [OPTIONS] SRC_VENV TGT_ENV</p></li>
-<li><p>update [OPTIONS] [VENV] PKG</p></li>
-<li><p>uninstall [OPTIONS] [VENV] PKG</p></li>
-<li><p>test [OPTIONS] [VENV]</p></li>
-<li><p>reset [OPTIONS] [VENV]</p></li>
+<li><p>python VENV</p></li>
+<li><p>shell VENV</p></li>
 <li><p>show [OPTIONS] [VENV] PKG</p></li>
+<li><p>uninstall [OPTIONS] [VENV] PKG</p></li>
+<li><p>update [OPTIONS] [VENV] PKG</p></li>
+<li><p>test VENV</p></li>
 </ul>
 <dl class="simple">
-<dt>amend [OPTIONS] [SRC_VENV]</dt><dd><p>Amend package versions against requirements.  May used after ‘create’ or ‘reset’ when requirements are changed.</p>
+<dt>amend [OPTIONS] [VENV]</dt><dd><p>Amend package versions against requirements.  May used after ‘create’ when requirements are changed.</p>
 </dd>
-<dt>check [OPTIONS] [SRC_VENV]</dt><dd><p>Compare package versions against requirements.  May be used after ‘create’ or ‘reset’ to check virtual environment
+<dt>check [OPTIONS] [VENV]</dt><dd><p>Compare package versions against requirements.  May be used after ‘create’ to check virtual environment
 consistency.</p>
 </dd>
 <dt>cp [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Copy SOURCE environment directory to TGT_ENV, like the bash command ‘cp’ and  set  relative  path  inside  virtual
@@ -189,16 +192,28 @@ See -I -D -O -o -r switches to furthermore information.</p>
 </dd>
 <dt>exec [OPTIONS] [SRC_VENV] CMD …</dt><dd><p>Execute a command in virtual environment. Enclose command by quotes.</p>
 </dd>
-<dt>info [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of show)</p>
+<dt>info [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of show).</p>
+</dd>
+<dt>inspect [OPTIONS] [VENV]</dt><dd><p>Show internal configuration.</p>
 </dd>
 <dt>install [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Install pypi package or bin package into virtual environment.
-Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</p>
+Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc.</p>
 </dd>
-<dt>show [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of info)</p>
+<dt>merge [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Merge 2 virtual environments.</p>
+</dd>
+<dt>mv [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Move a virtual environment.</p>
+</dd>
+<dt>python VENV</dt><dd><p>Execute python interpreter of virtual environment with packages.</p>
+</dd>
+<dt>shell VENV</dt><dd><p>Execute bash inside virtual environment, with packages commands.</p>
+</dd>
+<dt>show [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of info).</p>
 </dd>
 <dt>uninstall [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Uninstall pypi package from virtual environment.</p>
 </dd>
 <dt>update [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Upgrade pypi package in virtual environment.</p>
+</dd>
+<dt>test VENV</dt><dd><p>Execute pip check inside vritual environment.</p>
 </dd>
 </dl>
 <div class="line-block">

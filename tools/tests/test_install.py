@@ -113,6 +113,25 @@ def verbose_switch(opt_args):
     verb = "v" * opt_args.verbose
     return ("-%s" % verb) if verb else "-q"
 
+
+def get_odoo_values(opt_args):
+    odoo_majver = 0
+    odoo_path = odoo_bin = addons = ""
+    if opt_args.branch:
+        odoo_majver = int(opt_args.branch.split(".")[0])
+        odoo_path = pth.expanduser("~/odoo%d" % odoo_majver)
+        if not pth.isdir(pth.expanduser("~/odoo%d" % odoo_majver)):
+            odoo_path = pth.expanduser("~/" + opt_args.branch)
+        if odoo_majver < 10:
+            odoo_bin = pth.join(odoo_path, "openerp-server")
+            addons = pth.join(odoo_path, "openerp", "addons")
+        else:
+            odoo_bin = pth.join(odoo_path, "/odoo-bin")
+            addons = pth.join(odoo_path, "odoo", "addons")
+        addons += "," + pth.join(odoo_path, "addons")
+    return odoo_majver, odoo_path, odoo_bin, addons
+
+
 def create_venv(opt_args, venvdir, pypidir, toolsdir):
     print(pGREEN + ("# Starting create_venv(%s,%s, %s)"
                     % (venvdir, pypidir, toolsdir)) + pCLR)
@@ -129,7 +148,8 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
         if opt_args.issue_pyver:
             cmd += (" -p %s" % opt_args.python)
         if opt_args.branch:
-            cmd += (" -o ~/%s" % opt_args.branch)
+            odoo_majver, odoo_path, odoo_bin, addons = get_odoo_values(opt_args)
+            cmd += (" -o %s" % odoo_path)
     cmd += " " + verbose_switch(opt_args)
     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
     cmd = "mkdir %s" % toolsdir
@@ -171,7 +191,7 @@ def main(cli_args=[]):
             if odoo_majver <= 10:
                 opt_args.python = "2.7"
             else:
-                opt_args.python = "3.%d" % (int((odoo_majver - 10) / 2) + 6)
+                opt_args.python = "3.%d" % (int((odoo_majver - 9) / 2) + 6)
         else:
             opt_args.python = "3.9"
         print(pGREEN + "Python %s will be used!" % opt_args.python + pCLR)
@@ -271,15 +291,7 @@ def main(cli_args=[]):
         os.system(script)
 
         if opt_args.branch:
-            odoo_bin = pth.expanduser("~/" + opt_args.branch)
-            odoo_majver = int(opt_args.branch.split(".")[0])
-            if odoo_majver < 10:
-                odoo_bin += "/openerp-server"
-                addons = pth.expanduser("~/" + opt_args.branch + "/openerp/addons")
-            else:
-                odoo_bin += "/odoo-bin"
-                addons = pth.expanduser("~/" + opt_args.branch + "/odoo/addons")
-            addons += "," + pth.expanduser("~/" + opt_args.branch + "/addons")
+            odoo_majver, odoo_path, odoo_bin, addons = get_odoo_values(opt_args)
             script = "%s/test_odoo.sh" % venvdir
             with open(script, "w") as fd:
                 write_test_line(fd, "#!/usr/bin/env bash")

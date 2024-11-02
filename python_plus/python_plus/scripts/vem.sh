@@ -1489,7 +1489,7 @@ fi
 
 _CS="|/-\\"
 _CX=0
-ACTIONS="help amend cp check create exec info inspect install merge mv python shell rm show uninstall update test"
+ACTIONS="help amend check cp create exec info inspect install merge mv python shell rm show uninstall update test"
 REXACT="^(${ACTIONS// /|})\$"
 # In old vem version p1 -> action and p2 > venv
 [[ $opt_verbose -gt 3 ]] && set -x
