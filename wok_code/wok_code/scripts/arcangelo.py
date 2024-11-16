@@ -33,7 +33,7 @@ INVALID_NAMES = [
     "filestore",
     "migrations",
     "setup",
-    "tests",
+    # "tests",
     "tmp",
     "venv_odoo",
     "win32",
@@ -361,7 +361,7 @@ class MigrateEnv(MigrateMeta):
                 os.chdir(opt_args.path[0])
             if pth.isdir(pth.dirname(opt_args.path[0])):
                 os.chdir(pth.dirname(opt_args.path[0]))
-            sts, stdout, stderr = z0lib.run_traced(
+            sts, stdout, stderr = z0lib.os_system_traced(
                 "git branch", verbose=False, dry_run=False
             )
             os.chdir(curcwd)
@@ -975,6 +975,7 @@ class MigrateFile(MigrateMeta):
         prettier_config = False
         black_config = False
         path = pth.dirname(pth.abspath(pth.expanduser(out_fqn)))
+        out_fqn_dir_path = path
         while not prettier_config and not black_config:
             if pth.isfile(pth.join(path, ".pre-commit-config.yaml")):
                 black_config = pth.join(path, ".pre-commit-config.yaml")
@@ -994,17 +995,21 @@ class MigrateFile(MigrateMeta):
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
             cmd += " --bracket-same-line --write "
             cmd += out_fqn
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
         else:
             if self.mime == "manifest" and self.opt_args.to_version:
+                os.chdir(out_fqn_dir_path)
                 opts = "-Rw -lmodule -Podoo"
                 if self.opt_args.from_version and self.opt_args.to_version:
                     opts += " -F%s -b%s" % (self.opt_args.from_version,
                                             self.opt_args.to_version)
                 if self.opt_args.git_orgid:
                     opts += " -G%s" % self.opt_args.git_orgid
-                cmd = "gen_readme.py %s" % opts
-                z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+                cmd = "%s %s %s" % (
+                    sys.executable,
+                    pth.join(pth.dirname(__file__), "gen_readme.py"),
+                    opts)
+                z0lib.os_system_traced(cmd, dry_run=self.opt_args.dry_run)
             opts = "--skip-source-first-line"
             if (
                     (self.py23 == 2 or self.python_future)
@@ -1012,7 +1017,7 @@ class MigrateFile(MigrateMeta):
             ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_fqn)
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
 
     def close(self):
         if self.opt_args.output:
@@ -1053,7 +1058,7 @@ class MigrateFile(MigrateMeta):
                 print('👽 %s' % out_fqn)
         elif self.keep_as_is and self.fqn != out_fqn:
             cmd = "cp %s %s" % (self.fqn, out_fqn)
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
             if self.opt_args.verbose > 0:
                 print('👽 %s' % out_fqn)
 

@@ -7,3 +7,19 @@ binding_model:
       args:
       - 'binding_model="([^"]*)"'
       - 'src_model="\1"'
+product_uom:
+  match: '["''>]product\.uom["''<]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom'
+      - 'uom.uom'
+product_uom_categ_unit:
+  match: '["''>]product\.product_uom_categ_unit["''<]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_categ_unit'
+      - 'uom.product_uom_categ_unit'

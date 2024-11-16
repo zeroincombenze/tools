@@ -95,19 +95,22 @@ def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
     return raw_cmd
 
 
+def build_website(CONF, host, ruser, via=None, do_tunnel=False):
+    if do_tunnel and CONF["RUSER"][host][ruser]["rhttp"]:
+        website = "http://localhost:8069"
+    elif "rhttp" in CONF["RUSER"][host][ruser]:
+        website = "http://%s:%d" % (host, CONF["RUSER"][host][ruser]["rhttp"])
+    else:
+        website = "http://%s" % host
+    return website
+
+
 def get_cmd(CONF, host, ruser, opts="", via=None, do_tunnel=False):
     return build_raw_cmd(
         CONF, "ssh", host, ruser, opts=opts, via=via, do_tunnel=do_tunnel)
 
 
 def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None):
-    # via = via or CONF["RUSER"][host][ruser]["via"]
-    # param = CONF["RUSER"][host][ruser].get("param", "")
-    # port = ""
-    # if param.startswith("-p"):
-    #     port = param.split(" ")[1]
-    #     param = ""
-    # passwd = get_pwd(CONF, host, ruser)
     if recurse and not source.endswith("/"):
         source = "%s/" % source
     if recurse and not dest.endswith("/"):
@@ -116,14 +119,6 @@ def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None)
         source = "%s@%s:%s" % (ruser, host, source)
     elif host_side == "d":
         dest = "%s@%s:%s" % (ruser, host, dest)
-    # if via == "pwd" and passwd:
-    #     os.environ["SSHPASS"] = passwd
-    #     cmd = "sshpass -e rsync -avz"
-    # else:
-    #     cmd = "rsync -avz"
-    # if port:
-    #     cmd += " -e 'ssh -p %s'" % port
-    # cmd += " %s %s %s" % (param, source, dest)
     cmd = build_raw_cmd(
         CONF, "rsync", host, ruser, via=via, opts="-avz")
     cmd += " %s %s" % (source, dest)
@@ -131,21 +126,10 @@ def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None)
 
 
 def get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse, via=None):
-    # via = via or CONF["RUSER"][host][ruser]["via"]
-    # param = CONF["RUSER"][host][ruser].get("param", "")
-    # passwd = get_pwd(CONF, host, ruser)
     if host_side == "s":
         source = "%s@%s:%s" % (ruser, host, source)
     elif host_side == "d":
         dest = "%s@%s:%s" % (ruser, host, dest)
-    # if via == "pwd" and passwd:
-    #     os.environ["SSHPASS"] = passwd
-    #     cmd = "sshpass -e scp"
-    # else:
-    #     cmd = "scp"
-    # if recurse:
-    #     cmd += " -r"
-    # cmd += " %s %s %s" % (param, source, dest)
     cmd = build_raw_cmd(
         CONF, "scp", host, ruser, via=via, opts="-r" if recurse else None)
     cmd += " %s %s" % (source, dest)
@@ -156,7 +140,6 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
     valid_hosts = []
     cuser = cuser or os.environ["USER"]
     prior_host = ""
-    # for host in CONF["RUSER"].keys():
     for host in sorted(CONF["RUSER"].keys(), key=lambda x: CONF["REV_ALIAS"].get(x, x)):
         if sel_host and host != sel_host:
             continue
@@ -453,7 +436,7 @@ if os.environ["USER"] not in CONF["RUSER"][host][ruser].get("users"):
 
 vpn_name = get_vpn_name(CONF, host, ruser)
 if vpn_name:
-    print("##### You should activate %s before issue this commmad #####" % vpn_name)
+    print("##### You should activate %s before issue this command #####" % vpn_name)
 if do_dir:
     source = get_remote_path(source)
     cmd = get_cmd(CONF, host, ruser, via=via_pwd)
@@ -475,8 +458,9 @@ elif scp or rsync:
         cmd = get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse)
 else:
     cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunel)
-    if do_tunel:
-        print("##### You can browse remote webpage at http://localhost:8069 #####")
+    website = build_website(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunel)
+    if website:
+        print("##### You could browse remote webpage at %s #####" % website)
 if verbose:
     print(cmd)
 if dry_run:

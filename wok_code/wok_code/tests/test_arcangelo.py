@@ -257,6 +257,11 @@ class RegressionTest:
                         "File %s differs %s" % (res_fqn, tgt_fqn))
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo6.py",
                                                           "odoo7.py")
+        cmd = "arcangelo -fiw -F6.1 -b7.0 %s -o %s" % (src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
+                        "File %s differs %s" % (res_fqn, tgt_fqn))
 
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo10.py",
                                                           "odoo11.py")
@@ -294,6 +299,14 @@ class RegressionTest:
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo7.py",
                                                           "odoo6.py")
         cmd = "arcangelo -fiw -F7.0 -b6.1 %s -o %s" % (src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
+                        "File %s differs %s" % (res_fqn, tgt_fqn))
+
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo11.py",
+                                                          "odoo10.py")
+        cmd = "arcangelo -fiw -F11.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),

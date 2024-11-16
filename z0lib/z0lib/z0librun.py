@@ -18,7 +18,6 @@ Area managed:
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-# from future import standard_library
 from past.builtins import basestring
 
 import argparse
@@ -32,10 +31,9 @@ import shlex
 if sys.version_info[0] == 2:
     from subprocess import PIPE, Popen
     DEVNULL = open("/dev/null", "w").fileno()
+    # sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 else:
     from subprocess import PIPE, DEVNULL, Popen
-# from python_plus import qsplit
-# standard_library.install_aliases()  # noqa: E402
 
 
 # Apply for configuration file (True/False)
@@ -61,11 +59,15 @@ def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def print_flush(msg):
+def print_flush(msg, end=None, flush=False):
     if sys.version_info[0] == 3:                                     # pragma: no cover
-        print(msg, flush=True)
+        print(msg, end=end, flush=True)
     else:
-        print(msg)
+        # print form __future__
+        print(msg, end=end)
+        if flush:
+            sys.stdout.flush()
+            # sys.stderr.flush()
 
 
 def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):
@@ -73,14 +75,14 @@ def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):
     prompt = ("  " * os_level) + prompt
     if isinstance(args, (tuple, list)):
         if flush and sys.version_info[0] == 3:
-            print("%s %s" % (prompt, join_args(args)), flush=flush)
+            print_flush("%s %s" % (prompt, join_args(args)), flush=flush)
         else:
-            print("%s %s" % (prompt, join_args(args)))
+            print_flush("%s %s" % (prompt, join_args(args)))
     else:
         if flush and sys.version_info[0] == 3:
-            print("%s %s" % (prompt, args), flush=flush)
+            print_flush("%s %s" % (prompt, args), flush=flush)
         else:
-            print("%s %s" % (prompt, args))
+            print_flush("%s %s" % (prompt, args))
 
 
 def join_args(args):
@@ -119,7 +121,7 @@ def os_system_traced(
                 continue
             ln = ln.decode("utf8")
             if rtime:
-                print(ln, end="", flush=True)
+                print_flush(ln, end="", flush=True)
             log += ln
             ctr = 3
         return log
@@ -152,11 +154,11 @@ def os_system_traced(
             sts = proc.wait()
         except OSError as e:  # noqa: F821
             if verbose:
-                print(e)
+                print_flush(e, flush=True)
             sts = 127
         except BaseException as e:
             if verbose:
-                print(e)
+                print_flush(e, flush=True)
             sts = 126
     else:
         try:
@@ -172,11 +174,11 @@ def os_system_traced(
                 sts = proc.wait()
         except FileNotFoundError as e:  # noqa: F821
             if verbose:
-                print(e)
+                print_flush(e, flush=True)
             sts = 127
         except BaseException as e:
             if verbose:
-                print(e)
+                print_flush(e, flush=True)
             sts = 126
     return sts, prcout, prcerr
 
@@ -204,11 +206,11 @@ def os_system(
             sts = proc.wait()
         except OSError as e:  # noqa: F821
             if verbose:
-                print(e)
+                print_flush(e)
             sts = 127
         except BaseException as e:
             if verbose:
-                print(e)
+                print_flush(e)
             sts = 126
     else:
         try:
@@ -223,11 +225,11 @@ def os_system(
                 sts = proc.wait()
         except FileNotFoundError as e:  # noqa: F821
             if verbose:
-                print(e)
+                print_flush(e)
             sts = 127
         except BaseException as e:
             if verbose:
-                print(e)
+                print_flush(e)
             sts = 126
     return sts
 
@@ -722,4 +724,3 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
-

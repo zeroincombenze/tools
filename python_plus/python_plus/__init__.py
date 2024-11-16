@@ -18,7 +18,7 @@ if PY3:
     bytestr_type = bytes
 elif PY2:
     # unicode exist only for python2
-    text_type = unicode
+    text_type = unicode         # noqa: F821
     bytestr_type = str
 
 

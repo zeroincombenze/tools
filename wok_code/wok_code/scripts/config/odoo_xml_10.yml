@@ -1,2 +1,18 @@
 include_odoo_xml_new_api:
   include: 'odoo_xml_new_api'
+product_uom:
+  match: '[\"''>]uom\.uom["''<]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'uom.uom'
+      - 'product.uom'
+product_uom_categ_unit:
+  match: '["''>]uom\.product_uom_categ_unit["''<]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'uom.product_uom_categ_unit'
+      - 'product.product_uom_categ_unit'
