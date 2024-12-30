@@ -141,11 +141,11 @@ fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
 #if [[ -n $opt_port ]]; then
-#  PSQL="psql -U$opt_user -p$opt_port"
+#  SQL="psql -U$opt_user -p$opt_port"
 #  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
 #  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
 #else
-#  PSQL="psql -U$opt_user"
+#  SQL="psql -U$opt_user"
 #  PG_DUMP="pg_dump -U$opt_user"
 #  PG_DB_ACT="pg_db_active -U$opt_user"
 #fi

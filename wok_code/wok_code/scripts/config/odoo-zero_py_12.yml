@@ -1,0 +1,82 @@
+include_odoo_api_multi:
+  ctx: 'final or backport_multi'
+  include: 'odoo_py_api_multi'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'sort_from_odoo_import'
+class_product_uom:
+  match: '.*[^\w]ProductUom[^\w]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'ProductUom'
+      - 'UomUom'
+product_uom:
+  match: '.*["'']product\.uom["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom'
+      - 'uom.uom'
+product_uom_unit:
+  match: '.*["'']product\.product_uom_unit["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_unit'
+      - 'uom.product_uom_unit'
+class_product_uom_category:
+  match: '.*[^\w]ProductUomCateg[^\w]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'ProductUomCateg'
+      - 'UomCategory'
+product_uom_category:
+  match: '.*["'']product\.uom\.categ["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom.categ'
+      - 'uom.category'
+product_uom_categ_unit:
+  match: '.*["'']product\.product_uom_categ_unit["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_categ_unit'
+      - 'uom.product_uom_categ_unit'
+stock_rule:
+  match: '.*["'']procurement\.rule["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'procurement.rule'
+      - 'stock.rule'
+module_l10n_it_fatturapa_out:
+  match: '.*["'']l10n_it_einvoice_out["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_out'
+      - 'l10n_it_fatturapa_out'
+module_l10n_it_account_stamp:
+  match: '.*["'']l10n_it_einvoice_stamp["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_stamp'
+      - 'l10n_it_account_stamp'

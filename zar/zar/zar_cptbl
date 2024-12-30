@@ -123,7 +123,7 @@ $PSQL -Atec "select max($opt_f) from $opt_tbl;" $opt_dst
 $PSQL -Atec "select count($opt_f) from $opt_tbl;" $opt_src
 CTRBEF=$($PSQL -Atc "select count($opt_f) from $opt_tbl;" $opt_src)
 echo "Copy data from source DB $opt_src"
-run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
+run_traced "$PG_DUMP $PG_DUMP_OPT -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
 if [ $opt_wep -ne 0 ]; then
   echo "Deleting table $opt_tbl from DB $opt_dst"
   run_traced "$PSQL -Atec \"delete from $opt_tbl;\" $opt_dst"
