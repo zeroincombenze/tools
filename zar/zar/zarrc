@@ -333,9 +333,7 @@ compress_tar() {
 # current dir must be BCKDIR
     local src x sts fn
     local db="$1"
-    if [ -f "$db-*.sql" ]; then
-      chown $PG_OWN $db-*.sql
-    fi
+    [[ ! $(ls $db-*.sql 2>&1 >/dev/null) ]] && chown $PG_OWN $db-*.sql
     if [ "$BCKFORMAT" != "0" ]; then
       src="$db"
       x=$(echo $TAR_EXT|awk '{print $1}')
@@ -352,6 +350,8 @@ compress_tar() {
           [[ $fn != "$2" ]] && rm -f $fn
         done
         [[ -f $db-filestore.gz ]] && rm -f $db-filestore.gz
+      else
+        wlog "Error $sts from tar command!"
       fi
     fi
 }
