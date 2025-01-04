@@ -30,7 +30,11 @@ import sys
 if sys.version_info[0] == 2:
     from ConfigParser import SafeConfigParser
 else:
-    from configparser import SafeConfigParser
+    try:
+        from configparser import SafeConfigParser
+    except:
+        # Python 3.12 +
+        from configparser import ConfigParser as SafeConfigParser
 
 from oerplib3 import error
 
