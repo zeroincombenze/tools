@@ -119,7 +119,6 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
-
 wlog "=== Starting backup $__version__ by $opt_user ==="
 
 init_vars "$dbsel"
@@ -140,15 +139,6 @@ else
 fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
-#if [[ -n $opt_port ]]; then
-#  SQL="psql -U$opt_user -p$opt_port"
-#  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
-#  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
-#else
-#  SQL="psql -U$opt_user"
-#  PG_DUMP="pg_dump -U$opt_user"
-#  PG_DB_ACT="pg_db_active -U$opt_user"
-#fi
 wait_4_prod=$(get_cfg_value 0 wait_4_prod)
 ((ctr_wait=wait_4_prod/3))
 [ $ctr_wait -lt 10 ] && ctr_wait=10

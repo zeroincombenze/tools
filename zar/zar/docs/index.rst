@@ -1,5 +1,5 @@
 .. zar documentation master file, created by
-   gen_readme.py on 2024-12-30 14:34:09
+   gen_readme.py on 2025-01-16 17:54:30
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

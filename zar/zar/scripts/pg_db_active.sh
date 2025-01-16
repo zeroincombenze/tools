@@ -156,7 +156,7 @@ if [[ $opt_help -gt 0 ]]; then
   exit 0
 fi
 PSQL=""
-for port in $opt_port 5432 5433 5434 5435 5435 5436 5437; do
+for port in $opt_port 5432 5433 5434 5435 5436 5437; do
   for u in $opt_user $USER odoo openerp postgresql; do
     if [[ -n "$u" ]]; then
       [[ -n $port ]] && opt="-p$port" || opt=""
