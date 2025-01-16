@@ -1,19 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
 import os
+import os.path as pth
 import sys
-from zerobug import z0test
-from z0lib import z0lib
 
-__version__ = "2.0.9"
+# allow using isolated test environment
+here = pth.dirname(pth.abspath(__file__))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
+here = pth.dirname(pth.abspath(os.getcwd()))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
 
-MODULE_ID = 'z0lib'
+from z0lib import z0lib  # noqa: E402
+from z0lib.scripts.main import get_metadata  # noqa: E402
+from zerobug import z0test  # noqa: E402
+
+__version__ = "2.0.13"
+
+MODULE_ID = "z0lib"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -23,99 +38,90 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
 
-    def run_test_cmd(self, ctx, cmd):
-        if ctx.get('dry_run', False):
-            return 0
+    def run_test_cmd(self, cmd, test_sts, with_log=True):
         sts, stdout, stderr = z0lib.run_traced(cmd, verbose=False)
-        if cmd == 'false' or (cmd.startswith("cd") and "NOT_EXIST" in cmd):
-            sts = 1 - sts
-        elif cmd == "NOT_EXIST":
-            sts = 127 - sts
-        sts = self.Z.test_result(ctx, 'run_traced(%s)' % cmd, 0, sts)
-        if sts == 0:
-            if cmd.startswith('ls ') or cmd == "ls":
-                sts = self.Z.test_result(ctx, 'result %s' % cmd, True, len(stdout) > 0)
-        return sts
+        self.assertEqual(test_sts, sts, msg_info=cmd)
+        if sts == 0 and cmd.startswith('ls ') or cmd == "ls":
+            self.assertTrue(len(stdout) > 0)
 
-    def test_01(self, z0ctx):
-        # sts = self.Z.test_result(z0ctx,
-        #                          'which python',
-        #                          self.Z.rundir,
-        #                          os.path.dirname(z0lib.__file__))
-        sts = self.Z.test_result(z0ctx,
-                                 'python version',
-                                 os.getenv("TRAVIS_PYTHON_VERSION"),
-                                 "%d.%d" % (sys.version_info[0], sys.version_info[1]))
-        sts += self.run_test_cmd(z0ctx, "true")
-        sts += self.run_test_cmd(z0ctx, "false")
-        sts += self.run_test_cmd(z0ctx, "NOT_EXIST")
+    def test_01(self):
+        self.assertEqual(__version__, get_metadata()["version"])
+        if os.getenv("TRAVIS_PYTHON_VERSION"):
+            self.assertEqual(
+                os.getenv("TRAVIS_PYTHON_VERSION"),
+                "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+
+        self.run_test_cmd("true", 0)
+        self.run_test_cmd("false", 1)
+        self.run_test_cmd("NOT_EXIST", 127)
         fn = os.path.join(self.Z.testdir, "NOT_EXIST")
         if os.path.isfile(fn):
             os.unlink(fn)
-        sts += self.run_test_cmd(z0ctx, "touch %s" % fn)
-        sts += self.Z.test_result(z0ctx, 'touched %s' % fn, True, os.path.isfile(fn))
-        sts += self.run_test_cmd(z0ctx, "rm -f %s" % fn)
-        sts += self.Z.test_result(
-            z0ctx, 'removed %s' % fn, True, not os.path.isfile(fn))
-        sts += self.run_test_cmd(z0ctx, "cd %s" % fn)
-        sts += self.run_test_cmd(z0ctx, "ls")
-        sts += self.run_test_cmd(z0ctx, "mkdir %s" % fn)
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s created' % fn, True, os.path.isdir(fn))
-        sts += self.run_test_cmd(z0ctx, "rm -fR %s" % fn)
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s removed' % fn, True, not os.path.isdir(fn))
-        return sts
+        self.run_test_cmd("touch %s" % fn, 0)
+        self.assertTrue(os.path.isfile(fn), msg="touched %s" % fn)
+        self.run_test_cmd("rm -f %s" % fn, 0)
+        self.assertFalse(os.path.isfile(fn), msg="removed %s" % fn)
+        self.run_test_cmd("cd %s" % fn, 1)
+        self.run_test_cmd("ls", 0)
+        self.run_test_cmd("mkdir %s" % fn, 0)
+        self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
+        self.run_test_cmd("rm -fR %s" % fn, 0)
+        self.assertFalse(os.path.isdir(fn), msg="dir %s removed" % fn)
 
-    def test_02(self, z0ctx):
+    def test_02(self):
         fn = os.path.expanduser("~/16.0")
         if os.path.isdir(fn):
             os.system("rm -fR %s" % fn)
-        self.run_test_cmd(z0ctx, "mkdir %s" % fn)
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "addons"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "odoo"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "odoo", "addons"))
-        self.run_test_cmd(z0ctx, "touch %s" % os.path.join(fn, "odoo", "release.py"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, ".git"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1", ".git"))
-        self.run_test_cmd(z0ctx, "mkdir %s" % os.path.join(fn, "repo1", "module_a"))
+        self.run_test_cmd("mkdir %s" % fn, 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "addons"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "odoo"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "odoo", "addons"), 0)
+        self.run_test_cmd("touch %s" % os.path.join(fn, "odoo", "release.py"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, ".git"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "repo1"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "repo1", ".git"), 0)
+        self.run_test_cmd("mkdir %s" % os.path.join(fn, "repo1", "module_a"), 0)
         sts, stdout, stderr = z0lib.run_traced(
             "git clone https://github.com/zeroincombenze/OCB.git %s -b16.0" % (
                 self.Z.testdir),
             verbose=False)
         tgtfn = os.path.join(self.Z.testdir, "16.0")
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s created' % tgtfn, True, os.path.isdir(tgtfn))
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s created' % os.path.join(tgtfn, "addons"),
-            True,
-            os.path.isdir(os.path.join(tgtfn, "addons")))
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s created' % os.path.join(tgtfn, "odoo"),
-            True,
-            os.path.isdir(os.path.join(tgtfn, "odoo")))
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s created' % os.path.join(tgtfn, "odoo", "addons"),
-            True,
-            os.path.isdir(os.path.join(tgtfn, "odoo", "addons")))
-        sts += self.Z.test_result(
-            z0ctx, 'file %s created' % os.path.join(tgtfn, "odoo", "release.py"),
-            True,
-            os.path.isfile(os.path.join(tgtfn, "odoo", "release.py")))
-        sts += self.Z.test_result(
-            z0ctx, 'dir %s not created' % os.path.join(tgtfn, "repo1"),
-            False,
-            os.path.isdir(os.path.join(tgtfn, "repo1")))
+        self.assertTrue(os.path.isdir(tgtfn), msg="dir %s created" % tgtfn)
+        fn = os.path.join(tgtfn, "addons")
+        self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
+        fn = os.path.join(tgtfn, "odoo")
+        self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
+        fn = os.path.join(tgtfn, "odoo", "addons")
+        self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
+        fn = os.path.join(tgtfn, "odoo", "release.py")
+        self.assertTrue(os.path.isfile(fn), msg="file %s created" % fn)
+        fn = os.path.join(tgtfn, "repo1")
+        self.assertFalse(os.path.isdir(fn), msg="dir %s not created" % fn)
 
-    def setup(self, z0ctx):
-        pass
+    def test_03(self):
+        self.run_test_cmd("true", 0, with_log=False)
+        self.run_test_cmd("false", 1, with_log=False)
+        self.run_test_cmd("NOT_EXIST", 127, with_log=False)
+        fn = os.path.join(self.Z.testdir, "NOT_EXIST")
+        if os.path.isfile(fn):
+            os.unlink(fn)
+        self.run_test_cmd("touch %s" % fn, 0, with_log=False)
+        self.assertTrue(os.path.isfile(fn), msg="touched %s" % fn)
+        self.run_test_cmd("rm -f %s" % fn, 0, with_log=False)
+        self.assertFalse(os.path.isfile(fn), msg="removed %s" % fn)
+        self.run_test_cmd("cd %s" % fn, 1, with_log=False)
+        self.run_test_cmd("ls", 0, with_log=False)
+        self.run_test_cmd("mkdir %s" % fn, 0, with_log=False)
+        self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
+        self.run_test_cmd("rm -fR %s" % fn, 0, with_log=False)
+        self.assertFalse(os.path.isdir(fn), msg="dir %s removed" % fn)
 
-    def tearoff(self, z0ctx):
-        pass
+    def test_04(self):
+        cmd = "ls|grep test"
+        sts, stdout, stderr = z0lib.run_traced(cmd, verbose=False)
+        self.assertEqual(0, sts, msg_info=cmd)
+        self.assertTrue(len(stdout.split("\n")) > 1)
 
 
 #
@@ -126,5 +132,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
