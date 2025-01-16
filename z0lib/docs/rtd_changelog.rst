@@ -5,7 +5,12 @@ ChangeLog History
 =================
 
 
-2.0.13 (2025-01-15)
+2.0.14 (2025-01-16)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
+
+2.0.13 (2024-10-31)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] os_system minor fixes
@@ -30,7 +35,7 @@ ChangeLog History
 2.0.9 (2024-02-01)
 ~~~~~~~~~~~~~~~~~~
 
-* [IMP] Internal matadata
+* [IMP] Internal metadata
 
 2.0.8 (2023-10-16)
 ~~~~~~~~~~~~~~~~~~
@@ -119,10 +124,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

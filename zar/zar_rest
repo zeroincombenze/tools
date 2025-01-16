@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -328,7 +328,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Restore/duplicate postgres DB"\
-  "(C) 2015-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2025 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -360,15 +360,6 @@ if [ -z "$DBSEL" ]; then
   DBSEL=".*"
   opt_ex=0
 fi
-#if [[ -n $opt_port ]]; then
-#  PSQL="psql -U$opt_user -p$opt_port"
-#  PG_DUMP="pg_dump -U$opt_user -p$opt_port"
-#  PG_DB_ACT="pg_db_active -U$opt_user -P$opt_port"
-#else
-#  PSQL="psql -U$opt_user"
-#  PG_DUMP="pg_dump -U$opt_user"
-#  PG_DB_ACT="pg_db_active -U$opt_user"
-#fi
 dblist=$(create_db_list_from_file "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 if [ "$BCKFORMAT" == "0" ]; then
   wlog "-- Backupped DBs stored in sql files --"

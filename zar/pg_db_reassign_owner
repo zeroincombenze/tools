@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2019-24 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2019-25 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -41,7 +41,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.4
+__version__=2.0.7
 
 
 reassign_owner() {
@@ -104,8 +104,7 @@ fi
 [[ -z "$opt_db" || -z "$opt_user" ]] && opt_help=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Change owner of postgres DB"\
-  "(C) 2019-24 by zeroincombenze®\nhttp://wiki.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2019-25 by zeroincombenze®\nhttp://wiki.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 run_traced "reassign_owner \"$opt_db\" \"$opt_orig\" \"$opt_user\""
-
