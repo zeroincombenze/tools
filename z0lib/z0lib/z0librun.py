@@ -28,7 +28,7 @@ import os
 from builtins import object
 import shutil
 import shlex
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # pragma: no cover
     from subprocess import PIPE, Popen
     DEVNULL = open("/dev/null", "w").fileno()
     # sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -62,12 +62,10 @@ def nakedname(path):
 def print_flush(msg, end=None, flush=False):
     if sys.version_info[0] == 3:                                     # pragma: no cover
         print(msg, end=end, flush=True)
-    else:
-        # print form __future__
+    else:  # pragma: no cover
         print(msg, end=end)
         if flush:
             sys.stdout.flush()
-            # sys.stderr.flush()
 
 
 def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):
@@ -339,7 +337,7 @@ def run_traced(cmd,
 
     def sh_cd(args, verbose=0, dry_run=None):
         if verbose:
-            echo_cmd_verbose(cmd, dry_run=dry_run)
+            echo_cmd_verbose(args, dry_run=dry_run)
         argv, opt_unk, paths, params = simple_parse(args, {})
         sts = 0
         tgtpath = paths[0] if paths else os.environ["HOME"]
@@ -352,7 +350,7 @@ def run_traced(cmd,
     def sh_cp(args, verbose=0, dry_run=None):
         if dry_run:
             if verbose:
-                echo_cmd_verbose(cmd, dry_run=dry_run)
+                echo_cmd_verbose(args, dry_run=dry_run)
             return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(
             args, {
@@ -365,7 +363,7 @@ def run_traced(cmd,
         )
         if not opt_unk and paths[0] and paths[1]:
             if verbose:
-                echo_cmd_verbose(cmd, dry_run=dry_run)
+                echo_cmd_verbose(args, dry_run=dry_run)
             if (
                 paths[1]
                 and os.path.basename(paths[1]) != os.path.basename(paths[0])
@@ -686,7 +684,7 @@ class parseoptargs(object):
     ):
         """Parse command-line options.
         @param arguments list of arguments; should argv from command line
-        @param version   software version to displya with -V option
+        @param version   software version to display with -V option
                          in bash version reports __version__ variable of script
         """
         ctx = {}
