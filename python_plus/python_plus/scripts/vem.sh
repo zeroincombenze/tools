@@ -47,7 +47,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.15
+__version__=2.0.16
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -263,6 +263,7 @@ bin_install() {
           [[ $DISTO =~ ^debian ]] && echo "apt install npm"
           ERROR_PKGS="$ERROR_PKGS   '$pkg'"
         else
+          run_traced "cd $VENV"
           [[ $opt_gbl -ne 0 ]] && NPM="npm -g" || NPM="npm"
           [[ $NPM == "npm" && ! -f package-lock.json ]] && run_traced "$NPM init -y"
           [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
@@ -1676,3 +1677,4 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
+

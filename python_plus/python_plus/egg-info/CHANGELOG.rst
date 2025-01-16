@@ -1,8 +1,15 @@
-2.0.15 (2024-10-02)
+2.0.16 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem.py: some packages line invoice2data on python 10.0
 * [FIX] vem: upgrade wkhtmltopdf naming
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
+2.0.15 (2024-10-02)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
 * [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
 * [IMP] list_requirements.py: package versions improvements
 

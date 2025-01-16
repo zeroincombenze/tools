@@ -203,4 +203,3 @@ def main(cli_args=None):
         # copy_pkg_data(setup_args, verbose)
         copy_pkg_data(pypi_metadata, verbose)
     return 0
-
