@@ -25,7 +25,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -238,6 +238,7 @@ REQVERSION = {
     },
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0", "3.8": "<3.0"},
+    "pyrfc3339": {"2.7": "<2.0", "3.5": ">=2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
     "pyparsing": {"6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10"},
     "pyPdf": {"6.1": "==1.13", "12.0": ">=3.1.0"},
@@ -1741,3 +1742,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
