@@ -1,23 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
+from __future__ import print_function, unicode_literals
 import os
+import os.path as pth
 import sys
 
-sys.path.insert(
-    0,
-    (
-        os.path.dirname(os.path.dirname(os.getcwd()))
-        if os.path.basename(os.getcwd()) == "tests"
-        else os.path.dirname(os.getcwd())
-    ),
-)
+# allow using isolated test environment
+here = pth.dirname(pth.abspath(__file__))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
+here = pth.dirname(pth.abspath(os.getcwd()))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
+
 from z0lib import z0lib  # noqa: E402
+from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
 
-__version__ = "2.0.9"
+__version__ = "2.0.13"
 
 MODULE_ID = "z0lib"
 TEST_FAILED = 1
@@ -31,9 +40,12 @@ def version():
 class RegressionTest:
 
     def test_01(self):
-        # sts = self.Z.test_result(
-        #    z0ctx, "Version", z0lib.get_metadata("version"), __version__)
-        #
+        self.assertEqual(__version__, get_metadata()["version"])
+        if os.getenv("TRAVIS_PYTHON_VERSION"):
+            self.assertEqual(
+                os.getenv("TRAVIS_PYTHON_VERSION"),
+                "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+
         parser = z0lib.parseoptargs(
             "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
         )
@@ -46,7 +58,6 @@ class RegressionTest:
         self.assertEqual(False, ctx["dry_run"], msg_info="cmd -v [-n]")
 
     def test_02(self):
-        # sts = TEST_SUCCESS
         parser = z0lib.parseoptargs(
             "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
         )
@@ -67,10 +78,6 @@ class RegressionTest:
         ctx = parser.parseoptargs(["mytarget"])
         if os.environ.get("VERBOSE_MODE", "") in ("0", "1"):
             TRES = int(os.environ["VERBOSE_MODE"])
-        elif os.isatty(0):
-            # TRES = 1
-            # TODO>
-            TRES = 0
         else:
             TRES = 0
         self.assertEqual(TRES, ctx["opt_verbose"], msg_info="cmd mytarget [-qv]")
