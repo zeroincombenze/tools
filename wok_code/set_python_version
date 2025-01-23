@@ -46,25 +46,41 @@ set_bins() {
 VER=""
 ACTION="set"
 DRY_RUN=0
+VERBOSE=0
 cmd=$(basename $0)
 while [[ -n $1 ]]; do
     [[ $1 =~ ^(2|3|2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12)$ ]] && VER=$1 && shift && continue
     [[ $1 =~ -.*l ]] && ACTION="list" && shift && continue
+    [[ $1 =~ -.*s ]] && ACTION="show" && shift && continue
     [[ $1 =~ -.*n ]] && DRY_RUN=1 && shift && continue
-    [[ $1 =~ -.*h ]] && echo "$cmd [-h][-l][-n] python_version" && exit 0
+    [[ $1 =~ -.*v ]] && VERBOSE=1 && shift && continue
+    [[ $1 =~ -.*h ]] && echo "$cmd [-h][-l][-n][-s][-v] python_version" && exit 0
     echo "Invalid option $1" && exit 1
 done
 [[ $ACTION == "set" && -z $VER ]] && echo "Missed python version!" && exit 1
 [[ -n $VER ]] && MAJVER=$(echo $VER | grep --color=never -Eo "[23]" | head -n1)
 cur_env $VER
-if [[ $ACTION == "list" ]]; then
+if [[ $ACTION == "show" ]]; then
     [[ -z $PYTHON ]] && echo "No python $VER found!" || echo "Current python $VER is $PYTHON ($PYTHON_VER)"
     [[ -z $PIP ]] && echo "No pip $VER found!" || echo "Current pip $VER is $PIP ($($PIP --version)"
+    if [[ -z $VER ]]; then
+        VER=3
+        cur_env $VER
+        [[ -z $PYTHON ]] && echo "No python $VER found!" || echo "Current python $VER is $PYTHON ($PYTHON_VER)"
+        [[ -z $PIP ]] && echo "No pip $VER found!" || echo "Current pip $VER is $PIP ($($PIP --version)"
+    fi
+    exit 0
+elif [[ $ACTION == "list" ]]; then
+    echo "Python version list:"
+    for p in /usr/local/bin/python* /usr/bin/python*; do echo $(basename $p); done|sort|grep -Eo "[23]\.[0-9]+"|uniq
+    echo "Pip version list:"
+    for p in /usr/local/bin/pip* /usr/bin/pip*; do echo $(basename $p); done|sort|grep -Eo "[23]\.[0-9]+"|uniq
     exit 0
 fi
 set_bins $MAJVER
 [[ $MAJVER -eq 2 ]] && set_bins
-[[ $MAJVER -eq 2 ]] && cur_env || cur_env $MAJVER
+cur_env $MAJVER
+[[ $MAJVER -eq 2 ]] && cur_env
 [[ -z $PYTHON ]] && echo "No python $VER found!" || echo "Current python $VER is $PYTHON ($PYTHON_VER)"
 [[ -z $PIP ]] && echo "No pip $VER found!" || echo "Current pip $VER is $PIP ($($PIP --version)"
 exit 0

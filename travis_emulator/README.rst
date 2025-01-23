@@ -247,10 +247,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -313,7 +313,7 @@ Troubleshooting
 ChangeLog History
 -----------------
 
-2.0.11 (2024-08-22)
+2.0.10 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Minor improvements

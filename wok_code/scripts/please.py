@@ -273,14 +273,13 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def run_traced(self, cmd, verbose=None, rtime=None, with_shell=None):
-        verbose = verbose if verbose is not None else self.opt_args.verbose
-        rtime = rtime if rtime is not None else verbose > 1
-        sts, stdout, stderr = z0lib.os_system_traced(
-            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime,
-            with_shell=with_shell
-        )
-        return sts
+    def os_system(self, cmd, verbose=None, rtime=None, with_shell=None):
+        return z0lib.os_system(
+            cmd,
+            verbose=verbose if verbose is not None else self.opt_args.verbose,
+            dry_run=self.opt_args.dry_run,
+            rtime=rtime if rtime is not None else (verbose and verbose > 1),
+            with_shell=with_shell)
 
     def add_argument(self, parser, arg):
         if arg in ("-B", "--debug"):
@@ -413,7 +412,7 @@ class Please(object):
             - ['--a=x', '--b=y']: action obj --a=x -> action obj --b=y
             - ['--a=x', '']: action obj --a=x -> action obj
             - ['--a=x', '']: action obj --a=x -> action obj
-        * special switches can inherit from curent environment by inherit_opts:
+        * special switches can inherit from current environment by inherit_opts:
             - ['-v'] inherits current verbose (-v or --verbose)
         Returned value can be applied to python call()
         """
@@ -716,7 +715,7 @@ class Please(object):
 
     def get_odoo_branch_from_git(self, try_by_fs=False, raise_if_not_found=True):
         branch = ""
-        sts, stdout, stderr = z0lib.run_traced(
+        sts, stdout, stderr = z0lib.os_system_traced(
             "git branch", verbose=False, dry_run=False
         )
         if sts == 0 and stdout:
@@ -744,7 +743,7 @@ class Please(object):
         verbose = verbose and self.opt_args.verbose
         stash_list = ""
         url = upstream = ""
-        sts, stdout, stderr = z0lib.run_traced("git remote -v", verbose=verbose)
+        sts, stdout, stderr = z0lib.os_system_traced("git remote -v", verbose=verbose)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -754,7 +753,8 @@ class Please(object):
                     url = lns[1]
                 elif lns[0] == "upstream":
                     upstream = lns[1]
-            sts, stdout, stderr = z0lib.run_traced("git stash list", verbose=False)
+            sts, stdout, stderr = z0lib.os_system_traced(
+                "git stash list", verbose=False)
             stash_list = stdout
         else:
             if self.path_is_ocb(os.getcwd()):
@@ -922,7 +922,7 @@ class Please(object):
         for arg in args:
             cmd.append(arg)
         verbose = verbose if verbose is not None else self.opt_args.verbose
-        rtime = rtime if rtime is not None else verbose > 1
+        rtime = rtime if rtime is not None else (verbose and verbose > 1)
         return z0lib.os_system_traced(
             cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime)
 
@@ -936,7 +936,7 @@ class Please(object):
         cmd = self.build_sh_me_cmd()
         if not cmd:
             return 1
-        return self.run_traced(cmd)
+        return self.os_system(cmd)
 
     def do_action_pypipkg(self, action, pkg, path=None):
         path = (
@@ -978,7 +978,7 @@ class Please(object):
             or self.is_repo_odoo(path=path)
             or self.is_repo_ocb(path=path)
         ):
-            return self.run_traced(self.sh_subcmd)
+            return self.os_system(self.sh_subcmd)
         return 126
 
     ##########################

@@ -72,10 +72,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -113,11 +113,49 @@ Current version via Git
 ChangeLog History
 -----------------
 
-python_plus: 2.0.15 (2024-10-02)
+z0lib: 2.0.14 (2025-01-16)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
+
+
+python_plus: 2.0.16 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem.py: some packages line invoice2data on python 10.0
 * [FIX] vem: upgrade wkhtmltopdf naming
+* [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
+* [IMP] list_requirements.py: package versions improvements
+
+
+oerplib3: 1.0.0 (2025-01-04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Python 3.12 porting
+
+
+zar: 2.0.7 (2024-12-30)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] pg_db_active with port for postgresql multi-version
+
+
+z0lib: 2.0.13 (2024-10-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] os_system minor fixes
+
+
+lisa: 2.0.6 (2024-10-04)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: replaced path owned by odoo
+
+
+python_plus: 2.0.15 (2024-10-02)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.py: some packages line invoice2data on python 10.0
 * [FIX] list_requirements.py: packages with similar name (numpy -> numpy-financial)
 * [IMP] list_requirements.py: package versions improvements
 
@@ -133,7 +171,7 @@ wok_code: 2.0.19 (2024-08-22)
 
 * [FIX] please python 3.9+
 * [FIX] install_python_3_from_source.sh: fix bugs and improvements
-* [FIX] ssh.py: store encripted password
+* [FIX] ssh.py: store encrypted password
 * [IMP] run_odoo_debug: now can replace modules
 * [IMP] cvt_script executable
 * [IMP] deploy_odooo: more improvements
@@ -156,7 +194,7 @@ clodoo: 2.0.13 (2024-08-22)
 zerobug: 2.0.18 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Some function now are move in z0lib>=2.0..1
+* [IMP] Some function now are move in z0lib>=2.0.12
 * [IMP] Python 3.6 deprecated
 
 
@@ -431,7 +469,7 @@ clodoo: 2.0.9 (2024-02-02)
 z0lib: 2.0.9 (2024-02-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Internal matadata
+* [IMP] Internal metadata
 
 
 zerobug: 2.0.14 (2024-01-31)
@@ -458,111 +496,6 @@ z0bug_odoo: 2.0.15 (2024-01-27)
 * [IMP] TestEnv: warning if no setUp() declaration
 * [IMP] TestEnv: resource_download, now default filed name is "data"
 
-
-
-z0bug_odoo: 2.0.14 (2023-12-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: commit odoo data became internal feature
-* [IMP] TestEnv: test on model asset.asset
-* [IMP] TestEnv: detail external reference coding free
-* [IMP] TestEnv: empty currency_id is set with company currency
-* [FIX] TestEnv: minor fixes in mixed environment excel + zerobug
-* [FIX] TestEnv: sometimes external.KEY did not work
-* [FIX] TestEnv: 3 level xref fails when module ha "_" in its name
-* [IMP] _check4deps.py: documentation clearing
-
-
-zerobug: 2.0.13 (2023-12-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] python2: argument signature
-* [IMP] build_os_tree: compatible with unittest2
-* [IMP] remove_os_tree: compatible with unittest2
-
-
-z0bug_odoo: 2.0.13 (2023-12-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: now you can declare you own source data directory
-* [IMP] TestEnv: file account.account.xlsx with l10n_generic_oca + some useful records
-* [IMP] TestEnv: file account.tax.xlsx with some italian taxes for l10n_generic_oca
-* [IMP] TestEnv: simple expression for data value
-
-
-travis_emulator: 2.0.8 (2023-12-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Translation excel file names
-
-
-
-zerobug: 2.0.12 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-[FIX] python2: has_args
-
-
-wok_code: 2.0.13 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] please install python, now can install python 3.10
-* [IMP] arcangelo: new python version assignment from odoo version
-* [IMP] please version: now show compare with last entry of history
-* [FIX] please docs: faq
-* [FIX] please help cwd
-* [FIX] gen_readme.py: sometimes lost history
-* [FIX] gen_readme.py: error reading malformed table
-* [IMP] odoo_translation.py: new regression tests
-* [FIX] odoo_translation.py: punctuation at the end of term
-* [FIX] odoo_translation.py: first character case
-* [FIX] odoo_translation.py: cache file format is Excel
-* [FIX] run_odoo_debug: path with heading space
-* [IMP] please test now can update account.account.xlsx
-
-
-zerobug: 2.0.11 (2023-11-19)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Disabled sanity_check
-* [IMP] Disabled some deprecated switches
-* [FIX] Coverage data file
-* [IMP] zerobug: test function signature like unittest2
-* [IMP] zerobug: no more execution for count
-
-
-travis_emulator: 2.0.7 (2023-11-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Automatic python version for Odoo
-
-
-clodoo: 2.0.8 (2023-11-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Discard odoorpc 0.10 which does not work
-
-
-zerobug: 2.0.10 (2023-11-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring
-* [IMP] New functions assert* like unittest2
-* [IMP] New switch -f failfast
-* [IMP] Test signature like unittest2 and old zerobug signature
-* [IMP] Test flow without return status (like unitest2)
-
-
-z0lib: 2.0.8 (2023-10-16)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] parseopt
-
-
-oerplib3: 0.8.4 (2023-05-06)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] First porting
 
 
 os0: 2.0.1 (2022-10-20)

@@ -146,7 +146,7 @@ class RegressionTest:
         else:
             self.testdir = os.path.join(os.getcwd(), "tests")
             self.rundir = os.getcwd()
-        z0lib.run_traced(
+        z0lib.os_system(
             "build_cmd %s" % os.path.join(
                 self.rundir, "scripts", "odoo_translation.py")
         )
@@ -191,7 +191,7 @@ class RegressionTest:
             os.chdir(moduledir)
 
             cmd = "odoo_translation -WT"
-            sts, stdout, stderr = z0lib.run_traced(cmd)
+            sts, stdout, stderr = z0lib.os_system_traced(cmd)
             self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
             template = self.read_data_file("odoo_template_tnl.csv")
             self.assertEqual(
@@ -210,7 +210,7 @@ class RegressionTest:
             with open(it_po_file, "w") as fd:
                 fd.write(PO_FILE)
             cmd = "odoo_translation -T"
-            sts, stdout, stderr = z0lib.run_traced(cmd)
+            sts, stdout, stderr = z0lib.os_system_traced(cmd)
             self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
             with open(it_po_file, "r") as fd:
                 po_contents = fd.read()
@@ -233,7 +233,7 @@ class RegressionTest:
             fd.write(contents)
         os.chdir(moduledir)
         cmd = "odoo_translation -WT -p %s -C" % moduledir
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd)
         self.assertEqual(sts, 0, msg_info="%s> %s" % (moduledir, cmd))
         template = self.read_data_file("odoo_template_tnl.csv")
         self.assertIn("\ttax\tCI", template)

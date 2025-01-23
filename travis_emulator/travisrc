@@ -386,7 +386,7 @@ create_virtual_env() {
     for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
+        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/scripts/setup.py ]] && \
           run_traced "$PIP install -qU $TRAVIS_SAVED_HOME_DEVEL/pypi/$p"
     done
   fi
@@ -406,6 +406,7 @@ create_virtual_env() {
     mkdir -p $TRAVIS_BUILD_DIR
     x=$(readlink -f $TRAVIS_BUILD_DIR/..)
     run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
+    [[ -f $TRAVIS_HOME_BRANCH/setup.py ]] && run_traced "cp $TRAVIS_HOME_BRANCH/setup.py $x/"
     if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
       git_clone "https://github.com/zeroincombenze/tools.git"
       [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
@@ -1101,4 +1102,3 @@ run_server_test() {
 }
 
 conf_default
-

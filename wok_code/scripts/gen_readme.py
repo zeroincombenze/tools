@@ -417,7 +417,7 @@ def __init__(ctx):
         read_only = False
         if "git@github.com:" in url:
             uri = url.split("@")[1].split(":")[1]
-            read_only = False
+            read_only = True
         elif "https:" in url:
             uri = url.split(":")[1]
         else:
@@ -2497,8 +2497,7 @@ def manifest_item(ctx, item):
     ):
         ctx["manifest"][item] = eval(ctx["manifest"][item])
     if (
-        (item in MANIFEST_ITEMS_OPTIONAL
-         or (not ctx["odoo_marketplace"] and item in MANIFEST_ITEMS_MARKETPLACE))
+        item in MANIFEST_ITEMS_OPTIONAL
         and item in ctx and (ctx[item] is False or ctx[item] == [])
     ):
         target = ""
@@ -2559,12 +2558,24 @@ def manifest_item(ctx, item):
             target = '    %s%s%s: [\n' % (q, item, q)
             for kk in ctx["manifest"][item]:
                 if isinstance(kk, basestring):
-                    text = kk.replace("'", '"')
+                    text = kk.replace(q, "\\" + q)
                     target += '        %s%s%s,\n' % (q, text, q)
                 else:
                     text = str(kk)
                     target += "        %s,\n" % text
             target += "    ],\n"
+    elif isinstance(ctx["manifest"][item], dict):
+        if len(ctx["manifest"][item]) == 0:
+            target = ""
+        else:
+            target = '    %s%s%s: {\n' % (q, item, q)
+            for key, value in ctx["manifest"][item].items():
+                target += '        %s%s%s: [\n' % (q, key, q)
+                for package in value:
+                    text = package.replace(q, "\\" + q)
+                    target += '            %s%s%s,\n' % (q, text, q)
+                target += '        ],\n'
+            target += "    },\n"
     else:
         text = str(ctx["manifest"][item])
         target = '    %s%s%s: %s,\n' % (q, item, q, text)

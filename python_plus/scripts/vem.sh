@@ -3,7 +3,7 @@
 # Manage virtual environment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # -------------------------------------------------------------------------------
 # PIP features truth table depending on pip version (21.0 + only python3):
@@ -221,6 +221,7 @@ get_req_list() {
     [[ -z $3 ]] && wh="all" || wh="$3"
 
     cmd="$LIST_REQ"
+    echo $cmd|grep -Evq "^[a-z0-9_/.]*python[23]? " && [[ -n $PYTHON ]] && cmd="$PYTHON $LIST_REQ"
     [[ -n $tt ]] && cmd="$cmd -qt $tt -P" || cmd="$cmd -qt python -P"
     [[ $wh =~ "sec" ]] && cmd="${cmd}S"
     [[ $opt_dev -ne 0 && $wh =~ (all|dev) ]] && cmd="${cmd}TR"
@@ -1677,4 +1678,3 @@ if [[ -n "$ERROR_PKGS" ]]; then
 fi
 unset PYTHON PIP
 exit $sts
-

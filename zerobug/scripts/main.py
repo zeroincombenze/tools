@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 24
+# template 24+
 """
 Python supplemental features
 ----------------------------
@@ -75,29 +75,6 @@ def get_metadata():
     #     pypi_metadata["long_description"] = fd.read()
     pypi_metadata["where"] = "local"
     return pypi_metadata
-
-
-# def read_setup():
-#     setup_info = pth.abspath(pth.join(pth.dirname(__file__), "setup.info"))
-#     if not pth.isfile(setup_info):
-#         setup_info = pth.abspath(
-#             pth.join(pth.dirname(__file__), "..", "setup.py")
-#         )
-#     setup_args = {}
-#     if pth.isfile(setup_info):
-#         with open(setup_info, "r") as fd:
-#             exec(fd.read().replace("setup(", "fake_setup("))
-#             setup_args = globals()["setup_args"]
-#     else:
-#         print("Not internal configuration file found!")
-#     setup_args["setup"] = setup_info
-#     try:
-#         pkg = pkg_resources.get_distribution(__package__.split(".")[0])
-#         setup_args["name"] = pkg.key
-#         setup_args["version"] = pkg.version
-#     except BaseException:
-#         pass
-#     return setup_args
 
 
 def get_pypi_paths():
@@ -229,5 +206,3 @@ def main(cli_args=None):
         # copy_pkg_data(setup_args, verbose)
         copy_pkg_data(pypi_metadata, verbose)
     return 0
-
-

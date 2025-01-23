@@ -15,7 +15,7 @@ Usage
     positional arguments:
       action
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -H PATH, --home-devel PATH
                             Home devel directory

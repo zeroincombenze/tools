@@ -33,7 +33,7 @@ INVALID_NAMES = [
     "filestore",
     "migrations",
     "setup",
-    "tests",
+    # "tests",
     "tmp",
     "venv_odoo",
     "win32",
@@ -62,10 +62,10 @@ class MigrateMeta(object):
             self.rule_categ.append("globals_py%s" % self.py23)
 
         if self.opt_args.git_orgid:
-            self.rule_categ.append("%s_%s_%s" % (
+            self.rule_categ.append("%s-%s_%s" % (
                 self.opt_args.package_name,
-                mime,
-                self.opt_args.git_orgid))
+                self.opt_args.git_orgid,
+                mime))
 
         self.rule_categ.append("%s_%s" % (self.opt_args.package_name, mime))
 
@@ -83,6 +83,12 @@ class MigrateMeta(object):
             fn = "%s_%s_%s"
             self.rule_categ.append(
                 fn % (self.opt_args.package_name, mime, self.to_major_version))
+            if self.opt_args.git_orgid:
+                self.rule_categ.append("%s-%s_%s_%s" % (
+                    self.opt_args.package_name,
+                    self.opt_args.git_orgid,
+                    mime,
+                    self.to_major_version))
         elif self.from_major_version and self.to_major_version:
             fn = "%s_%s_%s"
             if self.from_major_version < self.to_major_version:
@@ -92,6 +98,12 @@ class MigrateMeta(object):
                 while to_major_version <= self.to_major_version:
                     self.rule_categ.append(
                         fn % (self.opt_args.package_name, mime, to_major_version))
+                    if self.opt_args.git_orgid:
+                        self.rule_categ.append("%s-%s_%s_%s" % (
+                            self.opt_args.package_name,
+                            self.opt_args.git_orgid,
+                            mime,
+                            to_major_version))
                     from_major_version += 1
                     to_major_version = from_major_version + 1
             elif self.from_major_version > self.to_major_version:
@@ -101,6 +113,12 @@ class MigrateMeta(object):
                 while to_major_version >= self.to_major_version:
                     self.rule_categ.append(
                         fn % (self.opt_args.package_name, mime, to_major_version))
+                    if self.opt_args.git_orgid:
+                        self.rule_categ.append("%s-%s_%s_%s" % (
+                            self.opt_args.package_name,
+                            self.opt_args.git_orgid,
+                            mime,
+                            to_major_version))
                     from_major_version -= 1
                     to_major_version = from_major_version + 1
 
@@ -361,7 +379,7 @@ class MigrateEnv(MigrateMeta):
                 os.chdir(opt_args.path[0])
             if pth.isdir(pth.dirname(opt_args.path[0])):
                 os.chdir(pth.dirname(opt_args.path[0]))
-            sts, stdout, stderr = z0lib.run_traced(
+            sts, stdout, stderr = z0lib.os_system_traced(
                 "git branch", verbose=False, dry_run=False
             )
             os.chdir(curcwd)
@@ -975,6 +993,7 @@ class MigrateFile(MigrateMeta):
         prettier_config = False
         black_config = False
         path = pth.dirname(pth.abspath(pth.expanduser(out_fqn)))
+        out_fqn_dir_path = path
         while not prettier_config and not black_config:
             if pth.isfile(pth.join(path, ".pre-commit-config.yaml")):
                 black_config = pth.join(path, ".pre-commit-config.yaml")
@@ -992,19 +1011,26 @@ class MigrateFile(MigrateMeta):
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
-            cmd += " --bracket-same-line --write "
+            # cmd += " --bracket-same-line --write "
+            cmd += " --write "
             cmd += out_fqn
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
         else:
             if self.mime == "manifest" and self.opt_args.to_version:
+                curcwd = os.getcwd()
+                os.chdir(out_fqn_dir_path)
                 opts = "-Rw -lmodule -Podoo"
                 if self.opt_args.from_version and self.opt_args.to_version:
                     opts += " -F%s -b%s" % (self.opt_args.from_version,
                                             self.opt_args.to_version)
                 if self.opt_args.git_orgid:
                     opts += " -G%s" % self.opt_args.git_orgid
-                cmd = "gen_readme.py %s" % opts
-                z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+                cmd = "%s %s %s" % (
+                    sys.executable,
+                    pth.join(pth.dirname(__file__), "gen_readme.py"),
+                    opts)
+                z0lib.os_system_traced(cmd, dry_run=self.opt_args.dry_run)
+                os.chdir(curcwd)
             opts = "--skip-source-first-line"
             if (
                     (self.py23 == 2 or self.python_future)
@@ -1012,7 +1038,7 @@ class MigrateFile(MigrateMeta):
             ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_fqn)
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
 
     def close(self):
         if self.opt_args.output:
@@ -1053,7 +1079,7 @@ class MigrateFile(MigrateMeta):
                 print('👽 %s' % out_fqn)
         elif self.keep_as_is and self.fqn != out_fqn:
             cmd = "cp %s %s" % (self.fqn, out_fqn)
-            z0lib.run_traced(cmd, dry_run=self.opt_args.dry_run)
+            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
             if self.opt_args.verbose > 0:
                 print('👽 %s' % out_fqn)
 

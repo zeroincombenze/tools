@@ -6,7 +6,6 @@ import sys
 
 import re
 
-from z0lib import z0lib
 
 __version__ = "2.0.19"
 
@@ -223,8 +222,8 @@ class PleaseZ0bug(object):
 
         sts = 0
         if not please.opt_args.no_verify:
-            please.run_traced("git add ./", rtime=True)
-            sts = please.run_traced("pre-commit run", rtime=True)
+            please.os_system("git add ./", rtime=True)
+            sts = please.os_system("pre-commit run", rtime=True)
         if sts == 0:
             if "lint" in please.cli_args:
                 sub_list = [("--no-verify", ""),
@@ -240,7 +239,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd()
-            return please.run_traced(cmd, with_shell=True, rtime=True)
+            return please.os_system(cmd, with_shell=True, rtime=True)
         return sts
 
     def do_lint(self):
@@ -251,7 +250,7 @@ class PleaseZ0bug(object):
             sts = 0
             for path in please.get_next_module_path():
                 print("")
-                sts = please.run_traced("cd " + path)
+                sts = please.os_system("cd " + path)
                 if sts == 0:
                     sts = self._do_lint()
                 if please.is_fatal_sts(sts):
@@ -259,7 +258,7 @@ class PleaseZ0bug(object):
             return sts
         elif please.is_pypi_pkg():
             if not please.opt_args.no_verify:
-                sts = please.run_traced("pre-commit run", rtime=True)
+                sts = please.os_system("pre-commit run", rtime=True)
             if "lint" in please.cli_args:
                 sub_list = [("--no-verify", ""), ("--no-translate", "")]
             else:
@@ -271,18 +270,18 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd, with_shell=True, rtime=True)
+            return please.os_system(cmd, with_shell=True, rtime=True)
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
 
     def do_show(self):
         please = self.please
         if please.is_odoo_pkg():
             cmd = pth.join(please.get_logdir(), "show-log.sh")
-            return please.run_traced(cmd)
+            return please.os_system(cmd)
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
+            sts = please.os_system(cmd, with_shell=True, rtime=True)
             return 0 if please.opt_args.ignore_status else sts
         return please.do_iter_action("do_show", act_all_pypi=True, act_tools=False)
 
@@ -291,7 +290,7 @@ class PleaseZ0bug(object):
         if please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd()
-            return please.run_traced(cmd)
+            return please.os_system(cmd)
         return 126
 
     def _do_show_summary(self, fqn):
@@ -336,7 +335,7 @@ class PleaseZ0bug(object):
         elif please.is_repo_odoo() or please.is_repo_ocb():
             sts = 0
             for path in please.get_next_module_path():
-                sts = please.run_traced("cd " + path, verbose=False)
+                sts = please.os_system("cd " + path, verbose=False)
                 if sts == 0:
                     sts = self._do_show_summary_odoo()
                 if please.is_fatal_sts(sts):
@@ -345,7 +344,7 @@ class PleaseZ0bug(object):
         elif please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
             cmd = please.build_sh_me_cmd(cmd="travis")
-            sts = z0lib.os_system(cmd, with_shell=True, rtime=True)
+            sts = please.os_system(cmd, with_shell=True, rtime=True)
             return 0 if please.opt_args.ignore_status else sts
         return please.do_iter_action("do_summary", act_all_pypi=True, act_tools=False)
 
@@ -368,13 +367,13 @@ class PleaseZ0bug(object):
                 srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
                                    "testenv")
                 if branch and int(branch.split(".")[0]) <= 7:
-                    please.run_traced(
+                    please.os_system(
                         "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
                         rtime=True)
                 else:
-                    please.run_traced(
+                    please.os_system(
                         "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
-                please.run_traced(
+                please.os_system(
                     "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
             if (
                     please.opt_args.debug_level
@@ -403,7 +402,7 @@ class PleaseZ0bug(object):
         if pth.isdir("tests") and pth.isfile(pth.join(".", "_check4deps_.py")):
             srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
                                "_check4deps_.py")
-            please.run_traced(
+            please.os_system(
                 "cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
         if (
                 not please.opt_args.no_verify
@@ -414,7 +413,7 @@ class PleaseZ0bug(object):
                                "testenv")
             for fn in [x for x in os.listdir(srcpath) if x.endswith(".xlsx")]:
                 if pth.isfile(pth.join("tests", "data", fn)):
-                    please.run_traced(
+                    please.os_system(
                         "cp %s/%s tests/data/%s" % (srcpath, fn, fn), rtime=True)
 
         args = self.build_run_odoo_base_args(branch=branch)
@@ -430,12 +429,12 @@ class PleaseZ0bug(object):
             return sts
         if not please.opt_args.no_verify:
             print("## Git sync ... ##")
-            sts = please.run_traced("git add ./", rtime=True)
+            sts = please.os_system("git add ./", rtime=True)
         if sts:
             return sts
-        if not please.opt_args.no_translate:
-            print("## Update translation ... ##")
-            sts = please.do_translate()
+        # if not please.opt_args.no_translate:
+        #     print("## Update translation ... ##")
+        #     sts = please.do_translate()
         return sts
 
     def do_test(self):
@@ -446,7 +445,7 @@ class PleaseZ0bug(object):
             sts = 0
             for path in please.get_next_module_path():
                 print("")
-                sts = please.run_traced("cd " + path)
+                sts = please.os_system("cd " + path)
                 if sts == 0:
                     sts = self._do_test_odoo_pkg()
                 if please.is_fatal_sts(sts):
@@ -462,7 +461,7 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 rm_obj=True, slist=sub_list, inherit_opts=["-v"])
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd, rtime=True)
+            return please.os_system(cmd, rtime=True)
         return please.do_iter_action("do_test", act_all_pypi=True, act_tools=False)
 
     def do_zerobug(self):
@@ -478,5 +477,5 @@ class PleaseZ0bug(object):
                 rm_obj=True,
                 slist=[("--no-verify", ""), ("--no-translate", "")])
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.run_traced(cmd, rtime=True)
+            return please.os_system(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)

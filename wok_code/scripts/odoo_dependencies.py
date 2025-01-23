@@ -42,7 +42,7 @@ optional arguments:
   -x, --external-bin-dependencies
   -1, --no-depth
 
-© 2020-24 by SHS-AV s.r.l.
+© 2020-25 by SHS-AV s.r.l.
 
 
 This app can execute following actions:
@@ -737,7 +737,7 @@ def main(cli_args=None):
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
     parser = z0lib.parseoptargs(
         "Odoo dependencies management",
-        "© 2020-24 by SHS-AV s.r.l.",
+        "© 2020-25 by SHS-AV s.r.l.",
         version=__version__,
     )
     parser.add_argument('-h')

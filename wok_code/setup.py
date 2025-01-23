@@ -17,7 +17,7 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "clodoo", "z0lib>=2.0.11", "python_plus",
+    "clodoo", "z0lib>=2.0.13", "python_plus",
     "future", "Babel", "lxml", "openpyxl", "pyyaml"
 ]
 if sys.version_info >= (3, 0):
@@ -70,11 +70,11 @@ setup(
             "scripts/cvt_script.sh",
             "./cvt_script.man",
             "./please.man",
-            "./topep8",
-            "./to_oca.2p8",
-            "./to_zero.2p8",
-            "./to_pep8.2p8",
-            "./pypi.sh",
+            # "./topep8",
+            # "./to_oca.2p8",
+            # "./to_zero.2p8",
+            # "./to_pep8.2p8",
+            # "./pypi.sh",
             "./install_python_3_from_source.sh",
             # "./cvt_csv_2_xml.py",
         ]
@@ -89,31 +89,19 @@ setup(
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
             "dist_pkg = wok_code.scripts.dist_pkg:main",
             "do_gitignore = wok_code.do_gitignore:main",
-            "do_git_checkout_new_branch = wok_code.do_git_checkout_new_branch:main",
+            # "do_git_checkout_new_branch = wok_code.do_git_checkout_new_branch:main",
             "arcangelo = wok_code.scripts.arcangelo:main",
-            "do_odoo_site.py = wok_code.scripts.do_odoo_site:main",
+            # "do_odoo_site.py = wok_code.scripts.do_odoo_site:main",
             "gen_readme.py = wok_code.scripts.gen_readme:main",
             "lint_2_compare = wok_code.scripts.lint_2_compare:main",
             "makepo_it.py = wok_code.scripts.makepo_it:main",
             "odoo_dependencies.py = wok_code.scripts.odoo_dependencies:main",
             "odoo_translation.py = wok_code.scripts.odoo_translation:main",
             "please = wok_code.scripts.please:main",
-            "to_pep8.py = wok_code.scripts.to_pep8:main",
+            # "to_pep8.py = wok_code.scripts.to_pep8:main",
             "wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main",
             "run_odoo_debug = wok_code.scripts.run_odoo_debug:main",
         ]
     },
     zip_safe=False,
 )
-
-
-
-
-
-
-
-
-
-
-
-

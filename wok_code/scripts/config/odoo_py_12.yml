@@ -8,3 +8,84 @@ sort_from_odoo_import:
     - action: '$'
       args:
       - 'sort_from_odoo_import'
+class_product_uom:
+  match: '.*[^\w]ProductUom[^\w]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'ProductUom'
+      - 'UomUom'
+product_uom:
+  match: '.*["'']product\.uom["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom'
+      - 'uom.uom'
+product_uom_unit:
+  match: '.*["'']product\.product_uom_unit["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_unit'
+      - 'uom.product_uom_unit'
+class_product_uom_category:
+  match: '.*[^\w]ProductUomCateg[^\w]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'ProductUomCateg'
+      - 'UomCategory'
+product_uom_category:
+  match: '.*["'']product\.uom\.categ["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom.categ'
+      - 'uom.category'
+product_uom_categ_unit:
+  match: '.*["'']product\.product_uom_categ_unit["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_categ_unit'
+      - 'uom.product_uom_categ_unit'
+stock_rule:
+  match: '.*["'']procurement\.rule["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'procurement.rule'
+      - 'stock.rule'
+import_oerplib:
+  match: '^ *import oerplib'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - import oerplib
+      - import oerplib3 as oerplib
+oerplib3:
+  match: '.*["'']oerplib["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - oerplib
+      - oerplib3
+product_uom_form_view:
+  match: '.*["'']product.product_uom_form_view["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_form_view'
+      - 'uom.product_uom_form_view'
+      -

@@ -85,7 +85,7 @@ Usage
                             display total # tests when execute them
       -0, --no-count        no count # unit tests (deprecated)
     
-    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-
+    © 2015-2025 by SHS-AV s.r.l. - https://zeroincombenze-
     tools.readthedocs.io/en/latest/zerobug
     
 
@@ -98,10 +98,10 @@ Getting started
 Prerequisites
 -------------
 
-Zeroincombenze tools requires:
+Zeroincombenze(R) tools requires:
 
-* Linux Centos 7/8 or Debian 9/10 or Ubuntu 18/20/22
-* python 2.7+, some tools require python 3.6+, best python 3.8+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
 * bash 5.0+
 
 
@@ -156,7 +156,7 @@ ChangeLog History
 2.0.18 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Some function now are move in z0lib>=2.0..1
+* [IMP] Some function now are move in z0lib>=2.0.12
 * [IMP] Python 3.6 deprecated
 
 2.0.17 (2024-07-07)

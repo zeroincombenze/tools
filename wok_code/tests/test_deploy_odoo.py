@@ -38,7 +38,7 @@ class RegressionTest:
         self.odoo_testdir = os.path.join(self.testdir, "res")
         if not os.path.isdir(self.odoo_testdir):
             os.mkdir(self.odoo_testdir)
-        z0lib.run_traced(
+        z0lib.os_system(
             "build_cmd %s" % os.path.join(self.rundir, "scripts", "deploy_odoo.py")
         )
 
@@ -48,7 +48,8 @@ class RegressionTest:
             msg="Cmd <<<%s>>> not found!" % cmd)
 
     def test_01_version(self):
-        sts, stdout, stderr = z0lib.run_traced("deploy_odoo --version")
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "deploy_odoo --version", rtime=False)
         self.assertEqual(sts, 0, msg_info="deploy_odoo --version")
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
@@ -57,7 +58,7 @@ class RegressionTest:
         git_dir = os.path.join(self.odoo_testdir, "oca16")
         cmd = ("deploy_odoo clone -mTv -b16.0 -Goca -p %s -r %s" % (
             git_dir, "OCB,crm,l10n-italy,web"))
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone https://github.com/odoo/odoo.git .* -b 16.0"
@@ -93,7 +94,7 @@ class RegressionTest:
         git_dir = os.path.join(self.odoo_testdir, "16.0")
         cmd = "deploy_odoo clone -KmTv -b16.0 -gGzero -p %s -r %s" % (
             git_dir, "OCB,crm,web")
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/OCB.git .* -b 16.0",
@@ -118,7 +119,7 @@ class RegressionTest:
         git_dir = os.path.join(self.odoo_testdir, "16.0")
         cmd = ("deploy_odoo amend -KmTv -b16.0 -gGzero -p %s -r OCB,crm,l10n-italy,web"
                % git_dir)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/l10n-italy.git .* -b 16.0",
@@ -130,7 +131,7 @@ class RegressionTest:
     def test_05_update(self):
         git_dir = os.path.join(self.odoo_testdir, "16.0")
         cmd = "deploy_odoo update -Tv -b16.0 -gGzero -p %s" % git_dir
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             " cd %s.*git pull origin 16.0" % git_dir,
@@ -141,7 +142,7 @@ class RegressionTest:
         new_dir = os.path.join(self.odoo_testdir, "17.0")
         cmd = "deploy_odoo new-branch -mTv -b%s -gGzero -p %s -o %s" % (
             "17.0", new_dir, git_dir)
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(
             "git clone git@github.com:zeroincombenze/OCB.git",

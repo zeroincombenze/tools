@@ -11,22 +11,22 @@ import os.path as pth
 import sys
 
 # allow using isolated test environment
-here = pth.dirname(pth.abspath(__file__))
-while pth.basename(here) in ("tests", "scripts"):
-    here = pth.dirname(here)
-if here not in sys.path:
-    sys.path.insert(0, here)
-here = pth.dirname(pth.abspath(os.getcwd()))
-while pth.basename(here) in ("tests", "scripts"):
-    here = pth.dirname(here)
-if here not in sys.path:
-    sys.path.insert(0, here)
+def pkg_here(here):
+    while (
+        pth.basename(here) in ("tests", "scripts")
+        or pth.basename(pth.dirname(here)) == "local"
+    ):
+        here = pth.dirname(here)
+    if here not in sys.path:
+        sys.path.insert(0, here)
 
+pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
+pkg_here(pth.abspath(os.getcwd()))  # noqa: E402
 from z0lib import z0lib  # noqa: E402
 from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 MODULE_ID = "z0lib"
 TEST_FAILED = 1

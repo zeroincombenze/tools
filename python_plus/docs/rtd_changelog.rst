@@ -5,6 +5,11 @@ ChangeLog History
 =================
 
 
+2.0.17 (2025-01-16)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem.sh: list_requirements.py always executable
+
 2.0.16 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
 

@@ -19,6 +19,8 @@ try:
     from python_plus import python_plus
 except ImportError:
     import python_plus
+except ValueError:
+    import python_plus
 try:
     from z0lib import z0lib
 except ImportError:

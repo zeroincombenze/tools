@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Digest of code_example &#8212; zerobug 2.0.18 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=0f882399" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
@@ -94,14 +94,14 @@ If directory is a relative path, the directory is dropped from tests/res directo
 <p>This function remove directory and all sub-directories without any control</p>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#! python</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">z0test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">zerobug</span><span class="w"> </span><span class="kn">import</span> <span class="n">z0test</span>
 
-<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RegressionTest</span><span class="p">():</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s1">&#39;16.0/addons&#39;</span><span class="p">,</span>
             <span class="s1">&#39;16.0/odoo&#39;</span><span class="p">,</span>
@@ -109,7 +109,7 @@ If directory is a relative path, the directory is dropped from tests/res directo
         <span class="p">]</span>
         <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">remove_os_tree</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">os_tree</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">os_tree</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s1">&#39;16.0&#39;</span><span class="p">,</span>
             <span class="s1">&#39;16.0/addons&#39;</span><span class="p">,</span>
@@ -140,16 +140,16 @@ If directory is a relative path, the directory is dropped from tests/res directo
 In local travis emulation, if repository uses local repository, if exists.
 Return odoo root directory</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># (python)</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0testOdoo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">zerobug</span><span class="w"> </span><span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">zerobug</span><span class="w"> </span><span class="kn">import</span> <span class="n">Z0testOdoo</span>
 
-<span class="kn">from</span> <span class="nn">zerobug</span> <span class="kn">import</span> <span class="n">Z0BUG</span>
-<span class="k">class</span> <span class="nc">RegressionTest</span><span class="p">():</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">zerobug</span><span class="w"> </span><span class="kn">import</span> <span class="n">Z0BUG</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RegressionTest</span><span class="p">():</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z0BUG</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Z0BUG</span> <span class="o">=</span> <span class="n">Z0BUG</span>
 
-    <span class="k">def</span> <span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_01</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
         <span class="n">remote</span> <span class="o">=</span> <span class="s1">&#39;OCA&#39;</span>
         <span class="n">reponame</span> <span class="o">=</span> <span class="s1">&#39;OCB&#39;</span>
         <span class="n">branch</span> <span class="o">=</span> <span class="s1">&#39;10.0&#39;</span>
@@ -235,7 +235,7 @@ Return odoo root directory</p>
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright 2019-24, SHS-AV s.r.l..
+    &#169; Copyright 2019-25, SHS-AV s.r.l..
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
     </div>
   </body>

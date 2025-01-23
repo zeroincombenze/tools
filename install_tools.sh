@@ -143,22 +143,30 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+[[ -z $PYVER ]] && PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $PYVER ]] && PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 [[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9|10)$ && $PYVER != "2.7" ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9|10|11)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
-        echo "Please install python 3.9 typing fowllowing command:"
+        echo "Please install python 3.10 typing following command:"
         echo ""
-        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.9"
+        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.10"
         echo ""
         exit 1
+    fi
+    if [[ $opts =~ ^-.*f ]]; then
+        [[ -d $HOME/.cache/bin ]] && run_traced "rm -fR $HOME/.cache/bin"
+        [[ -d $HOME/.cache/lib ]] && run_traced "rm -fR $HOME/.cache/lib"
+        [[ -d $HOME/package.json ]] && run_traced "rm -fR $HOME/package.json"
+        [[ -d $HOME/node_modules ]] && run_traced "rm -fR $HOME/node_modules"
     fi
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
@@ -337,6 +345,11 @@ if [[ $PYVER -eq 3 ]]; then
     run_traced "cd $DSTPATH"
     [[ $opts =~ ^-.*v ]] && x="" || x="--quiet"
     if [[ ! $opts =~ ^-.*t ]]; then
+        if [[ $opts =~ ^-.*f ]]; then
+            run_traced "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash"
+            run_traced "export NVM_DIR=\"$HOME/.nvm\""
+            run_traced "[ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\""
+        fi
         [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
         run_traced "git clone https://github.com/OCA/maintainer-tools.git"
         if [[ -d $DSTPATH/maintainer-tools ]]; then
@@ -350,6 +363,7 @@ if [[ $PYVER -eq 3 ]]; then
         for pkg in sphinx sphinx_rtd_theme; do
             run_traced "pip install $pkg $popts"
         done
+        run_traced "nvm install v20.18.0"
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
         run_traced "npm audit fix"
         run_traced "npm install --save-dev --save-exact prettier@2.1.2"

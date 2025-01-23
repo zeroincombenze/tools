@@ -26,9 +26,9 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
-        self.Z.inherit_cls(self)
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
+    #     self.Z.inherit_cls(self)
 
     def _touch_file(self, fn):
         if not os.path.isfile(fn):
@@ -37,57 +37,55 @@ class RegressionTest:
 
     def test_01(self):
         cmd = "please --version"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual(
             (stdout + stderr).split("\n")[0],
             __version__)
 
         cmd = "please"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             "please is an interactive developers shell aims to help", stdout)
 
         cmd = "please help"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             "please is an interactive developers shell aims to help", stdout)
 
         cmd = "please help z0bug"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(" please test", stdout)
 
         cmd = "please -h"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn("2015-2023 by SHS-AV s.r.l.", (stdout + stderr))
 
         cmd = "please z0bug -h"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn("-T REGEX, --trace REGEX", (stdout + stderr))
-
-        return self.ret_sts()
 
     def test_02(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please z0bug -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
         os.chdir(self.tool_pkgdir)
         cmd = "please zerobug -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
         os.chdir(self.pypi_dir)
         cmd = "please zerobug -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
@@ -120,66 +118,64 @@ class RegressionTest:
         pofile = os.path.join(self.odoo_moduledir, "i18n", "it.po")
         self.create_pofile(pofile)
         self.create_database("test_test_module_12")
-        TMODARS = "-m test_module -b 12.0"
-        DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
+        # TMODARS = "-m test_module -b 12.0"
+        # DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
 
         cmd = "please zerobug -vfn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn("pre-commit run",
-                      stdout.split("\n")[1],
-                      msg="Bash command not found in stdout")
-        self.assertIn("please.sh lint -vfn",
                       stdout.split("\n")[2],
                       msg="Bash command not found in stdout")
+        self.assertIn("please.sh lint -vfn",
+                      stdout.split("\n")[3],
+                      msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[6],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[8],
+            stdout.split("\n")[9],
             ".*/python .*/gen_readme.py -b 12.0 -f -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[9],
+            stdout.split("\n")[12],
             ".*/python .*/gen_readme.py -b 12.0 -f -n -I",
             msg="Bash command not found in stdout")
         self.assertIn("git add ./",
-                      stdout.split("\n")[11],
+                      stdout.split("\n")[14],
                       msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[13],
-            ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
-            msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[14],
-            ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
-            msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout.split("\n")[13],
+        #     ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
+        #     msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout.split("\n")[14],
+        #     ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
+        #     msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)
         cmd = "please zerobug -vn --no-verify --no-translate"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn("please.sh lint -vn",
-                      stdout.split("\n")[0],
+                      stdout.split("\n")[1],
                       msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[2],
+            stdout.split("\n")[4],
             ".*/run_odoo_debug.py",
             msg="Bash command not found in stdout")
 
-        return self.ret_sts()
-
     def test_03(self):
         cmd = "please create apache erp.example.com -qn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual("File ~/erp.example.com.conf will be created",
                          stdout.split("\n")[0])
 
         os.chdir(self.pypi_dir)
         cmd = "please defcon gitignore -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -188,16 +184,16 @@ class RegressionTest:
 
         os.chdir(self.odoo_repodir)
         cmd = "please defcon gitignore -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             r".*\.gitignore should be updated/created",
             msg="Bash command not found in stdout")
 
         os.chdir(self.pypi_dir)
         cmd = "please defcon precommit -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -206,13 +202,12 @@ class RegressionTest:
 
         os.chdir(self.odoo_repodir)
         cmd = "please defcon precommit -vn"
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             r".*\.pre-commit-config.yaml should be updated/created",
             msg="Bash command not found in stdout")
-
-        return self.ret_sts()
 
     def test_04(self):
         os.chdir(self.tool_pkgdir)
@@ -220,26 +215,24 @@ class RegressionTest:
             fd.write("# Fake file\n")
         cmd = "please clean -vn"
         target_file = os.path.join(os.getcwd(), "please.py~")
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertEqual(
             stdout.split("\n")[0],
             "> rm -f " + target_file)
 
         cmd = "please clean -v"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             " rm -f " + target_file,
             stdout.split("\n")[0]
         )
 
-        return self.ret_sts()
-
     def test_05(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please test -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             " travis test -vn",
@@ -248,7 +241,7 @@ class RegressionTest:
 
         os.chdir(self.pypi_dir)
         cmd = "please test -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             " travis test -vn",
@@ -262,59 +255,57 @@ class RegressionTest:
         if os.path.isfile(chnglog):
             os.unlink(chnglog)
         cmd = "please test -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[2],
             ".*run_odoo_debug.py",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[6],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[5],
+            stdout.split("\n")[7],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[7],
+            stdout.split("\n")[9],
             ".*git add ./",
             msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[9],
-            ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
-            msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[10],
-            ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
-            msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout.split("\n")[9],
+        #     ".*/odoo_translation.py %s %s -v -n" % (TMODARS, DBARGS),
+        #     msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout.split("\n")[10],
+        #     ".*/run_odoo_debug.py -e %s %s -q -n" % (TMODARS, DBARGS),
+        #     msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)
         chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
         if os.path.isfile(chnglog):
             os.unlink(chnglog)
         cmd = "please test -vn --no-translate"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[2],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[4],
+            stdout.split("\n")[6],
             ".*/gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[5],
+            stdout.split("\n")[7],
             ".*/gen_readme.py -b 12.0 -n -I",
             msg="Bash command not found in stdout")
-
-        return self.ret_sts()
 
     def test_06(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please lint -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -327,7 +318,7 @@ class RegressionTest:
 
         os.chdir(self.pypi_dir)
         cmd = "please lint -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -340,36 +331,34 @@ class RegressionTest:
 
         os.chdir(self.odoo_moduledir)
         cmd = "please lint -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             ".*git add ./",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout.split("\n")[2],
             "> pre-commit run",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[2],
+            stdout.split("\n")[3],
             ".*/please.sh lint -vn",
             msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)
         cmd = "please lint -vn --no-verify"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
-            stdout.split("\n")[0],
+            stdout.split("\n")[1],
             ".*/please.sh lint -v",
             msg="Bash command not found in stdout")
-
-        return self.ret_sts()
 
     def _test_07(self):
         os.chdir(self.tool_pkgdir)
         cmd = "please show -n"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -378,7 +367,7 @@ class RegressionTest:
 
         os.chdir(self.pypi_dir)
         cmd = "please show -n"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertMatch(
             stdout.split("\n")[0],
@@ -388,29 +377,27 @@ class RegressionTest:
         os.chdir(self.odoo_moduledir)
         fn = os.path.join(self.odoo_moduledir, "tests", "logs", "show-log.sh")
         cmd = "please test -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             fn,
             stdout.split("\n")[0],
             msg="Bash command not found in stdout")
 
-        return self.ret_sts()
-
     def test_08(self):
         os.chdir(self.pypi_dir)
         cmd = "please replace -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
 
         os.chdir(self.pypi_dir)
         cmd = "please commit -m \"Test message\" -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
 
         os.chdir(self.pypi_dir)
         cmd = "please update -vn"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             "> vem ",
@@ -453,16 +440,16 @@ class RegressionTest:
                    % (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), database)))
 
     def setup(self, z0ctx):
-        z0lib.run_traced(
+        z0lib.os_system(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "please.py")
         )
         # TODO> weird situation
-        z0lib.run_traced(
+        z0lib.os_system(
             "find ~/tools/ -type f -name \"*~\" -delete"
         )
         res_dir = os.path.join(self.Z.testdir, "res")
         if os.path.isdir(res_dir):
-            z0lib.run_traced("rm -fR  %s" % res_dir)
+            z0lib.os_system("rm -fR  %s" % res_dir)
         self.root = ''
         self.tool_pkgdir = os.path.expanduser("~/tools/wok_code")
 

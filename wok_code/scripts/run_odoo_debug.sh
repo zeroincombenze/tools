@@ -179,7 +179,6 @@ replace_web_module() {
 restore_modules() {
     local d m opaths p x
     p=$$
-    set -x  #debug
     if [[ -f $CONFN ]]; then
         opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
         for d in ${opaths//,/ }; do
@@ -194,7 +193,6 @@ restore_modules() {
             done
         done
     fi
-    set +x  #debug
 }
 
 replace_modules() {
@@ -431,7 +429,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug" \
-        "(C) 2015-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -723,6 +721,7 @@ if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
     run_traced "$script -s --stop-after-init"
 fi
+
 set_confn
 if [[ -n "$TEST_VDIR" ]]; then
   coverage_set

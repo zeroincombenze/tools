@@ -38,7 +38,7 @@ class RegressionTest:
         os.putenv("ODOO_GIT_SHORT", "(oca|librerp)")
         os.putenv("ODOO_DB_USER", "")
         cmd = "run_odoo_debug -b%s -vn" % vid
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd)
         if sts:
             print("Return status %s executing %s" % (sts, cmd))
             print(stderr)
@@ -46,7 +46,7 @@ class RegressionTest:
 
     def test_01(self):
         cmd = "run_odoo_debug --version"
-        sts, stdout, stderr = z0lib.run_traced(cmd)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
@@ -98,7 +98,7 @@ class RegressionTest:
                                  ".* cd .*/%s.*%s.*--config=" % (vid, TRES))
 
     def setup(self):
-        z0lib.run_traced(
+        z0lib.os_system(
             "build_cmd %s" % os.path.join(self.Z.rundir,
                                           "scripts",
                                           "run_odoo_debug.py")
