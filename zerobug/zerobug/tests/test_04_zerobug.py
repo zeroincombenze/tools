@@ -1,20 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
 import os
+import os.path as pth
 import sys
-sys.path.insert(0,
-                os.path.dirname(os.path.dirname(os.getcwd()))
-                if os.path.basename(os.getcwd()) == "tests"
-                else os.path.dirname(os.getcwd()))
-from zerobug import z0test                                                # noqa: E402
 
-__version__ = "2.0.15"
+
+# allow using isolated test environment
+def pkg_here(here):
+    while (
+        pth.basename(here) in ("tests", "scripts")
+        or pth.basename(pth.dirname(here)) == "local"
+    ):
+        here = pth.dirname(here)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+
+
+pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
+pkg_here(pth.abspath(os.getcwd()))  # noqa: E402
+# from z0lib import z0lib  # noqa: E402
+from z0lib.scripts.main import get_metadata  # noqa: E402
+from zerobug import z0test  # noqa: E402
+
+__version__ = "2.0.18"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -26,10 +40,14 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, z0bug):
-    #     z0bug.inherit_cls(self)
 
     def test_01(self):
+        self.assertEqual(__version__, get_metadata()["version"])
+        if os.getenv("TRAVIS_PYTHON_VERSION"):
+            self.assertEqual(
+                os.getenv("TRAVIS_PYTHON_VERSION"),
+                "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+
         self.assertTrue(True, msg_info="assertTrue()")
         self.assertFalse(False, msg_info="assertFalse()")
         self.assertEqual("equal", "equal", msg_info="assertEqual()")
@@ -56,9 +74,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
-
-
-
-

@@ -62,10 +62,10 @@ class MigrateMeta(object):
             self.rule_categ.append("globals_py%s" % self.py23)
 
         if self.opt_args.git_orgid:
-            self.rule_categ.append("%s_%s_%s" % (
+            self.rule_categ.append("%s-%s_%s" % (
                 self.opt_args.package_name,
-                mime,
-                self.opt_args.git_orgid))
+                self.opt_args.git_orgid,
+                mime))
 
         self.rule_categ.append("%s_%s" % (self.opt_args.package_name, mime))
 
@@ -83,6 +83,12 @@ class MigrateMeta(object):
             fn = "%s_%s_%s"
             self.rule_categ.append(
                 fn % (self.opt_args.package_name, mime, self.to_major_version))
+            if self.opt_args.git_orgid:
+                self.rule_categ.append("%s-%s_%s_%s" % (
+                    self.opt_args.package_name,
+                    self.opt_args.git_orgid,
+                    mime,
+                    self.to_major_version))
         elif self.from_major_version and self.to_major_version:
             fn = "%s_%s_%s"
             if self.from_major_version < self.to_major_version:
@@ -92,6 +98,12 @@ class MigrateMeta(object):
                 while to_major_version <= self.to_major_version:
                     self.rule_categ.append(
                         fn % (self.opt_args.package_name, mime, to_major_version))
+                    if self.opt_args.git_orgid:
+                        self.rule_categ.append("%s-%s_%s_%s" % (
+                            self.opt_args.package_name,
+                            self.opt_args.git_orgid,
+                            mime,
+                            to_major_version))
                     from_major_version += 1
                     to_major_version = from_major_version + 1
             elif self.from_major_version > self.to_major_version:
@@ -101,6 +113,12 @@ class MigrateMeta(object):
                 while to_major_version >= self.to_major_version:
                     self.rule_categ.append(
                         fn % (self.opt_args.package_name, mime, to_major_version))
+                    if self.opt_args.git_orgid:
+                        self.rule_categ.append("%s-%s_%s_%s" % (
+                            self.opt_args.package_name,
+                            self.opt_args.git_orgid,
+                            mime,
+                            to_major_version))
                     from_major_version -= 1
                     to_major_version = from_major_version + 1
 
@@ -993,11 +1011,13 @@ class MigrateFile(MigrateMeta):
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
-            cmd += " --bracket-same-line --write "
+            # cmd += " --bracket-same-line --write "
+            cmd += " --write "
             cmd += out_fqn
             z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
         else:
             if self.mime == "manifest" and self.opt_args.to_version:
+                curcwd = os.getcwd()
                 os.chdir(out_fqn_dir_path)
                 opts = "-Rw -lmodule -Podoo"
                 if self.opt_args.from_version and self.opt_args.to_version:
@@ -1010,6 +1030,7 @@ class MigrateFile(MigrateMeta):
                     pth.join(pth.dirname(__file__), "gen_readme.py"),
                     opts)
                 z0lib.os_system_traced(cmd, dry_run=self.opt_args.dry_run)
+                os.chdir(curcwd)
             opts = "--skip-source-first-line"
             if (
                     (self.py23 == 2 or self.python_future)

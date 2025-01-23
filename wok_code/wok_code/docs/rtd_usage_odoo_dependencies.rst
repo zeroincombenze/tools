@@ -22,7 +22,7 @@ odoo_dependecies.py usage
     positional arguments:
       path_list
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -A {dep,help,jrq,mod,rev,tree}, --action {dep,help,jrq,mod,rev,tree}
       -a, --and-list
@@ -50,7 +50,7 @@ odoo_dependecies.py usage
       -x, --external-bin-dependencies
       -1, --no-depth
     
-    © 2020-24 by SHS-AV s.r.l.
+    © 2020-25 by SHS-AV s.r.l.
     
 
 |

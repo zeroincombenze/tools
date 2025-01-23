@@ -39,7 +39,7 @@ class RunOdoo(object):
             formatter_class=argparse.RawDescriptionHelpFormatter,
             description=("Run odoo for debug or for regression test"),
             epilog=(
-                "© 2015-2024 by SHS-AV s.r.l.\n"
+                "© 2015-2025 by SHS-AV s.r.l.\n"
                 "Author: antoniomaria.vigliotti@gmail.com\n"
                 "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
             ),

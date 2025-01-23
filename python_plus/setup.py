@@ -45,7 +45,7 @@ setup(
     author=author,
     author_email=author_email,
     license="Affero GPL",
-    install_requires=["configparser", "future", "z0lib>=2.0.13"],
+    install_requires=["configparser", "future", "z0lib>=2.0.14"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": ["scripts/setup.info", "scripts/vem.sh", "./vem.man"]},
     entry_points={

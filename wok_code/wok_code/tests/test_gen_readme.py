@@ -244,7 +244,7 @@ Acknoledges to
 """
                 )
             )
-        z0lib.run_traced(
+        z0lib.os_system(
             "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
         )
 
@@ -354,7 +354,7 @@ Acknoledges to
             self.create_contributors_file(moduledir, odoo_version, gitorg)
             os.chdir(moduledir)
             cmd = "%s -fBwG%s" % (base_cmd, gitorg)
-            sts, stdout, stderr = z0lib.run_traced(cmd)
+            sts, stdout, stderr = z0lib.os_system_traced(cmd)
             self.assertEqual(sts, 0, msg_info=cmd)
             for fn in ("__manifest__.rst",
                        "CHANGELOG.rst",

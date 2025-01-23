@@ -24,7 +24,7 @@ if sys.version_info >= (3, 0):
             "pylint-odoo",
             "python-magic",
             "python-plus",
-            "z0lib>=2.0.11",
+            "z0lib>=2.0.14",
         ],
     )
 else:
@@ -32,11 +32,10 @@ else:
         [
             "future",
             "coverage",
-            # "pylint-odoo<=5.0.0",
             "pylint-odoo<=3.5.0",
             "python-magic",
             "python-plus",
-            "z0lib>=2.0.11",
+            "z0lib>=2.0.14",
         ],
     )
 
@@ -92,11 +91,3 @@ setup(
     },
     zip_safe=False,
 )
-
-
-
-
-
-
-
-

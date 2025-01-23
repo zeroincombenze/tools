@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "zerobug"
-copyright = "2019-24, SHS-AV s.r.l."
+copyright = "2019-25, SHS-AV s.r.l."
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version
@@ -170,4 +170,3 @@ autodoc_default_options = {
     "undoc-members": True,
     "exclude-members": "Macro, SanityTest",
 }
-

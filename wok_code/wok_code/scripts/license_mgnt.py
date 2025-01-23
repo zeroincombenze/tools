@@ -80,8 +80,8 @@ ALIAS = {
     "zeroincombenze": "zero",
     "odooitaliancommunity": "odoo-italia",
     "odooitaliaassociazione": "odoo-italia",
-    "powerp": "librerp",
-    "powerp.it": "librerp",
+    # "powerp": "librerp",
+    # "powerp.it": "librerp",
     "Agile Business Group": "agilebg.com",
     "openerp": "odoo",
     "openerpsa": "odoo",
@@ -143,6 +143,7 @@ class License:
             15: "2021-10-07",
             16: "2022-10-06",
             17: "2023-10-05",
+            18: "2024-10-10",
         }.get(odoo_major_version, "")
 
     def add_copyright(self, org_id, name, website, email, years, section="authors"):
@@ -355,7 +356,7 @@ class License:
     def summary_authors(self, summarize=False):
         author = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech", "powerp"):
+            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
                 if org_id in self.org_ids:
                     author = self.org_ids[org_id][0]
                     break
@@ -380,7 +381,7 @@ class License:
         if org_id in self.org_ids:
             website = self.org_ids[org_id][1]
         elif self.org_ids:
-            for org_id in ("oca", "librerp", "powerp", "zero", "shs-av", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]
                     break
@@ -406,7 +407,7 @@ class License:
     def get_maintainer(self):
         maintainer = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "powerp", "zero", "shs-av", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
                 if org_id in self.org_ids:
                     maintainer = COPY[org_id].get("devman", "")
                     if maintainer:
@@ -420,8 +421,8 @@ class License:
         else:
             if "oca" in self.org_ids:
                 license = "lgpl"
-            elif "powerp" in self.org_ids:
-                license = "opl"
+            # elif "powerp" in self.org_ids:
+            #     license = "opl"
             else:
                 license = "lgpl"
         return license

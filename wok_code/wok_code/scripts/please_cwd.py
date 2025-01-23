@@ -334,7 +334,7 @@ class PleaseCwd(object):
                     ):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
-                    sts = please.run_traced(cmd, with_shell=True, rtime=True)
+                    sts = please.os_system(cmd, with_shell=True, rtime=True)
                     if sts:
                         break
             logdir = please.get_logdir()
@@ -348,7 +348,7 @@ class PleaseCwd(object):
                     for fn in files:
                         if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
                             cmd = "rm " + pth.join(root, fn)
-                            sts = please.run_traced(cmd)
+                            sts = please.os_system(cmd)
                             if sts:
                                 break
             return sts
@@ -374,7 +374,7 @@ class PleaseCwd(object):
                 datetime.fromtimestamp(pth.getmtime(ffn))
             )
             if fn_ts < remove_ts:
-                sts = please.run_traced("rm -fR " + ffn, with_shell=True, rtime=True)
+                sts = please.os_system("rm -fR " + ffn, with_shell=True, rtime=True)
                 if sts:
                     break
 
@@ -393,8 +393,8 @@ class PleaseCwd(object):
                     datetime.strftime(db_date, "%Y-%m-%d") < date_limit
                     and rex.match(db_name)
             ):
-                sts = please.run_traced("dropdb -U%s %s" % (db_user, db_name),
-                                        rtime=True)
+                sts = please.os_system("dropdb -U%s %s" % (db_user, db_name),
+                                       rtime=True)
                 if sts:
                     break
                 target_dir = pth.expanduser(
@@ -405,7 +405,7 @@ class PleaseCwd(object):
                              "filestore",
                              db_name))
                 if pth.isdir(target_dir):
-                    please.run_traced(
+                    please.os_system(
                         "rm -fR" % target_dir, with_shell=True, rtime=True)
         return sts
 
@@ -425,7 +425,7 @@ class PleaseCwd(object):
                     if not fn.endswith(".bak") and not fn.endswith("~"):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
-                    sts = please.run_traced(cmd)
+                    sts = please.os_system(cmd)
                     if sts:
                         please.log_warning(
                             "Cannot remove file %s!" % pth.join(root, fn))
@@ -442,18 +442,18 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 fn = pth.join(pth.dirname(srcdir), "setup.py")
                 if pth.isfile(fn):
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
                         rtime=True
                     )
             if not please.opt_args.no_verify:
-                sts = please.run_traced("git add ../", rtime=True)
+                sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "git commit -m \"" + please.opt_args.message + "\"")
             if pkgname != "tools":
                 if sts == 0:
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
                         " --exclude='*.log' --exclude='*.bak' %s/ %s/"
                         % (srcdir, pth.join(tgtdir, pkgname)),
@@ -464,7 +464,7 @@ class PleaseCwd(object):
                         fn = pth.join(pth.dirname(srcdir), item)
                         if not pth.isfile(fn):
                             continue
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
                         )
                         if sts:
@@ -473,7 +473,7 @@ class PleaseCwd(object):
                 if sts == 0:
                     for item in ("egg-info", "docs", "tests", "templates",
                                  "license_text"):
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
                             " --exclude='*.log' --exclude='*.bak' %s/ %s/"
                             % (pth.join(srcdir, item), pth.join(tgtdir, item)),
@@ -491,7 +491,7 @@ class PleaseCwd(object):
                         fn = pth.join(srcdir, item)
                         if not pth.isfile(fn):
                             continue
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
                         )
                         if sts:
@@ -629,7 +629,7 @@ class PleaseCwd(object):
                 odoo_major_version = int(branch.split(".")[0])
                 repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
                 if please.opt_args.oca:
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
                         % (branch, repo_name),
                         with_shell=True, rtime=True)
@@ -689,7 +689,7 @@ class PleaseCwd(object):
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
-                sts = please.run_traced("make html", rtime=True)
+                sts = please.os_system("make html", rtime=True)
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
@@ -703,7 +703,7 @@ class PleaseCwd(object):
             cmd = please.build_sh_me_cmd(
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
-            return please.run_traced(cmd)
+            return please.os_system(cmd)
         return 126
 
     def do_export(self):
@@ -723,7 +723,7 @@ class PleaseCwd(object):
             cmd = please.build_sh_me_cmd(
                 cmd=pth.join(pth.dirname(__file__), "please.sh")
             )
-            return please.run_traced(cmd, rtime=True)
+            return please.os_system(cmd, rtime=True)
         return 126
 
     def do_publish_marketplace(self):
@@ -752,7 +752,7 @@ class PleaseCwd(object):
                 if pth.isdir(target_dir):
                     shutil.rmtree(target_dir)
                 shutil.copytree(os.getcwd(), target_dir)
-                sts = please.run_traced("cd " + target_dir)
+                sts = please.os_system("cd " + target_dir)
                 if sts == 0:
                     target_dir = please.get_logdir(path=target_dir)
                     if pth.isdir(target_dir):
@@ -766,9 +766,9 @@ class PleaseCwd(object):
                     args.append("-R")
                     sts = please.chain_python_cmd("gen_readme.py", args)
                 if sts == 0:
-                    sts = please.run_traced("git add ../", rtime=True)
+                    sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
-                    sts = please.run_traced("pre-commit run", rtime=True)
+                    sts = please.os_system("pre-commit run", rtime=True)
             return sts
         return 126
 
@@ -784,7 +784,7 @@ class PleaseCwd(object):
                     if not fn.endswith(".bak") and not fn.endswith("~"):
                         continue
                     cmd = "rm -f " + pth.join(root, fn)
-                    sts = please.run_traced(cmd)
+                    sts = please.os_system(cmd)
                     if sts:
                         please.log_warning(
                             "Cannot remove file %s!" % pth.join(root, fn))
@@ -800,11 +800,11 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 sts = 0
                 if not please.opt_args.no_verify:
-                    sts = please.run_traced("git add ../", rtime=True)
+                    sts = please.os_system("git add ../", rtime=True)
                     if sts == 0:
-                        sts = please.run_traced("pre-commit run", rtime=True)
+                        sts = please.os_system("pre-commit run", rtime=True)
                 if sts == 0:
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
                         " --exclude='*.log' --exclude='*.bak' %s/ %s/"
                         % (srcdir, pth.join(tgtdir, pkgname)),
@@ -815,18 +815,18 @@ class PleaseCwd(object):
                         fn = pth.join(pth.dirname(srcdir), item)
                         if not pth.isfile(fn):
                             continue
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
                         )
                         if sts:
                             break
             else:
                 if not please.opt_args.no_verify:
-                    sts = please.run_traced("git add ./", rtime=True)
+                    sts = please.os_system("git add ./", rtime=True)
                 if sts == 0:
                     for item in ("egg-info", "docs", "tests", "templates",
                                  "license_text"):
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "rsync -a --exclude='*.pyc' --exclude='.*' --exclude='*~'"
                             " --exclude='*.log' --exclude='*.bak' %s/ %s/"
                             % (pth.join(srcdir, item), pth.join(tgtdir, item)),
@@ -844,7 +844,7 @@ class PleaseCwd(object):
                         fn = pth.join(srcdir, item)
                         if not pth.isfile(fn):
                             continue
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
                         )
                         if sts:
@@ -1002,12 +1002,12 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 fn = pth.join(pth.dirname(srcdir), "setup.py")
                 if pth.isfile(fn):
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
                         rtime=True
                     )
                 if sts == 0:
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True
                     )
             if sts == 0 and please.opt_args.vme:
@@ -1036,7 +1036,7 @@ class PleaseCwd(object):
                         tgtdir = pth.join(root, fn, "venv_odoo")
                         if not pth.isdir(tgtdir):
                             continue
-                        sts = please.run_traced(
+                        sts = please.os_system(
                             "vem %s update %s" % (tgtdir, pth.dirname(srcdir)),
                             rtime=True,
                         )
@@ -1058,7 +1058,7 @@ class PleaseCwd(object):
                         pth.join(tgtdir, "bin")
                     ):
                         continue
-                    sts = please.run_traced(
+                    sts = please.os_system(
                         "vem %s update %s" % (tgtdir, pth.dirname(srcdir)),
                         rtime=True,
                     )

@@ -83,7 +83,3 @@ else
     echo "Invalid switch $1"
     exit 1
 fi
-
-
-
-

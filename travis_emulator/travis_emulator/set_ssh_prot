@@ -127,7 +127,3 @@ fi
 dir -alhd $rootpath/ $tgtpath/. $tgtpath/..
 dir -alh $tgtpath/
 exit 0
-
-
-
-

@@ -10,7 +10,7 @@ ChangeLog History
 
 * [FIX] please python 3.9+
 * [FIX] install_python_3_from_source.sh: fix bugs and improvements
-* [FIX] ssh.py: store encripted password
+* [FIX] ssh.py: store encrypted password
 * [IMP] run_odoo_debug: now can replace modules
 * [IMP] cvt_script executable
 * [IMP] deploy_odooo: more improvements

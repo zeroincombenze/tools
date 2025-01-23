@@ -45,10 +45,12 @@ def get_remote_user(CONF, host=None, cuser=None):
                 default_user = key
             if (
                     (not root_user and key == cuser)
+                    or (key == root_user)
                     or (root_user and key != cuser)
             ):
                 ruser = key
-                break
+                if key != "root" or key == root_user:
+                    break
         if not ruser:
             ruser = default_user
     else:
@@ -110,17 +112,28 @@ def get_cmd(CONF, host, ruser, opts="", via=None, do_tunnel=False):
         CONF, "ssh", host, ruser, opts=opts, via=via, do_tunnel=do_tunnel)
 
 
-def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse, via=None):
-    if recurse and not source.endswith("/"):
-        source = "%s/" % source
-    if recurse and not dest.endswith("/"):
-        dest = "%s/" % dest
+def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync, via=None):
+    # if recurse and not source.endswith("/"):
+    #     source = "%s/" % source
+    # if recurse and not dest.endswith("/"):
+    #     dest = "%s/" % dest
     if host_side == "s":
+        if os.path.isdir(dest):
+            if not dest.endswith("/"):
+                dest = "%s/" % dest
+            if not source.endswith("/"):
+                source = "%s/" % source
         source = "%s@%s:%s" % (ruser, host, source)
     elif host_side == "d":
+        if os.path.isdir(source):
+            if not source.endswith("/"):
+                source = "%s/" % source
+            if not dest.endswith("/"):
+                dest = "%s/" % dest
         dest = "%s@%s:%s" % (ruser, host, dest)
     cmd = build_raw_cmd(
-        CONF, "rsync", host, ruser, via=via, opts="-avz")
+        CONF, "rsync", host, ruser,
+        via=via, opts="-avz" if rsync == 1 else "-avz --delete")
     cmd += " %s %s" % (source, dest)
     return cmd
 
@@ -162,7 +175,7 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
                 prompt = " "
             print(
                 "    %s %-64.64s # %s"
-                % (prompt, get_cmd(CONF, host, ruser, do_tunnel=do_tunel),
+                % (prompt, get_cmd(CONF, host, ruser, do_tunnel=do_tunnel),
                    CONF["RUSER"][host][ruser]["users"])
             )
             if gl == "l" and host not in valid_hosts:
@@ -215,19 +228,20 @@ def do_force_crypt(CONF):
 
 
 def show_help():
-    print("ssh.py [-dnptvwz] [user@]host                      # ssh")
-    print("ssh.py -[n]s[prvz] [user@]host:source destination  # scp")
-    print("ssh.py -[n]s[prvz] source [user@]host:destination  # scp")
-    print("ssh.py -[n]m[pvz] [user@]host:source destination   # rsync")
-    print("ssh.py -[n]m[pvz] source [user@]host:destination   # rsync")
-    print("ssh,py -[aeglwY] [user@][host]                     # utilities")
+    print("ssh.py [-dnptvwz] [user@]host                        # ssh")
+    print("ssh.py -[n]s[prvz] [user@]host:source destination    # scp")
+    print("ssh.py -[n]s[prvz] source [user@]host:destination    # scp")
+    print("ssh.py -[n]m|x[pvz] [user@]host:source destination   # rsync")
+    print("ssh.py -[n]m|x[pvz] source [user@]host:destination   # rsync")
+    print("ssh.py -[aglwY] [user@][host]                        # utilities")
+    print("ssh.py -e [pwd]                                      # utilities")
     print("")
     print("  -a show aliases")
     print("  -d show remote dir")
     print("  -e encrypy password")
     print("  -g list global hosts")
     print("  -l list user hosts")
-    print("  -m do mirror (rsync)")
+    print("  -m do mirror (rsync with --delete)")
     print("  -p prefer password")
     print("  -n dry-run")
     print("  -r recurse (scp)")
@@ -235,8 +249,10 @@ def show_help():
     print("  -t activate tunneling")
     print("  -v verbose")
     print("  -w show password")
+    print("  -x do rsync (no --delete)")
     print("  -Y force password encryption")
     print("  -z use alternate remote user")
+    print("  -Z use user root to connect remote")
 
 
 def load_config():
@@ -314,10 +330,10 @@ recurse = False
 list_host = False
 list_pwd = False
 scp = False
-rsync = False
+rsync = 0
 sh_alias = False
 do_dir = False
-do_tunel = False
+do_tunnel = False
 do_encrypt = False
 root_user = False
 force_crypt = False
@@ -344,7 +360,7 @@ for arg in sys.argv[1:]:
         if "l" in arg:
             list_host = True
         if "m" in arg:
-            rsync = True
+            rsync = 2
         if "n" in arg:
             dry_run = True
         if "p" in arg:
@@ -354,15 +370,19 @@ for arg in sys.argv[1:]:
         if "s" in arg:
             scp = True
         if "t" in arg:
-            do_tunel = True
+            do_tunnel = True
         if "v" in arg:
             verbose = True
         if "w" in arg:
             list_pwd = True
+        if "x" in arg:
+            rsync = 1
         if "Y" in arg:
             force_crypt = True
         if "z" in arg:
             root_user = True
+        if "Z" in arg:
+            root_user = "root"
     elif do_encrypt and not passwd:
         passwd = arg
     else:
@@ -389,10 +409,12 @@ for arg in sys.argv[1:]:
             print("Invalid params %s" % arg)
             exit(1)
 
+if do_encrypt and not passwd:
+    passwd = input("Get password ")
 if do_encrypt and passwd:
     print(encrypt_pwd(CONF, passwd))
     exit(0)
-if do_tunel and (scp or rsync or do_dir):
+if do_tunnel and (scp or rsync or do_dir):
     print("Cannot do tunnelling with scp or rsync or dir!")
     exit(1)
 
@@ -404,7 +426,7 @@ if host not in CONF["RUSER"] and host in CONF["ALIAS"]:
     host = CONF["ALIAS"][host]
 
 if list_host:
-    show_host(CONF, sel_host=host, glob=glob, do_tunnel=do_tunel)
+    show_host(CONF, sel_host=host, glob=glob, do_tunnel=do_tunnel)
     exit(0)
 if sh_alias:
     show_alias(CONF)
@@ -453,12 +475,12 @@ elif scp or rsync:
         print("No destination path supplied!")
         exit(1)
     if rsync:
-        cmd = get_cmd_rsync(CONF, host, host_side, ruser, source, dest, recurse)
+        cmd = get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync)
     else:
         cmd = get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse)
 else:
-    cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunel)
-    website = build_website(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunel)
+    cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
+    website = build_website(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
     if website:
         print("##### You could browse remote webpage at %s #####" % website)
 if verbose:

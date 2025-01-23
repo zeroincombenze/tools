@@ -7,11 +7,11 @@
 
     <title>Python_Plus &#8212; tools 2.0.6 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=0f882399" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="_static/documentation_options.js?v=3e466467"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -47,8 +47,10 @@
 <p>python-plus adds various features to python 2 and python 3 programs.
 It is designed to be used as integration of pypi future to help to port your code from
 Python 2 to Python 3 and still have it run on Python 2.</p>
+<section id="python-supplemental-features">
+<h2>Python supplemental features<a class="headerlink" href="#python-supplemental-features" title="Link to this heading"></a></h2>
 <section id="list-requirements-py-list-environment-requirements">
-<h2>list_requirements.py: list environment requirements<a class="headerlink" href="#list-requirements-py-list-environment-requirements" title="Link to this heading"></a></h2>
+<h3>list_requirements.py: list environment requirements<a class="headerlink" href="#list-requirements-py-list-environment-requirements" title="Link to this heading"></a></h3>
 <p>This command is an internal command of python-plus but may be used as own command.
 list_requirements.py displays the pypi and binaries packages needed to create a virtual
 environment.
@@ -57,16 +59,17 @@ Passing Odoo path it reads requirements.txt files in path and setup directories 
 repositories.</p>
 </section>
 <section id="vem-virtual-environment-manager">
-<h2>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Link to this heading"></a></h2>
+<h3>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Link to this heading"></a></h3>
 <p>This command is an interactive tool with some nice features to manage standard virtual
 environment.
 Mainly it works ad standard pip but inside a specific virtual environment.</p>
+</section>
+</section>
 <section id="code-example">
-<h3>Code example<a class="headerlink" href="#code-example" title="Link to this heading"></a></h3>
-</section>
-</section>
+<h2>Code example<a class="headerlink" href="#code-example" title="Link to this heading"></a></h2>
+<p>Simple examples of code</p>
 <section id="class-type-test">
-<h2>class / type test<a class="headerlink" href="#class-type-test" title="Link to this heading"></a></h2>
+<h3>class / type test<a class="headerlink" href="#class-type-test" title="Link to this heading"></a></h3>
 <p>Test if a string is unicode.</p>
 <p>On Py2, this gives us:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;Hello World&#39;</span>
@@ -89,7 +92,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 </div>
 </section>
 <section id="quoted-string">
-<h2>quoted string<a class="headerlink" href="#quoted-string" title="Link to this heading"></a></h2>
+<h3>quoted string<a class="headerlink" href="#quoted-string" title="Link to this heading"></a></h3>
 <p>Using class __:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">__</span>
 </pre></div>
@@ -115,7 +118,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 </div>
 </section>
 <section id="code-reference">
-<h2>Code reference<a class="headerlink" href="#code-reference" title="Link to this heading"></a></h2>
+<h3>Code reference<a class="headerlink" href="#code-reference" title="Link to this heading"></a></h3>
 <p>`` str.qslit(sep=None, maxsplit=-1, quotes=[‘”’, ‘”’], escape=None, enquote=None, strip=None)``</p>
 <p>Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).</p>
 <p>If sep is given, consecutive delimiters are not grouped together and are deemed to delimit empty strings (for example, ‘1,,2’.split(‘,’) returns [‘1’, ‘’, ‘2’]). The sep argument may consist of multiple characters (for example, ‘1&lt;&gt;2&lt;&gt;3’.split(‘&lt;&gt;’) returns [‘1’, ‘2’, ‘3’]). Splitting an empty string with a specified separator returns [‘’].</p>
@@ -131,7 +134,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 </div>
 </section>
 <section id="id1">
-<h2>vem: virtual environment manager<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h3>vem: virtual environment manager<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">vem</span><span class="o">.</span><span class="n">sh</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">a</span> <span class="nb">list</span><span class="p">][</span><span class="o">-</span><span class="n">BCD</span><span class="p">][</span><span class="o">-</span><span class="n">d</span> <span class="n">paths</span><span class="p">][</span><span class="o">-</span><span class="n">E</span> <span class="n">distro</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">name</span><span class="p">][</span><span class="o">-</span><span class="n">gkIi</span><span class="p">][</span><span class="o">-</span><span class="n">l</span> <span class="n">iso</span><span class="p">][</span><span class="o">-</span><span class="n">n</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="nb">dir</span><span class="p">][</span><span class="o">-</span><span class="n">p</span> <span class="n">pyver</span><span class="p">][</span><span class="o">-</span><span class="n">q</span><span class="p">][</span><span class="o">-</span><span class="n">r</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">stVvy</span><span class="p">]</span> <span class="n">p3</span> <span class="n">p4</span> <span class="n">p5</span> <span class="n">p6</span> <span class="n">p7</span> <span class="n">p8</span> <span class="n">p9</span>
 <span class="n">Manage</span> <span class="n">virtual</span> <span class="n">environment</span>
 <span class="n">action</span> <span class="n">may</span> <span class="n">be</span><span class="p">:</span> <span class="n">help</span> <span class="n">amend</span> <span class="n">cp</span> <span class="n">check</span> <span class="n">create</span> <span class="n">exec</span> <span class="n">info</span> <span class="n">inspect</span> <span class="n">install</span> <span class="n">merge</span> <span class="n">mv</span> <span class="n">python</span> <span class="n">shell</span> <span class="n">rm</span> <span class="n">show</span> <span class="n">uninstall</span> <span class="n">update</span> <span class="n">test</span>
@@ -174,25 +177,27 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 <p>Action is one of:</p>
 <ul class="simple">
 <li><p>help</p></li>
-<li><p>amend [OPTIONS] [SRC_VENV]</p></li>
-<li><p>check [OPTIONS] [SRC_VENV]</p></li>
+<li><p>amend [OPTIONS] [VENV]</p></li>
+<li><p>check [OPTIONS] [VENV]</p></li>
 <li><p>cp [OPTIONS] SRC_VENV TGT_ENV</p></li>
 <li><p>create -p PYVER [OPTIONS] [VENV]</p></li>
 <li><p>exec [OPTIONS] [VENV] CMD</p></li>
 <li><p>info [OPTIONS] [VENV] PKG</p></li>
+<li><p>inspect [OPTIONS] [VENV]</p></li>
 <li><p>install [OPTIONS] [VENV] PKG</p></li>
 <li><p>merge [OPTIONS] SRC_VENV TGT_ENV</p></li>
 <li><p>mv [OPTIONS] SRC_VENV TGT_ENV</p></li>
-<li><p>update [OPTIONS] [VENV] PKG</p></li>
-<li><p>uninstall [OPTIONS] [VENV] PKG</p></li>
-<li><p>test [OPTIONS] [VENV]</p></li>
-<li><p>reset [OPTIONS] [VENV]</p></li>
+<li><p>python VENV</p></li>
+<li><p>shell VENV</p></li>
 <li><p>show [OPTIONS] [VENV] PKG</p></li>
+<li><p>uninstall [OPTIONS] [VENV] PKG</p></li>
+<li><p>update [OPTIONS] [VENV] PKG</p></li>
+<li><p>test VENV</p></li>
 </ul>
 <dl class="simple">
-<dt>amend [OPTIONS] [SRC_VENV]</dt><dd><p>Amend package versions against requirements.  May used after ‘create’ or ‘reset’ when requirements are changed.</p>
+<dt>amend [OPTIONS] [VENV]</dt><dd><p>Amend package versions against requirements.  May used after ‘create’ when requirements are changed.</p>
 </dd>
-<dt>check [OPTIONS] [SRC_VENV]</dt><dd><p>Compare package versions against requirements.  May be used after ‘create’ or ‘reset’ to check virtual environment
+<dt>check [OPTIONS] [VENV]</dt><dd><p>Compare package versions against requirements.  May be used after ‘create’ to check virtual environment
 consistency.</p>
 </dd>
 <dt>cp [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Copy SOURCE environment directory to TGT_ENV, like the bash command ‘cp’ and  set  relative  path  inside  virtual
@@ -208,22 +213,35 @@ See -I -D -O -o -r switches to furthermore information.</p>
 </dd>
 <dt>exec [OPTIONS] [SRC_VENV] CMD …</dt><dd><p>Execute a command in virtual environment. Enclose command by quotes.</p>
 </dd>
-<dt>info [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of show)</p>
+<dt>info [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of show).</p>
+</dd>
+<dt>inspect [OPTIONS] [VENV]</dt><dd><p>Show internal configuration.</p>
 </dd>
 <dt>install [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Install pypi package or bin package into virtual environment.
-Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</p>
+Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc.</p>
 </dd>
-<dt>show [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of info)</p>
+<dt>merge [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Merge 2 virtual environments.</p>
+</dd>
+<dt>mv [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Move a virtual environment.</p>
+</dd>
+<dt>python VENV</dt><dd><p>Execute python interpreter of virtual environment with packages.</p>
+</dd>
+<dt>shell VENV</dt><dd><p>Execute bash inside virtual environment, with packages commands.</p>
+</dd>
+<dt>show [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of info).</p>
 </dd>
 <dt>uninstall [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Uninstall pypi package from virtual environment.</p>
 </dd>
 <dt>update [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Upgrade pypi package in virtual environment.</p>
+</dd>
+<dt>test VENV</dt><dd><p>Execute pip check inside vritual environment.</p>
 </dd>
 </dl>
 <div class="line-block">
 <div class="line"><br /></div>
 <div class="line"><br /></div>
 </div>
+</section>
 </section>
 </section>
 
@@ -241,15 +259,18 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Python_Plus</a><ul>
+<li><a class="reference internal" href="#python-supplemental-features">Python supplemental features</a><ul>
 <li><a class="reference internal" href="#list-requirements-py-list-environment-requirements">list_requirements.py: list environment requirements</a></li>
-<li><a class="reference internal" href="#vem-virtual-environment-manager">vem: virtual environment manager</a><ul>
-<li><a class="reference internal" href="#code-example">Code example</a></li>
+<li><a class="reference internal" href="#vem-virtual-environment-manager">vem: virtual environment manager</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#code-example">Code example</a><ul>
 <li><a class="reference internal" href="#class-type-test">class / type test</a></li>
 <li><a class="reference internal" href="#quoted-string">quoted string</a></li>
 <li><a class="reference internal" href="#code-reference">Code reference</a></li>
 <li><a class="reference internal" href="#id1">vem: virtual environment manager</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -304,7 +325,7 @@ Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc</
     </div>
     <div class="footer" role="contentinfo">
     &#169; Copyright 2015-24, SHS-AV s.r.l..
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
     </div>
   </body>
 </html>

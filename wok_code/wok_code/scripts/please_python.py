@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os.path
+import os
+import os.path as pth
 import sys
 
 if sys.version_info[0] < 3 or sys.version_info[1] <= 7:
     import platform
 else:
-    import distro
+    try:
+        import distro
+    except ImportError:
+        # During local test execution, distro is loaded on local test environment
+        import os
+        os.system("python -m pip install distro")
 
-from z0lib import z0lib
 
 __version__ = "2.0.19"
 
@@ -88,11 +93,11 @@ BUGS
 
     def do_install(self):
         please = self.please
-        cmd = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        cmd = pth.join(
+            pth.dirname(pth.dirname(pth.abspath(__file__))),
             "install_python_3_from_source.sh",
         )
-        if not os.path.isfile(cmd):
+        if not pth.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
             return 127
         valid_odoo_vers = ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11")
@@ -116,10 +121,10 @@ BUGS
             + "'"
         )
         if please.opt_args.dry_run:
-            z0lib.run_traced(
+            please.os_system(
                 cmd,
                 verbose=self.please.opt_args.verbose,
                 dry_run=please.opt_args.dry_run
             )
             return 0
-        return please.run_traced(cmd)
+        return please.os_system(cmd)

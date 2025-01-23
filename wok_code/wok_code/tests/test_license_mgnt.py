@@ -52,9 +52,9 @@ MANIFEST_2 = """{
 
 
 class RegressionTest:
-    def __init__(self, z0bug):
-        self.Z = z0bug
-        self.Z.inherit_cls(self)
+    # def __init__(self, z0bug):
+    #     self.Z = z0bug
+    #     self.Z.inherit_cls(self)
 
     def create_file_author_1(self, path):
         fn = os.path.join(path, "AUTHORS.rst")
@@ -86,11 +86,11 @@ class RegressionTest:
         with open(fn, "w") as fd:
             fd.write(MANIFEST_2)
 
-    def prepare_env(self, z0ctx, odoo_ver=None, step=None):
+    def prepare_env(self, odoo_ver=None, step=None):
         step = step or 1
         if not odoo_ver:
             raise (ValueError, "No odoo version supplied")
-        odoo_root = z0testodoo.build_odoo_env(z0ctx, odoo_ver)
+        odoo_root = z0testodoo.build_odoo_env({}, odoo_ver)
         odoo_root = os.path.join(odoo_root, odoo_ver)
         for ldir in (
             ["readme"],
@@ -116,12 +116,12 @@ class RegressionTest:
             self.create_file_manifest_2(path)
         return path
 
-    def test_01(self, z0ctx):
+    def test_01(self):
         author = False
         website = False
         # devman = False
-        if not z0ctx["dry_run"]:
-            module_path = self.prepare_env(z0ctx, odoo_ver="12.0")
+        if not self.Z.dry_run:
+            module_path = self.prepare_env(odoo_ver="12.0")
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
@@ -134,15 +134,15 @@ class RegressionTest:
         self.assertEqual(
             website,
             "https://www.zeroincombenze.it"
+            # "https://www.shs-av.com"
         )
-        return self.ret_sts()
 
-    def test_02(self, z0ctx):
+    def test_02(self):
         author = False
         website = False
         # devman = False
-        if not z0ctx["dry_run"]:
-            module_path = self.prepare_env(z0ctx, odoo_ver="12.0", step=2)
+        if not self.Z.dry_run:
+            module_path = self.prepare_env(odoo_ver="12.0", step=2)
             license = license_mgnt.License(module_path)
             author = license.summary_authors()
             website = license.get_website()
@@ -156,7 +156,6 @@ class RegressionTest:
             website,
             "https://www.zeroincombenze.it"
         )
-        return self.ret_sts()
 
 
 #

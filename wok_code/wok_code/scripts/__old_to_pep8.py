@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-23 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-25 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #

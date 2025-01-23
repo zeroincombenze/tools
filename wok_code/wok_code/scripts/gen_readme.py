@@ -2498,7 +2498,6 @@ def manifest_item(ctx, item):
         ctx["manifest"][item] = eval(ctx["manifest"][item])
     if (
         item in MANIFEST_ITEMS_OPTIONAL
-         # or (not ctx["odoo_marketplace"] and item in MANIFEST_ITEMS_MARKETPLACE))
         and item in ctx and (ctx[item] is False or ctx[item] == [])
     ):
         target = ""

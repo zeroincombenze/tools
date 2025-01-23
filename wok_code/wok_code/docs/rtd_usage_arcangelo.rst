@@ -20,7 +20,7 @@ Digest of arcangelo
     positional arguments:
       path
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -a, --lint-anyway     set to True when migrate software
       -B, --debug           add comment with applied rule: do not use in

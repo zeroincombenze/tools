@@ -26,7 +26,7 @@ from z0lib import z0lib  # noqa: E402
 from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 MODULE_ID = "z0lib"
 TEST_FAILED = 1

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from __future__ import print_function, unicode_literals
@@ -658,7 +658,7 @@ class Z0test(object):
     def _create_parser(self, version, ctx):
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2023 by SHS-AV s.r.l."
+            epilog="© 2015-2025 by SHS-AV s.r.l."
             " - https://zeroincombenze-tools.readthedocs.io/en/latest/zerobug",
         )
         parser.add_argument(
@@ -1283,7 +1283,7 @@ class Z0test(object):
         """
         sts = check_for_requirements()
         if sts:
-            return (sts)
+            return sts
 
         ctx = self._ready_opts(ctx)
         if (
@@ -1668,12 +1668,20 @@ if __name__ == '__main__':
                 src_repo_path = False
         return src_repo_path
 
-    def build_odoo_env(self, ctx, version, hierarchy=None, name=None, retodoodir=None):
+    def build_odoo_env(self, *args, hierarchy=None, name=None, retodoodir=None):
         """Build a simplified Odoo directory tree
         version: 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
         name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
+
+        # Old version had the following signature: build_odoo_env(self, ctx, version)
+        # Now param ctx is deprecated, so we have to analyze parameters
         """
+        if len(args) > 1:
+            ctx = args[0]
+            version = args[1]
+        else:
+            version = args[0]
         name = name or version
         if int(version.split(".")[0]) < 10:
             if hierarchy == 'server':
@@ -1856,8 +1864,3 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
-
-
-
-
-

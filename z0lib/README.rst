@@ -107,6 +107,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.15 (2025-01-18)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] simulate get_metadat in test environment
+
 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
 

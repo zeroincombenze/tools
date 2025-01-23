@@ -379,7 +379,7 @@ class RepoCheckout(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Create new repo branch", epilog="© 2022-2024 by SHS-AV s.r.l."
+        description="Create new repo branch", epilog="© 2022-2025 by SHS-AV s.r.l."
     )
     parser.add_argument(
         "-b", "--odoo-branch", dest="odoo_branch", help="New Odoo branch"

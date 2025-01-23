@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 24+
+# template 25
 """
 Python supplemental features
 ----------------------------
@@ -20,7 +20,6 @@ standard virtual environment and it is osx/darwin compatible.
 import os
 import os.path as pth
 import sys
-# import pkg_resources
 import gzip
 import shutil
 
@@ -61,14 +60,27 @@ def fake_setup(**kwargs):
 
 
 def get_metadata():
-    pkgpath = pth.abspath(pth.join(pth.dirname(pth.realpath(__file__)), "..", ".."))
-    setup_info = pth.join(pkgpath, "setup.py")
+    # Searching metadata in test environment because package is not really installed
     pypi_metadata = {}
+    ctr = 3
+    home = os.path.expanduser("~")
+    here = pth.abspath(pth.dirname(pth.realpath(__file__)))
+    setup_info = pth.join(here, "setup.py")
+    while not pth.isfile(setup_info):
+        here = pth.dirname(here)
+        if not pth.basename(here) in ("test", "scripts"):
+            ctr -= 1
+        elif pth.basename(here) in (__package__, "build"):
+            ctr = 1
+        if ctr == 0 or not here.startswith(home):
+            break
+        setup_info = pth.join(here, "setup.py")
     if pth.isfile(setup_info):
         with open(setup_info, "r") as fd:
             exec(fd.read().replace("setup(", "fake_setup("))
             pypi_metadata = globals()["pypi_metadata"]
     if not pypi_metadata:
+        # Search for metadata in python environment
         return get_pypi_info(__package__.split(".")[0])
     # readme = pth.join(pkgpath, "README.rst")
     # with open(readme, "r") as fd:
@@ -189,21 +201,13 @@ def main(cli_args=None):
             % pypi_metadata["name"]
         )
     elif action in ("-V", "--version"):
-        # if setup_args["version"] == __version__:
-        #     print(setup_args["version"])
-        # else:
-        #     print("Version mismatch %s/%s" % (setup_args["version"], __version__))
         if pypi_metadata["version"] == __version__:
             print(pypi_metadata["version"])
         else:
             print("Version mismatch %s/%s" % (pypi_metadata["version"], __version__))
     elif action in ("-H", "--help"):
-        # for text in __doc__.split("\n"):
-        #     print(text)
         for text in pypi_metadata["long_description"].split("\n"):
             print(text)
     elif action in ("-C", "--copy-pkg-data"):
-        # copy_pkg_data(setup_args, verbose)
         copy_pkg_data(pypi_metadata, verbose)
     return 0
-

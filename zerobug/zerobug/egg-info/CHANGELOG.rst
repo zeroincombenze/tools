@@ -1,7 +1,7 @@
 2.0.18 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~
 
-* [IMP] Some function now are move in z0lib>=2.0..1
+* [IMP] Some function now are move in z0lib>=2.0.12
 * [IMP] Python 3.6 deprecated
 
 2.0.17 (2024-07-07)

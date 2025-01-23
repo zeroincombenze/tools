@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -9,6 +9,9 @@ import sys
 try:
     from . import z0test
 except ImportError:
+    import z0testlib
+    z0test = z0testlib.Z0test()
+except ValueError:
     import z0testlib
     z0test = z0testlib.Z0test()
 
@@ -27,8 +30,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))
-
-
-
-
-
