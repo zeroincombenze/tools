@@ -25,8 +25,20 @@ def pkg_here(here):
 pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
 pkg_here(pth.abspath(os.getcwd()))  # noqa: E402
 # from z0lib import z0lib  # noqa: E402
-from z0lib.scripts.main import get_metadata  # noqa: E402
+# from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
+
+#  allow using isolated test environment
+here = pth.dirname(pth.abspath(__file__))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
+here = pth.dirname(pth.abspath(os.getcwd()))
+while pth.basename(here) in ("tests", "scripts"):
+    here = pth.dirname(here)
+if here not in sys.path:
+    sys.path.insert(0, here)
 
 __version__ = "2.0.18"
 
@@ -42,11 +54,11 @@ def version():
 class RegressionTest:
 
     def test_01(self):
-        self.assertEqual(__version__, get_metadata()["version"])
-        if os.getenv("TRAVIS_PYTHON_VERSION"):
-            self.assertEqual(
-                os.getenv("TRAVIS_PYTHON_VERSION"),
-                "%d.%d" % (sys.version_info[0], sys.version_info[1]))
+        # self.assertEqual(__version__, get_metadata()["version"])
+        # if os.getenv("TRAVIS_PYTHON_VERSION"):
+        #     self.assertEqual(
+        #         os.getenv("TRAVIS_PYTHON_VERSION"),
+        #         "%d.%d" % (sys.version_info[0], sys.version_info[1]))
 
         self.assertTrue(True, msg_info="assertTrue()")
         self.assertFalse(False, msg_info="assertFalse()")

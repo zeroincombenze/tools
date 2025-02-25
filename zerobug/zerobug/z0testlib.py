@@ -1668,7 +1668,7 @@ if __name__ == '__main__':
                 src_repo_path = False
         return src_repo_path
 
-    def build_odoo_env(self, *args, hierarchy=None, name=None, retodoodir=None):
+    def build_odoo_env(self, *args, **kwargs):
         """Build a simplified Odoo directory tree
         version: 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
         name: name of odoo dir (default equal to version)
@@ -1682,7 +1682,9 @@ if __name__ == '__main__':
             version = args[1]
         else:
             version = args[0]
-        name = name or version
+        hierarchy = kwargs.get("hierarchy")
+        name = kwargs.get("name") or version
+        retodoodir = kwargs.get("retodoodir")
         if int(version.split(".")[0]) < 10:
             if hierarchy == 'server':
                 odoo_home = os.path.join(name, 'server', 'openerp')

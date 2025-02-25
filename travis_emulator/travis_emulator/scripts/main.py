@@ -49,7 +49,7 @@ __version__ = "2.0.10"
 
 
 def fake_setup(**kwargs):
-    globals()["setup_args"] = kwargs
+    globals()["pypi_metadata"] = kwargs
 
 
 def get_pypi_info(pkgname):
@@ -77,10 +77,6 @@ def get_pypi_info(pkgname):
         except BaseException:
             pass
     return pypi_metadata
-
-
-def fake_setup(**kwargs):
-    globals()["pypi_metadata"] = kwargs
 
 
 def get_metadata():

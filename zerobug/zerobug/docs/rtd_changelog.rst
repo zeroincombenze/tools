@@ -9,7 +9,9 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Some function now are move in z0lib>=2.0.12
+* [IMP] build_odoo_env does not require ctx
 * [IMP] Python 3.6 deprecated
+* [IMP] pylint configuration files
 
 2.0.17 (2024-07-07)
 ~~~~~~~~~~~~~~~~~~~

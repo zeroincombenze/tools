@@ -489,13 +489,13 @@ git_clone() {
       d="./"
     fi
     [[ -z $SAVED_ODOO_ROOT ]] && SAVE_ODOO_ROOT=$(readlink -f $TRAVIS_SAVED_HOME_DEVEL/..)
-    run_traced "cp -R $SAVED_ODOO_ROOT/tools $d"
     if [[ $opt_dbgmnt -ne 0 ]]; then
       x=${TRAVIS_REPO_SLUG#*/}
       for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Load unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
-        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/scripts/setup.info ]] && \
+        [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/setup.py && -d $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p ]] && \
+          run_traced "mkdir -p $HOME/tools/$p/$p/" && \
           run_traced "rsync -rlpgoW --delete $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/$p/ $HOME/tools/$p/" && \
           run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/setup.py $HOME/tools/$p/"
           [[ -f $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/$p/README.rst $HOME/tools/$p/"
@@ -510,6 +510,8 @@ git_clone() {
           run_traced "cp -r $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/$p $HOME/tools/"
       done
       true # FIX: return no error
+    else
+      run_traced "cp -R $SAVED_ODOO_ROOT/tools $d"
     fi
   fi
 }
