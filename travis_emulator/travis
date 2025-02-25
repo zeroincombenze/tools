@@ -887,7 +887,7 @@ process_yaml() {
 
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for p in TODAY job-id __version__ TCONF YML_lisa YML_mgrodoo YML_repo\
+        for p in TODAY job-id opt_dbgmnt __version__ TCONF YML_lisa YML_mgrodoo YML_repo\
          BRANCH DIST HOME HOME_BRANCH HOME_DEVEL LOGFILE MQT_TEMPLATE_DB MQT_TEST_DB\
           ODOO_ROOT PATH PKGNAME PKGPATH PIP PIPVER PRJNAME PRJPATH PGUSER PYPI_CACHED\
            PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR\

@@ -13,7 +13,7 @@ Usage
     
     Regression test on zerobug
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -B, --debug           run tests in debug mode
       -C, --no-coverage     run tests without coverage

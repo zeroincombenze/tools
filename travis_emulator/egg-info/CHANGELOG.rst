@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Minor improvements
+* [IMP] Python 3.10
 
 2.0.9 (2024-07-10)
 ~~~~~~~~~~~~~~~~~~
@@ -90,3 +91,4 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring for shell scripts
+

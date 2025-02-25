@@ -41,7 +41,6 @@ Read furthermore info read
 import os
 import os.path as pth
 import sys
-import pkg_resources
 import gzip
 import shutil
 
@@ -50,7 +49,8 @@ __version__ = "2.0.10"
 
 
 def fake_setup(**kwargs):
-    globals()["setup_args"] = kwargs
+    globals()["pypi_metadata"] = kwargs
+
 
 def get_pypi_info(pkgname):
     pypi_metadata = {
@@ -77,10 +77,6 @@ def get_pypi_info(pkgname):
         except BaseException:
             pass
     return pypi_metadata
-
-
-def fake_setup(**kwargs):
-    globals()["pypi_metadata"] = kwargs
 
 
 def get_metadata():

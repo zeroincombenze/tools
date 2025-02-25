@@ -7,11 +7,11 @@
 
     <title>Code documentation &#8212; zerobug 2.0.18 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=0f882399" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
     <script src="_static/documentation_options.js?v=6e5bfe50"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -238,11 +238,13 @@ FILE: pathfile to execute to match version (macro expanded)</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">zerobug.z0testlib.</span></span><span class="sig-name descname"><span class="pre">Z0testOdoo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo" title="Link to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.build_odoo_env">
-<span class="sig-name descname"><span class="pre">build_odoo_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retodoodir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.build_odoo_env" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_odoo_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.build_odoo_env" title="Link to this definition"></a></dt>
 <dd><p>Build a simplified Odoo directory tree
 version: 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1
 name: name of odoo dir (default equal to version)
 hierarchy: flat,tree,server (def=flat)</p>
+<p># Old version had the following signature: build_odoo_env(self, ctx, version)
+# Now param ctx is deprecated, so we have to analyze parameters</p>
 </dd></dl>
 
 <dl class="py method">
@@ -412,7 +414,7 @@ git clone or wget from web.</p>
     </div>
     <div class="footer" role="contentinfo">
     &#169; Copyright 2019-25, SHS-AV s.r.l..
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
     </div>
   </body>
 </html>
