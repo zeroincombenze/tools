@@ -159,21 +159,21 @@ OPTACTI=("+"      "=>"      "=>"      1        "=>"    "="     "=>"     1       
 OPTDEFL=(1        ""        ""        0        ""      ""      ""       0        0            ""      ""      ""       ""       "odoo"   ""          0           0)
 OPTMETA=("help"   "vid"     "file"    ""       "linux" "id"    "file"   ""       "do nothing" "file"  "file"  "test"   "file"   "user"   "version"   "verbose"   "")
 OPTHELP=("this help"\
- "select odoo version id: may be 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 or 16"
- "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"
+ "select odoo version id: may be 6.1 or from 7.0 to 18.0"
+ "set odoo configuration file (default search in /etc/odoo/odoo{ver}.conf)"
  "update default values in /etc configuration file before creating script"
  "select linux distribution: RHEL or Debian (default is current platform)"
  "set id name (odoo or openerp, default is odoo)"
- "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"
+ "set odoo log filename (default /var/log/odoo/odoo{ver}.log)"
  "mono-version Odoo instance"
  "do nothing (dry-run)"
- "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"
+ "set odoo PID filename (default /var/run/odoo/odoo{ver}.pid)"
  "service name (def from configuration file)"
  "created test script does nothing (used for debug)"
  "use template (def /etc/lisa/odoo-server_{linux_dist})"
  "odoo service username"
  "show version"
-"verbose mode"
+ "verbose mode"
  "use sudo to execute command instead of start-stop-daemon (only Debian)")
 OPTARGS=()
 
@@ -194,7 +194,7 @@ script_name=$(basename $opt_confn)
 [[ $script_name =~ \.conf$ ]] && script_name=${script_name:0: -5}
 if [[ -z $odoo_vid ]]; then
   odoo_ver=$(echo $script_name|grep -Eo "(odoo|oca)[0-9]+"|grep -Eo "[0-9]+")
-  [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16) ]] && echo "No odoo version detected! Please use -b" && exit 1
+  [[ ! $odoo_ver =~ (6|7|8|9|10|11|12|13|14|15|16|17|18) ]] && echo "No odoo version detected! Please use -b" && exit 1
   odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
 else
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
@@ -219,7 +219,7 @@ else
   SVCNAME=$opt_svc
 fi
 CONFN=$(build_odoo_param CONFN $odoo_vid)
-[[ -n $sfx && ! $CONF =~ $sfx$ ]] && CONFN="${CONFN/.conf/-$sfx.conf}"
+[[ -n $sfx && ! $CONFN =~ $sfx.conf$ ]] && CONFN="${CONFN/.conf/-$sfx.conf}"
 if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
   echo "Configuration data mismatch!"
   echo "Odoo version=$odoo_fver"
@@ -233,9 +233,9 @@ if [[ $script_name != $SVCNAME || $CONFN != $opt_confn ]]; then
 fi
 
 def_pidfile=$(build_odoo_param FPID $odoo_vid)
-[[ -n $sfx && ! $def_pidfile =~ $sfx$ ]] && def_pidfile="${def_pidfile/.pid/-$sfx.pid}"
+[[ -n $sfx && ! $def_pidfile =~ $sfx.pid$ ]] && def_pidfile="${def_pidfile/.pid/-$sfx.pid}"
 def_flogfile=$(build_odoo_param FLOG $odoo_vid)
-[[ -n $sfx && ! $def_flogfile =~ $sfx$ ]] && def_flogfile="${def_flogfile/.log/-$sfx.log}"
+[[ -n $sfx && ! $def_flogfile =~ $sfx.log$ ]] && def_flogfile="${def_flogfile/.log/-$sfx.log}"
 
 if [[ -n "$CONFN" ]]; then
   PIDFILE=$(grep "^pidfile *=" $CONFN|awk -F= '{print $2}')
@@ -271,6 +271,7 @@ else
 fi
 
 echo "Building $script_name for $SVCNAME service under $FH Linux distribution"
+echo -e "- Odoo version is \e[32m$odoo_fver\e[0m"
 echo -e "- logfile is \e[32m$LOGFILE\e[0m"
 echo -e "- pidfile is \e[32m$PIDFILE\e[0m"
 echo -e "- def.conf.file is \e[32m$CONFN\e[0m"
@@ -377,6 +378,7 @@ if [ $opt_dry_run -eq 0 ]; then
   d=$(dirname $script_name)
   if [ "$d" != "/etc/init.d" ]; then
     echo "To make active created script, you must type \"mv $script_name /etc/init.d\""
+    echo "Then \"systemctl daemon-reload\""
   fi
 else
   echo "See $script_name.tmp to discover how to script works"
