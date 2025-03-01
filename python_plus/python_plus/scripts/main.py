@@ -24,7 +24,7 @@ import gzip
 import shutil
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 
 def get_pypi_info(pkgname):
@@ -211,3 +211,4 @@ def main(cli_args=None):
     elif action in ("-C", "--copy-pkg-data"):
         copy_pkg_data(pypi_metadata, verbose)
     return 0
+
