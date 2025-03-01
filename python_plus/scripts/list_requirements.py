@@ -27,7 +27,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -1744,3 +1744,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
