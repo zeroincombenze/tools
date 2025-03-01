@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 """
 Odoo connection classes which describe how to connect to odoo to export PO
 files.

@@ -183,11 +183,3 @@ class Z0bugOdoo(object):
         ):
             for model in self.model_list:
                 self.initialize_model(model, merge=merge)
-
-
-
-
-
-
-
-

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 #
 # Copyright 2023-24 SHS-AV s.r.l. <https://www.zeroincombenze.it>
 #

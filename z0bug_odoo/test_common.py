@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2018-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 from __future__ import print_function
 
@@ -17,12 +17,14 @@ except ImportError:
         release = ''
 if release:
     if int(release.major_version.split('.')[0]) < 10:
-        import openerp.tests.common as test_common
-        from openerp import workflow  # noqa: F401
-        from openerp.modules.module import get_module_resource  # noqa: F401
+        import openerp.tests.common as test_common      # pylint: disable=import-error
+        from openerp import workflow       # noqa: F401 # pylint: disable=import-error
+        # from openerp.modules.module import (
+        #     get_module_resource)         # noqa: F401 # pylint: disable=import-error
     else:
-        import odoo.tests.common as test_common
-        from odoo.modules.module import get_module_resource  # noqa: F401
+        import odoo.tests.common as test_common  # pylint: disable=import-error
+        # from odoo.modules.module import (
+        #     get_module_resource)          # noqa: F401 # pylint: disable=import-error
 else:
     print('No Odoo environment found!')
     sys.exit(0)
@@ -261,7 +263,7 @@ class Z0bugBaseCase(test_common.BaseCase):
                 else:
                     if 'id' in vals:
                         del vals['id']
-                    xid = self.create_id(vals)
+                    xid = self.create_id(model, vals)
                     self.ctr_rec_new += 1
                 if not parent_id or not parent_model:
                     self.add_xref(xref, model, xid)
@@ -352,13 +354,3 @@ class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
 
     def set_test_company(self, xref=None):
         return Z0bugBaseCase.set_test_company(self, xref)
-
-
-
-
-
-
-
-
-
-

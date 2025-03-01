@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 """Test Environment v2.0.12
 
 Copy this file in tests directory of your module.

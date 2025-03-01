@@ -130,8 +130,12 @@ please_test_pylint() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-      if [ "$PRJNAME" == "Odoo" ]; then
+      if [[ $PRJNAME == "Odoo" ]]; then
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      elif [[ ${TRAVIS_PYTHON_VERSION:0:1} == "2" && -f ${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI2.cfg ]]; then
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI2.cfg
+      elif [[ ${TRAVIS_PYTHON_VERSION:0:1} == "3" && -f ${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI3.cfg ]]; then
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI3.cfg
       else
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
       fi

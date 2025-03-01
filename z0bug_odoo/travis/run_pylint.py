@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 
 from __future__ import print_function
 
@@ -350,7 +351,13 @@ def get_subpaths(paths, depth=1):
     return subpaths
 
 
-def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
+def run_pylint(
+        paths, cfg,
+        beta_msgs=None,
+        sys_paths=None,
+        extra_params=None,
+        standalone_mode=False
+):
     """Execute pylint command from original python library
     :param paths: List of paths of python modules to check with pylint
     :param cfg: String name of pylint configuration file
@@ -429,7 +436,14 @@ def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
     multiple=True,
     help="List of messages that will not add to the failure count.",
 )
-def main(paths, config_file, msgs_no_count=None, sys_paths=None, extra_params=None):
+def main(
+        paths,
+        config_file,
+        msgs_no_count=None,
+        sys_paths=None,
+        extra_params=None,
+        standalone_mode=False
+):
     """Script to run pylint command with additional params
     to check fails of odoo modules.
     If expected errors is equal to count fails found then
@@ -440,6 +454,7 @@ def main(paths, config_file, msgs_no_count=None, sys_paths=None, extra_params=No
             config_file.name,
             sys_paths=sys_paths,
             extra_params=extra_params,
+            standalone_mode=standalone_mode
         )
     except UserWarning:
         stats = {'error': -1}

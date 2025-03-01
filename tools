@@ -113,6 +113,19 @@ Current version via Git
 ChangeLog History
 -----------------
 
+z0lib: 2.0.15 (2025-01-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] simulate get_metadat in test environment
+
+
+travis_emulator: 2.0.10 (2025-01-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+* [IMP] Python 3.10
+
+
 z0lib: 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -177,12 +190,6 @@ wok_code: 2.0.19 (2024-08-22)
 * [IMP] deploy_odooo: more improvements
 * [IMP] please: minor improvements
 * [IMP] please clen db: remove filestore directories too
-
-
-travis_emulator: 2.0.11 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Minor improvements
 
 
 clodoo: 2.0.13 (2024-08-22)
@@ -406,96 +413,6 @@ z0bug_odoo: 2.0.17 (2024-02-27)
 * [IMP] TestEnv: minor improvements
 * [FIX] TestEnv: crash if no account.journal in data
 * [IMP] Data with date range 2024
-
-
-z0bug_odoo: 2.0.16 (2024-02-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: nested +multi fields with Odoo cmd
-
-
-wok_code: 2.0.15 (2024-02-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] do_git_checkout_new_branch: ignore symbolic links
-* [FIX] deploy_odoo: minor fixes
-* [IMP] do_git_checkout_new_branch: oddo 17.0
-* [IMP] deploy_odoo: new action amend
-* [IMP] deploy_odoo: new switch to link repositories
-* [IMP] deploy_odoo: removed deprecated switches
-* [IMP] New repositories selection
-* [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
-* [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
-* [IMP] arcangelo switch -lll
-* [IMP] arcaneglo: rules reorganization
-* [IMP] arcangelo: trigger management and new param ctx
-* [IMP] arcangelo: new switch -R to select rules to apply
-
-
-wok_code: 2.0.14 (2024-02-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Quality rating formula
-* [FIX] please install python --python=3.7
-* [IMP] please publish marketplace
-* [IMP] read-only repository
-* [IMP] arcangelo improvements
-* [IMP] gen_readme.py manifest rewrite improvements
-* [IMP] cvt_csv_coa.py improvements
-* [IMP] please test with new switch -D
-* [IMP] run_odoo_debug improvements
-
-
-python_plus: 2.0.11 (2024-02-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: show right python version if 3.10+
-* [IMP] list_requirements.py improvements
-* [IMP] new python version assignment from odoo version
-
-
-odoo_score: 2.0.7 (2024-02-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] set_workers refactoring
-
-
-clodoo: 2.0.9 (2024-02-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc improvements
-
-
-z0lib: 2.0.9 (2024-02-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Internal metadata
-
-
-zerobug: 2.0.14 (2024-01-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] build_cmd: enable coverage on sub process
-* [FIX] Re-enable coverage statistics
-* [FIX] Printing message: right sequence
-
-
-z0bug_odoo: 2.0.15 (2024-01-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Documentation typo corrections
-* [IMP] Date range file .xlsx for TestEnv
-* [IMP] TestEnv: local data dir new rules
-* [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
-* [FIX] TestEnv: caller environment more than 1 level
-* [FIX] TestEnv: sometime is_action() fails
-* [FIX] TestEnv: wizard active model
-* [FIX] TestEnv: wizard module name is current module under test
-* [IMP] TestEnv: binding model in view for Odoo 11.0+
-* [IMP] TestEnv: write with xref can update xref id
-* [IMP] TestEnv: warning if no setUp() declaration
-* [IMP] TestEnv: resource_download, now default filed name is "data"
-
 
 
 os0: 2.0.1 (2022-10-20)

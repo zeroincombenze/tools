@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 
 from __future__ import print_function
 
@@ -821,10 +822,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     exit(main())
-
-
-
-
-
-
-
