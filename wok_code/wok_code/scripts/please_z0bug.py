@@ -208,9 +208,8 @@ class PleaseZ0bug(object):
             return
         return fqn
 
-    def _do_lint(self):
+    def _do_lint_odoo(self):
         please = self.please
-
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
         manifest_path = ("__openerp__.py"
                          if branch and int(branch.split(".")[0]) <= 9
@@ -242,23 +241,13 @@ class PleaseZ0bug(object):
             return please.os_system(cmd, with_shell=True, rtime=True)
         return sts
 
-    def do_lint(self):
+    def _do_lint_pypi(self):
         please = self.please
-        if please.is_odoo_pkg():
-            return self._do_lint()
-        elif please.is_repo_odoo() or please.is_repo_ocb():
-            sts = 0
-            for path in please.get_next_module_path():
-                print("")
-                sts = please.os_system("cd " + path)
-                if sts == 0:
-                    sts = self._do_lint()
-                if please.is_fatal_sts(sts):
-                    break
-            return sts
-        elif please.is_pypi_pkg():
-            if not please.opt_args.no_verify:
-                sts = please.os_system("pre-commit run", rtime=True)
+        sts = 0
+        if not please.opt_args.no_verify:
+            # please.os_system("git add ./", rtime=True)
+            sts = please.os_system("pre-commit run", rtime=True)
+        if sts == 0:
             if "lint" in please.cli_args:
                 sub_list = [("--no-verify", ""), ("--no-translate", "")]
             else:
@@ -271,6 +260,24 @@ class PleaseZ0bug(object):
                 rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.os_system(cmd, with_shell=True, rtime=True)
+        return sts
+
+    def do_lint(self):
+        please = self.please
+        if please.is_odoo_pkg():
+            return self._do_lint_odoo()
+        elif please.is_repo_odoo() or please.is_repo_ocb():
+            sts = 0
+            for path in please.get_next_module_path():
+                print("")
+                sts = please.os_system("cd " + path)
+                if sts == 0:
+                    sts = self._do_lint_odoo()
+                if please.is_fatal_sts(sts):
+                    break
+            return sts
+        elif please.is_pypi_pkg():
+            return self._do_lint_pypi()
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
 
     def do_show(self):
@@ -360,6 +367,10 @@ class PleaseZ0bug(object):
             return 3
         sts = self.check_4_test_dirs()
         if please.is_fatal_sts(sts):
+            return sts
+        # sts = please.chain_python_cmd(
+        #     "pg_requirements.py", [], verbose=True, rtime=True)
+        if sts:
             return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
             sts, branch = please.get_odoo_branch_from_git()

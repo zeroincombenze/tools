@@ -248,8 +248,8 @@ class RegressionTest:
             stdout.split("\n")[0]
         )
 
-        TMODARS = "-m test_module -b 12.0"
-        DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
+        # TMODARS = "-m test_module -b 12.0"
+        # DBARGS = "-c /etc/odoo/odoo12.conf -d test_test_module_12"
         os.chdir(self.odoo_moduledir)
         chnglog = os.path.join(self.odoo_moduledir, "readme", "CHANGELOG.rst")
         if os.path.isfile(chnglog):
@@ -501,8 +501,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
-
-
-

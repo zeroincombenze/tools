@@ -1791,7 +1791,7 @@ def tail(ctx, source, max_ctr=None, max_days=None, module=None, min_ctr=2):
                 break
             x = re.search(RE_PAT_DATE, line)
             try:
-                changelog_date = datetime.strptime(line[x.start() : x.end()],
+                changelog_date = datetime.strptime(line[x.start(): x.end()],
                                                    "%Y-%m-%d")
             except BaseException:
                 print("Invalid line <%s>" % line)
@@ -1818,7 +1818,7 @@ def sort_history(source):
         x = re.search(RE_PAT_MATCH_DATE, line)
         if x:
             x = re.search(RE_PAT_DATE, line)
-            dt = line[x.start() : x.end()]
+            dt = line[x.start(): x.end()]
             module = line.split(": ")[0]
             hash = "%s %s" % (dt, module)
             histories[hash] = ""
@@ -2107,7 +2107,7 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
                 section == "changelog"
                 and ctx["product_doc"] == "odoo"
                 and ctx["branch"]
-                and re.match(RE_PAT_MATCH_DATE , line)
+                and re.match(RE_PAT_MATCH_DATE, line)
                 and not line.startswith(ctx["branch"])
         ):
             line = ctx["branch"] + "." + ctx["branch"].split(".", 1)[1]

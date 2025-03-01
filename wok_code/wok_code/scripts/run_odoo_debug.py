@@ -210,7 +210,7 @@ class RunOdoo(object):
                 self.get_config()
             else:
                 self.branch = self.opt_args.odoo_branch
-        items = [self.branch or self.git_org, "", ""]
+        items = [self.branch or self.git_org, "", ""]  # pylint: disable=E0203
         if self.branch:
             m = re.search(r"[0-9]+\.[0-9]+", self.branch)
             if m:
@@ -325,7 +325,7 @@ class RunOdoo(object):
 
     def get_odoo_bin(self):
         script = None
-        if not self.script:
+        if not self.script:  # pylint: disable=E0203
             if self.opt_args.path:
                 for name in ("odoo-bin", "openerp-server"):
                     if os.path.isfile(os.path.join(self.opt_args.path, name)):
@@ -431,7 +431,7 @@ class RunOdoo(object):
                     rpcport = Config.get("options", "xmlrpc_port")
                 if rpcport:
                     rpcport = int(rpcport)
-        if self.db_port and self.db_port.isdigit():
+        if self.db_port and self.db_port.isdigit():  # pylint: disable=E0203
             self.db_port = int(self.db_port)
         if not rpcport:
             rpcport = clodoo.build_odoo_param(

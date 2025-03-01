@@ -36,10 +36,14 @@ __version__ = "2.0.19"
 
 msg_time = time.time()
 VALID_ACTIONS = ("export-comparable", "export-full", "export-z0bug", "export-group")
-VERSIONS = ["6.1", "7.0", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0"]
+VERSIONS = [
+    "6.1", "7.0", "8.0", "9.0", "10.0",
+    "11.0", "12.0", "13.0", "14.0", "15.0", "16.0", "17.0", "18.0"
+]
 
 
 class CvtCsvFile(object):
+
     def __init__(self, opt_args):
         self.opt_args = opt_args
         if opt_args.from_version:

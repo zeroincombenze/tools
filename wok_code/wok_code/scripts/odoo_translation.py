@@ -427,7 +427,7 @@ class OdooTranslation(object):
                         ii = min(ii, match.start())
                         break
                 tok_type = None
-                token = message[ix : ii + ix]
+                token = message[ix: ii + ix]
                 hash_key = self.get_hash_key(token, False)
                 ix += ii
             if (
@@ -1096,7 +1096,7 @@ class OdooTranslation(object):
             elif action == "translate":
                 self.translate_pofile(po_fn)
             else:
-                raise
+                raise IOError
 
     def build_alias_dict(self):
         self.tags = []

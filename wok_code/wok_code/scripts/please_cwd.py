@@ -135,7 +135,7 @@ class PleaseCwd(object):
                 setattr(self, k, v)
 
         rpcport = ""
-        if not self.config:
+        if not self.config:  # pylint: disable=access-member-before-definition
             self.config = self.please.opt_args.odoo_config or build_odoo_param(
                 "CONFN", odoo_vid=".", multi=True)
         if not pth.isfile(self.config):
@@ -168,7 +168,7 @@ class PleaseCwd(object):
             if rpcport:
                 rpcport = int(rpcport)
 
-        if not self.db_port:
+        if not self.db_port:  # pylint: disable=access-member-before-definition
             self.db_port = 5432
         elif self.db_port and self.db_port.isdigit():
             self.db_port = int(self.db_port)
