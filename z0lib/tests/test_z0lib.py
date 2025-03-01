@@ -10,6 +10,7 @@ import os
 import os.path as pth
 import sys
 
+
 # allow using isolated test environment
 def pkg_here(here):
     while (
@@ -19,6 +20,7 @@ def pkg_here(here):
         here = pth.dirname(here)
     if here not in sys.path:
         sys.path.insert(0, here)
+
 
 pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
 pkg_here(pth.abspath(os.getcwd()))  # noqa: E402

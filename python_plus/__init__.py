@@ -267,25 +267,24 @@ def compute_date(value, refdate=None):
     return value
 
 
-class Base__(type):
-    def __instancecheck__(cls, instance):
-        if cls == __:
-            return isinstance(instance, text_type)
-        else:
-            return issubclass(instance.__class__, cls)
-
-
-class __(object, with_metaclass(Base__, text_type)):
-    def qsplit(
-        self, sep=None, maxsplit=-1, quotes=None, escape=None, enquote=None, strip=None
-    ):
-        return qsplit(
-            self,
-            sep=sep,
-            maxsplit=maxsplit,
-            quotes=quotes,
-            escape=escape,
-            enquote=enquote,
-            strip=strip,
-        )
-
+# class Base__(type):
+#     def __instancecheck__(cls, instance):
+#         if cls == __:
+#             return isinstance(instance, text_type)
+#         else:
+#             return issubclass(instance.__class__, cls)
+#
+#
+# class __(object, with_metaclass(Base__, text_type)):
+#     def qsplit(
+#         self, sep=None, maxsplit=-1, quotes=None, escape=None, enquote=None, strip=None
+#     ):
+#         return qsplit(
+#             self,
+#             sep=sep,
+#             maxsplit=maxsplit,
+#             quotes=quotes,
+#             escape=escape,
+#             enquote=enquote,
+#             strip=strip,
+#         )

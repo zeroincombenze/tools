@@ -97,6 +97,7 @@ setup(
             "makepo_it.py = wok_code.scripts.makepo_it:main",
             "odoo_dependencies.py = wok_code.scripts.odoo_dependencies:main",
             "odoo_translation.py = wok_code.scripts.odoo_translation:main",
+            # "pg_requirements.py = wok_code.scripts.pg_requirements:main",
             "please = wok_code.scripts.please:main",
             # "to_pep8.py = wok_code.scripts.to_pep8:main",
             "wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main",

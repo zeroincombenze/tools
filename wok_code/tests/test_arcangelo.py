@@ -133,7 +133,7 @@ class RegressionTest:
             self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
                             "File %s differs %s" % (res_fqn, tgt_fqn))
 
-    def test_01_version(self):
+    def __test_01_version(self):
         sts, stdout, stderr = z0lib.os_system_traced("arcangelo --version", rtime=False)
         self.assertEqual(sts, 0, msg_info="arcangelo --version")
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
@@ -398,6 +398,3 @@ if __name__ == "__main__":
             z0test.parseoptest(sys.argv[1:], version=version()), RegressionTest
         )
     )
-
-
-

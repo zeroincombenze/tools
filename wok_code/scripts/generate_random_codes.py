@@ -5,7 +5,7 @@ import sys
 # import os
 import argparse
 from random import random, randint
-import vatnumber
+import vatnumber  # pylint: disable=E0401
 
 
 __version__ = "2.0.19"

@@ -358,22 +358,22 @@ run_odoo_server() {
         v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $opt_dae -eq 0 ]]; then
             run_traced "export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-            [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-            [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
+            [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         else
             run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
-            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
-            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $script $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &
+            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &
         fi
     else
         if [[ $opt_dae -eq 0 ]]; then
-            [[ $opt_dae -eq 0 ]] && run_traced "$script $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            [[ $opt_dae -eq 0 ]] && run_traced "$SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
         else
-            [[ $opt_dry_run -ne 0 ]] && echo "> $script $OPT_CONF $OPT_LLEV $OPTS &"
-            [[ $opt_dry_run -eq 0 ]] && echo "\$ $script $OPT_CONF $OPT_LLEV $OPTS &"
-            [[ $opt_dry_run -eq 0 ]] && $script $OPT_CONF $OPT_LLEV $OPTS &
+            [[ $opt_dry_run -ne 0 ]] && echo "> $SCRIPT $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ $SCRIPT $OPT_CONF $OPT_LLEV $OPTS &"
+            [[ $opt_dry_run -eq 0 ]] && $SCRIPT $OPT_CONF $OPT_LLEV $OPTS &
         fi
     fi
     [[ $opt_dae -ne 0 ]] && wait_daemon_idle
@@ -505,9 +505,9 @@ fi
 [[ $REPOSNAME == "addons" ]] && REPOSNAME="OCB"
 odoo_maj=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
-script=$(build_odoo_param BIN "$odoo_root" search)
-[[ -z "$script" ]] && echo "No odoo script found!!" && exit 1
-export ODOO_RUNDIR=$(dirname $script)
+SCRIPT=$(build_odoo_param BIN "$odoo_root" search)
+[[ -z "$SCRIPT" ]] && echo "No odoo script found!!" && exit 1
+export ODOO_RUNDIR=$(dirname $SCRIPT)
 TEST_VDIR=""
 if [[ -n $opt_venv ]]; then
     export TEST_VDIR="$opt_venv"
@@ -719,7 +719,7 @@ if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     run_traced "cd $TEST_VDIR"
     [[ $opt_dry_run -ne 0 && $opt_verbose -ne 0 ]] && echo "> source ./bin/activate"
     [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
-    run_traced "$script -s --stop-after-init"
+    run_traced "$SCRIPT -s --stop-after-init"
 fi
 
 set_confn
@@ -729,19 +729,25 @@ if [[ -n "$TEST_VDIR" ]]; then
   [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate"
   [[ -d LOGDIR && ! -f $LOGFILE ]] && touch $LOGFILE
   [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
+  cd $TEST_VDIR
+  source ./bin/activate
+  PYTHON=$(which python)
+  PIP=$(which pip)
+  [[ $opt_nocov -ne 0 ]] && SCRIPT="$PYTHON $SCRIPT"
   if [[ $opt_dry_run -eq 0 ]]; then
-    cd $TEST_VDIR
-    source ./bin/activate
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      cov=$(which coverage 2>/dev/null)
-      [[ -z $cov || ! $cov =~ $HOME ]] && run_traced "pip install coverage"
-      cov=$(which coverage 2>/dev/null)
-      if [[ -n $cov ]]; then
-        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-        [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+      COV=$(which coverage 2>/dev/null)
+      [[ -z $COV || ! $COV =~ $HOME ]] && run_traced "$PIP install coverage"
+      COV=$(which coverage 2>/dev/null)
+      if [[ -n $COV ]]; then
+        v=$($COV --version|grep --color=never -Eo "[0-9]+"|head -n1)
+        [[ $v -lt 5 ]] && run_traced "$PIP install coverage -U"
       fi
     fi
   fi
+else
+  PYTHON=$(which python)
+  PIP=$(which pip)
 fi
 
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
@@ -758,8 +764,8 @@ if [[ $create_db -gt 0 ]]; then
             fi
             if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                 [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
-                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $script -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
+                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
+                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
                 run_traced "$cmd"
             fi
         fi
@@ -787,7 +793,7 @@ elif [[ opt_dbg -gt 1 ]]; then
     echo "Now you can test module $opt_modules on pycharm"
     echo ""
     echo "Debug Odoo by pycharm after set configuration \"Debug Odoo $odoo_fver\""
-    echo -e "parameters=\"\e[33m$script\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
+    echo -e "parameters=\"\e[33m$SCRIPT\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
     echo ""
     echo "If your test code contains the follow statements"
     echo ""
@@ -799,7 +805,7 @@ elif [[ opt_dbg -gt 1 ]]; then
     echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
     echo ""
 else
-    run_traced "cd $ODOO_RUNDIR && $script $OPT_CONF $OPT_LLEV $OPTS"
+    run_traced "cd $ODOO_RUNDIR && $SCRIPT $OPT_CONF $OPT_LLEV $OPTS"
 fi
 
 if [[ -n "$TEST_VDIR" ]]; then

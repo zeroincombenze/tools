@@ -199,7 +199,7 @@ def remove_comment(opt_args, root, files, compare_path=None):
                 line = REGEX_OO.sub(r"\1https://www.odoo.com\2", line)
                 x = REGEX_CM.match(line)
                 if x:
-                    source += "%s\n" % (line[x.start() : x.end() - 1].rstrip() or "#")
+                    source += "%s\n" % (line[x.start(): x.end() - 1].rstrip() or "#")
                 else:
                     source += "%s\n" % line.rstrip()
         with open(ffn, "w") as fd:

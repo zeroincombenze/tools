@@ -18,14 +18,14 @@ DESCRIPTION
     3: component not found (warning)
     33: component not found (fatal error)
     123: invalid environment
-    125: invalid paramater supplied
+    125: invalid parameter supplied
     126: invalid action
 
 OPTIONS
   %(options)s
 
 EXAMPLES
-    please help z0bug
+    please help zerobug
 
 BUGS
     No known bugs.
@@ -152,7 +152,7 @@ class Please(object):
     def log_success(self, msg):
         print(GREEN + msg + CLEAR)
 
-    def is_fatal_sts(selfself, sts):
+    def is_fatal_sts(self, sts):
         return sts in (1, 2) or sts > 9
 
     def get_actfunctions_of_cls(self, cls, ignore_def=False, ret_action=False):

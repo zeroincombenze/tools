@@ -703,7 +703,7 @@ class OdooDeploy(object):
             for path in config.get("options", "addons_path").split(","):
                 if self.is_git_repo(path=path):
                     repo = pth.basename(path)
-                    self.load_repo_info(path , repo)
+                    self.load_repo_info(path, repo)
                 else:
                     self.analyze_path(path, "OCB")
             self.sort_repo_list()
@@ -1437,6 +1437,7 @@ class OdooDeploy(object):
                 break
         if self.opt_args.verbose:
             self.action_status()
+        return sts
 
     def action_download_or_pull_repo(self):
         sts = 0

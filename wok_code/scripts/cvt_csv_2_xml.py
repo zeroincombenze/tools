@@ -156,6 +156,7 @@ def convert_file(ctx):
                 if ctx['opt_verbose']:
                     print("Writing %s" % ctx['dst_file'])
                 fd.write(_c(target))
+    return 0
 
 
 def main(cli_args=[]):
