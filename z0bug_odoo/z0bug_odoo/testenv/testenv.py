@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
 """Test Environment v2.0.21
 
 You can locate the recent testenv.py in testenv directory of module
@@ -3694,10 +3695,3 @@ class MainTest(test_common.TransactionCase):
             "🐞%d assertion validated for validate_records(%s)"
             % (ctr_assertion, self.tmpl_repr(template, match=True)),
         )
-
-
-
-
-
-
-

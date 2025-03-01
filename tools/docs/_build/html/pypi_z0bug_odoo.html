@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Z0Bug_Odoo &#8212; tools 2.0.6 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
@@ -308,22 +308,22 @@ or
 <p>Copy the testenv.py file in tests directory of your module.
 Please copy the documentation testenv.rst file in your module too.</p>
 <p>The __init__.py must import testenv.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">testenv</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">test_</span><span class="o">&lt;</span><span class="n">MY_TEST_FILE</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">testenv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_</span><span class="o">&lt;</span><span class="n">MY_TEST_FILE</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Your python test file have to contain some following example lines:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">.testenv</span> <span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.testenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">TEST_SETUP_LIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;res.partner&quot;</span><span class="p">,</span> <span class="p">]</span>
 
-<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
         <span class="c1"># Add following statement just for get debug information</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
@@ -331,10 +331,10 @@ Please copy the documentation testenv.rst file in your module too.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">odoo_commit_data</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create test environment</span>
 
-    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_mytest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s2">&quot;🎺 Testing test_mytest&quot;</span>    <span class="c1"># Use unicode char to best log reading</span>
         <span class="p">)</span>
@@ -578,9 +578,9 @@ TestEnv inherit <strong>product.product</strong> (variant) external reference
 level: it is the base test data.
 Testing function may declare and manage other group data. Look at the
 following example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">.testenv</span> <span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.testenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainTest</span> <span class="k">as</span> <span class="n">SingleTransactionCase</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -605,14 +605,14 @@ following example:</p>
     <span class="p">}</span>
 <span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyTest</span><span class="p">(</span><span class="n">SingleTransactionCase</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug_level</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">()</span>                <span class="c1"># Create base test environment</span>
 
-    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Now add Sale Order data, group &quot;order&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_env</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">,</span> <span class="n">setup_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sale.order&quot;</span><span class="p">,</span> <span class="s2">&quot;sale.order.line&quot;</span><span class="p">])</span>
 </pre></div>

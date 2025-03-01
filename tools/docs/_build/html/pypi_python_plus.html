@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Python_Plus &#8212; tools 2.0.6 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
@@ -84,7 +84,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 </pre></div>
 </div>
 <p>Then, for example, the following code has the same effect on Py2 as on Py3:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">isbytestr</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">isbytestr</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;Hello World&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">isbytestr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 <span class="go">True</span>
@@ -94,7 +94,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 <section id="quoted-string">
 <h3>quoted string<a class="headerlink" href="#quoted-string" title="Link to this heading"></a></h3>
 <p>Using class __:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">__</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">__</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="n">__</span><span class="p">(</span><span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span><span class="p">)</span>
@@ -107,7 +107,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 <div class="line"><br /></div>
 </div>
 <p>General function:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">python_plus</span> <span class="kn">import</span> <span class="n">qsplit</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">qsplit</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span>
@@ -140,7 +140,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
 <span class="n">action</span> <span class="n">may</span> <span class="n">be</span><span class="p">:</span> <span class="n">help</span> <span class="n">amend</span> <span class="n">cp</span> <span class="n">check</span> <span class="n">create</span> <span class="n">exec</span> <span class="n">info</span> <span class="n">inspect</span> <span class="n">install</span> <span class="n">merge</span> <span class="n">mv</span> <span class="n">python</span> <span class="n">shell</span> <span class="n">rm</span> <span class="n">show</span> <span class="n">uninstall</span> <span class="n">update</span> <span class="n">test</span>
  <span class="o">-</span><span class="n">h</span> <span class="o">--</span><span class="n">help</span>            <span class="n">this</span> <span class="n">help</span>
  <span class="o">-</span><span class="n">a</span> <span class="nb">list</span>              <span class="nb">bin</span> <span class="n">packages</span> <span class="n">to</span> <span class="n">install</span> <span class="p">(</span><span class="o">*</span> <span class="n">means</span> <span class="n">wkhtmltopdf</span><span class="p">,</span><span class="n">lessc</span><span class="p">)</span>
- <span class="o">-</span><span class="n">B</span>                   <span class="n">use</span> <span class="n">unstable</span> <span class="n">packages</span><span class="p">:</span> <span class="o">-</span><span class="n">B</span> <span class="n">testpypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BB</span> <span class="kn">from</span> <span class="o">~/</span><span class="n">tools</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBB</span> <span class="kn">from</span> <span class="o">~/</span><span class="n">pypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBBB</span> <span class="n">link</span> <span class="n">to</span> <span class="n">local</span> <span class="o">~/</span><span class="n">pypi</span>
+ <span class="o">-</span><span class="n">B</span>                   <span class="n">use</span> <span class="n">unstable</span> <span class="n">packages</span><span class="p">:</span> <span class="o">-</span><span class="n">B</span> <span class="n">testpypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BB</span> <span class="kn">from</span><span class="w"> </span><span class="o">~/</span><span class="n">tools</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBB</span> <span class="kn">from</span><span class="w"> </span><span class="o">~/</span><span class="n">pypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBBB</span> <span class="n">link</span> <span class="n">to</span> <span class="n">local</span> <span class="o">~/</span><span class="n">pypi</span>
  <span class="o">-</span><span class="n">C</span>                   <span class="n">clear</span> <span class="n">cache</span> <span class="n">before</span> <span class="n">executing</span> <span class="n">pip</span> <span class="n">command</span>
  <span class="o">-</span><span class="n">D</span> <span class="o">--</span><span class="n">devel</span>           <span class="n">create</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="k">with</span> <span class="n">development</span> <span class="n">packages</span>
  <span class="o">-</span><span class="n">d</span> <span class="o">--</span><span class="n">dep</span><span class="o">-</span><span class="n">path</span> <span class="n">paths</span>
@@ -164,7 +164,7 @@ Mainly it works ad standard pip but inside a specific virtual environment.</p>
                       <span class="n">python</span> <span class="n">version</span>
  <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">silent</span> <span class="n">mode</span>
  <span class="o">-</span><span class="n">r</span> <span class="o">--</span><span class="n">requirement</span> <span class="n">file</span>
-                      <span class="n">after</span> <span class="n">created</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="n">install</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">given</span> <span class="n">requirements</span> <span class="n">file</span>
+                      <span class="n">after</span> <span class="n">created</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="n">install</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">given</span> <span class="n">requirements</span> <span class="n">file</span>
  <span class="o">-</span><span class="n">s</span> <span class="o">--</span><span class="n">system</span><span class="o">-</span><span class="n">site</span><span class="o">-</span><span class="n">pack</span>
                       <span class="n">create</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="k">with</span> <span class="n">access</span> <span class="n">to</span> <span class="n">the</span> <span class="k">global</span> <span class="n">site</span><span class="o">-</span><span class="n">packages</span>
  <span class="o">-</span><span class="n">t</span> <span class="o">--</span><span class="n">travis</span>          <span class="n">activate</span> <span class="n">environment</span> <span class="k">for</span> <span class="n">travis</span> <span class="n">test</span>

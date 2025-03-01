@@ -1678,7 +1678,7 @@ if __name__ == '__main__':
         # Now param ctx is deprecated, so we have to analyze parameters
         """
         if len(args) > 1:
-            ctx = args[0]
+            # ctx = args[0]
             version = args[1]
         else:
             version = args[0]
@@ -1707,7 +1707,7 @@ if __name__ == '__main__':
             os.path.join(odoo_home, 'tools'),
             os.path.join(name, '.git'),
         ]
-        root = Z0test().build_os_tree(ctx, os_tree)
+        root = Z0test().build_os_tree(os_tree)
         RELEASE_PY = (
             """
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = """

@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: os0
 Version: 2.0.1
 Summary: OS indipendent interface
@@ -24,6 +24,17 @@ Classifier: Operating System :: OS Independent
 Description-Content-Type: text/x-rst
 Requires-Dist: z0lib
 Requires-Dist: future
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: project-url
+Dynamic: requires-dist
+Dynamic: summary
 
 
 This module extends python os module with a few new functionality

@@ -43,7 +43,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo "  -2  create virtual environment with python2"
-    echo -e "\n(C) 2015-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo -e "\n(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -93,19 +93,21 @@ GREEN="\e[32m"
 CLR="\e[0m"
 
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
-[[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
+[[ -d $TDIR/zerobug && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
 [[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL && -f $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
-[[ -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
-[[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
+[[ ! $opts =~ ^-.*t && -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
+[[ $opts =~ ^-.*t && -z "$DSTPATH" ]] && DSTPATH="$(readlink -f $HOME/devel)"
+[[ ! $opts =~ ^-.*t && $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
 [[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
 LOCAL_VENV="$DSTPATH/venv"
 [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
+[[ $opts =~ ^-.*t && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
 DEVELPATH="$(readlink $DSTPATH/pypi)"
 
@@ -114,6 +116,7 @@ if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
+
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo -e "${GREEN}# Creating development environment $DEVELPATH ...${CLR}"
 [[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
@@ -374,7 +377,7 @@ fi
 
 # Final test to validate environment
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-for pkg in odoorc clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please to_pep8.py transodoo.py wget_odoo_repositories.py; do
+for pkg in odoorc clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please transodoo.py wget_odoo_repositories.py; do
   echo -n "."
   [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
 done

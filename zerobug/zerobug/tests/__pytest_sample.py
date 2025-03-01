@@ -29,9 +29,3 @@ class TestClass(object):
 
     def test_version_z0testrc(self, version_to_test):
         version_to_test('z0testrc', __version__, mode='.')
-
-
-
-
-
-

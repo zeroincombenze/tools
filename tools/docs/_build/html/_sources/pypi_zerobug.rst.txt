@@ -31,7 +31,7 @@ every unit test terminates with success or with failure.
     
     Regression test on zerobug
     
-    optional arguments:
+    options:
       -h, --help            show this help message and exit
       -B, --debug           run tests in debug mode
       -C, --no-coverage     run tests without coverage
@@ -64,7 +64,7 @@ every unit test terminates with success or with failure.
                             display total # tests when execute them
       -0, --no-count        no count # unit tests (deprecated)
     
-    © 2015-2023 by SHS-AV s.r.l. - https://zeroincombenze-
+    © 2015-2025 by SHS-AV s.r.l. - https://zeroincombenze-
     tools.readthedocs.io/en/latest/zerobug
     
 

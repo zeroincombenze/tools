@@ -1,0 +1,13 @@
+Function,Note
+Add new repository,odoo_install_repository
+Update paid invoice,inv2draft_n_restore.py
+List requirement of Odoo,list_requirements.py
+Create full configurated Odoo DB,manage_db
+Manage Odoo installation,manage_odoo
+Set Odoo Skin (backoffice),odoo_skin.sh
+Run Odoo instance to debug,run_odoo_debug
+Manage version depending names,transodoo.py
+General Purpose RPC,clodoo.py
+Export Odoo model to test file,export_db_model.py
+Migrate Odoo,migrate_odoo.py (deprecated)
+Examples,example*.py
