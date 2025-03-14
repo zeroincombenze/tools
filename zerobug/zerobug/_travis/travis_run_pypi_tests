@@ -122,6 +122,53 @@ please_test_flake8() {
     return $sts
 }
 
+_please_test_flake8() {
+    echo "======== Testing test_flake8 ========"
+    local opts s sts x
+    sts=0    
+    run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
+    [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../travis/cfg)"
+    if [[ -z $FLAKE8_CONFIG_DIR && -n $HOME_DEVEL ]]; then
+        x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
+        [[ -n $x ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
+    fi
+    [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+        if [[ $PRJNAME == "Odoo" ]]; then
+            x=$(build_odoo_param MAJVER ./)
+            [[ $x -le 7 ]] && opts="$opts --per-file-ignores='__openerp__.py:E501,E128'"
+        fi
+        if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+            local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg
+        else
+            local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
+        fi
+        [[ $TRAVIS_PYTHON_VERSION =~ ^2 ]] && opts="--extend-ignore=B006,F812 --max-line-length=88" || opts="--extend-ignore=B006 --max-line-length=88"
+        if [[ -n $VDIR ]]; then
+            x=$(vem $VDIR info flake8 2>/dev/null|grep -Eo "[0-9]+\.[0-9]+"|head -n1|tr -d ".")
+            [[ $x -lt 39 ]] && vem $VDIR exec "pip install -U \"flake8>3.9.0,<=6.0.0\""
+            run_traced "vem $VDIR exec \"flake8 --config=$FLAKE8_CONFIG $opts ${PKGPATH}\""
+            s=$?; [[ $s -ne 0 && $sts -eq 0 ]] && sts=$s
+        else
+            run_traced "flake8 --config=${FLAKE8_CONFIG} $opts ${PKGPATH}"
+            s=$?; [[ $s -ne 0 && $sts -eq 0 ]] && sts=$s
+        fi
+        if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+            local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
+        else
+            local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
+        fi
+        if [[ -n $VDIR ]]; then
+            run_traced "vem $VDIR exec \"flake8 --config=$FLAKE8_CONFIG $opts ${PKGPATH}\""
+            s=$?; [[ $s -ne 0 && $sts -eq 0 ]] && sts=$s
+        else
+            run_traced "flake8 --config=${FLAKE8_CONFIG} $opts ${PKGPATH}"
+            s=$?; [[ $s -ne 0 && $sts -eq 0 ]] && sts=$s
+        fi
+    fi
+    return $sts
+}
+
 please_test_pylint() {
     echo "======== Testing test_pylint ========"
     local s sts
@@ -142,6 +189,39 @@ please_test_pylint() {
       IFS="/" read -a REPO <<< "${ODOO_REPO}"
       export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
       run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
+      sts=$?
+    fi
+    return $sts
+}
+
+_please_test_pylint() {
+    echo "======== Testing test_pylint ========"
+    local s sts
+    sts=0
+    run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
+    if [[ -z $PYLINT_CONFIG_DIR && -n $HOME_DEVEL ]]; then
+      x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
+      [[ -n $x ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
+    fi
+    [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1    
+    if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+      if [[ $PRJNAME == "Odoo" ]]; then
+        PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint_beta.cfg
+        [[ ! -f $PYLINT_CONFIG ]] && PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      elif [[ ${TRAVIS_PYTHON_VERSION:0:1} == "2" && -f ${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI2.cfg ]]; then
+        PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI2.cfg
+      elif [[ ${TRAVIS_PYTHON_VERSION:0:1} == "3" && -f ${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI3.cfg ]]; then
+        PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI3.cfg
+      else
+        PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      fi
+      IFS="/" read -a REPO <<< "${ODOO_REPO}"
+      export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
+      if [[ -n $VDIR ]]; then
+          run_traced "vem $VDIR exec \"pylint --rcfile=$PYLINT_CONFIG ${PKGPATH}\""
+      else
+          run_traced "pylint --rcfile=$PYLINT_CONFIG  ${PKGPATH}"
+      fi
       sts=$?
     fi
     return $sts
@@ -380,8 +460,18 @@ else
 fi
 [[ -z "$PYPI_RUN_PYVER" ]] && PYPI_RUN_PYVER="(2.7|3.7|3.8|3.9|3.10|3.11|3.12)"
 [[ -f ./travis.ini && $(grep -qv "^#" ./travis.ini) ]] && export $(cat ./travis.ini|grep -v "^#"|tr -d "'"|tr -d '"')
-[[ "$PRJNAME" == "Odoo" ]] && ULI="$(build_odoo_param GIT_ORGID '.')${BRANCH}-${PKGNAME}" || ULI="${PKGNAME}-${BRANCH}"
-[[ -n "$REPOSNAME" ]] && UMLI="${REPOSNAME//,/+}.${ULI}" || UMLI=$ULI
+# [[ "$PRJNAME" == "Odoo" ]] && ULI="$(build_odoo_param GIT_ORGID '.')${BRANCH}-${PKGNAME}" || ULI="${PKGNAME}-${BRANCH}"
+# [[ -n "$REPOSNAME" ]] && UMLI="${REPOSNAME//,/+}.${ULI}" || UMLI=$ULI
+VDIR=""
+if [[ $PRJNAME == "Odoo" ]]; then
+  VDIR=$(build_odoo_param VDIR ./)
+  if [[ $(basename $(dirname $PWD)) =~ (marketplace|uncovered) ]]; then
+    p=$(dirname $(dirname $PWD))
+    x=$(echo $p|grep -Eo "[0-9]+"|head -n1)
+    [[ -d $(dirname $p)/oca$x/venv_odoo ]] && VDIR="$(dirname $p)/oca$x/venv_odoo"
+    [[ -d $(dirname $p)/odoo$x/venv_odoo ]] && VDIR="$(dirname $p)/odoo$x/venv_odoo"
+  fi
+fi  
 sts_bash=127
 sts_flake8=127
 sts_pylint=127
