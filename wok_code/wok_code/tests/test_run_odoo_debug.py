@@ -65,19 +65,18 @@ class RegressionTest:
                     vid = "%s%d" % (sub, maj_version)
                 else:
                     vid = sub + version
-                if not z0ctx["dry_run"]:
-                    if re.match("VENV", vid):
-                        z0testodoo.build_odoo_env(
-                            z0ctx, version, name=os.path.expanduser("~/%s/odoo" % vid))
-                    elif re.search("v7|v6", vid):
-                        z0testodoo.build_odoo_env(
-                            z0ctx, version,
-                            name=os.path.expanduser("~/%s" % vid),
-                            hierarchy="server",
-                        )
-                    else:
-                        z0testodoo.build_odoo_env(
-                            z0ctx, version, name=os.path.expanduser("~/%s" % vid))
+                if re.match("VENV", vid):
+                    z0testodoo.build_odoo_env(
+                        z0ctx, version, name=os.path.expanduser("~/%s/odoo" % vid))
+                elif re.search("v7|v6", vid):
+                    z0testodoo.build_odoo_env(
+                        z0ctx, version,
+                        name=os.path.expanduser("~/%s" % vid),
+                        hierarchy="server",
+                    )
+                else:
+                    z0testodoo.build_odoo_env(
+                        z0ctx, version, name=os.path.expanduser("~/%s" % vid))
                 if re.search("v7|v6", vid):
                     TRES = "~/%s/server/openerp-server"
                 elif re.match("VENV", vid) and maj_version == 6:

@@ -716,7 +716,7 @@ class Please(object):
     def get_odoo_branch_from_git(self, try_by_fs=False, raise_if_not_found=True):
         branch = ""
         sts, stdout, stderr = z0lib.os_system_traced(
-            "git branch", verbose=False, dry_run=False
+            "git branch", verbose=False, dry_run=False, rtime=False
         )
         if sts == 0 and stdout:
             sts = 123
@@ -743,7 +743,8 @@ class Please(object):
         verbose = verbose and self.opt_args.verbose
         stash_list = ""
         url = upstream = ""
-        sts, stdout, stderr = z0lib.os_system_traced("git remote -v", verbose=verbose)
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "git remote -v", verbose=verbose, rtime=False)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -778,7 +779,7 @@ class Please(object):
             read_only = False
         elif "https:" in url:
             git_org = get_short_name(url.split(":")[1])
-            read_only = True if git_org == "oca" else False
+            read_only = True
         else:
             git_org = get_short_name(url)
             read_only = True

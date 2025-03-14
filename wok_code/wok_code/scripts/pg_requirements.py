@@ -2,13 +2,18 @@
 from __future__ import print_function, unicode_literals
 
 import os
+import sys
 from subprocess import PIPE, Popen
 from z0lib import z0lib
 
 
 def os_run(cmd):
-    with Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
-        outs, errs = proc.communicate(timeout=60)
+    if sys.version_info[0] == 2:
+        proc = Popen(cmd, stderr=PIPE, stdout=PIPE)
+        outs, errs = proc.communicate()
+    else:
+        with Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
+            outs, errs = proc.communicate(timeout=60)
     return (outs.decode("utf-8") if outs else outs,
             errs.decode("utf-8") if errs else errs)
 

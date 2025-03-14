@@ -126,7 +126,7 @@ set_log_filename() {
     [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_maj}" || UMLI="${GIT_ORGID}"
     [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
     [[ -n $m ]] && UMLI="${UMLI}.$m"
-    if [[ $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
+    if [[ $SCOPE == "marketplace" || $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
       LOGDIR="$HOME/travis_log/${GIT_ORGID}${odoo_maj}.$m"
     else
       LOGDIR="$PKGPATH/tests/logs"
@@ -231,6 +231,7 @@ replace_modules() {
 set_confn() {
     local x
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^admin_passwd *=.*|admin_passwd = admin|\" -i $TEST_CONFN"
+    [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^dbfilter *=.*|dbfilter = .*|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^db_password *=.*|db_password = False|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^proxy_mode *=.*|proxy_mode = False|\" -i $TEST_CONFN"
     run_traced_debug "sed -e \"s|^server_wide_modules *=|# server_wide_modules =|\" -i $TEST_CONFN"
@@ -255,6 +256,10 @@ set_confn() {
         run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="--http-port=$RPCPORT"
     fi
+    if [[ $odoo_maj -ge 10 ]]; then
+        run_traced_debug "sed -e \"s|^longpolling_port *=.*|longpolling_port = $LPPORT|\" -i $TEST_CONFN"
+        OPT_CONFPORT="$OPT_OPT_CONFPORT --longpolling_port=$LPPORT"
+    fi
     if [[ -n "$DB_USER" ]]; then
         run_traced_debug "sed -e \"s|^db_user *=.*|db_user = $DB_USER|\" -i $TEST_CONFN"
         [[ $opt_force -ne 0 ]] && OPT_CONF="$OPT_CONF --db_user=$DB_USER"
@@ -262,9 +267,13 @@ set_confn() {
     if [[ -n "$opt_llvl" ]]; then
         run_traced_debug "sed -e \"s|^log_level *=.*|log_level = $opt_llvl|\" -i $TEST_CONFN"
         OPT_LLEV="--log-level=$opt_llvl"
+    else
+        [[ $opt_verbose -gt 1 ]] && OPT_LLEV="--log-level=debug"
+        [[ $opt_verbose -eq 1 ]] && OPT_LLEV="--log-level=info"
+        [[ $opt_verbose -lt 1 ]] && OPT_LLEV="--log-level=warn"
     fi
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
-    if [[ $REPOSNAME == "OCB" ]]; then
+    if [[ $REPOSNAME == "OCB" && $opt_dry_run -eq 0 ]]; then
       x=$(cat $TEST_CONFN | grep -Eo "^addons_path *=.*(/addons)")
       run_traced_debug "sed -e \"s|^addons_path *=.*|$x|\" -i $TEST_CONFN"
     fi
@@ -381,12 +390,12 @@ run_odoo_server() {
 }
 
 
-OPTOPTS=(h        B       b          c        C           d        D       e       f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       x           Z)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_rport   z0_repl)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="         1)
-OPTDEFL=(1        0       ""         ""       0           ""       0       0       0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""          0)
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"      "")
+OPTOPTS=(h        B       b          c        C           d        D       e      f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     debug   branch     config   no-coverage database daemon  export force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_ex opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1      1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       ""         ""       0           ""       0       0      0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""     ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
     "debug mode (-BB debug via pycharm)"
     "odoo branch"
@@ -418,6 +427,7 @@ OPTHELP=("this help"
     "verbose mode"
     "virtual environment path"
     "run as web server"
+    "set odoo long-polling port"
     "set odoo http/xmlrpc port"
     "clear all module replacements")
 OPTARGS=()
@@ -435,10 +445,11 @@ fi
 
 [[ $opt_multi -lt 0 ]] && discover_multi
 [[ $opt_modules == "." ]] && opt_modules=$(basename $PWD) && opt_odir=$PWD
+[[ -z $opt_odir && $(basename $PWD) == $opt_modules ]] && opt_odir=$PWD
 SCOPE="gnu"
 [[ -z $opt_odir && $(basename $(dirname $PWD)) == "marketplace" ]] && SCOPE="marketplace"
 [[ -n $opt_odir && $(basename $(dirname $opt_odir)) == "marketplace" ]] && SCOPE="marketplace"
-[[ $SCOPE == "marketplace" ]] && GIT_ORGID="oca"
+# [[ $SCOPE == "marketplace" ]] && GIT_ORGID="oca"
 CONFN=""
 opaths=""
 odoo_root=""
@@ -467,18 +478,21 @@ if [[ -n $opt_conf ]]; then
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
     [[ ! -d $opt_odir ]] && echo "Path $opt_odir not found!" && exit 1
-    [[ -n $GIT_ORGID && -n $opt_branch ]] && odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID") || odoo_root=$(readlink -f $opt_odir "" "$GIT_ORGID")
+    odoo_root=$(build_odoo_param ROOT "$opt_odir")
     check_path_n_branch "$opt_odir" "$opt_branch"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID")
+    [[ ! -d $odoo_root && -d ${odoo_root/oca/odoo} ]] && odoo_root="${odoo_root/oca/odoo}"
     [[ -n $opt_modules && $opt_modules == $(basename $PWD) ]] && opt_odir="$PWD"
     [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(build_odoo_param PKGPATH "./")
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
@@ -486,18 +500,22 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     PKGPATH="$opt_odir"
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID")
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 else
     odoo_fver=$(build_odoo_param FULLVER "$PWD")
     odoo_root=$(readlink -f $PWD)
+    [[ ! -d $odoo_root && -d ${odoo_root/oca/odoo} ]] && odoo_root="${odoo_root/oca/odoo}"
     [[ -z $opt_odir ]] && opt_odir="$odoo_root"
     PKGNAME=$(build_odoo_param PKGNAME "$PWD")
     PKGPATH=$(build_odoo_param PKGPATH "$PWD")
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search)
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
 fi
@@ -512,8 +530,15 @@ TEST_VDIR=""
 if [[ -n $opt_venv ]]; then
     export TEST_VDIR="$opt_venv"
 else
-    [[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
-    [[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+    # [[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
+    # [[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+    export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
+    if [[ $SCOPE == "marketplace" ]]; then
+      p=$(dirname $(dirname $PWD))
+      x=$(echo $p|grep -Eo "[0-9]+"|head -n1)
+      [[ -d $(dirname $p)/oca$x/venv_odoo ]] && export VDIR="$(dirname $p)/oca$x/venv_odoo"
+      [[ -d $(dirname $p)/odoo$x/venv_odoo ]] && export VDIR="$(dirname $p)/odoo$x/venv_odoo"
+    fi
 fi
 [[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
 [[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && echo "# Found $TEST_VDIR virtual directory"
@@ -534,7 +559,26 @@ elif [[ -f $CONFN ]]; then
 else
     RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
 fi
-[[ -z "$RPCPORT" || $RPCPORT -eq 0 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver $GIT_ORGID)
+
+if [[ $odoo_maj -lt 10 ]]; then
+    LPPORT=""
+else
+  [[ -z "$LPPORT" || $LPPORT -eq 0 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
+  if [[ -n $opt_lport ]]; then
+      LPPORT=$opt_lport
+  elif [[ $opt_test -ne 0 ]]; then
+      [[ opt_dbg -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
+  elif [[ -f $opt_conf ]]; then
+      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+  elif [[ $opt_web -ne 0 ]]; then
+      LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
+  elif [[ -f $CONFN ]]; then
+      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+  else
+      LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
+  fi
+  [[ -z "$LPPORT" || $LPPORT -eq 0 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
+fi
 
 if [[ -n $opt_dbuser ]]; then
     DB_USER=$opt_dbuser
@@ -567,7 +611,6 @@ if [[ $opt_test -ne 0 ]]; then
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
     [[ -z "$opt_modules" ]] && echo "Missing -m switch!!" && exit 1
-    # [[ ! -d $ODOO_ROOT/travis_log ]] && run_traced "mkdir $ODOO_ROOT/travis_log"
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -593,7 +636,7 @@ if [[ -n "$opt_modules" ]]; then
             echo "Test incomplete!"
             echo "File odoo_dependencies.py not found!"
         else
-            [[ $opt_verbose -ne 0 ]] && echo "# Searching for module paths ..."
+            [[ $opt_verbose -gt 1 ]] && echo "# Searching for module paths ..."
             if [[ "$opt_modules" == "all" ]]; then
               [[ $opt_verbose -gt 1 ]] && echo "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\")"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths")
@@ -710,7 +753,7 @@ if [[ -n $mod_test_cfg ]]; then
     # bef_test=$(grep -E "^\.\. +.set +pg_requirements " readme/__manifest__.rst|sed -E "s|^\.\. +.set +pg_requirements ([a-zA-Z0-9/_.+-]+)+|\1|")
     # [[ -n $bef_test && ! $bef_test =~ ^(/|./|../) ]] && bef_test="$opt_odir/tests/$bef_test"
     # [[ -z $bef_test ]] || run_traced "$bef_test"
-    run_traced "python3 $TDIR/pg_requirements.py"
+    run_traced "$TEST_VDIR/bin/python $TDIR/pg_requirements.py"
     [[ $? -ne 0 ]] && exit 1
 fi
 [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"
@@ -762,10 +805,13 @@ if [[ $create_db -gt 0 ]]; then
                 [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
                 [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
             fi
+            [[ $opt_verbose -gt 2 ]] && OPT_CONF="$OPT_CONF --log-level=debug"
+            [[ $opt_verbose -eq 2 ]] && OPT_CONF="$OPT_CONF --log-level=info"
+            [[ $opt_verbose -lt 2 ]] && OPT_CONF="$OPT_CONF --log-level=warn"
             if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                 [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-xmlrpc"
-                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init --no-http"
+                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
+                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
                 run_traced "$cmd"
             fi
         fi

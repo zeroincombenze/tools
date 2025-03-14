@@ -366,10 +366,8 @@ class PleaseZ0bug(object):
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
         sts = self.check_4_test_dirs()
-        if please.is_fatal_sts(sts):
-            return sts
-        # sts = please.chain_python_cmd(
-        #     "pg_requirements.py", [], verbose=True, rtime=True)
+        # if please.is_fatal_sts(sts):
+        #     return sts
         if sts:
             return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
@@ -441,11 +439,45 @@ class PleaseZ0bug(object):
         if not please.opt_args.no_verify:
             print("## Git sync ... ##")
             sts = please.os_system("git add ./", rtime=True)
-        if sts:
-            return sts
+        # if sts:
+        #     return sts
         # if not please.opt_args.no_translate:
         #     print("## Update translation ... ##")
         #     sts = please.do_translate()
+        return sts
+
+    def _do_test_pypi_pkg(self):
+        please = self.please
+        sts = self.check_4_test_dirs()
+        if please.is_fatal_sts(sts):
+            return sts
+        print("#### Running Tests ... ####")
+        sts = please.chain_python_cmd(
+            "pg_requirements.py", [], verbose=True, rtime=True)
+        if please.is_fatal_sts(sts):
+            return sts
+        if "test" in please.cli_args:
+            sub_list = [("--no-verify", ""), ("--no-translate", "")]
+        else:
+            sub_list = [("z0bug", "test"),
+                        ("--no-verify", ""),
+                        ("--no-translate", "")]
+        please.sh_subcmd = please.pickle_params(
+            rm_obj=True, slist=sub_list, inherit_opts=["-v"])
+        cmd = please.build_sh_me_cmd(cmd="travis")
+        sts = please.os_system(cmd, rtime=True)
+        if please.is_fatal_sts(sts) or please.opt_args.debug:
+            return sts
+        if not please.opt_args.no_verify:
+            print("## Update documentation ... ##")
+            sts = please.do_docs()
+        if please.is_fatal_sts(sts):
+            return sts
+        if not please.opt_args.no_verify:
+            print("## Git sync ... ##")
+            sts = please.os_system("git add ./", rtime=True)
+        # if sts:
+        #     return sts
         return sts
 
     def do_test(self):
@@ -463,16 +495,7 @@ class PleaseZ0bug(object):
                     break
             return sts
         elif please.is_pypi_pkg():
-            if "test" in please.cli_args:
-                sub_list = [("--no-verify", ""), ("--no-translate", "")]
-            else:
-                sub_list = [("z0bug", "test"),
-                            ("--no-verify", ""),
-                            ("--no-translate", "")]
-            please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=sub_list, inherit_opts=["-v"])
-            cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.os_system(cmd, rtime=True)
+            return self._do_test_pypi_pkg()
         return please.do_iter_action("do_test", act_all_pypi=True, act_tools=False)
 
     def do_zerobug(self):

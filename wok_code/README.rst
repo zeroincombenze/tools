@@ -185,7 +185,15 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.19 (2024-08-22)
+2.0.20 (2025-03-01)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] gen_readme.py: read-only repositories
+* [FIX] gen_readme.py: new odoo14+ nomenclature
+* [FIX] please: new odoo14+ nomenclature
+* [FIX] run_odoo_debug: new odoo14+ nomenclature
+
+2.0.19 (2025-03-01)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] please python 3.9+
@@ -425,11 +433,6 @@ ChangeLog History
 * [FIX] deploy_odoo: clone oca repositories with --single-branch option
 * [IMP] manage_pypi: improvements
 * [FIX] please lint|test
-
-2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please test: with debug
 
 
 
