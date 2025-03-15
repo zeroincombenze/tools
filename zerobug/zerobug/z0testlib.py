@@ -1185,6 +1185,7 @@ class Z0test(object):
         ix = 0
         sts = 0
         ctx['ctr'] = ctx['min_test']
+        cov_opt = ""
 
         if Cls2Test:
             runT = self.new_Cls2Test(Cls2Test)
@@ -1223,13 +1224,22 @@ class Z0test(object):
                         ] + opt4childs
                     elif ctx.get('run4cover', False) and not ctx.get('dry_run', False):
                         self.set_shabang(ctx, testname)
-                        test_w_args = [
-                            'coverage',
-                            'run',
-                            '-a',
-                            '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
-                            testname,
-                        ] + opt4childs
+                        if cov_opt:
+                            test_w_args = [
+                                'coverage',
+                                'run',
+                                cov_opt,
+                                '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
+                                testname,
+                            ] + opt4childs
+                        else:
+                            test_w_args = [
+                                'coverage',
+                                'run',
+                                '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
+                                testname,
+                            ] + opt4childs
+                            cov_opt = '-a'
                     else:
                         test_w_args = [sys.executable] + [testname] + opt4childs
                     if ctx.get("opt_verbose"):
