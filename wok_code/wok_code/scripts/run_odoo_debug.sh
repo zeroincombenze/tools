@@ -132,7 +132,9 @@ set_log_filename() {
       LOGDIR="$PKGPATH/tests/logs"
     fi
     export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
+    export DAEMON_LOGFILE="$LOGDIR/${PKGNAME}_nohup_$(date +%Y%m%d).txt"
     [[ -f $LOGFILE && $opt_test -ne 0 ]] && rm -f $LOGFILE
+    [[ -f $DAEMON_LOGFILE && $opt_test -ne 0 ]] && rm -f $DAEMON_LOGFILE
 }
 
 check_path_n_branch() {
@@ -330,9 +332,9 @@ test_with_external_process() {
     echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
     export TEST_DB="$opt_db"
     export ODOO_VERSION="$odoo_fver"
-    export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
+    # export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
     echo "\$ export LOGFILE=$LOGFILE"
-    echo "\$ exporto DAEMON_LOGFILE=$DAEMON_LOGFILE"
+    echo "\$ export DAEMON_LOGFILE=$DAEMON_LOGFILE"
     echo "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
     echo "\$ export ODOO_VERSION=$ODOO_VERSION"
     echo "\$ export TEST_CONFN=$TEST_CONFN"
@@ -341,7 +343,6 @@ test_with_external_process() {
     OPTS="--pidfile=$LOGDIR/odoo.pid -d $TEST_DB"
     opt_dae=1
     run_odoo_server
-    # wait_daemon_idle
     for p in $(ls -1 $PKGPATH/tests/concurrent_test/|grep -E "^test_.*.py$"); do
         ext_test="$PKGPATH/tests/concurrent_test/$p"
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -366,15 +367,17 @@ run_odoo_server() {
     if [[ -n $COVERAGE_PROCESS_START ]]; then
         v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
         if [[ $opt_dae -eq 0 ]]; then
+            [[ $opt_verbose -gt 1 ]] && OPT_LLEV="--log-level=debug"
+            [[ $opt_verbose -le 1 ]] && OPT_LLEV="--log-level=info"
             run_traced "export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
             [[ $opt_dry_run -ne 0 ]] && echo "> coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
             [[ $opt_dry_run -eq 0 ]] && echo "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
             [[ $opt_dry_run -eq 0 ]] && coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
         else
             run_traced "# export COVERAGE_DATA_FILE=\"$COVERAGE_DATA_FILE\""
-            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
-            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &"
-            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS > $DAEMON_LOGFILE &
+            [[ $opt_dry_run -ne 0 ]] && echo "> nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS --logfile=$DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && echo "\$ nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS --logfile=$DAEMON_LOGFILE &"
+            [[ $opt_dry_run -eq 0 ]] && nohup coverage run -a --rcfile=$COVERAGE_PROCESS_START $SCRIPT $OPT_CONF $OPT_LLEV $OPTS --logfile=$DAEMON_LOGFILE &
         fi
     else
         if [[ $opt_dae -eq 0 ]]; then
@@ -805,10 +808,9 @@ if [[ $create_db -gt 0 ]]; then
                 [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
                 [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
             fi
-            [[ $opt_verbose -gt 2 ]] && OPT_CONF="$OPT_CONF --log-level=debug"
-            [[ $opt_verbose -eq 2 ]] && OPT_CONF="$OPT_CONF --log-level=info"
-            [[ $opt_verbose -lt 2 ]] && OPT_CONF="$OPT_CONF --log-level=warn"
             if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+                c=$(echo $depmods|awk "-F," '{print NF-1}')
+                [[ $c -gt 0 ]] && echo "Warning: wait for template building in about $(((c*30/60))) minutes"
                 [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                 [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
                 [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
