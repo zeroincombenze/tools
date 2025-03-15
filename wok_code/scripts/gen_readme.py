@@ -414,10 +414,10 @@ def __init__(ctx):
             "powerp1": "librerp",
             "iw3hxn": "librerp",
         }
-        read_only = False
+        read_only = True
         if "git@github.com:" in url:
             uri = url.split("@")[1].split(":")[1]
-            read_only = True
+            read_only = False
         elif "https:" in url:
             uri = url.split(":")[1]
         else:
@@ -477,6 +477,7 @@ def __init__(ctx):
         )
 
         if ctx["branch"] not in (
+            "18.0",
             "17.0",
             "16.0",
             "15.0",
@@ -498,13 +499,13 @@ def __init__(ctx):
                 )
         ctx["odoo_majver"] = int(ctx["branch"].split(".")[0])
 
-    if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp", "didotech"):
-        ctx["read_only"] = True
-        if not ctx["suppress_warning"] and ctx["product_doc"] != "pypi":
-            print_red_message(
-                "*** Invalid git-org: use -G %s or of zero|oca|didotech"
-                % ctx["git_orgid"]
-            )
+    # if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp", "didotech"):
+    #     ctx["read_only"] = True
+    #     if not ctx["suppress_warning"] and ctx["product_doc"] != "pypi":
+    #         print_red_message(
+    #             "*** Invalid git-org: use -G %s or of zero|oca|didotech"
+    #             % ctx["git_orgid"]
+    #         )
 
     if ctx["read_only"] and (ctx["force"]
                              or ctx["write_authinfo"]
@@ -514,6 +515,7 @@ def __init__(ctx):
         )
         ctx["force"] = False
         ctx["write_authinfo"] = False
+        ctx["rewrite_manifest"] = False
 
     if ctx["odoo_layer"] not in ("ocb", "module", "repository"):
         if ctx["product_doc"] == "odoo":
@@ -3450,14 +3452,13 @@ def generate_readme(ctx):
         if img_fqn:
             copy_img_file_template(pth.basename(img_fqn))
             ctx["def_images"].insert(0, img_fqn)
+        src_icon_path = ctx["path_name"]
+        while pth.basename(src_icon_path) in (ctx["module_name"], ctx["repos_name"]):
+            src_icon_path = pth.dirname(src_icon_path)
+
         for country in ("l10n_uk", "l10n_us", "l10n_it"):
-            src_icon = pth.expanduser(pth.join("~",
-                                               ctx["branch"],
-                                               "addons",
-                                               country,
-                                               "static",
-                                               "description",
-                                               "icon.png"))
+            src_icon = pth.join(
+                src_icon_path, "addons", country, "static", "description", "icon.png")
             icon_fqn = pth.join("static", "description", "%s.png" % country)
             copyfile(src_icon, icon_fqn)
             ctx["def_images"].append(icon_fqn)
@@ -3517,17 +3518,17 @@ def generate_readme(ctx):
         print("Writing %s" % dst_file)
     with open(dst_file, "w") as fd:
         fd.write(_c(target))
-    if (
-        ctx["rewrite_manifest"]
-        and ctx["odoo_layer"] == "module"
-        and not ctx["suppress_warning"]
-    ):
-        print(
-            "\n\nYou should update license info of the files.\n"
-            "Please, type\n"
-            "> topep8 -h\n"
-            "for furthermore information\n"
-        )
+    # if (
+    #     ctx["rewrite_manifest"]
+    #     and ctx["odoo_layer"] == "module"
+    #     and not ctx["suppress_warning"]
+    # ):
+    #     print(
+    #         "\n\nYou should update license info of the files.\n"
+    #         "Please, type\n"
+    #         "> topep8 -h\n"
+    #         "for furthermore information\n"
+    #     )
     if ctx["opt_verbose"]:
         if ctx["history-summary"]:
             if not ctx["write_index"]:

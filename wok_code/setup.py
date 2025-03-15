@@ -32,6 +32,7 @@ setup(
     name=name,
     version="2.0.19",
     description="Python developers tools",
+    long_description_content_type="text/x-rst",
     long_description=long_description,
     classifiers=[
         "Development Status :: 4 - Beta",

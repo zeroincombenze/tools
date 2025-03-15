@@ -59,9 +59,9 @@ def nakedname(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def print_flush(msg, end=None, flush=False):
+def print_flush(msg, end=None, flush=True):
     if sys.version_info[0] == 3:                                     # pragma: no cover
-        print(msg, end=end, flush=True)
+        print(msg, end=end, flush=flush)
     else:  # pragma: no cover
         print(msg, end=end)
         if flush:
@@ -722,4 +722,3 @@ class parseoptargs(object):
             else:
                 ctx[p] = 0
         return ctx
-

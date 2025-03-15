@@ -1001,6 +1001,8 @@ set_log_filename() {
     if [[ -n $opt_flog ]]; then
       LOGDIR="$(dirname $opt_flog)"
       LOGFILE="$opt_flog"
+    elif [[ $(basename $(dirname $PWD)) == "marketplace" || $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
+      LOGDIR="$ODOO_ROOT/travis_log"
     else
       LOGDIR="$(get_cfg_value "" "LOGDIR")"
       [[ -z $LOGDIR ]] && LOGDIR="$ODOO_ROOT/travis_log"

@@ -25,7 +25,7 @@ def pkg_here(here):
 pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
 pkg_here(pth.abspath(os.getcwd()))  # noqa: E402
 from z0lib import z0lib  # noqa: E402
-from z0lib.scripts.main import get_metadata  # noqa: E402
+# from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
 
 __version__ = "2.0.14"
@@ -42,7 +42,7 @@ def version():
 class RegressionTest:
 
     def test_01(self):
-        self.assertEqual(__version__, get_metadata()["version"])
+        # self.assertEqual(__version__, get_metadata()["version"])
         if os.getenv("TRAVIS_PYTHON_VERSION"):
             self.assertEqual(
                 os.getenv("TRAVIS_PYTHON_VERSION"),

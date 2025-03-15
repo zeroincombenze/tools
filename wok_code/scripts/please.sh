@@ -139,54 +139,6 @@ search_pofile() {
   done
 }
 
-#cvt_doxygenconf() {
-#  local fn=$1
-#  if [ -f $fn ]; then
-#    local fntmp=$fn.tmp
-#    rm -f $fntmp
-#    local line lne submod url p v
-#    while IFS= read -r line r || [ -n "$line" ]; do
-#      if [[ $line =~ ^PROJECT_NAME ]]; then
-#        line="PROJECT_NAME           = \"$PRJNAME\""
-#      elif [[ $line =~ ^PROJECT_BRIEF ]]; then
-#        line="PROJECT_BRIEF          = \"$prjdesc\""
-#      elif [[ $line =~ ^HTML_COLORSTYLE_HUE ]]; then
-#        line="HTML_COLORSTYLE_HUE    = 93"
-#      elif [[ $line =~ ^HTML_COLORSTYLE_SAT ]]; then
-#        line="HTML_COLORSTYLE_SAT    = 87"
-#      elif [[ $line =~ ^HTML_COLORSTYLE_GAMMA ]]; then
-#        line="HTML_COLORSTYLE_GAMMA  = 120"
-#      elif [[ $line =~ ^HTML_COLORSTYLE_GAMMA ]]; then
-#        line="HTML_COLORSTYLE_GAMMA  = 120"
-#      elif [[ $line =~ ^JAVADOC_AUTOBRIEF ]]; then
-#        line="JAVADOC_AUTOBRIEF      = YES"
-#      elif [[ $line =~ ^OPTIMIZE_OUTPUT_JAVA ]]; then
-#        line="OPTIMIZE_OUTPUT_JAVA   = YES"
-#      elif [[ $line =~ ^EXTRACT_STATIC ]]; then
-#        line="EXTRACT_STATIC         = YES"
-#      elif [[ $line =~ ^FILTER_SOURCE_FILES ]]; then
-#        line="FILTER_SOURCE_FILES    = YES"
-#      elif [[ $line =~ ^INPUT_FILTER ]]; then
-#        line="INPUT_FILTER           = /usr/bin/doxypy.py"
-#      elif [[ $line =~ ^HTML_TIMESTAMP ]]; then
-#        line="HTML_TIMESTAMP         = YES"
-#      elif [[ $line =~ ^GENERATE_LATEX ]]; then
-#        line="GENERATE_LATEX         = NO"
-#      elif [[ $line =~ ^EXCLUDE_PATTERNS ]]; then
-#        line="EXCLUDE_PATTERNS       = */tests/* "
-#      fi
-#      echo "$line" >>$fntmp
-#    done <"$fn"
-#    if [ -n "$(diff -q $fn $fntmp)" ]; then
-#      # run_traced "cp -p $fn $fn.bak"
-#      # run_traced "mv $fntmp $fn"
-#      move_n_bak $fntmp $fn
-#    else
-#      rm -f $fntmp
-#    fi
-#  fi
-#}
-
 mvfiles() {
   # mvfiles(srcpath, tgtpath, files, owner)
   if [ -z "$3" ]; then
@@ -270,6 +222,14 @@ merge_cfg() {
   [[ -f $cfgfn ]] && mv $cfgfn $fbak
   [[ -f $ftmp ]] && mv $ftmp $cfgfn
 }
+
+get_pyver_from_oe() {
+  local odoo_majver
+  odoo_majver=$(echo $1|cut -d. -f1)
+  [[ $odoo_majver -le 10 ]] && pyver="2.7" || pyver="3.$(((odoo_majver-9)/2+6))"
+  echo $pyver
+}
+
 
 do_publish() {
   #do_publish (docs|download|pypi|svg|testpypi)
@@ -508,47 +468,6 @@ do_edit_translation() {
   fi
   return $STS_STS_SUCCESS
 }
-
-#do_edit_translation_from_pofile() {
-#  local xfile
-#  local confn db module odoo_fver sts=$STS_FAILED opts pyv pofile
-#  if [[ ! "$PRJNAME" == "Odoo" ]]; then
-#    echo "No Odoo module"
-#    return $STS_FAILED
-#  fi
-#  module="."
-#  odoo_fver=$(build_odoo_param FULLVER '.')
-#  pofile="$(build_odoo_param PKGPATH '.')/i18n/it.po"
-#  module=$(build_odoo_param PKGNAME '.')
-#  if [[ -z "$odoo_fver" || -z "$module" ]]; then
-#    echo "Invalid Odoo environment!"
-#    return $STS_FAILED
-#  fi
-#  odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
-#  if [[ ! -f "$pofile" ]]; then
-#    echo "File $pofile not found!"
-#    return $STS_FAILED
-#  fi
-#  pyv=$(python3 --version 2>&1 | grep --color=never -Eo "[0-9]+\.[0-9]+")
-#  [[ -n "$pyv" ]] && pyver="-p $pyv"
-#  pyver="-p 2.7" #debug
-#  [[ ! -d $HOME/clodoo/venv ]] && \
-#    run_traced "vem $pyver create $HOME/clodoo/venv" && \
-#    run_traced "vem $HOME/clodoo/venv install xlrd" && \
-#    run_traced "vem $HOME/clodoo/venv install Babel" && \
-#    run_traced "vem $HOME/clodoo/venv install clodoo"
-#  run_traced "pushd $HOME/clodoo >/dev/null"
-#  [ $opt_verbose -ne 0 ] && opts="-v" || opts="-q"
-#  [ $opt_dbg -ne 0 ] && opts="${opts}B"
-#  run_traced "vem $HOME/clodoo/venv exec \"odoo_translation.py $opts -b$odoo_fver -m $module -R $pofile\""
-#  sts=$?
-#  run_traced "popd >/dev/null"
-#  return $sts
-#
-#  [[ -f "$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_default_tnl.xlsx"
-#  [[ -n "$xfile" ]] && run_traced "libreoffice $xfile" || echo "No file odoo_default_tnl.xlsx found!"
-#  return $STS_STS_SUCCESS
-#}
 
 do_edit_untranslated() {
   local xfile
@@ -1157,9 +1076,37 @@ do_lint() {
     return $sts
 }
 
+_do_lint() {
+    wlog "do_lint '$1' '$2' '$3'"
+    local p x v
+    VDIR=""
+    if [[ $PRJNAME == "Odoo" ]]; then
+      VDIR=$(build_odoo_param VDIR ./)
+      if [[ $(basename $(dirname $PWD)) =~ (marketplace|uncovered) ]]; then
+        p=$(dirname $(dirname $PWD))
+        x=$(echo $p|grep -Eo "[0-9]+"|head -n1)
+        [[ -d $(dirname $p)/oca$x/venv_odoo ]] && VDIR="$(dirname $p)/oca$x/venv_odoo"
+        [[ -d $(dirname $p)/odoo$x/venv_odoo ]] && VDIR="$(dirname $p)/odoo$x/venv_odoo"
+      fi
+      v=$(build_odoo_param FULLVER $PKGPATH)
+      [[ -z $TRAVIS_PYTHON_VERSION ]] && export TRAVIS_PYTHON_VERSION=$(get_pyver_from_oe $1)
+    fi
+    p=$(which travis_run_pypi_tests)
+    if [[ ( -z $p || -z $TRAVIS_PYTHON_VERSION ) && -n $HOME_DEVEL ]]; then
+        x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
+        if [[ -n $x && -d $x/zerobug ]]; then
+            [[ -z $p ]]  && p="$x/zerobug/_travis/travis_run_pypi_tests"
+            [[ -z $TRAVIS_PYTHON_VERSION ]] && TRAVIS_PYTfHON_VERSION=$($HOME_DEVEL/venv/lib/python --version 2>&1|grep "Python"|grep --color=never -Eo "[0-9]+"|head -n1)
+        fi
+    fi
+    [[ -z $p ]] && echo "No command travis_run_pypi_tests found!"
+    [[ -x $p ]] && run_traced "$p"
+    return $?
+}
+
 do_test() {
-    local x y
     wlog "do_test '$1' '$2' '$3'"
+    local x y
     set_opts_4_action
     run_traced "run_odoo_debug $opts -Tm $module"
     sts=$?
