@@ -55,7 +55,7 @@ Digest of arcangelo
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
     
-    © 2021-2024 by SHS-AV s.r.l.
+    © 2021-2025 by SHS-AV s.r.l.
     
 
 

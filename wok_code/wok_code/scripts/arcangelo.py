@@ -1156,7 +1156,7 @@ def process_file(migrate_env, fqn):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Beautiful source file", epilog="© 2021-2024 by SHS-AV s.r.l."
+        description="Beautiful source file", epilog="© 2021-2025 by SHS-AV s.r.l."
     )
     parser.add_argument(
         '-a', '--lint-anyway',

@@ -1406,7 +1406,7 @@ class OdooTranslation(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Create translation file", epilog="© 2022-2024 by SHS-AV s.r.l."
+        description="Create translation file", epilog="© 2022-2025 by SHS-AV s.r.l."
     )
     parser.add_argument(
         "-B", "--debug-template", action="store_true", dest="dbg_template"

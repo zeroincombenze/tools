@@ -487,8 +487,23 @@ elif [[ -n $opt_odir ]]; then
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+    CONFN=""
+    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    if [[ ! $opt_odir =~ ^$odoo_root ]]; then
+        p=$opt_odir
+        while [[ $p != $HOME ]]; do
+          [[ -d $p/.git && ! -f $p/odoo-bin ]] && PKGPATH=$p
+          [[ -d $p/.git && -f $p/odoo-bin ]] && odoo_root=$p && break
+          p=$(dirname $p)
+        done
+        GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
+        CONFN=""
+        [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+        [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+        [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    fi
     [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
@@ -503,7 +518,9 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     PKGPATH="$opt_odir"
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+    CONFN=""
+    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
@@ -517,7 +534,10 @@ else
     PKGPATH=$(build_odoo_param PKGPATH "$PWD")
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
+    CONFN=""
+    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
+    [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
     [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
@@ -810,11 +830,18 @@ if [[ $create_db -gt 0 ]]; then
             fi
             if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                 c=$(echo $depmods|awk "-F," '{print NF-1}')
-                [[ $c -gt 0 ]] && echo "Warning: wait for template building in about $(((c*30/60))) minutes"
+                [[ $opt_verbose -gt 2 ]] && LLEV="--log-level=debug"
+                [[ $opt_verbose -eq 2 ]] && LLEV="--log-level=info"
+                [[ $opt_verbose -lt 2 ]] && LLEV="--log-level=warn"
+                ((c=(c*5+45)/60))
+                [[ $c -gt 0 ]] && echo "Warning: wait for template building in about $c minutes"
+                [[ $c -gt 2 ]] && LLEV="--log-level=info"
                 [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
-                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF -i $depmods --stop-after-init"
+                # Notice: stdbuf and tee are requires to show log
+                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
                 run_traced "$cmd"
+                [[ -f $LOGFILE ]] && rm -f $LOGFILE
             fi
         fi
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then

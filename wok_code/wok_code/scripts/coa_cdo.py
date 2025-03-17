@@ -537,7 +537,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Manage csv file of Odoo CoA / Taxes",
-        epilog="© 2020-2024 by SHS-AV s.r.l.",
+        epilog="© 2020-2025 by SHS-AV s.r.l.",
     )
     parser.add_argument(
         "-A",
