@@ -19,7 +19,7 @@ try:
 except ImportError:
     from wok_code.scripts import license_mgnt
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -1281,3 +1281,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

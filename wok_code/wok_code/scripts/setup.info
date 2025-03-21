@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.19",
+    version="2.0.20",
     description="Python developers tools",
     long_description_content_type="text/x-rst",
     long_description=long_description,
@@ -107,3 +107,4 @@ setup(
     },
     zip_safe=False,
 )
+

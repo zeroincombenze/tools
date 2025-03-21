@@ -8,7 +8,7 @@ from random import random, randint
 import vatnumber  # pylint: disable=E0401
 
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 
 def gen_vatnumber(opt_args):
@@ -44,3 +44,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

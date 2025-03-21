@@ -17,7 +17,7 @@ except ImportError:
 from z0lib import z0lib
 import psycopg2
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 
@@ -506,3 +506,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

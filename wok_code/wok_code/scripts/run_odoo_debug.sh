@@ -37,7 +37,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.19
+__version__=2.0.20
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -925,3 +925,4 @@ if [[ $drop_db -gt 0 ]]; then
 fi
 
 exit $sts
+
