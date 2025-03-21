@@ -7,7 +7,7 @@ import sys
 from getaddons import get_modules
 
 
-__version__ = '2.0.21'
+__version__ = '2.0.22'
 
 
 def get_build_dir():
@@ -64,6 +64,7 @@ for addon in folders:
     status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
 
 sys.exit(0 if status == 0 else 1)
+
 
 
 
