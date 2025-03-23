@@ -132,9 +132,3 @@ elif [ "$HOSTNAME" == "$HOSTNAME_PRD" ]; then
 else
   echo "Macchina non riconosciuta"
 fi
-
-
-
-
-
-

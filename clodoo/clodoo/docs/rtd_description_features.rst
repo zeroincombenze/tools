@@ -1,62 +1,37 @@
 .. toctree::
    :maxdepth: 2
 
-Getting started
-===============
+Digest of features
+==================
 
-Prerequisites
--------------
 
-Zeroincombenze(R) tools requires:
-
-* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
-* python 2.7+, some tools require python 3.7+, best python 3.9+
-* bash 5.0+
-
-Installation
-------------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install clodoo
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd $HOME
-    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -pUT
-    source $HOME/devel/activate_tools
-
-Upgrade
--------
-
-Stable version via Python Package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    pip install --upgrade clodoo
-
-Current version via Git
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    cd ./tools
-    ./install_tools.sh -pUT
-    source $HOME/devel/activate_tools
-
-Source code
-~~~~~~~~~~~
-
-You can find source code on `github <https://github.com/zeroincombenze/tools.git>`__
++----------------------------------------------+-----------------------------------------+
+| Function                                     | Note                                    |
++----------------------------------------------+-----------------------------------------+
+| Add new repository                           | odoo_install_repository                 |
++----------------------------------------------+-----------------------------------------+
+| Update paid invoice                          | inv2draft_n_restore.py                  |
++----------------------------------------------+-----------------------------------------+
+| List requirement of Odoo                     | list_requirements.py                    |
++----------------------------------------------+-----------------------------------------+
+| Create full configurated Odoo DB             | manage_db                               |
++----------------------------------------------+-----------------------------------------+
+| Manage Odoo installation                     | manage_odoo                             |
++----------------------------------------------+-----------------------------------------+
+| Set Odoo Skin (backoffice)                   | odoo_skin.sh                            |
++----------------------------------------------+-----------------------------------------+
+| Run Odoo instance to debug                   | run_odoo_debug                          |
++----------------------------------------------+-----------------------------------------+
+| Manage version depending names               | transodoo.py                            |
++----------------------------------------------+-----------------------------------------+
+| General Purpose RPC                          | clodoo.py                               |
++----------------------------------------------+-----------------------------------------+
+| Export Odoo model to test file               | export_db_model.py                      |
++----------------------------------------------+-----------------------------------------+
+| Migrate Odoo                                 | migrate_odoo.py (deprecated)            |
++----------------------------------------------+-----------------------------------------+
+| Examples                                     | example*.py                             |
++----------------------------------------------+-----------------------------------------+
 
 |
 |

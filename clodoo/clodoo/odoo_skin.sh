@@ -450,6 +450,3 @@ if [ $opt_list -ne 0 ]; then
 else
   update_skin "$theme_dirs" "$odoo_vid" "$opt_webdir" "$sel_skin"
 fi
-
-
-

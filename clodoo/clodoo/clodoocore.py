@@ -19,10 +19,10 @@ from future import standard_library
 from past.builtins import basestring, long
 from builtins import str
 
-# from builtins import *                                           # noqa: F403
 from past.utils import old_div
 import os
 import sys
+import datetime
 import re
 import inspect
 try:
@@ -223,7 +223,7 @@ class Clodoo(object):
         try:
             self.cnx = odoorpc.ODOO(self.db_host, port=self.get_rpc_port())
             if eval(self.cnx.version.split(".")[0]) < 10:
-                raise
+                raise ValueError("Invalid Odoo version")
             self.server_version = self.cnx.version
             self.protocol = protocol
             self.pypi = "odoorpc"
@@ -425,7 +425,7 @@ def connectL8(ctx):
             return "!Odoo server %s is not running!" % ctx["oe_version"]
     else:
         x = re.match(r"[0-9]+\.[0-9]+", ctx["server_version"])
-        if ctx["server_version"][0 : x.end()] != ctx["oe_version"]:
+        if ctx["server_version"][0: x.end()] != ctx["oe_version"]:
             return "!Invalid Odoo Server version: expected %s, found %s!" % (
                 ctx["oe_version"],
                 ctx["server_version"],
@@ -1183,8 +1183,8 @@ def set_null_val_code_n_name(ctx, name, val, row=None):
     if name == "code":
         if row and "name" in row:
             value = hex(hash(row["name"]))[2:]
-        # else:
-        #     code = hex(hash(datetime.datetime.now().microsecond))[2:]
+        else:
+            value = hex(hash(datetime.datetime.now().microsecond))[2:]
     return value
 
 
@@ -1320,17 +1320,17 @@ def expr(ctx, o_model, code, value):
     if isinstance(value, basestring):
         i, j = get_macro_pos(value)
         if i >= 0 and j > i:
-            v = value[i + 2 : j]
+            v = value[i + 2: j]
             x, y = get_macro_pos(v)
             while x >= 0 and y > i:
                 v = expr(ctx, o_model, code, v)
-                value = value[0 : i + 2] + v + value[j:]
+                value = value[0: i + 2] + v + value[j:]
                 i, j = get_macro_pos(value)
-                v = value[i + 2 : j]
+                v = value[i + 2: j]
                 x, y = get_macro_pos(v)
             res = ""
             while i >= 0 and j > i:
-                v = value[i + 2 : j]
+                v = value[i + 2: j]
                 if v.find(":") >= 0:
                     v = _query_expr(ctx, o_model, code, v)
                 else:
@@ -1342,7 +1342,7 @@ def expr(ctx, o_model, code, value):
                         pass
                 if i > 0:
                     res = concat_res(res, value[0:i])
-                value = value[j + 1 :]
+                value = value[j + 1:]
                 res = concat_res(res, v)
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
@@ -1554,7 +1554,7 @@ def _get_model_parms(ctx, o_model, value):
                 pass
     else:
         model = value[:i]
-        value = value[i + len(sep) :]
+        value = value[i + len(sep):]
         model, fldname = _get_name_n_ix(model, deflt=fldname)
         model, x = _get_name_n_params(model, name)
         if x.find(",") >= 0:
@@ -1697,7 +1697,7 @@ def _get_name_n_params(name, deflt=None):
     j = name.rfind(")")
     if i >= 0 and j >= i:
         n = name[:i]
-        p = name[i + 1 : j]
+        p = name[i + 1: j]
     else:
         n = name
         p = deflt
@@ -1711,11 +1711,8 @@ def _get_name_n_ix(name, deflt=None):
     j = name.rfind("]")
     if i >= 0 and j >= i:
         n = name[:i]
-        x = name[i + 1 : j]
+        x = name[i + 1: j]
     else:
         n = name
         x = deflt
     return n, x
-
-
-

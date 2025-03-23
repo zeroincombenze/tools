@@ -183,7 +183,7 @@ def link_versioned_name(mindroot, model, hashed, ttype, src_name, ver, fld_name=
 def get_majver(name):
     x = re.search(r"[0-9]+", name)
     if x:
-        return int(name[x.start() : x.end()])
+        return int(name[x.start(): x.end()])
     return 0
 
 
@@ -365,7 +365,7 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
 def previous_ver_name(ver_name, orig_name):
     x = re.search("[0-9]+", ver_name)
     if x:
-        version = int(ver_name[x.start() : x.end()]) - 1
+        version = int(ver_name[x.start(): x.end()]) - 1
         if version < 6:
             if re.match(r"[0-9]+\.[0-9]", ver_name):
                 ver_name = ""
@@ -373,7 +373,7 @@ def previous_ver_name(ver_name, orig_name):
                 ver_name = orig_name if orig_name else ""
             x = re.search("[0-9]+", ver_name)
             if x:
-                version = int(ver_name[x.start() : x.end()])
+                version = int(ver_name[x.start(): x.end()])
                 ver_name = "%d.0" % version
                 if "~" in orig_name:
                     ver_name = "%s~%s" % (ver_name, orig_name.split("~", 1)[-1])
@@ -381,9 +381,9 @@ def previous_ver_name(ver_name, orig_name):
                 ver_name = ""
         else:
             ver_name = "%s%d%s" % (
-                ver_name[0 : x.start()],
+                ver_name[0: x.start()],
                 version,
-                ver_name[x.end() :],
+                ver_name[x.end():],
             )
         if "6.0" in ver_name:
             ver_name = ver_name.replace("6.0", "6.1")
@@ -868,6 +868,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
-
-

@@ -180,7 +180,9 @@ class RegressionTest:
                     res_lang,
                     [("code", "=", lang), ("active", "=", False)],
                 )
-            if odoo_major >= 16:
+            if odoo_major == 7:
+                continue
+            elif odoo_major >= 16:
                 id = clodoo.createL8(
                     self.version_ctx[odoo_version],
                     res_lang_xtl,

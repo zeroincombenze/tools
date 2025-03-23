@@ -1620,7 +1620,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         for nm in ctx['MANDATORY']:
             if nm not in row:
                 row[nm] = ''
-    for nm in row:
+    for nm in row.keys():
         if not row[nm] and nm in ctx.get('EXPR', ''):
             row[nm] = eval(ctx['EXPR'][nm])
         else:
@@ -2076,7 +2076,7 @@ def setup_global_config_param(ctx, name, value):
     sts = STS_SUCCESS
     items = name.split('.')
     if len(items) > 1:
-        model = '.'.join(items[0 : len(items) - 1])
+        model = '.'.join(items[0: len(items) - 1])
         name = items[-1]
     else:
         model = 'res.config.settings'
@@ -2099,7 +2099,7 @@ def setup_global_config_param(ctx, name, value):
             except BaseException:
                 pass
         else:
-            model2 = '.'.join(items[0 : len(items) - 1])
+            model2 = '.'.join(items[0: len(items) - 1])
             value = items[-1]
             id = searchL8(ctx, model2, [('name', '=', value)])
             if not id:
@@ -2379,6 +2379,3 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
-
-
-
