@@ -14,7 +14,7 @@ except ImportError:
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 
 IGNORE_DIRS_BASE = [".idea", ".git", "egg-info", "setup"]
@@ -253,7 +253,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Compare 2 paths after formatted them in the same way",
-        epilog="© 2021-2024 by SHS-AV s.r.l.",
+        epilog="© 2021-2025 by SHS-AV s.r.l.",
     )
     parser.add_argument("-b", "--odoo-version")
     parser.add_argument(
@@ -403,3 +403,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

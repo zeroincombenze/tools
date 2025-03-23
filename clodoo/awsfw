@@ -246,6 +246,3 @@ else
   sts=1
 fi
 exit $sts
-
-
-

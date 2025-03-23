@@ -1,5 +1,5 @@
 .. clodoo documentation master file, created by
-   gen_readme.py on 2024-10-04 15:02:31
+   gen_readme.py on 2025-03-23 14:36:32
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -15,6 +15,8 @@ Welcome to clodoo 2.0.13 documentation!
    rtd_description
    rtd_features
    rtd_getting_started
+   rtd_description_features
+   rtd_features_features
    rtd_description_transodoo
    rtd_automodule
    rtd_changelog

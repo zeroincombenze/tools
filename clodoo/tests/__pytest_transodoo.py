@@ -28,5 +28,3 @@ class TestClass:
             ctx, model, item, src_ver, tgt_ver, ttype=ttype
         )
         assert tnl_item == "type"
-
-

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019-2024 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2019-2025 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -18,7 +18,7 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen as urlopen
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 
 ODOO_BRANCHES = ("18.0", "17.0", "16.0", "15.0",
@@ -371,7 +371,7 @@ def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Get repository list from github",
-        epilog="© 2019-2024 by SHS-AV s.r.l.",
+        epilog="© 2019-2025 by SHS-AV s.r.l.",
     )
     parser.add_argument(
         "-b",
@@ -470,3 +470,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

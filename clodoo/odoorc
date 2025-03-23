@@ -353,7 +353,7 @@ build_odoo_param() {
         $SETX
         return
     fi
-    [[ -n $ODOO_ODOO_GIT_MULTI ]] && MULITVER=$ODOO_GIT_MULTI || [[ ${opt_multi:-0} -ne 0 || $5 =~ MULTI ]] && MULTIVER=1 || MULTIVER=0
+    [[ -n $ODOO_ODOO_GIT_MULTI ]] && MULTIVER=$ODOO_GIT_MULTI || [[ ${opt_multi:-0} -ne 0 || $5 =~ MULTI ]] && MULTIVER=1 || MULTIVER=0
     ORGSFX=$(echo $noenv_vid | grep --color=never -Eo "[-_][a-z][a-z0-9]+$" | grep --color=never -Eo "[a-z0-9]+")
     if [[ -n $ORGSFX ]]; then
         [[ $ORGSFX =~ -git$ ]] && GIT_PROT="git" && ORGSFX=${ORGSFX:0: -4}
@@ -740,6 +740,3 @@ if [ "${BASH_SOURCE-}" == "$0" ]; then
     done
     build_odoo_param "$@"
 fi
-
-
-

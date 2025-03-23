@@ -1,0 +1,10 @@
+future
+jsonlib-python3
+openpyxl
+odoorpc<0.10.0
+oerplib3
+odoo-client-lib
+psycopg2-binary
+python-plus
+unidecode
+z0lib>=2.0.11

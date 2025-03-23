@@ -124,7 +124,7 @@ except ImportError:
 # standard_library.install_aliases()
 
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -3546,7 +3546,7 @@ def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Generate README", "© 2018-2024 by SHS-AV s.r.l.", version=__version__
+        "Generate README", "© 2018-2025 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument(
@@ -3631,3 +3631,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+

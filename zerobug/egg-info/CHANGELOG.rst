@@ -1,14 +1,10 @@
-2.0.19 (2025-03-14)
+2.0.18 (2025-03-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] flake8 configuration
 * [IMP] pylint configuration
 * [IMP] travis_run_pypi_tests searches for virtual environment
 * [IMP] build_odoo_env, parameter ctx deprecated
-
-2.0.18 (2024-08-21)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] Some function now are move in z0lib>=2.0.12
 * [IMP] build_odoo_env does not require ctx
 * [IMP] Python 3.6 deprecated

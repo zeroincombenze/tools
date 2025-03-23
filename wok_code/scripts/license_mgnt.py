@@ -315,7 +315,7 @@ class License:
                         if "-" in years:
                             from_year, to_year = years.split("-")
                         else:
-                            from_year, to_year = years
+                            from_year = to_year = years
                         if len(from_year) == 2:
                             from_year = "20" + from_year
                         if len(to_year) == 4:
