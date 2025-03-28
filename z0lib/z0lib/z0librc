@@ -1631,5 +1631,3 @@ clean_dirs() {
   $SETX
 }
 export -f clean_dirs
-
-

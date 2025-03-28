@@ -1,3 +1,8 @@
+2.0.8 (2025-03-22)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.11 is certificated programming language
+
 2.0.7 (2024-12-30)
 ~~~~~~~~~~~~~~~~~~
 

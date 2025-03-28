@@ -76,5 +76,3 @@ then
 fi
 xuname $opt_prm
 exit 0
-
-
