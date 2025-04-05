@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import argparse
+
 # from subprocess import call
 
 try:
@@ -45,16 +46,21 @@ class RunOdoo(object):
             ),
         )
         parser.add_argument(
-            "-B", "--debug", action="count", default=0,
-            help="Debug mode (-BB debug via pycharm)"
+            "-B",
+            "--debug",
+            action="count",
+            default=0,
+            help="Debug mode (-BB debug via pycharm)",
         )
         parser.add_argument(
-            "-b", "--odoo-branch",
+            "-b",
+            "--odoo-branch",
             metavar="BRANCH",
             help="Default Odoo version",
         )
         parser.add_argument(
-            "-C", "--no-coverage",
+            "-C",
+            "--no-coverage",
             action="store_true",
             help="No use coverage when run regression test",
         )
@@ -62,64 +68,67 @@ class RunOdoo(object):
             "-c", "--config", metavar="FILE", help="Odoo configuration file"
         )
         parser.add_argument(
-            "-D", "--daemon",
+            "-D",
+            "--daemon",
             action="store_true",
             help="Run odoo as daemon",
         )
+        parser.add_argument("-d", "--database", metavar="NAME", help="Database name")
         parser.add_argument(
-            "-d", "--database", metavar="NAME", help="Database name"
-        )
-        parser.add_argument(
-            "-e", "--export-i18n",
+            "-e",
+            "--export-i18n",
             action="store_true",
             help="Export translation (conflicts with -i -u -I -T)",
         )
         parser.add_argument(
-            "-f", "--force",
+            "-f",
+            "--force",
             action="store_true",
             help="Force update or install modules or create db template",
         )
-        parser.add_argument(
-            "-G", "--git_org", metavar="NAME", help="Git organizzation"
-        )
+        parser.add_argument("-G", "--git_org", metavar="NAME", help="Git organizzation")
         parser.add_argument(
             "-H", "--home-devel", metavar="PATH", help="Home devel directory"
         )
         parser.add_argument(
-            "-K", "--no-ext-test",
+            "-K",
+            "--no-ext-test",
             action="store_true",
             help="Do not run external test (tests/concurrent_test/test_*.py)",
         )
         parser.add_argument(
-            "-k",  "--keep",
+            "-k",
+            "--keep",
             action="store_true",
             help="Do not create new DB and keep it after run",
         )
         parser.add_argument(
-            "-I", "--install",
+            "-I",
+            "--install",
             action="store_true",
-            help="Install module (conflicts with -e -i -u -T)"
+            help="Install module (conflicts with -e -i -u -T)",
         )
         parser.add_argument(
-            "-i", "--import-i18n",
+            "-i",
+            "--import-i18n",
             action="store_true",
             help="Import translation (conflicts with -e -u -I -T, -i is deprecated)",
         )
         parser.add_argument(
-            "-L", "--log-level",
-            help="set log level: may be info or debug"
+            "-L", "--log-level", help="set log level: may be info or debug"
         )
+        parser.add_argument("-l", "--lang", action="store_true", help="Load language")
         parser.add_argument(
-            "-l", "--lang", action="store_true",
-            help="Load language"
-        )
-        parser.add_argument(
-            "-M", "--multi", action="store_true",
+            "-M",
+            "--multi",
+            action="store_true",
             help="Multi version/instances odoo environment",
         )
         parser.add_argument(
-            "-m", "--modules", metavar="MODULES",
-            help="Modules to test, translate or upgrade (comma separated)"
+            "-m",
+            "--modules",
+            metavar="MODULES",
+            help="Modules to test, translate or upgrade (comma separated)",
         )
         parser.add_argument(
             "-n",
@@ -128,29 +137,37 @@ class RunOdoo(object):
             help="Do nothing (dry-run)",
         )
         parser.add_argument(
-            "-p", "--path",
+            "-p",
+            "--path",
             help="Odoo root path",
         )
         parser.add_argument(
-            "-q",  "--quiet",
+            "-q",
+            "--quiet",
             action="store_false",
             dest="verbose",
             help="Silent mode",
         )
         parser.add_argument(
-            "-s", "--stop-after-init", action="store_true",
-            help="Stop the server after its initialization"
+            "-s",
+            "--stop-after-init",
+            action="store_true",
+            help="Stop the server after its initialization",
         )
         parser.add_argument(
-            "-T", "--test", action="store_true",
-            help="Launch python test on module (conflicts with -e -i -I -u)"
+            "-T",
+            "--test",
+            action="store_true",
+            help="Launch python test on module (conflicts with -e -i -I -u)",
         )
         parser.add_argument(
-            "-U", "--db-user",
+            "-U",
+            "--db-user",
             help="Database user name",
         )
         parser.add_argument(
-            "-u", "--update",
+            "-u",
+            "--update",
             action="store_true",
             help="Upgrade module (conflict with -e -i -I -T)",
         )
@@ -159,20 +176,26 @@ class RunOdoo(object):
             "-v", "--verbose", help="Verbose mode", action="count", default=0
         )
         parser.add_argument(
-            "-W", "--virtualenv", metavar="PATH",
+            "-W",
+            "--virtualenv",
+            metavar="PATH",
             help="Odoo virtual environment",
         )
         parser.add_argument(
-            "-w", "--web-server",
+            "-w",
+            "--web-server",
             action="store_true",
             help="Run as web server",
         )
         parser.add_argument(
-            "-x", "--xmlrpc-port", metavar="PORT",
+            "-x",
+            "--xmlrpc-port",
+            metavar="PORT",
             help="Odoo http/rpc port",
         )
         parser.add_argument(
-            "-Z", "--zero-replacement",
+            "-Z",
+            "--zero-replacement",
             action="store_true",
             help="Clear all module replacements",
         )
@@ -183,8 +206,14 @@ class RunOdoo(object):
         if self.opt_args.verbose:
             self.opt_args.verbose -= 1
 
-    def connect_db(self, db_name="demo", db_user="odoo", db_pwd="admin",
-                   db_host="localhost", db_port=5432):
+    def connect_db(
+        self,
+        db_name="demo",
+        db_user="odoo",
+        db_pwd="admin",
+        db_host="localhost",
+        db_port=5432,
+    ):
         return psycopg2.connect(
             dbname=db_name,
             user=db_user,
@@ -194,13 +223,14 @@ class RunOdoo(object):
         )
 
     def parse_branch(self):
-        for (k, v) in (
-                ("branch", None),
-                ("version", "0.0"),
-                ("odoo_maj_version", 0),
-                ("script", None),
-                ("config", None),
-                ("git_org", self.opt_args.git_org)):
+        for k, v in (
+            ("branch", None),
+            ("version", "0.0"),
+            ("odoo_maj_version", 0),
+            ("script", None),
+            ("config", None),
+            ("git_org", self.opt_args.git_org),
+        ):
             if not hasattr(self, k):
                 setattr(self, k, v)
 
@@ -214,14 +244,19 @@ class RunOdoo(object):
         if self.branch:
             m = re.search(r"[0-9]+\.[0-9]+", self.branch)
             if m:
-                items = [self.branch[:m.start()]] + [self.branch[m.start():m.end()]] + [
-                    x for x in self.branch[m.end():].split("-")]
+                items = (
+                    [self.branch[: m.start()]]
+                    + [self.branch[m.start(): m.end()]]
+                    + [x for x in self.branch[m.end():].split("-")]
+                )
             else:
                 m = re.search("[0-9]+", self.branch)
-                if m and 6 < int(self.branch[m.start():m.end()]) <= 17:
-                    items = [self.branch[:m.start()]] + [
-                        self.branch[m.start():m.end()]] + [
-                        x for x in self.branch[m.end():].split("-")]
+                if m and 6 < int(self.branch[m.start(): m.end()]) <= 17:
+                    items = (
+                        [self.branch[: m.start()]]
+                        + [self.branch[m.start(): m.end()]]
+                        + [x for x in self.branch[m.end():].split("-")]
+                    )
             for item in items:
                 if item in GIT_ORGIDS:
                     self.git_org = item
@@ -236,11 +271,13 @@ class RunOdoo(object):
             self.version = clodoo.build_odoo_param(
                 "FULLVER",
                 odoo_vid=self.opt_args.odoo_branch,
-                multi=self.opt_args.odoo_branch)
+                multi=self.opt_args.odoo_branch,
+            )
             self.odoo_maj_version = clodoo.build_odoo_param(
                 "MAJVER",
                 odoo_vid=self.opt_args.odoo_branch,
-                multi=self.opt_args.odoo_branch)
+                multi=self.opt_args.odoo_branch,
+            )
         if not self.config:
             if items[0] in ("v", "V") and not items[2]:
                 if self.odoo_maj_version < 10:
@@ -250,13 +287,14 @@ class RunOdoo(object):
                 if os.path.isfile(confn):
                     self.config = confn
             elif self.odoo_maj_version and any([x for x in items[2:]]):
-                confn = "/etc/odoo/odoo%d%s.conf" % (self.odoo_maj_version,
-                                                     "-".join(items[2:]))
+                confn = "/etc/odoo/odoo%d%s.conf" % (
+                    self.odoo_maj_version,
+                    "-".join(items[2:]),
+                )
                 if os.path.isfile(confn):
                     self.config = confn
-        if not self.config and self.branch and self.odoo_maj_version and self .git_org:
-            confn = "/etc/odoo/odoo%d-%s.conf" % (self.odoo_maj_version,
-                                                  self.git_org)
+        if not self.config and self.branch and self.odoo_maj_version and self.git_org:
+            confn = "/etc/odoo/odoo%d-%s.conf" % (self.odoo_maj_version, self.git_org)
             # elif self.odoo_maj_version < 10:
             #     confn = "/etc/odoo/odoo%d-server.conf" % self.odoo_maj_version
             # else:
@@ -268,7 +306,7 @@ class RunOdoo(object):
         cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
         opts = ""
         if self.opt_args.debug:
-            opts += ("B" * self.opt_args.debug)
+            opts += "B" * self.opt_args.debug
         if self.opt_args.no_coverage:
             opts += "C"
         if self.opt_args.daemon:
@@ -300,25 +338,25 @@ class RunOdoo(object):
         if self.opt_args.zero_replacement:
             opts += "Z"
         if opts:
-            cmd += (" -" + opts)
+            cmd += " -" + opts
         if self.opt_args.odoo_branch:
-            cmd += (" -b" + self.opt_args.odoo_branch)
+            cmd += " -b" + self.opt_args.odoo_branch
         if self.opt_args.config and os.path.isfile(self.opt_args.config):
-            cmd += (" -c" + self.opt_args.config)
+            cmd += " -c" + self.opt_args.config
         if self.opt_args.database:
-            cmd += (" -d" + self.opt_args.database)
+            cmd += " -d" + self.opt_args.database
         if self.opt_args.log_level:
-            cmd += (" -L" + self.opt_args.log_level)
+            cmd += " -L" + self.opt_args.log_level
         if self.opt_args.modules:
-            cmd += (" -m" + self.opt_args.modules)
+            cmd += " -m" + self.opt_args.modules
         if self.opt_args.db_user:
-            cmd += (" -U" + self.opt_args.db_user)
+            cmd += " -U" + self.opt_args.db_user
         # if self.opt_args.virtualenv:
         #     cmd += (" -W" + self.opt_args.virtualenv)
         if self.opt_args.xmlrpc_port:
-            cmd += (" -x" + self.opt_args.xmlrpc_port)
+            cmd += " -x" + self.opt_args.xmlrpc_port
         if self.opt_args.verbose:
-            cmd += (" -" + ("v" * self.opt_args.verbose))
+            cmd += " -" + ("v" * self.opt_args.verbose)
         else:
             cmd += " -q"
         return cmd
@@ -334,18 +372,23 @@ class RunOdoo(object):
         if not self.script:
             try:
                 script = next(
-                    x for x in map(
+                    x
+                    for x in map(
                         lambda x: os.path.join(os.path.dirname(x), "odoo-bin"),
-                        self.addons_path)
+                        self.addons_path,
+                    )
                     if os.path.isfile(x)
                 )
             except StopIteration:
                 try:
                     script = next(
-                        x for x in map(
-                            lambda x: os.path.join(os.path.dirname(x),
-                                                   "openerp-server"),
-                            self.addons_path)
+                        x
+                        for x in map(
+                            lambda x: os.path.join(
+                                os.path.dirname(x), "openerp-server"
+                            ),
+                            self.addons_path,
+                        )
                         if os.path.isfile(x)
                     )
                 except StopIteration:
@@ -358,14 +401,16 @@ class RunOdoo(object):
             release = os.path.join(os.path.dirname(self.script), "odoo", "release.py")
             if not os.path.isfile(release):
                 release = os.path.join(
-                    os.path.dirname(self.script), "openerp", "release.py")
+                    os.path.dirname(self.script), "openerp", "release.py"
+                )
             if os.path.isfile(release):
                 with open(release, "r") as fd:
                     for line in fd.read().split("\n"):
                         x = re.match(r"version_info *= *\([0-9]+ *, *[0-9]+", line)
                         if x:
                             version_info = eval(
-                                line[x.start(): x.end()].split("=")[1] + ")")
+                                line[x.start(): x.end()].split("=")[1] + ")"
+                            )
                             self.version = "%s.%s" % (version_info[0], version_info[1])
                             self.odoo_maj_version = version_info[0]
                             break
@@ -381,8 +426,9 @@ class RunOdoo(object):
                 self.opt_args.virtualenv = venv
         if not self.opt_args.virtualenv or not os.path.isdir(self.opt_args.virtualenv):
             if self.opt_args.virtualenv:
-                print("Virtual environment path %s not found!"
-                      % self.opt_args.virtualenv)
+                print(
+                    "Virtual environment path %s not found!" % self.opt_args.virtualenv
+                )
             self.opt_args.virtualenv = None
             return
         fn = os.path.join(self.opt_args.virtualenv, "bin", "activate")
@@ -391,16 +437,17 @@ class RunOdoo(object):
             self.opt_args.virtualenv = None
 
     def get_config(self):
-        for (k, v) in (
-                ("config", None),
-                ("db_name", "demo"),
-                ("db_user", "odoo"),
-                ("db_pwd", "admin"),
-                ("db_host", "localhost"),
-                ("db_port", ""),
-                ("http_port", None),
-                ("xmlrpc_port", None),
-                ("addons_path", [])):
+        for k, v in (
+            ("config", None),
+            ("db_name", "demo"),
+            ("db_user", "odoo"),
+            ("db_pwd", "admin"),
+            ("db_host", "localhost"),
+            ("db_port", ""),
+            ("http_port", None),
+            ("xmlrpc_port", None),
+            ("addons_path", []),
+        ):
             if not hasattr(self, k):
                 setattr(self, k, v)
 
@@ -413,16 +460,19 @@ class RunOdoo(object):
             Config = ConfigParser.RawConfigParser()
             Config.read(self.config)
             if not Config.has_section("options"):
-                print("Invalid Configuration file %s: missed [options] section!"
-                      % self.opt_args.config)
+                print(
+                    "Invalid Configuration file %s: missed [options] section!"
+                    % self.opt_args.config
+                )
             else:
                 for k in (
-                        "db_name",
-                        "db_user",
-                        "db_pwd",
-                        "db_host",
-                        "db_port",
-                        "addons_path"):
+                    "db_name",
+                    "db_user",
+                    "db_pwd",
+                    "db_host",
+                    "db_port",
+                    "addons_path",
+                ):
                     if Config.has_option("options", k):
                         setattr(self, k, Config.get("options", k))
                 if Config.has_option("options", "http_port"):
@@ -435,9 +485,8 @@ class RunOdoo(object):
             self.db_port = int(self.db_port)
         if not rpcport:
             rpcport = clodoo.build_odoo_param(
-                "RPCPORT",
-                odoo_vid=self.opt_args.odoo_branch,
-                multi=self.opt_args.multi)
+                "RPCPORT", odoo_vid=self.opt_args.odoo_branch, multi=self.opt_args.multi
+            )
         if self.odoo_maj_version < 10:
             self.xmlrpc_port = rpcport
         else:
@@ -446,27 +495,33 @@ class RunOdoo(object):
 
     def export_i18n(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
     def install_modules(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
     def import_i18n(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
     def update_modules(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
     def run_tests(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
     def run(self):
         return z0lib.os_system(
-            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True)
+            self.prepare_os_cmd(), verbose=True, with_shell=True, rtime=True
+        )
 
 
 def main(cli_args=None):
@@ -481,12 +536,15 @@ def main(cli_args=None):
     #         and run_odoo.opt_args.test
     #         and run_odoo.opt_args.update
     # ):
-    if sum([int(getattr(run_odoo.opt_args, x)) for x in (
-            "export_i18n",
-            "install",
-            "import_i18n",
-            "test",
-            "update")]) > 1:
+    if (
+        sum(
+            [
+                int(getattr(run_odoo.opt_args, x))
+                for x in ("export_i18n", "install", "import_i18n", "test", "update")
+            ]
+        )
+        > 1
+    ):
         print("Optional switch values conflict!")
         sts = 1
     elif run_odoo.opt_args.export_i18n:
@@ -506,4 +564,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

@@ -28,11 +28,14 @@ __version__ = "2.0.20"
 
 def get_pypi_info(pkgname):
     pypi_metadata = {
-        "name": pkgname, "version": False, "where": "pylib",
+        "name": pkgname,
+        "version": False,
+        "where": "pylib",
         "long_description": __doc__,
     }
     if sys.version_info[0] == 2:
         import pkg_resources
+
         try:
             pypi_metadata["version"] = pkg_resources.get_distribution(pkgname).version
         except BaseException:
@@ -95,9 +98,8 @@ def get_pypi_paths():
     while not bin_path and path != "/" and path != os.environ["HOME"]:
         path = pth.dirname(path)
         if pth.isdir(path) and pth.basename(path) in ("bin", "lib"):
-            if (
-                    pth.isdir(pth.join(pth.dirname(path), "bin"))
-                    and pth.isdir(pth.join(pth.dirname(path), "lib"))
+            if pth.isdir(pth.join(pth.dirname(path), "bin")) and pth.isdir(
+                pth.join(pth.dirname(path), "lib")
             ):
                 bin_path = pth.join(pth.dirname(path), "bin")
                 lib_path = pth.join(pth.dirname(path), "lib")
@@ -209,4 +211,3 @@ def main(cli_args=None):
     elif action in ("-C", "--copy-pkg-data"):
         copy_pkg_data(pypi_metadata, verbose)
     return 0
-

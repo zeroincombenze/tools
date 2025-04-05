@@ -44,4 +44,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

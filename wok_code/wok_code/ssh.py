@@ -44,9 +44,9 @@ def get_remote_user(CONF, host=None, cuser=None):
             if not default_user or key == cuser:
                 default_user = key
             if (
-                    (not root_user and key == cuser)
-                    or (key == root_user)
-                    or (root_user and key != cuser)
+                (not root_user and key == cuser)
+                or (key == root_user)
+                or (root_user and key != cuser)
             ):
                 ruser = key
                 if key != "root" or key == root_user:
@@ -61,8 +61,11 @@ def get_remote_user(CONF, host=None, cuser=None):
 def get_pwd(CONF, host, ruser):
     passwd = CONF["RUSER"][host][ruser].get("passwd")
     if not passwd and CONF["KEY"] and CONF["RUSER"][host][ruser].get("crypt_password"):
-        passwd = Fernet(CONF["KEY"]).decrypt(
-            CONF["RUSER"][host][ruser]["crypt_password"]).decode()
+        passwd = (
+            Fernet(CONF["KEY"])
+            .decrypt(CONF["RUSER"][host][ruser]["crypt_password"])
+            .decode()
+        )
     return passwd
 
 
@@ -85,15 +88,15 @@ def build_raw_cmd(CONF, cmd, host, ruser, opts="", via=None, do_tunnel=False):
         os.environ["SSHPASS"] = passwd
         raw_cmd = "sshpass -e " + cmd
     if param:
-        raw_cmd += (" " + param)
+        raw_cmd += " " + param
     if opts:
-        raw_cmd += (" " + opts)
+        raw_cmd += " " + opts
     if port:
         raw_cmd += " -e 'ssh -p %s'" % port
     if cmd == "ssh":
-        raw_cmd += (" %s@%s" % (ruser, host))
+        raw_cmd += " %s@%s" % (ruser, host)
         if do_tunnel and CONF["RUSER"][host][ruser]["rhttp"]:
-            raw_cmd += (" -L 8069:127.0.0.1:%d" % CONF["RUSER"][host][ruser]["rhttp"])
+            raw_cmd += " -L 8069:127.0.0.1:%d" % CONF["RUSER"][host][ruser]["rhttp"]
     return raw_cmd
 
 
@@ -109,7 +112,8 @@ def build_website(CONF, host, ruser, via=None, do_tunnel=False):
 
 def get_cmd(CONF, host, ruser, opts="", via=None, do_tunnel=False):
     return build_raw_cmd(
-        CONF, "ssh", host, ruser, opts=opts, via=via, do_tunnel=do_tunnel)
+        CONF, "ssh", host, ruser, opts=opts, via=via, do_tunnel=do_tunnel
+    )
 
 
 def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync, via=None):
@@ -132,8 +136,13 @@ def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync, via=None):
                 dest = "%s/" % dest
         dest = "%s@%s:%s" % (ruser, host, dest)
     cmd = build_raw_cmd(
-        CONF, "rsync", host, ruser,
-        via=via, opts="-avz" if rsync == 1 else "-avz --delete")
+        CONF,
+        "rsync",
+        host,
+        ruser,
+        via=via,
+        opts="-avz" if rsync == 1 else "-avz --delete",
+    )
     cmd += " %s %s" % (source, dest)
     return cmd
 
@@ -144,7 +153,8 @@ def get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse, via=None):
     elif host_side == "d":
         dest = "%s@%s:%s" % (ruser, host, dest)
     cmd = build_raw_cmd(
-        CONF, "scp", host, ruser, via=via, opts="-r" if recurse else None)
+        CONF, "scp", host, ruser, via=via, opts="-r" if recurse else None
+    )
     cmd += " %s %s" % (source, dest)
     return cmd
 
@@ -175,8 +185,11 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
                 prompt = " "
             print(
                 "    %s %-64.64s # %s"
-                % (prompt, get_cmd(CONF, host, ruser, do_tunnel=do_tunnel),
-                   CONF["RUSER"][host][ruser]["users"])
+                % (
+                    prompt,
+                    get_cmd(CONF, host, ruser, do_tunnel=do_tunnel),
+                    CONF["RUSER"][host][ruser]["users"],
+                )
             )
             if gl == "l" and host not in valid_hosts:
                 valid_hosts.append(host)
@@ -298,8 +311,9 @@ def load_config():
             for host in CONF["RUSER"].keys():
                 for ruser in CONF["RUSER"][host].keys():
                     if "via" not in CONF["RUSER"][host][ruser]:
-                        CONF["RUSER"][host][ruser]["via"] = "pwd" if get_pwd(
-                            CONF, host, ruser) else "cert"
+                        CONF["RUSER"][host][ruser]["via"] = (
+                            "pwd" if get_pwd(CONF, host, ruser) else "cert"
+                        )
                     if host not in CONF["CUSER"]:
                         CONF["CUSER"][host] = {}
                     for user in CONF["RUSER"][host][ruser]["users"]:
@@ -488,4 +502,3 @@ if verbose:
 if dry_run:
     exit(0)
 exit(os.system(cmd))
-

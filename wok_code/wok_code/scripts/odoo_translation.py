@@ -18,7 +18,7 @@ from openpyxl import load_workbook, Workbook
 
 try:
     from clodoo import clodoo
-except ImportError:                                                  # pragma: no cover
+except ImportError:  # pragma: no cover
     import clodoo
 
 # from python_plus import unicodes
@@ -63,37 +63,154 @@ INVALID_NAMES = [
     "venv_odoo",
     "win32",
 ]
-MAGIC_PUNCT = [
-    " ", "!", "?", ".", ":", ";", ","
-]
-ENGLISH_TERMS = ("the", "an", "and", "or", "you", "we", "they", "on", "up", "down",
-                 "from", "to", "with", "within", "off", "not", "yes",
-                 "be", "am", "is", "are", "been",
-                 "have", "has", "had", "allow", "order", "invoice", "bill",
-                 "tax", "account", "partner", "contact", "user",
-                 "product", "customer", "suppplier", "payment", "copy",
-                 "field", "preferred", "readonly", "read", "write",
-                 "required", "who", "which", "that", "what", "when", "how",
-                 "all", "must", "if", "view", "code", "name",
-                 "sales", "purchase", "purchases")
-ITALIAN_TERMS = ("il", "lo", "la", "gli", "un", "uno", "una",
-                 "io", "tu", "te", "noi", "voi",
-                 "di", "del", "della", "da", "dal", "dalla", "su", "sulla", "con",
-                 "nel", "tra", "fra", "non", "si",
-                 "essere", "sono", "sei", "siamo", "siete",
-                 "ho", "hai", "ha", "abbiamo", "avete", "hanno", "avuto",
-                 "permettere", "permetti", "ordine", "ordini", "fattura", "fatture",
-                 "iva", "tassa", "conto", "nominativo", "contatto", "utente",
-                 "prodotto", "cliente", "fornitore", "pagamento", "incasso",
-                 "copia", "campo", "preferito"", lettura", "leggere", "scrivere",
-                 "obbligatorio", "richiesto", "che", "chi", "cosa", "quando", "come",
-                 "tutto", "tutti", "deve", "se", "vista", "codice",
-                 "nome", "nominativo",
-                 "vendita", "vendite", "acquisto", "acquisti")
+MAGIC_PUNCT = [" ", "!", "?", ".", ":", ";", ","]
+ENGLISH_TERMS = (
+    "the",
+    "an",
+    "and",
+    "or",
+    "you",
+    "we",
+    "they",
+    "on",
+    "up",
+    "down",
+    "from",
+    "to",
+    "with",
+    "within",
+    "off",
+    "not",
+    "yes",
+    "be",
+    "am",
+    "is",
+    "are",
+    "been",
+    "have",
+    "has",
+    "had",
+    "allow",
+    "order",
+    "invoice",
+    "bill",
+    "tax",
+    "account",
+    "partner",
+    "contact",
+    "user",
+    "product",
+    "customer",
+    "suppplier",
+    "payment",
+    "copy",
+    "field",
+    "preferred",
+    "readonly",
+    "read",
+    "write",
+    "required",
+    "who",
+    "which",
+    "that",
+    "what",
+    "when",
+    "how",
+    "all",
+    "must",
+    "if",
+    "view",
+    "code",
+    "name",
+    "sales",
+    "purchase",
+    "purchases",
+)
+ITALIAN_TERMS = (
+    "il",
+    "lo",
+    "la",
+    "gli",
+    "un",
+    "uno",
+    "una",
+    "io",
+    "tu",
+    "te",
+    "noi",
+    "voi",
+    "di",
+    "del",
+    "della",
+    "da",
+    "dal",
+    "dalla",
+    "su",
+    "sulla",
+    "con",
+    "nel",
+    "tra",
+    "fra",
+    "non",
+    "si",
+    "essere",
+    "sono",
+    "sei",
+    "siamo",
+    "siete",
+    "ho",
+    "hai",
+    "ha",
+    "abbiamo",
+    "avete",
+    "hanno",
+    "avuto",
+    "permettere",
+    "permetti",
+    "ordine",
+    "ordini",
+    "fattura",
+    "fatture",
+    "iva",
+    "tassa",
+    "conto",
+    "nominativo",
+    "contatto",
+    "utente",
+    "prodotto",
+    "cliente",
+    "fornitore",
+    "pagamento",
+    "incasso",
+    "copia",
+    "campo",
+    "preferito" ", lettura",
+    "leggere",
+    "scrivere",
+    "obbligatorio",
+    "richiesto",
+    "che",
+    "chi",
+    "cosa",
+    "quando",
+    "come",
+    "tutto",
+    "tutti",
+    "deve",
+    "se",
+    "vista",
+    "codice",
+    "nome",
+    "nominativo",
+    "vendita",
+    "vendite",
+    "acquisto",
+    "acquisti",
+)
 msg_time = time()
 
 
-def msg_burst(text):                                                 # pragma: no cover
+def msg_burst(text):  # pragma: no cover
     global msg_time
     t = time() - msg_time
     if t > 11:
@@ -119,15 +236,15 @@ class OdooTranslation(object):
             and opt_args.target_path.endswith(".po")
             and pth.basename(pth.dirname(opt_args.target_path)) == "i18n"
         ):
-            self.opt_args.target_path = pth.dirname(
-                pth.dirname(opt_args.target_path)
-            )
+            self.opt_args.target_path = pth.dirname(pth.dirname(opt_args.target_path))
         if not self.opt_args.module_name and not opt_args.rewrite_xlsx:
             po_file = pth.join(opt_args.target_path, "i18n", self.opt_args.lang + ".po")
             if not pth.isfile(po_file):
-                po_file = pth.join(opt_args.target_path,
-                                   "i18n",
-                                   self.opt_args.lang.split("_")[0] + ".po")
+                po_file = pth.join(
+                    opt_args.target_path,
+                    "i18n",
+                    self.opt_args.lang.split("_")[0] + ".po",
+                )
                 if pth.isfile(po_file):
                     self.opt_args.module_name = pth.basename(self.opt_args.target_path)
         if not opt_args.file_xlsx and not self.opt_args.test:
@@ -143,8 +260,12 @@ class OdooTranslation(object):
             if opt_args.dbg_template:
                 dict_name = pth.join(root, "pypi", "tools", "odoo_template_tnl.xlsx")
             else:
-                dict_name = pth.join(pth.dirname(pth.dirname(__file__)),
-                                     "tests", "data", "odoo_template_tnl.xlsx")
+                dict_name = pth.join(
+                    pth.dirname(pth.dirname(__file__)),
+                    "tests",
+                    "data",
+                    "odoo_template_tnl.xlsx",
+                )
             if pth.isfile(dict_name):
                 self.opt_args.file_xlsx = dict_name
 
@@ -198,9 +319,9 @@ class OdooTranslation(object):
         self.build_alias_dict()
         if not self.opt_args.prio_terms:
             if (
-                    not self.opt_args.database
-                    and not self.opt_args.module_name
-                    and self.opt_args.rewrite_xlsx
+                not self.opt_args.database
+                and not self.opt_args.module_name
+                and self.opt_args.rewrite_xlsx
             ):
                 self.opt_args.prio_terms = "P"
             else:
@@ -215,7 +336,7 @@ class OdooTranslation(object):
             self.opt_args.rewrite_xlsx = True
 
     def get_home_devel(self):
-        root = os.environ.get("HOME_DEVEL")                          # pragma: no cover
+        root = os.environ.get("HOME_DEVEL")  # pragma: no cover
         if not root or not pth.isdir(root):
             if pth.isdir(pth.expanduser("~/odoo/devel")):
                 root = pth.expanduser("~/odoo/devel")
@@ -287,10 +408,7 @@ class OdooTranslation(object):
             elif len(tnxl[ix:]) > 1 and self.titlable(tnxl):
                 if orig[ix].isupper() and tnxl[ix].islower():
                     tnxl = tnxl[:ix] + tnxl[ix].upper() + tnxl[ix + 1:]
-                elif (
-                        orig[ix].islower()
-                        and tnxl[ix].isupper()
-                ):
+                elif orig[ix].islower() and tnxl[ix].isupper():
                     tnxl = tnxl[:ix] + tnxl[ix].lower() + tnxl[ix + 1:]
             ix = -1
             while orig[ix] in MAGIC_PUNCT:
@@ -348,14 +466,25 @@ class OdooTranslation(object):
         return tnxl
 
     def store_1_item(
-        self, hash_key, msg_orig, msg_tnxl, prio_terms="D", module=None, is_tag=None,
-            raw=False
+        self,
+        hash_key,
+        msg_orig,
+        msg_tnxl,
+        prio_terms="D",
+        module=None,
+        is_tag=None,
+        raw=False,
     ):
         if len(msg_orig) <= 1 and not is_tag:
             return msg_orig
         if collections.Counter(msg_orig)["%"] != collections.Counter(msg_tnxl)["%"]:
-            print("*** Warning: no translation due different param subts: <<"
-                  + msg_orig[:80] + ">> / <<" + msg_tnxl[:80] + ">>")
+            print(
+                "*** Warning: no translation due different param subts: <<"
+                + msg_orig[:80]
+                + ">> / <<"
+                + msg_tnxl[:80]
+                + ">>"
+            )
             return msg_orig
         if not is_tag and not raw:
             for item in self.tags:
@@ -373,13 +502,15 @@ class OdooTranslation(object):
                     msg_tnxl = msg_tnxl[0: -len(ltoken)] + rtoken
         hash_key = self.get_hash_key(hash_key, True, module=module)
         if hash_key and (
-                hash_key not in self.dict
-                or prio_terms == "P"
-                or is_tag
-                or (msg_tnxl and self.dict[hash_key][0] == self.dict[hash_key][1])
+            hash_key not in self.dict
+            or prio_terms == "P"
+            or is_tag
+            or (msg_tnxl and self.dict[hash_key][0] == self.dict[hash_key][1])
         ):
-            self.dict[hash_key] = (self.strip_magic(msg_orig),
-                                   self.strip_magic(msg_tnxl))
+            self.dict[hash_key] = (
+                self.strip_magic(msg_orig),
+                self.strip_magic(msg_tnxl),
+            )
             if is_tag and hash_key not in self.tags:
                 self.tags.append(hash_key)
         return self.get_term(hash_key, msg_orig, msg_tnxl)
@@ -461,9 +592,12 @@ class OdooTranslation(object):
         return False
 
     def check_if_transable(self, hashes_orig, hashes_tnxl):
-        learn_about = False if any(
-            [len(x) > 4 for x in hashes_orig if isinstance(x, (list, tuple))]
-        ) or len(hashes_orig) == len(hashes_tnxl) else True
+        learn_about = (
+            False
+            if any([len(x) > 4 for x in hashes_orig if isinstance(x, (list, tuple))])
+            or len(hashes_orig) == len(hashes_tnxl)
+            else True
+        )
         if hashes_orig != hashes_tnxl:
             ix = 0
             while not learn_about and ix < len(hashes_orig) and ix < len(hashes_tnxl):
@@ -561,8 +695,8 @@ class OdooTranslation(object):
         msg_tnxl = msg_tnxl.replace("’", "'")
         lang_orig, lang_tnxl = self.parse_lang_terms(msg_orig, msg_tnxl)
         if not msg_tnxl or (
-                (lang_orig == "it" and lang_tnxl != "it")
-                or (lang_tnxl == "en" and lang_orig != "en")
+            (lang_orig == "it" and lang_tnxl != "it")
+            or (lang_tnxl == "en" and lang_orig != "en")
         ):
             msg_tnxl = msg_orig
             lang_tnxl = lang_orig
@@ -572,7 +706,8 @@ class OdooTranslation(object):
                     hash_key = self.get_hash_key(msg_orig, i, module=m)
                     if hash_key in self.dict:
                         return self.get_term(
-                            hash_key, msg_orig, msg_tnxl, adjust_case=True)
+                            hash_key, msg_orig, msg_tnxl, adjust_case=True
+                        )
 
         hash_key = self.get_hash_key(msg_orig, False)
         if hash_key in self.dict:
@@ -585,25 +720,21 @@ class OdooTranslation(object):
                 print("# Dictionary for <<<%s>>>" % msg_dict[:60])
                 print("# PO file value  <<<%s>>>" % msg_tnxl[:60])
                 lang_dict, lang_tnxl = self.parse_lang_terms(msg_dict, msg_tnxl)
-                if (
-                        (lang_dict == "it" and lang_tnxl != "it")
-                        or (lang_tnxl == "en" and lang_dict != "en")
+                if (lang_dict == "it" and lang_tnxl != "it") or (
+                    lang_tnxl == "en" and lang_dict != "en"
                 ):
                     def_select = "D"
-                elif (
-                        (lang_tnxl == "it" and lang_dict != "it")
-                        or (lang_dict == "en" and lang_tnxl != "en")
+                elif (lang_tnxl == "it" and lang_dict != "it") or (
+                    lang_dict == "en" and lang_tnxl != "en"
                 ):
                     def_select = "P"
                 elif (
-                        (self.p_ctr > 0 and self.d_ctr > (self.p_ctr * 2))
-                        or self.d_ctr > (self.p_ctr + 10)
-                ):
+                    self.p_ctr > 0 and self.d_ctr > (self.p_ctr * 2)
+                ) or self.d_ctr > (self.p_ctr + 10):
                     def_select = "D"
                 elif (
-                        (self.d_ctr > 0 and self.p_ctr > (self.d_ctr * 2))
-                        or self.p_ctr > (self.d_ctr + 10)
-                ):
+                    self.d_ctr > 0 and self.p_ctr > (self.d_ctr * 2)
+                ) or self.p_ctr > (self.d_ctr + 10):
                     def_select = "P"
                 else:
                     def_select = " "
@@ -618,18 +749,16 @@ class OdooTranslation(object):
                         self.p_ctr += 1
                 if select == "P":
                     return self.store_1_item(
-                        hash_key, msg_orig, msg_tnxl,
-                        prio_terms=prio_terms
+                        hash_key, msg_orig, msg_tnxl, prio_terms=prio_terms
                     )
             elif prio_terms == "P":
                 return self.store_1_item(
-                    hash_key, msg_orig, msg_tnxl,
-                    prio_terms=prio_terms
+                    hash_key, msg_orig, msg_tnxl, prio_terms=prio_terms
                 )
 
         if action == "build_dict" and (
-                (lang_orig != "it" and lang_tnxl == "it")
-                or (lang_tnxl != "en" and lang_orig == "en")
+            (lang_orig != "it" and lang_tnxl == "it")
+            or (lang_tnxl != "en" and lang_orig == "en")
         ):
             return self.store_1_item(
                 hash_key,
@@ -654,7 +783,7 @@ class OdooTranslation(object):
         hash_orig = hashes_orig.pop(0) if hashes_orig else ""
         tok_tnxl = tokens_tnxl.pop(0) if tokens_tnxl else ""
         adjust_case = not is_tag
-        while (tok_orig or tok_tnxl):
+        while tok_orig or tok_tnxl:
             if isinstance(tok_orig, (list, tuple)):
                 term_orig = "".join(tok_orig)
                 term_tnxl = "".join(tok_tnxl)
@@ -738,16 +867,22 @@ class OdooTranslation(object):
                         )
                         sleep(0.3)
                         return self.store_1_item(
-                            hash_key, fullterm_orig, fullterm_tnxl,
-                            prio_terms=prio_terms
+                            hash_key,
+                            fullterm_orig,
+                            fullterm_tnxl,
+                            prio_terms=prio_terms,
                         )
                     except BaseException as e:
-                        print("*** Google translator error %s on <<<%s>>>!"
-                              % (e, fullterm_orig))
+                        print(
+                            "*** Google translator error %s on <<<%s>>>!"
+                            % (e, fullterm_orig)
+                        )
                         sleep(2.0)
                         return self.store_1_item(
-                            hash_key, fullterm_orig, fullterm_tnxl,
-                            prio_terms=prio_terms
+                            hash_key,
+                            fullterm_orig,
+                            fullterm_tnxl,
+                            prio_terms=prio_terms,
                         )
             elif (fullterm_orig and fullterm_2_store) or self.isplural(fulltermhk_orig):
                 return self.store_1_item(
@@ -770,7 +905,8 @@ class OdooTranslation(object):
             fullterm_tnxl == fulltermhk_tnxl and hash_key in self.dict
         ):
             return self.get_term(
-                hash_key, fullterm_orig, fullterm_tnxl, adjust_case=adjust_case)
+                hash_key, fullterm_orig, fullterm_tnxl, adjust_case=adjust_case
+            )
         return fullterm_tnxl
 
     def translate_item(self, msg_orig, msg_tnxl, module=None, adjust_case=None):
@@ -968,7 +1104,8 @@ class OdooTranslation(object):
         fqn = fqn or self.opt_args.file_xlsx or "odoo_template_tnl.xlsx"
         return pth.join(
             pth.dirname(fqn) or os.path.expanduser("~/.local/share/odoo_translation"),
-            "." + pth.basename(fqn).replace(".xlsx", "_cache.xlsx"))
+            "." + pth.basename(fqn).replace(".xlsx", "_cache.xlsx"),
+        )
 
     def load_terms_from_cached_xlsx(self, fqn=None):
         fqn = self.get_cache_fqn(fqn=fqn)
@@ -988,27 +1125,37 @@ class OdooTranslation(object):
             for message in catalog:
                 rowctr += 1
                 if self.opt_args.verbose:
-                    msg_burst("%d/%d) %-60.60s%s" % (
-                        rowctr, len(self.dict),
-                        message.id.split("\n")[0],
-                        "> ..."
-                        if "\n" in message.id or len(message.id) > 60 else ""))
+                    msg_burst(
+                        "%d/%d) %-60.60s%s"
+                        % (
+                            rowctr,
+                            len(self.dict),
+                            message.id.split("\n")[0],
+                            (
+                                "> ..."
+                                if "\n" in message.id or len(message.id) > 60
+                                else ""
+                            ),
+                        )
+                    )
                 if not message.id:
                     continue
                 if self.opt_args.wep_wrong_terms:
-                    if (
-                            ("\n" in message.string and "\n" not in message.id)
-                            or ("\"" in message.string and "\"" not in message.id)
+                    if ("\n" in message.string and "\n" not in message.id) or (
+                        '"' in message.string and '"' not in message.id
                     ):
                         message.string = ""
                     else:
-                        lang_msgid, lang_msgstr = self.parse_lang_terms(message.id,
-                                                                        message.string)
+                        lang_msgid, lang_msgstr = self.parse_lang_terms(
+                            message.id, message.string
+                        )
                         if lang_msgstr == "en":
                             message.string = ""
                 self.do_dict_item(
-                    message.id, message.string,
-                    action="build_dict", prio_terms=prio_terms
+                    message.id,
+                    message.string,
+                    action="build_dict",
+                    prio_terms=prio_terms,
                 )
             if self.opt_args.verbose:
                 print("# %d lines read from %s ..." % (rowctr, po_fn))
@@ -1039,30 +1186,41 @@ class OdooTranslation(object):
                     continue
                 rowctr += 1
                 if self.opt_args.verbose:
-                    msg_burst("%d/%d) %-60.60s%s" % (
-                        rowctr, len(self.dict), row["msgid"].split("\n")[0],
-                        "> ..."
-                        if "\n" in row["msgid"] or len(row["msgid"]) > 60 else ""))
+                    msg_burst(
+                        "%d/%d) %-60.60s%s"
+                        % (
+                            rowctr,
+                            len(self.dict),
+                            row["msgid"].split("\n")[0],
+                            (
+                                "> ..."
+                                if "\n" in row["msgid"] or len(row["msgid"]) > 60
+                                else ""
+                            ),
+                        )
+                    )
                 if not row["msgid"] or not row["msgstr"]:
                     continue
                 if self.opt_args.wep_wrong_terms:
-                    if (
-                            ("\n" in row["msgstr"] and "\n" not in row["msgid"])
-                            or ("\"" in row["msgstr"] and "\"" not in row["msgid"])
+                    if ("\n" in row["msgstr"] and "\n" not in row["msgid"]) or (
+                        '"' in row["msgstr"] and '"' not in row["msgid"]
                     ):
                         continue
                     else:
-                        lang_msgid, lang_msgstr = self.parse_lang_terms(row["msgid"],
-                                                                        row["msgstr"])
+                        lang_msgid, lang_msgstr = self.parse_lang_terms(
+                            row["msgid"], row["msgstr"]
+                        )
                         if lang_msgstr == "en":
                             continue
                 if "hashkey" in row and row["hashkey"]:
                     if row["hashkey"] not in self.dict:
-                        self.store_1_item(row["hashkey"],
-                                          row["msgid"],
-                                          row["msgstr"],
-                                          module=row["module"],
-                                          raw=True)
+                        self.store_1_item(
+                            row["hashkey"],
+                            row["msgid"],
+                            row["msgstr"],
+                            module=row["module"],
+                            raw=True,
+                        )
                 else:
                     self.do_dict_item(
                         row["msgid"],
@@ -1081,18 +1239,16 @@ class OdooTranslation(object):
             i18n_path = pth.join(path, "i18n")
             po_fn = pth.join(i18n_path, "%s.po" % self.opt_args.lang)
             if not pth.isfile(po_fn):
-                po_fn = pth.join(
-                    i18n_path, "%s.po" % self.opt_args.lang.split("_")[0]
-                )
+                po_fn = pth.join(i18n_path, "%s.po" % self.opt_args.lang.split("_")[0])
             if not pth.isfile(po_fn):
                 print("*** Module %s without translation!" % pth.basename(path))
                 return
             if self.opt_args.merge:
                 self.load_terms_from_xlsx(
-                    self.opt_args.merge, prio_terms=self.opt_args.prio_terms)
+                    self.opt_args.merge, prio_terms=self.opt_args.prio_terms
+                )
             elif action == "build_dict":
-                self.load_terms_from_pofile(
-                    po_fn, prio_terms=self.opt_args.prio_terms)
+                self.load_terms_from_pofile(po_fn, prio_terms=self.opt_args.prio_terms)
             elif action == "translate":
                 self.translate_pofile(po_fn)
             else:
@@ -1132,8 +1288,7 @@ class OdooTranslation(object):
                         not d.startswith(".")
                         and not d.startswith("_")
                         and not d.endswith("~")
-                        and d
-                        not in INVALID_NAMES
+                        and d not in INVALID_NAMES
                     )
                 ]
                 for base in dirs:
@@ -1230,19 +1385,17 @@ class OdooTranslation(object):
                     tnl2_id = clodoo.searchL8(
                         ctx,
                         model_translation,
-                        [("type", "=", vals["type"]),
-                         ("name", "=", vals["name"]),
-                         ("lang", "=", vals["lang"]),
-                         ("res_id", "=", vals["res_id"])])
+                        [
+                            ("type", "=", vals["type"]),
+                            ("name", "=", vals["name"]),
+                            ("lang", "=", vals["lang"]),
+                            ("res_id", "=", vals["res_id"]),
+                        ],
+                    )
                     if not tnl2_id:
                         clodoo.createL8(ctx, model_translation, vals)
                     else:
-                        clodoo.writeL8(
-                            ctx,
-                            model_translation,
-                            tnl2_id,
-                            vals
-                        )
+                        clodoo.writeL8(ctx, model_translation, tnl2_id, vals)
                     ctr_write += 1
             elif value != term_tnl.value:
                 try:
@@ -1254,8 +1407,8 @@ class OdooTranslation(object):
                     )
                 except BaseException as e:
                     if (
-                            not self.opt_args.module_name
-                            or term.module == self.opt_args.module_name
+                        not self.opt_args.module_name
+                        or term.module == self.opt_args.module_name
                     ):
                         print("*** Error <%s> for term '%s'!" % (e, term.src))
                 ctr_write += 1
@@ -1374,13 +1527,9 @@ class OdooTranslation(object):
             print("# Writing %s" % fqn)
         with open(fqn, "w") as fd:
             if only_template:
-                fd.write("%s\t%s\t%s\n" % (
-                    "module", "msgid", "msgstr"
-                ))
+                fd.write("%s\t%s\t%s\n" % ("module", "msgid", "msgstr"))
             else:
-                fd.write("%s\t%s\t%s\t%s\n" % (
-                    "module", "msgid", "msgstr", "hashkey"
-                ))
+                fd.write("%s\t%s\t%s\t%s\n" % ("module", "msgid", "msgstr", "hashkey"))
             for hash_key, terms in sorted(self.dict.items(), key=lambda x: x[0]):
                 if terms[0] == terms[1]:
                     continue
@@ -1391,16 +1540,24 @@ class OdooTranslation(object):
                 else:
                     module = ""
                 if only_template:
-                    fd.write("%s\t%s\t%s\n" % (
-                        module,
-                        terms[0].replace("\n", "\x7f"),
-                        self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f")))
+                    fd.write(
+                        "%s\t%s\t%s\n"
+                        % (
+                            module,
+                            terms[0].replace("\n", "\x7f"),
+                            self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f"),
+                        )
+                    )
                 else:
-                    fd.write("%s\t%s\t%s\t%s\n" % (
-                        module,
-                        terms[0].replace("\n", "\x7f"),
-                        self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f"),
-                        hash_key))
+                    fd.write(
+                        "%s\t%s\t%s\t%s\n"
+                        % (
+                            module,
+                            terms[0].replace("\n", "\x7f"),
+                            self.adjust_case(terms[0], terms[1]).replace("\n", "\x7f"),
+                            hash_key,
+                        )
+                    )
 
 
 def main(cli_args=None):
@@ -1418,9 +1575,7 @@ def main(cli_args=None):
         default="12.0",
         help="Default Odoo version",
     )
-    parser.add_argument(
-        "-C", "--ignore-cache", action="store_true"
-    )
+    parser.add_argument("-C", "--ignore-cache", action="store_true")
     parser.add_argument("-c", "--config", help="Odoo configuration file")
     parser.add_argument(
         "-d",
@@ -1436,14 +1591,8 @@ def main(cli_args=None):
     parser.add_argument("-M", "--merge")
     parser.add_argument("-m", "--module-name")
     parser.add_argument("-n", "--dry-run", action="store_true")
-    parser.add_argument(
-        "-P", "--prio-terms",
-        help="Priority terms: Dict,Po,inQuire"
-    )
-    parser.add_argument(
-        "-p", "--target-path",
-        help="Local directory of module"
-    )
+    parser.add_argument("-P", "--prio-terms", help="Priority terms: Dict,Po,inQuire")
+    parser.add_argument("-p", "--target-path", help="Local directory of module")
     parser.add_argument("-q", "--quite", action="store_false")
     parser.add_argument("-T", "--test", action="store_true")
     parser.add_argument("-v", "--verbose", action="count", default=0)
@@ -1487,4 +1636,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

@@ -3,7 +3,7 @@
 # Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
-    Zeroincombenze® unit test library for python programs Regression Test Suite
+Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 from __future__ import print_function, unicode_literals
 import os
@@ -14,9 +14,9 @@ from z0lib import z0lib
 from zerobug import z0test
 
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
-MODULE_ID = 'wok_code'
+MODULE_ID = "wok_code"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -28,7 +28,7 @@ def version():
 class RegressionTest:
 
     def setup(self):
-        # super(RegressionTest, self).setup()
+        # super(, self).setup()
         if os.path.basename(os.getcwd()) == "tests":
             self.testdir = os.getcwd()
             self.rundir = os.path.dirname(os.getcwd())
@@ -111,14 +111,14 @@ class RegressionTest:
             cmd = "arcangelo -fiw -cci -b%s %s -o %s" % (
                 version_to,
                 self.get_fake_fullname(module_from),
-                self.get_test_fullname(module_to)
+                self.get_test_fullname(module_to),
             )
         else:
             cmd = "arcangelo -fiw -cci -F%s -b%s %s -o %s" % (
                 version_from,
                 version_to,
                 self.get_fake_fullname(module_from),
-                self.get_test_fullname(module_to)
+                self.get_test_fullname(module_to),
             )
         sts, stdout, stderr = z0lib.os_system_traced(cmd)
         self.assertEqual(sts, 0, msg_info=cmd)
@@ -130,8 +130,10 @@ class RegressionTest:
                 src_fn = os.path.join(module_from, fn)
                 tgt_fn = os.path.join(module_to, fn)
             src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(src_fn, tgt_fn)
-            self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                            "File %s differs %s" % (res_fqn, tgt_fqn))
+            self.assertTrue(
+                self.compare_fn(res_fqn, tgt_fqn),
+                "File %s differs %s" % (res_fqn, tgt_fqn),
+            )
 
     def __test_01_version(self):
         sts, stdout, stderr = z0lib.os_system_traced("arcangelo --version", rtime=False)
@@ -139,178 +141,212 @@ class RegressionTest:
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
     def test_02_api_py(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("old_api_02.py",
-                                                          "new_api_py3_02.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "old_api_02.py", "new_api_py3_02.py"
+        )
         cmd = "arcangelo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("new_api_py3_02.py",
-                                                          "old_api_02.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "new_api_py3_02.py", "old_api_02.py"
+        )
         cmd = "arcangelo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("new_api_py2_02.py",
-                                                          "new_api_py3_02.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "new_api_py2_02.py", "new_api_py3_02.py"
+        )
         cmd = "arcangelo -fiw -F10.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("new_api_py3_02.py",
-                                                          "new_api_py2_02.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "new_api_py3_02.py", "new_api_py2_02.py"
+        )
         cmd = "arcangelo -fiw -F12.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
     def test_03_api_xml(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("old_api_03.xml",
-                                                          "new_api_03.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "old_api_03.xml", "new_api_03.xml"
+        )
         cmd = "arcangelo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("new_api_03.xml",
-                                                          "old_api_03.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "new_api_03.xml", "old_api_03.xml"
+        )
         cmd = "arcangelo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
 
     def test_04_api_xml(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("old_api_04.xml",
-                                                          "new_api_04.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "old_api_04.xml", "new_api_04.xml"
+        )
         cmd = "arcangelo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("new_api_04.xml",
-                                                          "old_api_04.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "new_api_04.xml", "old_api_04.xml"
+        )
         cmd = "arcangelo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
 
     def test_05_api_py(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("pkg_py2_05.py",
-                                                          "pkg_py2_05.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py2_05.py", "pkg_py2_05.py"
+        )
         cmd = "arcangelo -fiw --package-name=pypi %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("pkg_py3_05.py",
-                                                          "pkg_py2_05.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py3_05.py", "pkg_py2_05.py"
+        )
         cmd = "arcangelo -fiw --package-name=pypi %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
     def test_06_api(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("pkg_py2_06.py",
-                                                          "pkg_py2_06.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py2_06.py", "pkg_py2_06.py"
+        )
         cmd = "arcangelo -fiw --package-name=pypi %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("pkg_py3_06.py",
-                                                          "pkg_py2_06.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py3_06.py", "pkg_py2_06.py"
+        )
         cmd = "arcangelo -fiw --package-name=pypi %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
     def test_07_migrate(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo12.py",
-                                                          "odoo13.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo12.py", "odoo13.py")
         cmd = "arcangelo -fiw -F12.0 -b13.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo12_view.xml",
-                                                          "odoo13_view.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "odoo12_view.xml", "odoo13_view.xml"
+        )
         cmd = "arcangelo -fiw -F12.0 -b13.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo6.py",
-                                                          "odoo7.py")
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo6.py", "odoo7.py")
         cmd = "arcangelo -fiw -F6.1 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo10.py",
-                                                          "odoo11.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo10.py", "odoo11.py")
         cmd = "arcangelo -fiw -F10.0 -b11.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo6.py",
-                                                          "odoo7.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo6.py", "odoo7.py")
         cmd = "arcangelo -fiw -F6.1 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
     def test_08_backport(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo13.py",
-                                                          "odoo12.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo13.py", "odoo12.py")
         cmd = "arcangelo -fiw -F13.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo13_view.xml",
-                                                          "odoo12_view.xml")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "odoo13_view.xml", "odoo12_view.xml"
+        )
         cmd = "arcangelo -fiw -F13.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_xmlfn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_xmlfn(res_fqn, tgt_fqn),
+            "File %s differs %s" % (res_fqn, tgt_fqn),
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo7.py",
-                                                          "odoo6.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo7.py", "odoo6.py")
         cmd = "arcangelo -fiw -F7.0 -b6.1 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo11.py",
-                                                          "odoo10.py")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo11.py", "odoo10.py")
         cmd = "arcangelo -fiw -F11.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(self.compare_fn(res_fqn, tgt_fqn),
-                        "File %s differs %s" % (res_fqn, tgt_fqn))
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
     def test_10_migrate_module(self):
         file_list = [
@@ -353,8 +389,9 @@ class RegressionTest:
         self._test_module(file_list, version_from="12.0", version_to="12.0")
 
     def test_90(self):
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("history.rst",
-                                                          "CHANGELOG.rst")
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "history.rst", "CHANGELOG.rst"
+        )
         last_date = datetime.strftime((datetime.now() - timedelta(days=10)), "%Y-%m-%d")
         today = datetime.strftime(datetime.now(), "%Y-%m-%d")
         with open(src_fqn, "r") as fd:
@@ -373,21 +410,19 @@ class RegressionTest:
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn),
-            "File %s differs %s" % (res_fqn, tgt_fqn))
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
         with open(res_fqn, "r") as fd:
             content = fd.read().replace("12.0.1.2.3", "10.0.1.2.3")
         with open(res_fqn, "w") as fd:
             fd.write(content)
-        cmd = "arcangelo -fi -F10.0 -b12.0 %s" % (
-            res_fqn,
-        )
+        cmd = "arcangelo -fi -F10.0 -b12.0 %s" % (res_fqn,)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn),
-            "File %s differs %s" % (res_fqn, tgt_fqn))
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
 
 
 #

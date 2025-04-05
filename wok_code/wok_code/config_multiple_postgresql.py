@@ -1,53 +1,95 @@
+# -*- coding: utf-8 -*-
 import os.path
 import sys
 import re
 
 
 PG_PARAMS = {
-    "9.5": {
-        "port": 5437,
-        "users": ["librerp6", "oca6", "oca7"]
-    },
-    "10": {
-        "port": 5433,
-        "users": ["odoo6", "oca8", "oca9"]
-    },
+    "9.5": {"port": 5437, "users": ["librerp6", "oca6", "oca7"]},
+    "10": {"port": 5433, "users": ["odoo6", "oca8", "oca9"]},
     "12": {
         "port": 5432,
         "users": [
-            "odoo7", "odoo8", "odoo9", "odoo10", "oca10",
-            "odoo11", "oca11", "odoo12", "oca12",
-            "odoo13", "oca13", "odoo14", "oca14",
-            "odoo15", "oca15", "odoo15", "oca15",
-            "odoo16", "oca16", "odoo17", "oca17",
-            "odoo_www", "weblate", "librerp12", "kalamitica",
-        ]
+            "odoo7",
+            "odoo8",
+            "odoo9",
+            "odoo10",
+            "oca10",
+            "odoo11",
+            "oca11",
+            "odoo12",
+            "oca12",
+            "odoo13",
+            "oca13",
+            "odoo14",
+            "oca14",
+            "odoo15",
+            "oca15",
+            "odoo15",
+            "oca15",
+            "odoo16",
+            "oca16",
+            "odoo17",
+            "oca17",
+            "odoo_www",
+            "weblate",
+            "librerp12",
+            "kalamitica",
+        ],
     },
     "14": {
         "port": 5434,
         "users": [
-            "odoo16", "oca16", "odoo16", "oca16",
-            "odoo17", "oca17", "odoo17", "oca17",
-        ]
+            "odoo16",
+            "oca16",
+            "odoo16",
+            "oca16",
+            "odoo17",
+            "oca17",
+            "odoo17",
+            "oca17",
+        ],
     },
     "15": {
         "port": 5435,
         "users": [
-            "odoo17", "oca17", "odoo17", "oca17",
-            "odoo18", "oca18", "odoo18", "oca18",
-        ]
+            "odoo17",
+            "oca17",
+            "odoo17",
+            "oca17",
+            "odoo18",
+            "oca18",
+            "odoo18",
+            "oca18",
+        ],
     },
     "16": {
         "port": 5436,
         "users": [
-            "odoo17", "oca17", "odoo17", "oca17",
-            "odoo18", "oca18", "odoo18", "oca18",
-        ]
-    }
+            "odoo17",
+            "oca17",
+            "odoo17",
+            "oca17",
+            "odoo18",
+            "oca18",
+            "odoo18",
+            "oca18",
+        ],
+    },
 }
 ALL_ODOO_VERS = (
-    "17.0", "16.0", "15.0", "14.0", "13.0", "12.0", "11.0",
-    "10.0", "9.0", "8.0", "7.0", "6.1",
+    "17.0",
+    "16.0",
+    "15.0",
+    "14.0",
+    "13.0",
+    "12.0",
+    "11.0",
+    "10.0",
+    "9.0",
+    "8.0",
+    "7.0",
+    "6.1",
 )
 
 
@@ -65,7 +107,7 @@ def replace_port_in_file(fqn, regex, port):
             if new_ln != ln:
                 ln = new_ln
                 updated = True
-        new_content += (ln + "\n")
+        new_content += ln + "\n"
     if updated:
         with open(fqn, "w") as fd:
             fd.write(new_content)
@@ -84,22 +126,23 @@ def replace_user_in_pgfile(fqn, replacements):
     new_content = ""
     susp = False
     for ln in content.split("\n"):
-        if ln == ("# TYPE  DATABASE        USER            "
-                  "ADDRESS                 METHOD"):
-            new_content += (ln + "\n")
+        if ln == (
+            "# TYPE  DATABASE        USER            " "ADDRESS                 METHOD"
+        ):
+            new_content += ln + "\n"
             new_content += replacements
             susp = True
         elif ln.startswith("#"):
             susp = False
         if susp:
             continue
-        new_content += (ln + "\n")
+        new_content += ln + "\n"
     while new_content.endswith("\n\n"):
-        new_content = new_content[: -2]
+        new_content = new_content[:-2]
     if not new_content.endswith("\n"):
         new_content += "\n"
     while content.endswith("\n\n"):
-        content = content[: -2]
+        content = content[:-2]
     if not content.endswith("\n"):
         content += "\n"
     if new_content != content:
@@ -141,15 +184,19 @@ def main(cli_args=None):
         replacements = ""
         for user in sorted(PG_PARAMS[pg_ver]["users"], reverse=True):
             ln = "local   all             %-39.39s %s" % (user, method)
-            replacements += (ln + "\n")
+            replacements += ln + "\n"
             print(ln)
             ln = "host    all             %-15.15s 127.0.0.1/32            %s" % (
-                user, method)
-            replacements += (ln + "\n")
+                user,
+                method,
+            )
+            replacements += ln + "\n"
             print(ln)
             ln = "host    all             %-15.15s ::1/128                 %s" % (
-                user, method)
-            replacements += (ln + "\n")
+                user,
+                method,
+            )
+            replacements += ln + "\n"
             print(ln)
         replacements += "\n"
         replace_user_in_pgfile(fqn, replacements)
@@ -161,8 +208,10 @@ def main(cli_args=None):
         user = "odoo" + odoo_ver.split(".")[0]
         pg_ver = search_pg_ver(user)
         print("")
-        fqn = "/etc/odoo/odoo%s%s.conf" % (odoo_major,
-                                           "-server" if odoo_major < 10 else "")
+        fqn = "/etc/odoo/odoo%s%s.conf" % (
+            odoo_major,
+            "-server" if odoo_major < 10 else "",
+        )
         print("File %s" % fqn)
         print("  db_port = %s" % PG_PARAMS[pg_ver]["port"])
         print("  db_user = %s" % user)
@@ -231,11 +280,15 @@ def main(cli_args=None):
         cmd = "psql%s" % ("" if pg_ver == "12" else ("-" + pg_ver))
         for odoo_ver in ALL_ODOO_VERS:
             user = "odoo" + odoo_ver.split(".")[0]
-            print("%s template1 -c \"create role %s with superuser createdb login\""
-                  % (cmd, user))
+            print(
+                '%s template1 -c "create role %s with superuser createdb login"'
+                % (cmd, user)
+            )
             user = "oca" + odoo_ver.split(".")[0]
-            print("%s template1 -c \"create role %s with superuser createdb login\""
-                  % (cmd, user))
+            print(
+                '%s template1 -c "create role %s with superuser createdb login"'
+                % (cmd, user)
+            )
     return 0
 
 

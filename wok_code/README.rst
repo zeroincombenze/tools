@@ -185,6 +185,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.21 (2025-04-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please translation: modified algorithm
+
 2.0.20 (2025-03-01)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -425,14 +430,6 @@ ChangeLog History
 * [FIX] deploy_odoo: update read from directory
 * [IMP] deploy_odoo: new command list repo info
 * [IMP] deploy_odoo: new feature link to repositories
-
-2.0.0.2 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo: add path in addons_path of directory exists
-* [FIX] deploy_odoo: clone oca repositories with --single-branch option
-* [IMP] manage_pypi: improvements
-* [FIX] please lint|test
 
 
 

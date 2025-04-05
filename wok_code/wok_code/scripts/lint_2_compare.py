@@ -172,7 +172,7 @@ def remove_comment(opt_args, root, files, compare_path=None):
         left_path = pth.join(left_dir, fn)
         right_path = pth.join(right_dir, fn)
         if opt_args.ignore_doc and fn.endswith(".py"):
-            cmd = "diff -rZbB -I \"^ *#\" %s %s"
+            cmd = 'diff -rZbB -I "^ *#" %s %s'
         elif opt_args.ignore_doc and not fn.endswith(".py"):
             cmd = "diff -rZbB %s %s"
         else:
@@ -211,14 +211,15 @@ def remove_comment(opt_args, root, files, compare_path=None):
 def lint_file(opt_args, from_version, path):
     opts = " -ia --string-normalization"
     if opt_args.odoo_version:
-        opts += (" -b" + opt_args.odoo_version)
+        opts += " -b" + opt_args.odoo_version
     if from_version:
-        opts += (" -F" + from_version)
+        opts += " -F" + from_version
     if opt_args.git_orgid:
-        opts += (" -G" + opt_args.git_orgid)
+        opts += " -G" + opt_args.git_orgid
     z0lib.run_traced(
         "arcangelo %s %s" % (path, opts),
-        verbose=opt_args.dry_run, dry_run=opt_args.dry_run
+        verbose=opt_args.dry_run,
+        dry_run=opt_args.dry_run,
     )
 
 
@@ -257,36 +258,40 @@ def main(cli_args=None):
     )
     parser.add_argument("-b", "--odoo-version")
     parser.add_argument(
-        "-c", "--cache",
+        "-c",
+        "--cache",
         action="store_true",
-        help="Use cached values (conflict with -r)")
+        help="Use cached values (conflict with -r)",
+    )
     parser.add_argument(
-        "-d", "--ignore-doc",
+        "-d",
+        "--ignore-doc",
         action="store_true",
         help="Ignore README, docs and comment in files",
     )
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument(
-        "-i", "--ignore-po",
-        action="store_true",
-        help="ignore PO files")
+        "-i", "--ignore-po", action="store_true", help="ignore PO files"
+    )
     parser.add_argument(
-        "-I", "--ignore-log",
-        action="store_true",
-        help="ignore log files")
+        "-I", "--ignore-log", action="store_true", help="ignore log files"
+    )
     parser.add_argument("-l", "--from-left-version", metavar="ODOO-VERSION")
     parser.add_argument("-m", "--meld", action="store_true", help="Use meld")
     parser.add_argument("-o", "--from-right-version", metavar="ODOO-VERSION")
     parser.add_argument(
-        "-P", "--purge",
+        "-P",
+        "--purge",
         action="store_true",
         help="Purge identical files on temporary compare directories",
     )
     parser.add_argument("-n", "--dry-run", action="store_true")
     parser.add_argument(
-        "-r", "--remove-prior",
+        "-r",
+        "--remove-prior",
         action="store_true",
-        help="remove previous temporary compare directories (conflict with -c)")
+        help="remove previous temporary compare directories (conflict with -c)",
+    )
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-V", "--version", action="version", version=__version__)
     parser.add_argument("left_path")
@@ -316,20 +321,24 @@ def main(cli_args=None):
         os.mkdir(diff_path)
     if not opt_args.from_left_version:
         opt_args.from_left_version = build_odoo_param(
-            "FULLVER", odoo_vid="opt_args.left_path", multi=True)
+            "FULLVER", odoo_vid="opt_args.left_path", multi=True
+        )
     if not opt_args.from_right_version:
         opt_args.from_right_version = build_odoo_param(
-            "FULLVER", odoo_vid="opt_args.right_path", multi=True)
+            "FULLVER", odoo_vid="opt_args.right_path", multi=True
+        )
     if (
-            opt_args.from_left_version
-            and opt_args.from_right_version
-            and not opt_args.odoo_version
+        opt_args.from_left_version
+        and opt_args.from_right_version
+        and not opt_args.odoo_version
     ):
         if int(opt_args.from_left_version.split(".")[0]) >= int(
-                opt_args.from_right_version.split(".")[0]):
+            opt_args.from_right_version.split(".")[0]
+        ):
             opt_args.odoo_version = opt_args.from_left_version
         elif int(opt_args.from_left_version.split(".")[0]) < int(
-                opt_args.from_right_version.split(".")[0]):
+            opt_args.from_right_version.split(".")[0]
+        ):
             opt_args.odoo_version = opt_args.from_right_version
     if not opt_args.git_orgid:
         opt_args.git_orgid = build_odoo_param(
@@ -403,4 +412,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

@@ -90,7 +90,8 @@ class PleaseZ0bug(object):
             help="Keep database test",
         )
         parser.add_argument(
-            "-K", "--no-ext-test",
+            "-K",
+            "--no-ext-test",
             action="store_true",
             help="Do not run external test (tests/concurrent_test/test_*.py)",
         )
@@ -137,8 +138,9 @@ class PleaseZ0bug(object):
         if not for_help:
             self.please.add_argument(parser, "-v")
         parser.add_argument(
-            "--no-verify", action="store_true",
-            help="Disable pre-commit on lint and testenv upgrade"
+            "--no-verify",
+            action="store_true",
+            help="Disable pre-commit on lint and testenv upgrade",
         )
         parser.add_argument(
             "-X",
@@ -155,7 +157,7 @@ class PleaseZ0bug(object):
         parser.add_argument(
             "-Z", "--zero", action="store_true", help="Use local zeroincombenze tools"
         )
-        parser.add_argument('--ignore-status', action='store_true')
+        parser.add_argument("--ignore-status", action="store_true")
         parser.add_argument("args", nargs="*")
         return parser
 
@@ -164,7 +166,8 @@ class PleaseZ0bug(object):
         branch = branch or please.opt_args.branch
         args = [
             "-T",
-            "-m", pth.basename(pth.abspath(os.getcwd())),
+            "-m",
+            pth.basename(pth.abspath(os.getcwd())),
         ]
         if branch:
             args.append("-b")
@@ -192,15 +195,17 @@ class PleaseZ0bug(object):
     def check_4_test_dirs(self, full=None):
         fqn = pth.join(os.getcwd(), "tests")
         if not pth.isdir(fqn):
-            self.please.log_warning("Module %s w/o regression test!"
-                                    % pth.basename(os.getcwd()))
+            self.please.log_warning(
+                "Module %s w/o regression test!" % pth.basename(os.getcwd())
+            )
             return "" if full else 3
         if not full:
             return 0
         fqn = self.please.get_logdir()
         if not pth.isdir(fqn):
-            self.please.log_warning("Module %s w/o regression test result!"
-                                    % pth.basename(os.getcwd()))
+            self.please.log_warning(
+                "Module %s w/o regression test result!" % pth.basename(os.getcwd())
+            )
             return ""
         fqn = pth.join(self.please.get_logdir(), "show-log.sh")
         if not pth.isfile(fqn):
@@ -211,9 +216,11 @@ class PleaseZ0bug(object):
     def _do_lint_odoo(self):
         please = self.please
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
-        manifest_path = ("__openerp__.py"
-                         if branch and int(branch.split(".")[0]) <= 9
-                         else "__manifest__.py")
+        manifest_path = (
+            "__openerp__.py"
+            if branch and int(branch.split(".")[0]) <= 9
+            else "__manifest__.py"
+        )
         manifest = please.read_manifest_file(manifest_path)
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
@@ -225,18 +232,21 @@ class PleaseZ0bug(object):
             sts = please.os_system("pre-commit run", rtime=True)
         if sts == 0:
             if "lint" in please.cli_args:
-                sub_list = [("--no-verify", ""),
-                            ("--no-translate", ""),
-                            ("-Z", ""),
-                            ("--zero", "")]
+                sub_list = [
+                    ("--no-verify", ""),
+                    ("--no-translate", ""),
+                    ("-Z", ""),
+                    ("--zero", ""),
+                ]
             else:
-                sub_list = [("z0bug", "lint"),
-                            ("--no-verify", ""),
-                            ("--no-translate", ""),
-                            ("-Z", ""),
-                            ("--zero", "")]
-            please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=sub_list)
+                sub_list = [
+                    ("z0bug", "lint"),
+                    ("--no-verify", ""),
+                    ("--no-translate", ""),
+                    ("-Z", ""),
+                    ("--zero", ""),
+                ]
+            please.sh_subcmd = please.pickle_params(rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd()
             return please.os_system(cmd, with_shell=True, rtime=True)
         return sts
@@ -251,13 +261,14 @@ class PleaseZ0bug(object):
             if "lint" in please.cli_args:
                 sub_list = [("--no-verify", ""), ("--no-translate", "")]
             else:
-                sub_list = [("z0bug", "lint"),
-                            ("--no-verify", ""),
-                            ("--no-translate", ""),
-                            ("-Z", ""),
-                            ("--zero", "")]
-            please.sh_subcmd = please.pickle_params(
-                rm_obj=True, slist=sub_list)
+                sub_list = [
+                    ("z0bug", "lint"),
+                    ("--no-verify", ""),
+                    ("--no-translate", ""),
+                    ("-Z", ""),
+                    ("--zero", ""),
+                ]
+            please.sh_subcmd = please.pickle_params(rm_obj=True, slist=sub_list)
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.os_system(cmd, with_shell=True, rtime=True)
         return sts
@@ -310,21 +321,24 @@ class PleaseZ0bug(object):
                 if re.search(" DAEMON ", ln):
                     timestamp = ln[:19]
                 elif re.search(
-                        r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])",
-                        ln):
+                    r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])", ln
+                ):
                     print(ln.replace("| please test", "") + " (" + timestamp + ")")
                     timestamp = ""
         return 0
 
     def _do_show_summary_odoo(self):
         branch = self.please.get_odoo_branch_from_git(try_by_fs=True)[1]
-        manifest_path = ("__openerp__.py"
-                         if branch and int(branch.split(".")[0]) <= 9
-                         else "__manifest__.py")
+        manifest_path = (
+            "__openerp__.py"
+            if branch and int(branch.split(".")[0]) <= 9
+            else "__manifest__.py"
+        )
         manifest = self.please.read_manifest_file(manifest_path)
         if not manifest["installable"]:
             self.please.log_warning(
-                "Module %s not installable!" % pth.basename(os.getcwd()))
+                "Module %s not installable!" % pth.basename(os.getcwd())
+            )
             return 3
 
         cmd = self.check_4_test_dirs(full=True)
@@ -358,9 +372,11 @@ class PleaseZ0bug(object):
     def _do_test_odoo_pkg(self):
         please = self.please
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
-        manifest_path = ("__openerp__.py"
-                         if branch and int(branch.split(".")[0]) <= 9
-                         else "__manifest__.py")
+        manifest_path = (
+            "__openerp__.py"
+            if branch and int(branch.split(".")[0]) <= 9
+            else "__manifest__.py"
+        )
         manifest = please.read_manifest_file(manifest_path)
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
@@ -373,21 +389,22 @@ class PleaseZ0bug(object):
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
             sts, branch = please.get_odoo_branch_from_git()
             if not please.opt_args.no_verify:
-                srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                                   "testenv")
+                srcpath = pth.join(
+                    please.get_pkg_tool_dir(pkgname="z0bug_odoo"), "testenv"
+                )
                 if branch and int(branch.split(".")[0]) <= 7:
                     please.os_system(
                         "cp %s/testenv_old_api.py tests/testenv.py" % srcpath,
-                        rtime=True)
+                        rtime=True,
+                    )
                 else:
                     please.os_system(
-                        "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True)
+                        "cp %s/testenv.py tests/testenv.py" % srcpath, rtime=True
+                    )
                 please.os_system(
-                    "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True)
-            if (
-                    please.opt_args.debug_level
-                    and please.opt_args.debug_level.isdigit()
-            ):
+                    "cp %s/testenv.rst tests/testenv.rst" % srcpath, rtime=True
+                )
+            if please.opt_args.debug_level and please.opt_args.debug_level.isdigit():
                 debug_level = please.opt_args.debug_level
             else:
                 debug_level = "0"
@@ -399,36 +416,39 @@ class PleaseZ0bug(object):
                         do_rewrite = False
                         new_content = ""
                         for ln in content.split("\n"):
-                            new_ln = re.sub("^( *self.debug_level *=) *[0-9](.*)$",
-                                            r"\1 %s\2" % debug_level,
-                                            ln)
+                            new_ln = re.sub(
+                                "^( *self.debug_level *=) *[0-9](.*)$",
+                                r"\1 %s\2" % debug_level,
+                                ln,
+                            )
                             new_content += new_ln
                             new_content += "\n"
-                            do_rewrite |= (new_ln != ln)
+                            do_rewrite |= new_ln != ln
                         if do_rewrite:
                             with open(pth.join("tests", fn), "w") as fd:
                                 fd.write(new_content)
         if pth.isdir("tests") and pth.isfile(pth.join(".", "_check4deps_.py")):
-            srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                               "_check4deps_.py")
-            please.os_system(
-                "cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
+            srcpath = pth.join(
+                please.get_pkg_tool_dir(pkgname="z0bug_odoo"), "_check4deps_.py"
+            )
+            please.os_system("cp %s ./%s" % (srcpath, "_check4deps_.py"), rtime=True)
         if (
-                not please.opt_args.no_verify
-                and pth.isdir("tests")
-                and pth.isdir(pth.join("tests", "data"))
+            not please.opt_args.no_verify
+            and pth.isdir("tests")
+            and pth.isdir(pth.join("tests", "data"))
         ):
-            srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"),
-                               "testenv")
+            srcpath = pth.join(please.get_pkg_tool_dir(pkgname="z0bug_odoo"), "testenv")
             for fn in [x for x in os.listdir(srcpath) if x.endswith(".xlsx")]:
                 if pth.isfile(pth.join("tests", "data", fn)):
                     please.os_system(
-                        "cp %s/%s tests/data/%s" % (srcpath, fn, fn), rtime=True)
+                        "cp %s/%s tests/data/%s" % (srcpath, fn, fn), rtime=True
+                    )
 
         args = self.build_run_odoo_base_args(branch=branch)
         print("#### Running Tests ... ####")
         sts = please.chain_python_cmd(
-            "run_odoo_debug.py", args, verbose=True, rtime=True)
+            "run_odoo_debug.py", args, verbose=True, rtime=True
+        )
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
         if not please.opt_args.no_verify:
@@ -453,17 +473,17 @@ class PleaseZ0bug(object):
             return sts
         print("#### Running Tests ... ####")
         sts = please.chain_python_cmd(
-            "pg_requirements.py", [], verbose=True, rtime=True)
+            "pg_requirements.py", [], verbose=True, rtime=True
+        )
         if please.is_fatal_sts(sts):
             return sts
         if "test" in please.cli_args:
             sub_list = [("--no-verify", ""), ("--no-translate", "")]
         else:
-            sub_list = [("z0bug", "test"),
-                        ("--no-verify", ""),
-                        ("--no-translate", "")]
+            sub_list = [("z0bug", "test"), ("--no-verify", ""), ("--no-translate", "")]
         please.sh_subcmd = please.pickle_params(
-            rm_obj=True, slist=sub_list, inherit_opts=["-v"])
+            rm_obj=True, slist=sub_list, inherit_opts=["-v"]
+        )
         cmd = please.build_sh_me_cmd(cmd="travis")
         sts = please.os_system(cmd, rtime=True)
         if please.is_fatal_sts(sts) or please.opt_args.debug:
@@ -509,8 +529,8 @@ class PleaseZ0bug(object):
             please.sh_subcmd = please.pickle_params(
                 cmd_subst="emulate",
                 rm_obj=True,
-                slist=[("--no-verify", ""), ("--no-translate", "")])
+                slist=[("--no-verify", ""), ("--no-translate", "")],
+            )
             cmd = please.build_sh_me_cmd(cmd="travis")
             return please.os_system(cmd, rtime=True)
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)
-

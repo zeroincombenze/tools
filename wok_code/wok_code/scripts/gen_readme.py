@@ -247,8 +247,10 @@ ALTERNATE_NAMES = {
     "summary_i18n": "sommario",
     "sponsor": "credits",
 }
-ZERO_PYPI_PKGS = ("clodoo lisa odoo_score oerplib3 os0 python_plus travis_emulator"
-                  "vatnumber3 wok_code z0bug_odoo z0lib zar zerobug")
+ZERO_PYPI_PKGS = (
+    "clodoo lisa odoo_score oerplib3 os0 python_plus travis_emulator"
+    "vatnumber3 wok_code z0bug_odoo z0lib zar zerobug"
+)
 ZERO_PYPI_SECTS = "description usage"
 DEFINED_GRYMB_SYMBOLS = {
     "it": [
@@ -315,7 +317,7 @@ MANIFEST_ITEMS = (
     "price",
     # "support",
     "pre_init_hook",
-    "post_init_hook"
+    "post_init_hook",
 )
 MANIFEST_ITEMS_REQUIRED = (
     "name",
@@ -363,7 +365,7 @@ RST2HTML_GRYMB = {
     "|check|": '<span class="fa fa-check-square-o" style="color:green"/>',
     "|no_check|": '<span class="fa fa-close" style="color:red"/>',
     "|menu|": '<span class="fa fa-navicon"/>',
-    '|right_do|': "<span class='fa fa-caret-right'/>",
+    "|right_do|": "<span class='fa fa-caret-right'/>",
     "|exclamation|": '<span class="fa fa-exclamation" style="color:orange"/>',
     "|late|": '<span class="fa fa-calendar-times-o" style="color:red"/>',
     "|same|": '<span class="fa fa-retweet"  style="color:blue"/>',
@@ -466,7 +468,8 @@ def __init__(ctx):
     if ctx["product_doc"] == "pypi":
         ctx["git_orgid"] = ctx["git_orgid"] or "zero"
         ctx["branch"] = ctx.get("branch") or (
-            ctx["odoo_vid"] if ctx["odoo_vid"] != "." else "")
+            ctx["odoo_vid"] if ctx["odoo_vid"] != "." else ""
+        )
         ctx["odoo_majver"] = 0
     else:
         ctx["git_orgid"] = ctx["git_orgid"] or build_odoo_param(
@@ -507,12 +510,10 @@ def __init__(ctx):
     #             % ctx["git_orgid"]
     #         )
 
-    if ctx["read_only"] and (ctx["force"]
-                             or ctx["write_authinfo"]
-                             or ctx["rewrite_manifest"]):
-        print_red_message(
-            "*** Read-only repository: you cannot use -f -w -R switches"
-        )
+    if ctx["read_only"] and (
+        ctx["force"] or ctx["write_authinfo"] or ctx["rewrite_manifest"]
+    ):
+        print_red_message("*** Read-only repository: you cannot use -f -w -R switches")
         ctx["force"] = False
         ctx["write_authinfo"] = False
         ctx["rewrite_manifest"] = False
@@ -541,9 +542,7 @@ def __init__(ctx):
                 ctx["odoo_majver"] < 10
                 and pth.isdir(pth.join(ctx["path_name"], "openerp"))
                 and (pth.isfile(pth.join(ctx["path_name"], "openerp-server")))
-                or pth.isfile(
-                    pth.join(ctx["path_name"], "server", "openerp-server")
-                )
+                or pth.isfile(pth.join(ctx["path_name"], "server", "openerp-server"))
             ):
                 ctx["odoo_layer"] = "ocb"
             else:
@@ -620,8 +619,9 @@ def create_def___manifest__(ctx):
         with open(fn, "w") as fd:
             fd.write(".. $set lang %s\n" % ctx["lang"])
             fd.write(".. $set name.%s %s\n" % (ctx["lang"], ctx["module_name"]))
-            fd.write(".. $set summary.%s Documentazione non disponibile\n"
-                     % ctx["lang"])
+            fd.write(
+                ".. $set summary.%s Documentazione non disponibile\n" % ctx["lang"]
+            )
             fd.write(".. $set no_section_oca_diff 0\n")
 
 
@@ -631,7 +631,8 @@ def create_def_changelog(ctx):
         with open(fn, "w") as fd:
             # Conventional date on Odoo Days (October, 1st Thursday)
             fd.write(
-                "%s.0.1.0 (%s)\n" % (
+                "%s.0.1.0 (%s)\n"
+                % (
                     ctx["branch"],
                     {
                         6: "2012-10-04",
@@ -646,7 +647,7 @@ def create_def_changelog(ctx):
                         15: "2021-10-07",
                         16: "2022-10-06",
                         17: "2023-10-05",
-                    }[ctx["odoo_majver"]]
+                    }[ctx["odoo_majver"]],
                 )
             )
             fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
@@ -745,14 +746,12 @@ def get_actual_fqn(ctx, path, filename):
 def get_fqn(ctx, src_path, filename):
     if src_path.startswith("./"):
         dirname = pth.join(
-            ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"]))
+            ctx["path_name"], src_path[2:].replace("${p}", ctx["product_doc"])
+        )
     else:
         dirname = pth.join(src_path.replace("${p}", ctx["product_doc"]))
     fqn = get_actual_fqn(ctx, dirname, filename)
-    if (
-            pth.basename(pth.dirname(fqn)) == "docs" and
-            not pth.isdir(pth.dirname(fqn))
-    ):
+    if pth.basename(pth.dirname(fqn)) == "docs" and not pth.isdir(pth.dirname(fqn)):
         fqn = get_actual_fqn(ctx, pth.dirname(pth.dirname(fqn)), filename)
     return fqn
 
@@ -822,11 +821,18 @@ def get_template_fn(ctx, template, ignore_ntf=None):
             fqn = ""
         return found, fqn
 
-    body = False if (template.startswith("header_")
-                     or template.startswith("footer_")) else True
+    body = (
+        False
+        if (template.startswith("header_") or template.startswith("footer_"))
+        else True
+    )
     found, fqn = search_tmpl(ctx, template, body)
-    if ctx["product_doc"] == "odoo" and not found and body and (
-            ctx["force"] or ctx["write_authinfo"]):
+    if (
+        ctx["product_doc"] == "odoo"
+        and not found
+        and body
+        and (ctx["force"] or ctx["write_authinfo"])
+    ):
         fct = "create_def_" + pth.splitext(template)[0].lower()
         if fct in globals():
             globals()[fct](ctx)
@@ -925,12 +931,15 @@ def url_by_doc(ctx, url):
     # icon-NAME: icon in static of the module
     #
     def get_url(url, git_orgid=None, repo=None, branch=None, module=None):
-        if url.startswith(("http", "/")) and (ctx["write_index"]
-                                              or ctx["odoo_marketplace"]):
+        if url.startswith(("http", "/")) and (
+            ctx["write_index"] or ctx["odoo_marketplace"]
+        ):
             parts = urlparse(url)
-            root = "/%s/%s/%s/static/" % (git_orgid or GIT_USER[ctx["git_orgid"]],
-                                          repo or ctx["repos_name"],
-                                          module or ctx["module_name"])
+            root = "/%s/%s/%s/static/" % (
+                git_orgid or GIT_USER[ctx["git_orgid"]],
+                repo or ctx["repos_name"],
+                module or ctx["module_name"],
+            )
             if parts.path.startswith(root):
                 url = pth.basename(url)
             else:
@@ -953,10 +962,7 @@ def url_by_doc(ctx, url):
                     fmt += "src/img/%s"
                 else:
                     fmt += "description/%s"
-                return fmt % (
-                    module or ctx["module_name"],
-                    pth.basename(url)
-                )
+                return fmt % (module or ctx["module_name"], pth.basename(url))
             else:
                 return pth.basename(url)
         else:
@@ -970,8 +976,9 @@ def url_by_doc(ctx, url):
                 repo or ctx["repos_name"],
                 branch or ctx["branch"],
                 module or ctx["module_name"],
-                pth.basename(url)
+                pth.basename(url),
             )
+
     if url.startswith("icon_l10n_"):
         country = url.replace("icon_", "")
         if ctx["odoo_marketplace"]:
@@ -979,8 +986,7 @@ def url_by_doc(ctx, url):
         elif ctx["write_index"]:
             url = get_url("icon.png", module=country)
         else:
-            url = get_url(
-                "icon.png", git_orgid="odoo", repo="odoo", module=country)
+            url = get_url("icon.png", git_orgid="odoo", repo="odoo", module=country)
     elif url.startswith("icon-"):
         url = get_url(url.replace("icon-", "") + ".png")
     else:
@@ -1005,18 +1011,18 @@ def rst2html(ctx, text, draw_button=False):
         for prpty in ("alt", "target"):
             if prpty in ctx["html_state"]:
                 # style="width:18px;height:16px;"
-                html_tag += (" %s=\"%s\"" % (prpty, ctx["html_state"][prpty]))
+                html_tag += ' %s="%s"' % (prpty, ctx["html_state"][prpty])
         styled = False
         for prpty in ("width", "height"):
             if prpty in ctx["html_state"]:
                 if not styled:
                     # style="width:18px;height:16px;"
-                    html_tag += " style=\""
+                    html_tag += ' style="'
                     styled = True
-                html_tag += ("%s:%s;" % (prpty, ctx["html_state"][prpty]))
+                html_tag += "%s:%s;" % (prpty, ctx["html_state"][prpty])
         if styled:
             html_tag += "max-width:1140px"
-            html_tag += "\""
+            html_tag += '"'
         html_tag += "/>"
         for prpty in ("alt", "target", "width", "height", "max-width", "url"):
             ctx["html_state"][prpty] = ""
@@ -1040,9 +1046,9 @@ def rst2html(ctx, text, draw_button=False):
                 # if url.startswith("http") and not url.endswith("/"):
                 #     url += "/"
                 text = '%s<a href="%s">%s</a>%s' % (
-                    text[:x.start()],
+                    text[: x.start()],
                     url,
-                    txt[:u.start()].replace("\n", " ").strip(),
+                    txt[: u.start()].replace("\n", " ").strip(),
                     text[x.end():],
                 )
             x = re.search(r"`[^`]+`__", text)
@@ -1054,9 +1060,11 @@ def rst2html(ctx, text, draw_button=False):
             x = re.search(r"``[^`]+``", line)
             if not x:
                 break
-            line = "%s<code>%s</code>%s" % (line[:x.start()],
-                                            line[x.start() + 2: x.end() - 2],
-                                            line[x.end():])
+            line = "%s<code>%s</code>%s" % (
+                line[: x.start()],
+                line[x.start() + 2: x.end() - 2],
+                line[x.end():],
+            )
         return line
 
     def get_multiline_tag(ctx, text):
@@ -1067,22 +1075,26 @@ def rst2html(ctx, text, draw_button=False):
             x = re.search(r"\*\*[^ ][^*]+[^ ]\*\*", text, flags=re.S)
             if not x:
                 break
-            text = (text[0:x.start()]
-                    + "<b>"
-                    + text[x.start() + 2: x.end() - 2]
-                    + "</b>"
-                    + text[x.end():])
+            text = (
+                text[0: x.start()]
+                + "<b>"
+                + text[x.start() + 2: x.end() - 2]
+                + "</b>"
+                + text[x.end():]
+            )
 
         # Parse multi-line rst tag: <*>ITALIC<*>
         while True:
             x = re.search(r"\*[^ ][^*]+[^ ]\*", text, flags=re.S)
             if not x:
                 break
-            text = (text[0:x.start()]
-                    + "<i>"
-                    + text[x.start() + 1: x.end() - 1]
-                    + "</i>"
-                    + text[x.end():])
+            text = (
+                text[0: x.start()]
+                + "<i>"
+                + text[x.start() + 1: x.end() - 1]
+                + "</i>"
+                + text[x.end():]
+            )
 
         for t in list(RST2HTML_GRYMB.keys()):
             text = text.replace(t, RST2HTML_GRYMB[t])
@@ -1093,9 +1105,11 @@ def rst2html(ctx, text, draw_button=False):
         start = line.find("☰", stop)
         found = start >= 0
         while start >= 0:
-            line = (line[0:start]
-                    + '<span class="fa fa-th-large" style="color:#7C7BAD"/>'
-                    + line[start + 1:])
+            line = (
+                line[0: start]
+                + '<span class="fa fa-th-large" style="color:#7C7BAD"/>'
+                + line[start + 1:]
+            )
             stop = start + 29
             start = line.find("☰", stop)
         if found:
@@ -1106,35 +1120,34 @@ def rst2html(ctx, text, draw_button=False):
         # Parse single-line tebbed: <[`>TABBED<`]>
         x = re.search(r"\[`[\w ]+`\]", line)
         while x:
-            tabbed_text = " " + line[x.start() + 2:x.end() - 2] + " "
+            tabbed_text = " " + line[x.start() + 2: x.end() - 2] + " "
             tabbed_text = tabbed_text.replace(" ", "&#160;")
-            line = ("%s<span style=\"border-style:solid;border-width:1px 1px 0px 1px\">"
-                    "%s</span>%s"
-                    % (line[0:x.start()],
-                       tabbed_text,
-                       line[x.end():]))
+            line = (
+                '%s<span style="border-style:solid;border-width:1px 1px 0px 1px">'
+                "%s</span>%s" % (line[0: x.start()], tabbed_text, line[x.end():])
+            )
             x = re.search(r"\[`[\w ]+`\]", line)
 
         # Parse single-line button: <[>BUTTON<]>
         x = re.search(r"\[\w[\w ]+\w\]", line)
         while x:
-            button_text = line[x.start() + 1:x.end() - 1]
+            button_text = line[x.start() + 1: x.end() - 1]
             if len(button_text) <= 12:
                 button_text = " " + button_text + " "
             button_text = button_text.replace(" ", "&#160;")
-            line = ("%s<span style=\"color:white;background-color:#7C7BAD\">%s</span>%s"
-                    % (line[0:x.start()],
-                       button_text,
-                       line[x.end():]))
+            line = (
+                '%s<span style="color:white;background-color:#7C7BAD">%s</span>%s'
+                % (line[0: x.start()], button_text, line[x.end():])
+            )
             x = re.search(r"\[\w[\w ]+\w\]", line)
         return line
 
     def close_opened_tag(ctx, lines, lineno, excl_tag=None):
         force = lineno >= len(lines)
         if (
-                not force
-                and lines[lineno].startswith(" ")
-                and ctx["html_state"]["tag"] in ("ul", "ol")
+            not force
+            and lines[lineno].startswith(" ")
+            and ctx["html_state"]["tag"] in ("ul", "ol")
         ):
             endtag = "</li>"
             if lines[lineno - 1].endswith(endtag):
@@ -1158,9 +1171,9 @@ def rst2html(ctx, text, draw_button=False):
             lines.append("</code>")
             ctx["html_state"]["tag"] = ""
         elif (
-                not force
-                and not lines[lineno].startswith(" ")
-                and ctx["html_state"]["tag"] == "code"
+            not force
+            and not lines[lineno].startswith(" ")
+            and ctx["html_state"]["tag"] == "code"
         ):
             lines.insert(lineno, "</code>")
             lineno += 1
@@ -1197,7 +1210,7 @@ def rst2html(ctx, text, draw_button=False):
         start = text.find(tok)
         while start >= 0:
             value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
-            text = text[0:start] + value + text[start + len(tok):]
+            text = text[0: start] + value + text[start + len(tok):]
             start = text.find(tok)
 
     # Parse single line rst tags; remove heading and trailing empty lines
@@ -1214,8 +1227,9 @@ def rst2html(ctx, text, draw_button=False):
             if ctx["html_state"]["tag"] in ("image", "figure"):
                 x = re.match(r" *:(alt|target|width|height):", lines[lineno])
                 if x:
-                    ctx["html_state"][lines[lineno][x.start():x.end()].strip(
-                        )[1: -1]] = lines[lineno][x.end():].strip()
+                    ctx["html_state"][
+                        lines[lineno][x.start(): x.end()].strip()[1: -1]
+                    ] = lines[lineno][x.end():].strip()
                     del lines[lineno]
                     continue
                 # lines.insert(lineno, get_tag_image(ctx))
@@ -1230,15 +1244,17 @@ def rst2html(ctx, text, draw_button=False):
                 else:
                     lines[lineno] = "</tr><tr>"
                     ctx["html_state"]["sub"] = "tr"
-            elif (
-                    ctx["html_state"]["tag"] == "table"
-                    and re.match(r" *\|.*\| *$", lines[lineno])
+            elif ctx["html_state"]["tag"] == "table" and re.match(
+                r" *\|.*\| *$", lines[lineno]
             ):
                 cols = lines[lineno].split("|")
                 del cols[0]
                 row = "</td><td>".join(
-                    [parse_all_single_line_tags(ctx, col.strip(), draw_button)
-                     for col in cols])
+                    [
+                        parse_all_single_line_tags(ctx, col.strip(), draw_button)
+                        for col in cols
+                    ]
+                )
                 lines[lineno] = "<td>" + row + "</td>"
             elif ctx["html_state"]["tag"] == "table":
                 if ctx["html_state"]["sub"] == "tr":
@@ -1251,11 +1267,13 @@ def rst2html(ctx, text, draw_button=False):
             elif lines[lineno].startswith("* "):
                 lineno = open_tag(ctx, lines, lineno, "ul")
                 lines[lineno] = "<li>%s</li>" % parse_all_single_line_tags(
-                    ctx, lines[lineno][2:], draw_button)
+                    ctx, lines[lineno][2:], draw_button
+                )
             elif lines[lineno].startswith("#. "):
                 lineno = open_tag(ctx, lines, lineno, "ol")
                 lines[lineno] = "<li>%s</li>" % parse_all_single_line_tags(
-                    ctx, lines[lineno][2:], draw_button)
+                    ctx, lines[lineno][2:], draw_button
+                )
             elif not lines[lineno] and ctx["html_state"]["tag"] == "Code":
                 lines[lineno] = "<code>"
                 ctx["html_state"]["tag"] = "code"
@@ -1308,7 +1326,8 @@ def rst2html(ctx, text, draw_button=False):
             else:
                 lineno = close_opened_tag(ctx, lines, lineno)
                 lines[lineno] = parse_all_single_line_tags(
-                    ctx, lines[lineno], draw_button)
+                    ctx, lines[lineno], draw_button
+                )
         else:
             if ctx["html_state"]["tag"] == "table":
                 if ctx["html_state"]["sub"] == "tr":
@@ -1324,14 +1343,16 @@ def rst2html(ctx, text, draw_button=False):
                 ctx["html_state"]["open_para"] -= 1
             if is_rst_tag(ctx, lines[lineno], "image"):
                 ctx["html_state"]["tag"] = "image"
-                ctx["html_state"]["url"] = get_rst_tokens(
-                    ctx, lines[lineno], "image")[0]
+                ctx["html_state"]["url"] = get_rst_tokens(ctx, lines[lineno], "image")[
+                    0
+                ]
                 del lines[lineno]
                 continue
             elif is_rst_tag(ctx, lines[lineno], "figure"):
                 ctx["html_state"]["tag"] = "figure"
-                ctx["html_state"]["url"] = get_rst_tokens(
-                    ctx, lines[lineno], "figure")[0]
+                ctx["html_state"]["url"] = get_rst_tokens(ctx, lines[lineno], "figure")[
+                    0
+                ]
                 del lines[lineno]
                 continue
             # else:
@@ -1516,7 +1537,8 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         if "{{" in tokens[0]:
             token = expand_macro_in_line(ctx, tokens[0], out_fmt=out_fmt)
             return expand_macro_in_line(
-                ctx, line[: x.start()] + token + line[x.end():], out_fmt=out_fmt)
+                ctx, line[: x.start()] + token + line[x.end():], out_fmt=out_fmt
+            )
         for sect in DEFINED_SECTIONS + DEFINED_TAG:
             if tokens[0].startswith(sect):
                 section = sect
@@ -1527,13 +1549,18 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
             value = ""
         if value and out_fmt in ("html", "troff"):
             value = parse_source(
-                ctx, value, in_fmt=in_fmt, out_fmt=out_fmt, section=section,
-                no_end_nl=("\n" not in tokens[0])
+                ctx,
+                value,
+                in_fmt=in_fmt,
+                out_fmt=out_fmt,
+                section=section,
+                no_end_nl=("\n" not in tokens[0]),
             )
             if "srctype" in ctx:
                 del ctx["srctype"]
             return expand_macro_in_line(
-                ctx, line[: x.start()] + value + line[x.end():], out_fmt=out_fmt)
+                ctx, line[: x.start()] + value + line[x.end():], out_fmt=out_fmt
+            )
 
         line = line[: x.start()] + value + line[x.end():]
         if len(value.split("\n")) > 1:
@@ -1560,7 +1587,7 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         left_margin = line[: x.start()]
         line = ""
         for ln in stdout.split("\n"):
-            line += (left_margin + ln + "\n")
+            line += left_margin + ln + "\n"
 
     return line
 
@@ -1610,9 +1637,13 @@ def is_rst_tag(ctx, line, tag):
 def get_rst_tokens(ctx, line, tag, maxsplit=None):
     return [
         x
-        for x in qsplit(re.match(ctx["pre_pat"] + tag + "::(.*)?$",
-                                 line).groups()[0],
-                        "", maxsplit, enquote=True, strip=True)
+        for x in qsplit(
+            re.match(ctx["pre_pat"] + tag + "::(.*)?$", line).groups()[0],
+            "",
+            maxsplit,
+            enquote=True,
+            strip=True,
+        )
         if x
     ]
 
@@ -1625,8 +1656,9 @@ def get_preproc_tokens(ctx, line, tag, maxsplit=None):
     rex = ctx["pre_pat"] + r"\$" + tag + r"(\W.*)?$"
     return [
         x
-        for x in qsplit(re.match(rex, line).groups()[0],
-                        "", maxsplit, enquote=True, strip=True)
+        for x in qsplit(
+            re.match(rex, line).groups()[0], "", maxsplit, enquote=True, strip=True
+        )
         if x
     ]
 
@@ -1737,17 +1769,14 @@ def compose_line_rst(ctx, line):
         # End directive
         if not line.startswith(" "):
             ctx["rst_state"] = ""
-    elif (
-            ctx["prior_lines"][-1]
-            and re.match(r"^(=+|-+|~+)$", ctx["prior_lines"][-1])
-    ):
+    elif ctx["prior_lines"][-1] and re.match(r"^(=+|-+|~+)$", ctx["prior_lines"][-1]):
         # Title level
         # ***********
         if (
-                ctx["rst_state"] == "cache"
-                and len(ctx["prior_lines"]) > 2
-                and re.match(r"^=+$", ctx["prior_lines"][-1])
-                and re.match(r"^=+$", ctx["prior_lines"][-3])
+            ctx["rst_state"] == "cache"
+            and len(ctx["prior_lines"]) > 2
+            and re.match(r"^=+$", ctx["prior_lines"][-1])
+            and re.match(r"^=+$", ctx["prior_lines"][-3])
         ):
             # ===========
             # Title level
@@ -1765,8 +1794,9 @@ def compose_line_rst(ctx, line):
             ctx["prior_lines"] = ctx["prior_lines"][-1:]
         else:
             ctx["rst_state"] = ""
-    elif ctx["rst_state"] == "cache" and (not ctx["prior_lines"][-1]
-                                          or len(ctx["prior_lines"]) > 2):
+    elif ctx["rst_state"] == "cache" and (
+        not ctx["prior_lines"][-1] or len(ctx["prior_lines"]) > 2
+    ):
         line = "\n".join(ctx["prior_lines"])
         ctx["rst_state"] = ""
         ctx["prior_lines"] = []
@@ -1793,8 +1823,9 @@ def tail(ctx, source, max_ctr=None, max_days=None, module=None, min_ctr=2):
                 break
             x = re.search(RE_PAT_DATE, line)
             try:
-                changelog_date = datetime.strptime(line[x.start(): x.end()],
-                                                   "%Y-%m-%d")
+                changelog_date = datetime.strptime(
+                    line[x.start(): x.end()], "%Y-%m-%d"
+                )
             except BaseException:
                 print("Invalid line <%s>" % line)
                 continue
@@ -1845,9 +1876,11 @@ def extract_imported_names(ctx):
                 if re.match(r"^ *from \. import", ln):
                     tokens = ln.strip().split()
                     name = tokens[3]
-                    if len(tokens) == 4 and name not in ("scripts",
-                                                         "travis",
-                                                         "_travis"):
+                    if len(tokens) == 4 and name not in (
+                        "scripts",
+                        "travis",
+                        "_travis",
+                    ):
                         imported_names.append(name)
     return imported_names
 
@@ -1855,10 +1888,11 @@ def extract_imported_names(ctx):
 def write_automodule(ctx):
     def write_1_automodule(ctx, name):
         fqn = "%s.%s" % (ctx["module_name"], name)
-        ctx["contents"] += ("\n" + fqn + "\n")
-        ctx["contents"] += ("~" * len(fqn))
+        ctx["contents"] += "\n" + fqn + "\n"
+        ctx["contents"] += "~" * len(fqn)
         ctx["contents"] += "\n\n"
         ctx["contents"] += ".. automodule:: %s\n" % fqn
+
     names = extract_imported_names(ctx)
     if names:
         rtd_fn = "./docs/rtd_automodule.rst"
@@ -1867,8 +1901,7 @@ def write_automodule(ctx):
             write_1_automodule(ctx, name)
         # if pth.isfile("./testenv/testenv.py"):
         #     write_1_automodule(ctx, "testenv")
-        contents = parse_local_file(
-            ctx, "rtd_template_automodule.rst", section="usage")
+        contents = parse_local_file(ctx, "rtd_template_automodule.rst", section="usage")
         with open(rtd_fn, "w") as fd:
             fd.write(contents)
         if "contents" in ctx:
@@ -1879,11 +1912,13 @@ def write_automodule(ctx):
 
 def load_subsection(ctx, fn, section, sub):
     fqn, ctx["contents"] = read_file_rst_or_csv(ctx, pth.join("./egg-info", fn))
-    return write_rtd_file(ctx,
-                          section,
-                          header="Digest of " + sub,
-                          fn=pth.join("docs", "rtd_" + pth.basename(fqn)),
-                          sub=sub)
+    return write_rtd_file(
+        ctx,
+        section,
+        header="Digest of " + sub,
+        fn=pth.join("docs", "rtd_" + pth.basename(fqn)),
+        sub=sub,
+    )
 
 
 def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
@@ -1897,16 +1932,15 @@ def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
     if name == section:
         ctx["header2"] = ""
         with open(rtd_fn, "w") as fd:
-            fd.write(parse_local_file(
-                ctx, "rtd_template.rst", section=section))
+            fd.write(parse_local_file(ctx, "rtd_template.rst", section=section))
     else:
         if not ctx[name]:
-            ctx[name] = (ctx["header1"] + "\n")
-            ctx[name] += ("=" * len(ctx["header1"]))
+            ctx[name] = ctx["header1"] + "\n"
+            ctx[name] += "=" * len(ctx["header1"])
             ctx[name] += "\n"
         ctx["header2"] = DEF_HEADER.get(section, section.title())
-        ctx[name] += ("\n" + ctx["header2"] + "\n")
-        ctx[name] += ("-" * len(ctx["header2"]))
+        ctx[name] += "\n" + ctx["header2"] + "\n"
+        ctx[name] += "-" * len(ctx["header2"])
         ctx[name] += "\n\n"
         ctx[name] += ctx[section]
     if "contents" in ctx:
@@ -1915,8 +1949,12 @@ def write_rtd_file(ctx, section, header=None, fn=None, sub=None):
     return (
         "   rtd_%s_%s\n" % (section, sub)
         if sub
-        else ("   %s\n" % pth.splitext(pth.basename(rtd_fn))[0]) if name == section
-        else "")
+        else (
+            ("   %s\n" % pth.splitext(pth.basename(rtd_fn))[0])
+            if name == section
+            else ""
+        )
+    )
 
 
 def write_rtd_group(ctx, name):
@@ -1936,7 +1974,8 @@ def write_rtd_group(ctx, name):
 def parse_include(ctx, section, line, in_fmt=None, out_fmt=None):
     filename = get_preproc_tokens(ctx, line, "include")[0]
     text = parse_local_file(
-        ctx, filename, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
+        ctx, filename, in_fmt=in_fmt, out_fmt=out_fmt, section=section
+    )
     if in_fmt == "rst":
         text = compose_line_rst(ctx, text)
     return text + "\n" if text else ""
@@ -1998,9 +2037,7 @@ def parse_pypi_packges(ctx):
 
 def parse_merge_docs(ctx):
     def get_module_dir(module):
-        module_dir = pth.abspath(
-            pth.join(os.getcwd(), "..")
-        )
+        module_dir = pth.abspath(pth.join(os.getcwd(), ".."))
         while pth.isdir(pth.join(module_dir, module)):
             # down to module root
             module_dir = pth.join(module_dir, module)
@@ -2017,13 +2054,13 @@ def parse_merge_docs(ctx):
                     target += module
                     rst_title = ln
                 elif rst_title == "Overview":
-                    target += ("=" * len(rst_title))
+                    target += "=" * len(rst_title)
                     rst_title = False
                 elif ln == "Usage":
                     target += ln
                     rst_title = ln
                 elif rst_title == "Usage":
-                    target += ("-" * len(rst_title))
+                    target += "-" * len(rst_title)
                     rst_title = False
                 else:
                     target += ln
@@ -2047,20 +2084,22 @@ def parse_merge_docs(ctx):
             if pth.isfile(src):
                 with open(src, "r") as fd:
                     out_sections[name] = read_split_readme(
-                        ctx, fd.read(), sections=name)[0]
+                        ctx, fd.read(), sections=name
+                    )[0]
                 for fn in os.listdir(module_dir):
                     base, ext = os.path.splitext(fn)
                     base = base[4:]
                     if (
-                            fn.startswith("rtd_")
-                            and ext == ".rst"
-                            and base.startswith(name)
-                            and base != name
+                        fn.startswith("rtd_")
+                        and ext == ".rst"
+                        and base.startswith(name)
+                        and base != name
                     ):
                         src = pth.join(module_dir, fn)
                         with open(src, "r") as fd:
-                            contents = read_split_readme(
-                                ctx, fd.read(), sections=name)[0]
+                            contents = read_split_readme(ctx, fd.read(), sections=name)[
+                                0
+                            ]
                         if contents:
                             # sub = base[len(name) + 1:]
                             # out_sections[name] += (sub + "\n")
@@ -2068,10 +2107,12 @@ def parse_merge_docs(ctx):
                             out_sections[name] += contents
         ctx["contents"] = out_sections["description"] + "\n" + out_sections["usage"]
         del out_sections
-        target += write_rtd_file(ctx,
-                                 module,
-                                 header=module.title(),
-                                 fn=pth.join("docs", "pypi_%s.rst" % module))
+        target += write_rtd_file(
+            ctx,
+            module,
+            header=module.title(),
+            fn=pth.join("docs", "pypi_%s.rst" % module),
+        )
     for section in PYPI_SECTIONS_FOO:
         target += write_rtd_file(ctx, section)
     target += "\n"
@@ -2084,8 +2125,7 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
         return ""
     if is_preproc:
         if is_preproc_tag(ctx, line, "include"):
-            line = parse_include(
-                ctx, section, line, in_fmt=in_fmt, out_fmt=out_fmt)
+            line = parse_include(ctx, section, line, in_fmt=in_fmt, out_fmt=out_fmt)
         elif is_preproc_tag(ctx, line, "block"):
             line = parse_block(ctx, section, line, in_fmt=in_fmt)
         elif is_preproc_tag(ctx, line, "set"):
@@ -2102,15 +2142,16 @@ def parse_line(ctx, line, in_fmt=None, out_fmt=None, section=None):
             target = ""
             for text in lines:
                 target += parse_line(
-                    ctx, text, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
+                    ctx, text, in_fmt=in_fmt, out_fmt=out_fmt, section=section
+                )
             return target
         line = lines[0]
         if (
-                section == "changelog"
-                and ctx["product_doc"] == "odoo"
-                and ctx["branch"]
-                and re.match(RE_PAT_MATCH_DATE, line)
-                and not line.startswith(ctx["branch"])
+            section == "changelog"
+            and ctx["product_doc"] == "odoo"
+            and ctx["branch"]
+            and re.match(RE_PAT_MATCH_DATE, line)
+            and not line.startswith(ctx["branch"])
         ):
             line = ctx["branch"] + "." + ctx["branch"].split(".", 1)[1]
         if in_fmt == "rst":
@@ -2132,10 +2173,12 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None, no_end_nl
         target += parse_line(ctx, line, in_fmt=in_fmt, out_fmt=out_fmt, section=section)
     if in_fmt == "rst" and out_fmt == "html":
         target = rst2html(
-            ctx, target,
-            draw_button=any([x
-                             for x in DRAW_SECTIONS
-                             if (section and section.startswith(x))]))
+            ctx,
+            target,
+            draw_button=any(
+                [x for x in DRAW_SECTIONS if (section and section.startswith(x))]
+            ),
+        )
     elif in_fmt == "rst" and out_fmt == "troff":
         target = totroff(target)
     elif out_fmt == "rst":
@@ -2187,12 +2230,13 @@ def read_file_rst_or_csv(ctx, fqn):
         remove_fqn = False
     if fqn_csv and pth.isfile(fqn_csv):
         args = [
-            "-b", ctx["branch"],
+            "-b",
+            ctx["branch"],
             # "-S" if ctx["product_doc"] == "pypi" else "",
             "-S",
             "-q",
             fqn_csv,
-            fqn
+            fqn,
         ]
         chain_python_cmd("cvt_csv_2_rst.py", args)
     if ctx["opt_verbose"] > 1:
@@ -2223,7 +2267,8 @@ def parse_local_file(
         action = "get_default_%s" % base
         if action in list(globals()):
             return parse_source(
-                ctx, globals()[action](ctx), out_fmt=out_fmt, section=section)
+                ctx, globals()[action](ctx), out_fmt=out_fmt, section=section
+            )
         return ""
 
     fqn, source = read_file_rst_or_csv(ctx, fqn)
@@ -2231,12 +2276,18 @@ def parse_local_file(
         ctx["%s_filename"] = fqn
     if not source and section == "acknowledges":
         source1 = parse_source(
-            ctx, source.replace("branch", "prior_branch"),
-            in_fmt=in_fmt, out_fmt=out_fmt, section=section
+            ctx,
+            source.replace("branch", "prior_branch"),
+            in_fmt=in_fmt,
+            out_fmt=out_fmt,
+            section=section,
         )
         source2 = parse_source(
-            ctx, source.replace("branch", "prior2_branch"),
-            in_fmt=in_fmt, out_fmt=out_fmt, section=section
+            ctx,
+            source.replace("branch", "prior2_branch"),
+            in_fmt=in_fmt,
+            out_fmt=out_fmt,
+            section=section,
         )
         source = parse_acknowledge_list(
             ctx, "\n".join(set(source1.split("\n")) | set(source2.split("\n")))
@@ -2271,8 +2322,7 @@ def fake_setup(**kwargs):
 def read_history(ctx, fqn, module=None):
     if module:
         with open(fqn, RMODE) as fd:
-            ctx["histories"] += tail(
-                ctx, _u(fd.read()), max_days=370, module=module)
+            ctx["histories"] += tail(ctx, _u(fd.read()), max_days=370, module=module)
     with open(fqn, RMODE) as fd:
         ctx["history-summary"] += tail(
             ctx, _u(fd.read()), max_ctr=1, max_days=30, module=module
@@ -2318,16 +2368,14 @@ def read_setup(ctx):
             for dir in dirs:
                 if dir == "tools":
                     continue
-                fqn = get_fqn(
-                    ctx, pth.join(root, dir, "egg-info"), "CHANGELOG.rst")
+                fqn = get_fqn(ctx, pth.join(root, dir, "egg-info"), "CHANGELOG.rst")
                 if pth.isfile(fqn):
                     read_history(ctx, fqn, module=pth.basename(dir))
 
         ctx["histories"] = sort_history(ctx["histories"])
         ctx["history-summary"] = sort_history(ctx["history-summary"])
     else:
-        fqn = get_fqn(
-            ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
+        fqn = get_fqn(ctx, pth.join(".", "egg-info"), "CHANGELOG.rst")
         if pth.isfile(fqn):
             with open(fqn, RMODE) as fd:
                 read_history(ctx, fqn)
@@ -2367,10 +2415,10 @@ def adj_version(ctx, odoo_version):
 def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
     def valid_dir(dirname):
         if (
-                dirname.startswith(".")
-                or dirname.startswith("_")
-                or dirname.endswith("~")
-                or dirname in INVALID_NAMES
+            dirname.startswith(".")
+            or dirname.startswith("_")
+            or dirname.endswith("~")
+            or dirname in INVALID_NAMES
         ):
             return False
         return True
@@ -2426,13 +2474,15 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
                         break
                 except KeyError:
                     pass
-                fqn = get_fqn(
-                    ctx, pth.join(root, "readme"), "CHANGELOG.rst")
+                fqn = get_fqn(ctx, pth.join(root, "readme"), "CHANGELOG.rst")
                 if pth.isfile(fqn):
                     with open(fqn, RMODE) as fd:
                         ctx["histories"] += tail(
-                            ctx, _u(fd.read()),
-                            min_ctr=0, max_days=370, module=module_name
+                            ctx,
+                            _u(fd.read()),
+                            min_ctr=0,
+                            max_days=370,
+                            module=module_name,
                         )
                         if not no_history:
                             with open(fqn, RMODE) as fd:
@@ -2493,24 +2543,25 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
 
 def manifest_item(ctx, item):
     q = ctx["quote_with"]
-    if (
-            isinstance(ctx["manifest"][item], basestring)
-            and ctx["manifest"][item] in ("True", "False")
+    if isinstance(ctx["manifest"][item], basestring) and ctx["manifest"][item] in (
+        "True",
+        "False",
     ):
         ctx["manifest"][item] = eval(ctx["manifest"][item])
     if (
         item in MANIFEST_ITEMS_OPTIONAL
-        and item in ctx and (ctx[item] is False or ctx[item] == [])
+        and item in ctx
+        and (ctx[item] is False or ctx[item] == [])
     ):
         target = ""
     elif item in ("website", "maintainer"):
-        target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, ctx[item], q)
+        target = "    %s%s%s: %s%s%s,\n" % (q, item, q, q, ctx[item], q)
     elif item == "author":
         text = ctx["manifest"][item]
         if len(text) < 70:
-            target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, text, q)
+            target = "    %s%s%s: %s%s%s,\n" % (q, item, q, q, text, q)
         else:
-            target = '    %s%s%s: (' % (q, item, q)
+            target = "    %s%s%s: (" % (q, item, q)
             authors = text.split(",")
             slice = []
             slice_len = 0
@@ -2521,14 +2572,14 @@ def manifest_item(ctx, item):
                     slice.append(auth)
                     continue
                 text = ",".join(slice)
-                target += (q + comma + text + q + "\n")
+                target += q + comma + text + q + "\n"
                 comma = ","
                 slice = [auth]
                 slice_len = len(auth)
             if slice:
                 text = ",".join(slice)
-                target += ("               " + q + comma + text + q + "\n")
-            target = target[: -1] + "),\n"
+                target += "               " + q + comma + text + q + "\n"
+            target = target[:-1] + "),\n"
     elif isinstance(ctx["manifest"][item], basestring):
         while ctx["manifest"][item].startswith("\n"):
             ctx["manifest"][item] = ctx["manifest"][item][1:]
@@ -2549,19 +2600,25 @@ def manifest_item(ctx, item):
                     target += '%s"""\n' % ln
         else:
             text = ctx["manifest"][item].replace('"', "'")
-            target = '    %s%s%s: %s%s%s,\n' % (q, item, q, q, text, q)
+            target = "    %s%s%s: %s%s%s,\n" % (q, item, q, q, text, q)
     elif isinstance(ctx["manifest"][item], list):
         if len(ctx["manifest"][item]) == 0:
             target = ""
         elif len(ctx["manifest"][item]) == 1:
-            target = '    %s%s%s: [%s%s%s],\n' % (
-                q, item, q, q, ctx["manifest"][item][0], q)
+            target = "    %s%s%s: [%s%s%s],\n" % (
+                q,
+                item,
+                q,
+                q,
+                ctx["manifest"][item][0],
+                q,
+            )
         else:
-            target = '    %s%s%s: [\n' % (q, item, q)
+            target = "    %s%s%s: [\n" % (q, item, q)
             for kk in ctx["manifest"][item]:
                 if isinstance(kk, basestring):
                     text = kk.replace(q, "\\" + q)
-                    target += '        %s%s%s,\n' % (q, text, q)
+                    target += "        %s%s%s,\n" % (q, text, q)
                 else:
                     text = str(kk)
                     target += "        %s,\n" % text
@@ -2570,17 +2627,17 @@ def manifest_item(ctx, item):
         if len(ctx["manifest"][item]) == 0:
             target = ""
         else:
-            target = '    %s%s%s: {\n' % (q, item, q)
+            target = "    %s%s%s: {\n" % (q, item, q)
             for key, value in ctx["manifest"][item].items():
-                target += '        %s%s%s: [\n' % (q, key, q)
+                target += "        %s%s%s: [\n" % (q, key, q)
                 for package in value:
                     text = package.replace(q, "\\" + q)
-                    target += '            %s%s%s,\n' % (q, text, q)
-                target += '        ],\n'
+                    target += "            %s%s%s,\n" % (q, text, q)
+                target += "        ],\n"
             target += "    },\n"
     else:
         text = str(ctx["manifest"][item])
-        target = '    %s%s%s: %s,\n' % (q, item, q, text)
+        target = "    %s%s%s: %s,\n" % (q, item, q, text)
     return target
 
 
@@ -2623,9 +2680,9 @@ def manifest_contents(ctx):
     target += "{\n"
     for item in MANIFEST_ITEMS:
         if (
-                item not in ctx["manifest"]
-                and item in MANIFEST_ITEMS_REQUIRED
-                and ctx.get(item)
+            item not in ctx["manifest"]
+            and item in MANIFEST_ITEMS_REQUIRED
+            and ctx.get(item)
         ):
             ctx["manifest"][item] = ctx[item]
         elif item == "depends":
@@ -2663,12 +2720,13 @@ def manifest_contents(ctx):
             and ctx["from_version"]
             and ctx["manifest"][item].startswith(ctx["from_version"])
         ):
-            ctx["manifest"][item] = (ctx["from_version"] + "."
-                                     + ctx["manifest"][item].split(".", 2)[-1])
+            ctx["manifest"][item] = (
+                ctx["from_version"] + "." + ctx["manifest"][item].split(".", 2)[-1]
+            )
         elif (
-                (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace")
-                and item in MANIFEST_ITEMS_MARKETPLACE
-                and ctx["rewrite_manifest"]
+            (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace")
+            and item in MANIFEST_ITEMS_MARKETPLACE
+            and ctx["rewrite_manifest"]
         ):
             if item == "images":
                 value = eval(ctx.get(item, "[]")) or ctx["def_images"]
@@ -2688,8 +2746,11 @@ def manifest_contents(ctx):
                 ctx["manifest"][item] = "cc@shs-av.com"
             elif item == "application":
                 ctx["manifest"][item] = True
-        elif item in ("pre_init_hook",
-                      "post_init_hook") and ctx["migrate"] and item in ctx["manifest"]:
+        elif (
+            item in ("pre_init_hook", "post_init_hook")
+            and ctx["migrate"]
+            and item in ctx["manifest"]
+        ):
             del ctx["manifest"][item]
         elif ctx.get(item):
             ctx["manifest"][item] = ctx[item]
@@ -2775,8 +2836,9 @@ def set_default_values(ctx):
         and ctx["rewrite_manifest"]
     ):
         ctx["dst_file"] = ctx["manifest_filename"]
-    elif ctx["product_doc"] == "odoo" and (ctx["write_index"]
-                                           or ctx["odoo_marketplace"]):
+    elif ctx["product_doc"] == "odoo" and (
+        ctx["write_index"] or ctx["odoo_marketplace"]
+    ):
         if pth.isdir("./static/description"):
             ctx["dst_file"] = "./static/description/index.html"
         else:
@@ -2832,8 +2894,9 @@ def set_default_values(ctx):
             ctx["repos_name"],
         )
     if ctx["product_doc"] == "odoo":
-        ctx["src_icon"] = ctx["manifest"].get(
-            "category", "").strip().split(" ")[0].lower() + ".png"
+        ctx["src_icon"] = (
+            ctx["manifest"].get("category", "").strip().split(" ")[0].lower() + ".png"
+        )
 
 
 def setup_names(fn, email=None):
@@ -2841,9 +2904,11 @@ def setup_names(fn, email=None):
         with open(fn, RMODE) as fd:
             return ", ".join(
                 [
-                    x.split("*", 1)[1].split("<", 1)[0].strip()
-                    if x.startswith("*")
-                    else x.split("<", 1)[0].strip()
+                    (
+                        x.split("*", 1)[1].split("<", 1)[0].strip()
+                        if x.startswith("*")
+                        else x.split("<", 1)[0].strip()
+                    )
                     for x in fd.read().split("\n")
                     if x
                 ]
@@ -2852,9 +2917,11 @@ def setup_names(fn, email=None):
         with open(fn, RMODE) as fd:
             return ", ".join(
                 [
-                    "<" + x.split("*", 1)[1].split("<", 1)[1].strip()
-                    if x.startswith("*")
-                    else "<" + x.split("<", 1)[1].strip()
+                    (
+                        "<" + x.split("*", 1)[1].split("<", 1)[1].strip()
+                        if x.startswith("*")
+                        else "<" + x.split("<", 1)[1].strip()
+                    )
                     for x in fd.read().split("\n")
                     if x
                 ]
@@ -2885,21 +2952,21 @@ def complete_setup(ctx, setup_fn):
         contents = ""
         for line in fd.read().split("\n"):
             if AUTH_RE.match(line):
-                line = "author = \"%s\"" % setup_names(
+                line = 'author = "%s"' % setup_names(
                     "egg-info/CONTRIBUTORS.txt", email="name"
                 )
             elif EMAIL_RE.match(line):
-                line = "author_email = \"%s\"" % setup_names(
+                line = 'author_email = "%s"' % setup_names(
                     "egg-info/CONTRIBUTORS.txt", email="email"
                 )
             elif URL_RE.match(line):
-                line = line.split("=")[0] + ("=\"%s\"," % SOURCE_ROOT)
+                line = line.split("=")[0] + ('="%s",' % SOURCE_ROOT)
             elif SOURCE_URL_RE.match(line):
-                line = "source_url = \"%s\"" % (SOURCE_URL % ctx["module_name"])
+                line = 'source_url = "%s"' % (SOURCE_URL % ctx["module_name"])
             elif DOC_URL_RE.match(line):
-                line = "doc_url = \"%s\"" % (DOC_URL % ctx["module_name"])
+                line = 'doc_url = "%s"' % (DOC_URL % ctx["module_name"])
             elif CHANGELOG_RE.match(line):
-                line = "changelog_url = \"%s\"" % (CHANGELOG_URL % ctx["module_name"])
+                line = 'changelog_url = "%s"' % (CHANGELOG_URL % ctx["module_name"])
             contents += line
             contents += "\n"
     with open(setup_fn, "w") as fd:
@@ -2930,54 +2997,43 @@ def read_split_readme(ctx, source, sections=None):
             out_sections = init_out_sections(sections)
             ix += 1
             continue
-        elif (
-            re.match(r"^[A-Za-z]\w\w+", line)
-            and re.match("^[-=~]+$", next_line)
-        ):
+        elif re.match(r"^[A-Za-z]\w\w+", line) and re.match("^[-=~]+$", next_line):
             x = line.split("/")[0].strip().lower()
             if x in DEFINED_SECTIONS:
                 cur_sect = x
                 ix += 2
                 continue
-            elif (
-                    x == "overview"
-                    or x.startswith(ctx["module_name"] + " ")
-            ):
+            elif x == "overview" or x.startswith(ctx["module_name"] + " "):
                 cur_sect = "description"
                 out_sections[cur_sect] = ""
                 ix += 2
                 continue
             elif x.startswith("digest "):
                 cur_sect = "description"
-        elif (
-            re.match(r"^\|icon\| [A-Za-z]\w\w+", line)
-            and re.match("^=+$", next_line)
-        ):
+        elif re.match(r"^\|icon\| [A-Za-z]\w\w+", line) and re.match("^=+$", next_line):
             out_sections = init_out_sections(sections)
             ix += 1
             continue
         elif re.match("^-+$", line) and not prior_line:
             cur_sect = ""
-        elif (
-            re.match(r"^\|$", line)
-            and (cur_sect in ("authors", "contributors")
-                 or re.match(r"^\|$", next_line))
+        elif re.match(r"^\|$", line) and (
+            cur_sect in ("authors", "contributors") or re.match(r"^\|$", next_line)
         ):
             cur_sect = ""
         elif re.match(r"^\* *[|.:]", line):
             cur_sect = ""
 
         if cur_sect in list(out_sections.keys()):
-            out_sections[cur_sect] += (line + "\n")
+            out_sections[cur_sect] += line + "\n"
         ix += 1
     for sect in list(out_sections.keys()):
         while (
-                out_sections[sect].startswith("\n")
-                or out_sections[sect].startswith(" \n")
-                or out_sections[sect].startswith("|\n")
-                or out_sections[sect].startswith("|it| N/D")
-                or out_sections[sect].startswith("|en| N/A")
-                or out_sections[sect].startswith("|en| No info available")
+            out_sections[sect].startswith("\n")
+            or out_sections[sect].startswith(" \n")
+            or out_sections[sect].startswith("|\n")
+            or out_sections[sect].startswith("|it| N/D")
+            or out_sections[sect].startswith("|en| N/A")
+            or out_sections[sect].startswith("|en| No info available")
         ):
             out_sections[sect] = out_sections[sect].split("\n", 1)[1]
         while out_sections[sect].endswith("\n\n"):
@@ -2998,8 +3054,10 @@ def merge_lists(ctx, left, right):
     else:
         rights = []
         for ln in (
-                right.split(",")
-                if "," in right and "\n" not in right else right.split("\n")):
+            right.split(",")
+            if "," in right and "\n" not in right
+            else right.split("\n")
+        ):
             if ln:
                 res = ctx["license_mgnt"].extract_info_from_line(ln, force=True)
                 if res[1]:
@@ -3008,10 +3066,10 @@ def merge_lists(ctx, left, right):
         found = False
         for left_item in lefts:
             if (
-                    (right_item[0] and right_item[0] == left_item[0])
-                    or (right_item[1] and right_item[1] == left_item[1])
-                    or (right_item[2] and right_item[2] == left_item[2])
-                    or (right_item[3] and right_item[3] == left_item[3])
+                (right_item[0] and right_item[0] == left_item[0])
+                or (right_item[1] and right_item[1] == left_item[1])
+                or (right_item[2] and right_item[2] == left_item[2])
+                or (right_item[3] and right_item[3] == left_item[3])
             ):
                 found = True
                 for ix in range(3):
@@ -3037,16 +3095,18 @@ def item_2_text(ctx, section):
 
     if section == "authors":
         ctx["manifest"]["author"] = ",".join([x[1] for x in ctx[section]])
-        ctx[section] = "\n".join(
-            [(get_fmt(x) % (x[1], x[2])) for x in ctx[section]])
+        ctx[section] = "\n".join([(get_fmt(x) % (x[1], x[2])) for x in ctx[section]])
     elif section == "maintainer":
         if len(ctx[section]):
             ctx["manifest"]["maintainer"] = ctx[section][0][1]
             ctx[section] = get_fmt(ctx[section][0]) % (
-                ctx[section][0][1], ctx[section][0][3] or ctx[section][0][2])
+                ctx[section][0][1],
+                ctx[section][0][3] or ctx[section][0][2],
+            )
     else:
         ctx[section] = "\n".join(
-            [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]])
+            [(get_fmt(x) % (x[1], x[3] or x[2])) for x in ctx[section]]
+        )
     if section == "acknowledges":
         sect_hdr = section + "_hdr"
         load_section_from_file(ctx, sect_hdr)
@@ -3084,13 +3144,17 @@ def load_section_from_file(ctx, section, is_tag=None):
         ctx["%s_img" % section] = ""
     img_fqn = look_up_image(ctx, section)
     if img_fqn:
-        ctx["%s_img" % section] = """.. figure:: %s
+        ctx["%s_img" % section] = (
+            """.. figure:: %s
 :alt: %s
-:width: 98%%""" % (
-            url_by_doc(
-                ctx,
-                "/%s/static/description/%s" % (ctx["module_name"], img_fqn)),
-            ctx["name"])
+:width: 98%%"""
+            % (
+                url_by_doc(
+                    ctx, "/%s/static/description/%s" % (ctx["module_name"], img_fqn)
+                ),
+                ctx["name"],
+            )
+        )
         ctx["def_images"].append(img_fqn)
 
 
@@ -3104,9 +3168,7 @@ def write_rst_file(ctx, path, section):
     ):
         ctx[section] = ctx["histories"]
         force_write = True
-    elif (
-        section in ("authors", "contributors")
-    ):
+    elif section in ("authors", "contributors"):
         force_write = True
     if force_write or pth.isfile(fqn):
         with open(fqn, "w") as fd:
@@ -3185,11 +3247,9 @@ def generate_readme(ctx):
     def set_authors(ctx):
         section = "authors"
         if ctx["manifest"].get("author"):
-            ctx[section] = merge_lists(
-                ctx, ctx["manifest"]["author"], ctx[section])
+            ctx[section] = merge_lists(ctx, ctx["manifest"]["author"], ctx[section])
         else:
-            ctx[section] = merge_lists(
-                ctx, ctx["rdme_authors"], ctx[section])
+            ctx[section] = merge_lists(ctx, ctx["rdme_authors"], ctx[section])
         authors = []
         for item in ctx[section]:
             if not item[2] and item[3]:
@@ -3207,13 +3267,10 @@ def generate_readme(ctx):
             ctx[section].append(ctx["license_mgnt"].get_info_from_id(ctx["git_orgid"]))
         left = item_2_set(ctx["license_mgnt"].org_ids, field="author")
         right = item_2_set(ctx[section], field=1)
-        if (
-                not ctx["suppress_warning"]
-                and left != right
-        ):
+        if not ctx["suppress_warning"] and left != right:
             print_red_message(
-                "*** Warning: authors %s in documentation do not match expected %s!" % (
-                    ",".join(left), ",".join(right))
+                "*** Warning: authors %s in documentation do not match expected %s!"
+                % (",".join(left), ",".join(right))
             )
 
     def set_contributors(ctx):
@@ -3228,16 +3285,19 @@ def generate_readme(ctx):
             ctx["manifest"][section] = ctx["manifest"]["author_email"]
         if ctx["write_authinfo"]:
             ctx[section] = ctx["license_mgnt"].get_website(
-                org_id=ctx["git_orgid"],
-                repo=ctx["repos_name"]) or ctx["manifest"].get(section, "")
+                org_id=ctx["git_orgid"], repo=ctx["repos_name"]
+            ) or ctx["manifest"].get(section, "")
         else:
             ctx[section] = ctx["manifest"].get(
-                section, ctx["license_mgnt"].get_website(
-                    org_id=ctx["git_orgid"], repo=ctx["repos_name"]))
+                section,
+                ctx["license_mgnt"].get_website(
+                    org_id=ctx["git_orgid"], repo=ctx["repos_name"]
+                ),
+            )
         if not ctx["suppress_warning"] and ctx["manifest"].get(section) != ctx[section]:
             print_red_message(
-                "*** Warning: website %s in the manifest replaced by %s!" % (
-                    ctx["manifest"].get(section, ""), ctx[section])
+                "*** Warning: website %s in the manifest replaced by %s!"
+                % (ctx["manifest"].get(section, ""), ctx[section])
             )
         ctx["manifest"][section] = ctx[section]
 
@@ -3245,11 +3305,14 @@ def generate_readme(ctx):
         section = "maintainer"
         if ctx["write_authinfo"]:
             ctx[section] = ctx["manifest"].get(
-                section, ctx["license_mgnt"].get_maintainer())
+                section, ctx["license_mgnt"].get_maintainer()
+            )
         elif not ctx[section]:
             ctx[section] = merge_lists(
-                ctx, ctx["manifest"].get(section, ""),
-                ctx["license_mgnt"].get_maintainer())
+                ctx,
+                ctx["manifest"].get(section, ""),
+                ctx["license_mgnt"].get_maintainer(),
+            )
         else:
             if isinstance(ctx[section], (list, tuple)):
                 res = ctx["license_mgnt"].extract_info_from_line(ctx[section][0][1])
@@ -3259,27 +3322,27 @@ def generate_readme(ctx):
                 ctx[section] = [res]
             else:
                 ctx[section] = ctx["manifest"].get(
-                    section, ctx["license_mgnt"].get_maintainer())
+                    section, ctx["license_mgnt"].get_maintainer()
+                )
 
     def set_license(ctx):
         section = "license"
         if ctx["opt_gpl"]:
             left = ctx["license_mgnt"].license_code(ctx["manifest"].get(section))
             right = ctx["opt_gpl"]
-            if (
-                    not ctx["suppress_warning"]
-                    and left != right
-            ):
+            if not ctx["suppress_warning"] and left != right:
                 print_red_message(
-                    "*** Warning: manifest license %s does not match expected %s!" % (
+                    "*** Warning: manifest license %s does not match expected %s!"
+                    % (
                         ctx["license_mgnt"].license_text(left),
-                        ctx["license_mgnt"].license_text(right)
-                        )
+                        ctx["license_mgnt"].license_text(right),
+                    )
                 )
         if ctx["opt_gpl"] or not ctx["manifest"].get(section):
             if ctx["opt_gpl"] not in ("agpl", "lgpl", "opl", "oee"):
                 ctx["opt_gpl"] = ctx["license_mgnt"].get_license(
-                    odoo_majver=ctx["odoo_majver"])
+                    odoo_majver=ctx["odoo_majver"]
+                )
             ctx[section] = ctx["license_mgnt"].license_text(ctx["opt_gpl"])
             ctx["manifest"][section] = ctx[section]
         else:
@@ -3340,20 +3403,19 @@ def generate_readme(ctx):
         tgt_fqn = pth.join(ctx["img_dir"], destination_fn or src_fn)
         if not pth.isfile(tgt_fqn):
             if ctx["debug_template"]:
-                src_fqn = pth.join(ctx["home_devel"],
-                                   "pypi",
-                                   "tools",
-                                   "templates",
-                                   "odoo",
-                                   "icons",
-                                   src_fn)
+                src_fqn = pth.join(
+                    ctx["home_devel"],
+                    "pypi",
+                    "tools",
+                    "templates",
+                    "odoo",
+                    "icons",
+                    src_fn,
+                )
             else:
-                src_fqn = pth.join(ctx["odoo_root"],
-                                   "tools",
-                                   "templates",
-                                   "odoo",
-                                   "icons",
-                                   src_fn)
+                src_fqn = pth.join(
+                    ctx["odoo_root"], "tools", "templates", "odoo", "icons", src_fn
+                )
             if pth.isfile(src_fqn):
                 copyfile(src_fqn, tgt_fqn)
 
@@ -3443,10 +3505,9 @@ def generate_readme(ctx):
 
     if ctx["write_authinfo"]:
         write_egg_info(ctx)
-    if (
-            (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace")
-            and ctx["product_doc"]
-    ):
+    if (ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace") and ctx[
+        "product_doc"
+    ]:
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")
         img_fqn = look_up_image(ctx, "banner")
         if img_fqn:
@@ -3458,7 +3519,8 @@ def generate_readme(ctx):
 
         for country in ("l10n_uk", "l10n_us", "l10n_it"):
             src_icon = pth.join(
-                src_icon_path, "addons", country, "static", "description", "icon.png")
+                src_icon_path, "addons", country, "static", "description", "icon.png"
+            )
             icon_fqn = pth.join("static", "description", "%s.png" % country)
             copyfile(src_icon, icon_fqn)
             ctx["def_images"].append(icon_fqn)
@@ -3473,7 +3535,8 @@ def generate_readme(ctx):
         with open(tmp_file, "w") as fd:
             fd.write(_c(target))
         cmdline = "docutils --writer=odf_odt %s --output=%s --no-generator" % (
-            tmp_file, ctx["dst_file"]
+            tmp_file,
+            ctx["dst_file"],
         )
         if ctx["opt_verbose"]:
             print("Writing %s" % ctx["dst_file"])
@@ -3488,17 +3551,21 @@ def generate_readme(ctx):
     elif ctx["write_index"] and ctx["product_doc"] == "odoo":
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")
         if not ctx["template_name"]:
-            ctx["template_name"] = ("marketplace_index.html"
-                                    if ctx["odoo_marketplace"]
-                                    else "readme_index.html")
+            ctx["template_name"] = (
+                "marketplace_index.html"
+                if ctx["odoo_marketplace"]
+                else "readme_index.html"
+            )
         target = index_html_content(
             ctx, parse_local_file(ctx, ctx["template_name"], out_fmt="html")
         )
     elif ctx["write_index"] and ctx["product_doc"] == "pypi":
         if not ctx["template_name"]:
-            ctx["template_name"] = ("module_index.rst"
-                                    if ctx["odoo_layer"] == "module"
-                                    else "pypi_index.rst")
+            ctx["template_name"] = (
+                "module_index.rst"
+                if ctx["odoo_layer"] == "module"
+                else "pypi_index.rst"
+            )
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
     elif ctx["rewrite_manifest"] and ctx["odoo_layer"] == "module":
         if ctx["product_doc"] != "odoo":
@@ -3509,8 +3576,9 @@ def generate_readme(ctx):
             ctx["template_name"] = "readme_main_%s.rst" % ctx["odoo_layer"]
         target = parse_local_file(ctx, ctx["template_name"], out_fmt="rst")
 
-    if ctx["odoo_marketplace"] and (not ctx["manifest"].get("images")
-                                    or not ctx["manifest"].get("application")):
+    if ctx["odoo_marketplace"] and (
+        not ctx["manifest"].get("images") or not ctx["manifest"].get("application")
+    ):
         print_red_message("Missed images/application declaration in the manifest!!!")
         print_red_message("run gen_readme -R")
     dst_file = ctx["dst_file"]
@@ -3558,17 +3626,20 @@ def main(cli_args=None):
     )
     parser.add_argument("-F", "--from-version")
     parser.add_argument(
-        "-f", "--force",
+        "-f",
+        "--force",
         action="store_true",
         help="force creating documentation even if doc dirs do not exit",
     )
     parser.add_argument("-G", "--git-org", action="store", dest="git_orgid")
     parser.add_argument("-g", "--gpl-info", action="store", dest="opt_gpl", default="")
     parser.add_argument(
-        "-H", "-I", "--write-index",
+        "-H",
+        "-I",
+        "--write-index",
         action="store_true",
         dest="write_index",
-        help="write index.html rather than README.rst"
+        help="write index.html rather than README.rst",
     )
     parser.add_argument(
         "-l", "--layer", action="store", help="ocb|module|repository", dest="odoo_layer"
@@ -3586,7 +3657,8 @@ def main(cli_args=None):
     )
     parser.add_argument("-n")
     parser.add_argument(
-        "-O", "--odoo_marketplace",
+        "-O",
+        "--odoo_marketplace",
         action="store_true",
         help="create index.html with Odoo marketplace rules",
     )
@@ -3609,7 +3681,7 @@ def main(cli_args=None):
     parser.add_argument("-q")
     parser.add_argument("-R", "--rewrite-manifest", action="store_true")
     parser.add_argument("-r", "--repos_name", action="store", help="dirname")
-    parser.add_argument("-Q", "--quote-with", help="CHAR", default="\"")
+    parser.add_argument("-Q", "--quote-with", help="CHAR", default='"')
     parser.add_argument("-t", "--template_name", action="store", help="filename")
     parser.add_argument("-T", "--trace-file", action="store_true")
     parser.add_argument("-V")
@@ -3617,10 +3689,11 @@ def main(cli_args=None):
     parser.add_argument("-W", "--write-authinfo", action="store_true")
     parser.add_argument("-w", "--suppress-warning", action="store_true")
     parser.add_argument(
-        "-X", "--write-office",
+        "-X",
+        "--write-office",
         action="store_true",
         dest="write_office",
-        help="write openoffice/libreoffic fragment help"
+        help="write openoffice/libreoffic fragment help",
     )
     parser.add_argument(
         "-Y", "--write-man-page", action="store_true", dest="write_man_page"
@@ -3631,4 +3704,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

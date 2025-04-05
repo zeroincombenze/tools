@@ -33,11 +33,13 @@ BUGS
 SEE ALSO
     Full documentation at: <https://zeroincombenze-tools.readthedocs.io/>
 """
+
 import os
 import os.path as pth
 import sys
 import argparse
 import re
+
 # from subprocess import call
 import itertools
 
@@ -111,7 +113,8 @@ class Please(object):
                     sys.exit(126)
                 if action != "help" and not self.objname:
                     self.log_error(
-                        "Missed object for action %s" % "+".join(self.actions))
+                        "Missed object for action %s" % "+".join(self.actions)
+                    )
                     if self.main_action:
                         self.log_warning(
                             "Please specify one of %s"
@@ -279,7 +282,8 @@ class Please(object):
             verbose=verbose if verbose is not None else self.opt_args.verbose,
             dry_run=self.opt_args.dry_run,
             rtime=rtime if rtime is not None else (verbose and verbose > 1),
-            with_shell=with_shell)
+            with_shell=with_shell,
+        )
 
     def add_argument(self, parser, arg):
         if arg in ("-B", "--debug"):
@@ -295,9 +299,7 @@ class Please(object):
                 help="default Odoo version",
             )
         elif arg in ("-C", "--odoo-config"):
-            parser.add_argument(
-                "-C", "--ignore-cache", action="store_true"
-            )
+            parser.add_argument("-C", "--ignore-cache", action="store_true")
         elif arg in ("-c", "--odoo-config"):
             parser.add_argument(
                 "-c", "--odoo-config", metavar="FILE", help="Odoo configuration file"
@@ -336,11 +338,9 @@ class Please(object):
                 help="do nothing (dry-run)",
                 action="store_true",
             )
-        elif arg in ('-O', '--oca'):
+        elif arg in ("-O", "--oca"):
             parser.add_argument(
-                "-O", "--oca",
-                action="store_true",
-                help="Use oca tools when possible"
+                "-O", "--oca", action="store_true", help="Use oca tools when possible"
             )
         elif arg in ("-q", "--quite"):
             parser.add_argument(
@@ -430,7 +430,7 @@ class Please(object):
                 arg = cmd_subst
                 cmd_subst = None
             else:
-                for (k, v) in slist:
+                for k, v in slist:
                     if arg == k:
                         arg = v
                     elif arg.startswith("--") and k.startswith("--"):
@@ -438,22 +438,23 @@ class Please(object):
                         if arg.split("=", 1)[0] == k:
                             arg = v + "=" + arg.split("=", 1)[1] if v else None
                     elif (
-                            arg.startswith("-") and not arg.startswith("--")
-                            and k.startswith("-") and not k.startswith("--")
+                        arg.startswith("-")
+                        and not arg.startswith("--")
+                        and k.startswith("-")
+                        and not k.startswith("--")
                     ):
                         # -s value or -svalue
                         if k[1] in arg and "*" in k:
                             if arg.endswith(k[1]):
                                 ignore_arg = True
-                            arg = arg[:arg.index(k[1])]
+                            arg = arg[: arg.index(k[1])]
                         elif k[1] in arg:
                             arg = arg.replace(k[1], v)
             if arg is None or arg == self.objname and rm_obj:
                 continue
             for kk in ("-v", "--verbose"):
-                if (
-                        arg.startswith(kk)
-                        and any([arg.startswith(k) for k in inherit_opts])
+                if arg.startswith(kk) and any(
+                    [arg.startswith(k) for k in inherit_opts]
                 ):
                     inherit_found[kk] = True
             if "<" in arg or ">" in arg:
@@ -468,7 +469,7 @@ class Please(object):
             elif "'" in arg:
                 arg = '"%s"' % arg
             params += arg + " "
-        for (k, v) in inherit_found.items():
+        for k, v in inherit_found.items():
             if not v:
                 params += k + " "
         return params.strip()
@@ -503,8 +504,11 @@ class Please(object):
             and not self.objname
             # and len(self.default_obj.get(self.actions, [])) == 1
         ):
-            objs = list(itertools.chain.from_iterable(
-                [self.default_obj[x] for x in self.default_obj if x in self.actions]))
+            objs = list(
+                itertools.chain.from_iterable(
+                    [self.default_obj[x] for x in self.default_obj if x in self.actions]
+                )
+            )
             if len(objs) == 1:
                 self.objname = objs[0]
         if not self.objname and self.sub1 and self.sub1 in self.known_objs:
@@ -586,10 +590,7 @@ class Please(object):
             pth.isdir(pkgpath)
             and path.startswith(root)
             and pth.isfile(pth.join(root, "setup.py"))
-            and (
-                pth.isfile(pth.join(pkgpath, "__init__.py"))
-                or pkgname == "tools"
-            )
+            and (pth.isfile(pth.join(pkgpath, "__init__.py")) or pkgname == "tools")
         ) or (
             pth.isdir(pkgpath2)
             and path.startswith(pkgpath2)
@@ -625,9 +626,12 @@ class Please(object):
             and pth.isdir(pth.join(path, "addons"))
             and (
                 pth.isdir(pth.join(path, "odoo"))
-                and pth.isfile(pth.join(path, "odoo", "__init__.py")))
-                or (pth.isdir(pth.join(path, "openerp"))
-                    and pth.isfile(pth.join(path, "odoo", "__init__.py")))
+                and pth.isfile(pth.join(path, "odoo", "__init__.py"))
+            )
+            or (
+                pth.isdir(pth.join(path, "openerp"))
+                and pth.isfile(pth.join(path, "odoo", "__init__.py"))
+            )
         ):
             return True
         if pth.basename(path) in ("addons", "odoo", "openerp"):
@@ -646,28 +650,32 @@ class Please(object):
 
     def get_next_module_path(self, path=None):
         path = path or os.getcwd()
-        if (
-                pth.isdir(pth.join(path, "odoo", "addons"))
-                and pth.isdir(pth.join(path, "addons"))
+        if pth.isdir(pth.join(path, "odoo", "addons")) and pth.isdir(
+            pth.join(path, "addons")
         ):
             paths = []
             for root in pth.join(path, "odoo", "addons"), pth.join(path, "addons"):
-                paths += [pth.join(root, x)
-                          for x in os.listdir(root)
-                          if pth.isdir(pth.join(root, x))]
-        elif (
-                pth.isdir(pth.join(path, "openerp", "addons"))
-                and pth.isdir(pth.join(path, "addons"))
+                paths += [
+                    pth.join(root, x)
+                    for x in os.listdir(root)
+                    if pth.isdir(pth.join(root, x))
+                ]
+        elif pth.isdir(pth.join(path, "openerp", "addons")) and pth.isdir(
+            pth.join(path, "addons")
         ):
             paths = []
             for root in pth.join(path, "openerp", "addons"), pth.join(path, "addons"):
-                paths += [pth.join(root, x)
-                          for x in os.listdir(root)
-                          if pth.isdir(pth.join(root, x))]
+                paths += [
+                    pth.join(root, x)
+                    for x in os.listdir(root)
+                    if pth.isdir(pth.join(root, x))
+                ]
         else:
-            paths = [pth.join(path, x)
-                     for x in os.listdir(path)
-                     if pth.isdir(pth.join(path, x))]
+            paths = [
+                pth.join(path, x)
+                for x in os.listdir(path)
+                if pth.isdir(pth.join(path, x))
+            ]
         for subpath in paths:
             if self.is_odoo_pkg(path=subpath):
                 yield subpath
@@ -744,7 +752,8 @@ class Please(object):
         stash_list = ""
         url = upstream = ""
         sts, stdout, stderr = z0lib.os_system_traced(
-            "git remote -v", verbose=verbose, rtime=False)
+            "git remote -v", verbose=verbose, rtime=False
+        )
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -755,7 +764,8 @@ class Please(object):
                 elif lns[0] == "upstream":
                     upstream = lns[1]
             sts, stdout, stderr = z0lib.os_system_traced(
-                "git stash list", verbose=False)
+                "git stash list", verbose=False
+            )
             stash_list = stdout
         else:
             if self.path_is_ocb(os.getcwd()):
@@ -880,9 +890,9 @@ class Please(object):
         if "total" not in params:
             self.log_warning("No stats found in %s" % log_fqn)
             return 3
-        log_fqn = pth.join(pth.dirname(self.get_logdir()),
-                           "concurrent_test",
-                           "test_concurrent.log")
+        log_fqn = pth.join(
+            pth.dirname(self.get_logdir()), "concurrent_test", "test_concurrent.log"
+        )
         if pth.isfile(log_fqn):
             with open(log_fqn, "r") as fd:
                 contents = fd.read()
@@ -893,13 +903,16 @@ class Please(object):
                         items = ln[x.start(): x.end()].split()
                         params["testpoints"] += int(items[0])
         # Q-rating = coverage (60%) + # testpoints*4/total (40%)
-        params["qrating"] = int((params["cover"] / params["total"] * 60)
-                                + (params["testpoints"] * 160 / params["total"])
-                                + 1)
+        params["qrating"] = int(
+            (params["cover"] / params["total"] * 60)
+            + (params["testpoints"] * 160 / params["total"])
+            + 1
+        )
         test_cov_msg = (
             "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"
             " [%(testpoints)d TestPoints] - quality rating %(qrating)d (target 100)"
-            % params)
+            % params
+        )
         changelog_fqn = pth.join("readme", "CHANGELOG.rst")
         if not pth.isfile(changelog_fqn):
             changelog_fqn = pth.join("egg-info", "CHANGELOG.rst")
@@ -907,14 +920,15 @@ class Please(object):
             self.log_warning("Changelog history file not found!")
             return 3
         sts = self.chain_python_cmd(
-            "arcangelo.py",
-            [changelog_fqn, "-i", "--test-res-msg=\"%s\"" % test_cov_msg])
+            "arcangelo.py", [changelog_fqn, "-i", '--test-res-msg="%s"' % test_cov_msg]
+        )
         return sts
 
     def chain_python_cmd(self, pyfile, args, verbose=None, rtime=None):
         # call pyfile with args with rtime and return only sts
-        return self.call_chained_python_cmd(
-            pyfile, args, verbose=verbose, rtime=rtime)[0]
+        return self.call_chained_python_cmd(pyfile, args, verbose=verbose, rtime=rtime)[
+            0
+        ]
 
     def call_chained_python_cmd(self, pyfile, args, verbose=None, rtime=None):
         # call pyfile with args with rtime and return sts, stdout, stderr
@@ -925,7 +939,8 @@ class Please(object):
         verbose = verbose if verbose is not None else self.opt_args.verbose
         rtime = rtime if rtime is not None else (verbose and verbose > 1)
         return z0lib.os_system_traced(
-            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime)
+            cmd, verbose=verbose, dry_run=self.opt_args.dry_run, rtime=rtime
+        )
 
     def do_docs(self):
         return PleaseCwd(self).do_docs()
@@ -941,17 +956,18 @@ class Please(object):
 
     def do_action_pypipkg(self, action, pkg, path=None):
         path = (
-            path
-            or pth.join(self.home_devel, "pypi", pkg, pkg)
-            if pkg != "tools" else pth.join(self.home_devel, "pypi", pkg)
+            path or pth.join(self.home_devel, "pypi", pkg, pkg)
+            if pkg != "tools"
+            else pth.join(self.home_devel, "pypi", pkg)
         )
         if self.opt_args.verbose:
             print("$ cd " + path)
         os.chdir(path)
         return getattr(self.cls, action)()
 
-    def do_iter_action(self, action, path=None, act_all_pypi=None, act_tools=None,
-                       pypi_list=[]):
+    def do_iter_action(
+        self, action, path=None, act_all_pypi=None, act_tools=None, pypi_list=[]
+    ):
         """Iter multiple command on sub projects.
 
         Args:
@@ -1076,4 +1092,3 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
-
