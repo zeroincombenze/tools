@@ -21,7 +21,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -423,7 +423,8 @@ class PleaseCwd(object):
                     )
                 )
                 if pth.isdir(target_dir):
-                    please.os_system("rm -fR" % target_dir, with_shell=True, rtime=True)
+                    please.os_system(
+                        "rm -fR %s" % target_dir, with_shell=True, rtime=True)
         return sts
 
     def do_commit(self):
@@ -993,7 +994,7 @@ class PleaseCwd(object):
                     #             if please.opt_args.dry_run:
                     #                 args.append("-n")
                     #             sts = please.chain_python_cmd(
-                    #               "odoo_translation.py", args)
+                    #              "odoo_translation.py", args)
                     #             action_done = True
                     ocb_path = os.getcwd()
                     found_ocb = True

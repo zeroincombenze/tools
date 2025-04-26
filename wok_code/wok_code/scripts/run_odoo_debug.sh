@@ -3,7 +3,7 @@
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.20
+# Based on template 2.0.21
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.20
+__version__=2.0.21
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -146,87 +146,131 @@ check_path_n_branch() {
     [[ -n $odoo_fver && -n $x && $odoo_fver != $x ]] && echo "Version mismatch -p $1 != -b $2" && exit 1
     [[ -z $odoo_fver ]] && odoo_fver=$x
 }
+#
+#replace_web_module() {
+#    # replace_web_module()
+#    local l prm param z w woca
+#    woca="$ODOO_RUNDIR/addons/_web_oca"
+#    w="$ODOO_RUNDIR/addons/web"
+#    if [[ $odoo_maj -le 7 && -f $TEST_CONFN ]]; then
+#        z=""
+#        l=""
+#        param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
+#        [[ $param == "None" ]] && param=""
+#        if [[ -n $param ]]; then
+#          for prm in ${param//,/ }; do
+#              [[ $prm =~ ^(web|web_kanban|None)$ ]] && continue
+#              [[ $prm == "web_zeroincombenze" ]] && z=$prm || l="$l,$prm"
+#          done
+#          [[ -n $l ]] && OPTS="$OPTS --load=\"${l:1}\""
+#        fi
+#        if [[ -z $z ]]; then
+#            [[ -L $w ]] && rm -f $w
+#            [[ -d $woca ]] && mv $woca $w
+#        else
+#            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/venv_odoo/*" -name "__openerp__.py"|head -n 1)
+#            if [[ -n $z ]]; then
+#                z=$(dirname $z)
+#                [[ ! -d $woca ]] && mv $w $woca
+#                [[ ! -L $w ]] && ln -s $z $w
+#            fi
+#        fi
+#    fi
+#}
 
-replace_web_module() {
-    # replace_web_module()
-    local l m param z w woca
-    woca="$ODOO_RUNDIR/addons/_web_oca"
-    w="$ODOO_RUNDIR/addons/web"
-    if [[ $odoo_maj -le 7 && -f $TEST_CONFN ]]; then
-        z=""
-        l=""
-        param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
-        [[ $param == "None" ]] && param=""
-        if [[ -n $param ]]; then
-          for m in ${param//,/ }; do
-              [[ $m =~ ^(web|web_kanban|None)$ ]] && continue
-              [[ $m == "web_zeroincombenze" ]] && z=$m || l="$l,$m"
-          done
-          [[ -n $l ]] && OPTS="$OPTS --load=\"${l:1}\""
-        fi
-        if [[ -z $z ]]; then
-            [[ -L $w ]] && rm -f $w
-            [[ -d $woca ]] && mv $woca $w
+
+restore_module() {
+# restore_module(oldp old)
+    local d old oldp pid
+
+    oldp="$1"
+    old="$2"
+    if [[ -d $oldp/_module_replaced && -d $oldp/_module_replaced/$old ]]; then
+        pid=$$
+        d=$(date +"%Y-%prm-%d %H:%M:%S,000")
+        if [[ -L $oldp/$old || ! -d $oldp/$old ]]; then
+            echo -e "$d $pid DAEMON $opt_db $(basename $0): Original module $old restored"
+            run_traced_debug "rm -f $oldp/$old"
+            run_traced_debug "mv $oldp/_module_replaced/$old $oldp/$old"
         else
-            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/venv_odoo/*" -name "__openerp__.py"|head -n 1)
-            if [[ -n $z ]]; then
-                z=$(dirname $z)
-                [[ ! -d $woca ]] && mv $w $woca
-                [[ ! -L $w ]] && ln -s $z $w
-            fi
+            echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $oldp/_module_replaced/$old should be restored"
         fi
     fi
 }
 
 
-restore_modules() {
-    local d m opaths p x
-    p=$$
-    if [[ -f $CONFN ]]; then
-        opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
-        for d in ${opaths//,/ }; do
-            [[ ! -d $d/_module_replaced ]] && continue
-            for m in $d/_module_replaced/*; do
-                m=$(basename $m)
-                [[ -d $d/$m && ! -L $d/$m ]] && continue
-                x=$(date +"%Y-%m-%d %H:%M:%S,000")
-                echo -e "$x $p DAEMON $opt_db $(basename $0): Original module $m restored"
-                [[ -L $d/$m ]] && run_traced_debug "rm -f $d/$m"
-                run_traced_debug "mv $d/_module_replaced/$m $d/$m"
-            done
-        done
+replace_module() {
+# replace_module(oldp old newp new)
+    local a b d new newp old oldp pid
+
+    oldp="$1"
+    old="$2"
+    newp="$3"
+    new="$4"
+    pid=$$
+    d=$(date +"%Y-%prm-%d %H:%M:%S,000")
+    if [[ -L $oldp/$old && -d $oldp/_module_replaced && -d $oldp/_module_replaced/$old ]]; then
+        echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $new"
+    else
+        [[ -f $oldp/$old/__openerp__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
+        [[ -f $oldp/$old/__manifest__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
+        [[ -f $oldp/$old/__openerp__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
+        [[ -f $oldp/$old/__manifest__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
+        [[ ! -d $oldp/_module_replaced ]] && run_traced_debug "mkdir $oldp/_module_replaced"
+        [[ ! -d $oldp/_module_replaced/$old ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
+        [[ ! -d $oldp/$old ]] && run_traced_debug "ln -s $newp/$new $oldp/$old"
+        [[ -n $a && -f $newp/$new/__openerp__.py ]] && run_traced "sed -E \"s|(.auto_install. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__openerp__.py"
+        [[ -n $a && -f $newp/$new/__manifest__.py ]] && run_traced "sed -E \"s|(.auto_install. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__manifest__.py"
+        [[ -n $b && -f $newp/$new/__openerp__.py ]] && run_traced "sed -E \"s|(.bootstrap. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__openerp__.py"
+        [[ -n $b && -f $newp/$new/__manifest__.py ]] && run_traced "sed -E \"s|(.bootstrap. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__manifest__.py"
     fi
 }
 
-replace_modules() {
-# replace_modules()
-# Replace module by another from configuration file
+
+replace_restore_modules() {
+# replace_restore_modules(z0_repl)
+# Replace module by another from configuration file or restore original prm
 # server_wide_module_replacement = old_module:new_module,old_path:new_path
-    local d f m new newp old oldp opaths p param x
-    p=$$
+    local d new newp old oldp opaths pid param prm x z
+    [[ -n $1 ]] && z=$1 || z=0
+    pid=$$
     if [[ -f $CONFN ]]; then
         opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
-        f=0
         param=$(grep -E ^server_wide_module_replacement $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
-        for m in ${param//,/ }; do
-            f=1
+        for prm in ${param//,/ }; do
             oldp=""
             newp=""
-            old=$(echo $m | awk -F: '{gsub(/^ */,"",$1); print $1}')
-            [[ -d $old && ( -f $old/__manifest__.py || -f $old/__openerp__.py ) ]] && oldp=$(dirname $old)
-            new=$(echo $m | awk -F: '{gsub(/^ */,"",$2); print $2}')
-            [[ -d $new && ( -f $new/__manifest__.py || -f $new/__openerp__.py ) ]] && newp=$(dirname $new)
+            old=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
+            new=$(echo $prm | awk -F: '{gsub(/^ */,"",$2); print $2}')
+            d=$(date +"%Y-%prm-%d %H:%M:%S,000")
+            [[ $old =~ "/" ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Invalid parameter: server_wide_module_replacement = $old!" && continue
             for d in ${opaths//,/ }; do
-                [[ -z $oldp && -d $d/$old && ( -f $d/$old/__manifest__.py || -f $d/$old/__openerp__.py ) ]] && oldp="$d"
-                [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp="$d"
+                [[ -n $oldp && -n $newp ]] && break
+                n=$(dirname $d)
+                [[ -z $oldp && -d $d/$old && ( -f $d/$old/__manifest__.py || -f $d/$old/__openerp__.py ) ]] && oldp=$d
+                [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp=$d
+                [[ -z $newp && -d $n/$new && ( -f $n/$new/__manifest__.py || -f $n/$new/__openerp__.py ) ]] && newp=$n/$(dirname $new) && new=$(basename $new)
             done
-            x=$(date +"%Y-%m-%d %H:%M:%S,000")
-            [[ -z $oldp || -z $newp ]] && echo -e "$x $p DAEMON $opt_db $(basename $0): Module replacement $new ($newp) not found for $old ($oldp)!" && continue
-            [[ ! -d $oldp/_module_replaced ]] && run_traced_debug "mkdir $oldp/_module_replaced"
-            [[ ! -d $oldp/_module_replaced/$old ]] && echo -e "$x $p DAEMON $opt_db $(basename $0): Module $old replaced by $new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
-            [[ ! -d $oldp/$old ]] && run_traced_debug "ln -s $newp/$new $oldp/$old"
+            [[ -z $oldp || -z $newp ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Module replacement $new ($newp) not found for $old ($oldp)!" && continue
+            if [[ $z -eq 0 ]]; then
+                replace_module "$oldp" "$old" "$newp" "$new"
+            else
+                restore_module "$oldp" "$old"
+            fi
         done
-        [[ $f -eq 0 ]] && restore_modules
+        for d in ${opaths//,/ }; do
+            if [[ -d $d/_module_replaced ]]; then
+                [[ -n $param ]] && z=1 || z=0
+                for old in $d/_module_replaced/*; do
+                    for prm in ${param//,/ }; do
+                        x=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
+                        [[ $old == "x" ]] && z=0 && break
+                    done
+                done
+                [[ $z -ne 0 ]] && continue
+                restore_module "$d" $(basename $old)
+            fi
+        done
     fi
 }
 
@@ -237,7 +281,7 @@ set_confn() {
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^dbfilter *=.*|dbfilter = .*|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^db_password *=.*|db_password = False|\" -i $TEST_CONFN"
     [[ $opt_test -ne 0 ]] && run_traced_debug "sed -e \"s|^proxy_mode *=.*|proxy_mode = False|\" -i $TEST_CONFN"
-    run_traced_debug "sed -e \"s|^server_wide_modules *=|# server_wide_modules =|\" -i $TEST_CONFN"
+    [[ $z0_repl -ne 0 ]] && run_traced_debug "sed -e \"s|^server_wide_modules *=|# server_wide_modules =|\" -i $TEST_CONFN"
     if [[ $opt_dae -ne 0 ]]; then
       run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $LOGFILE|\" -i $TEST_CONFN"
     else
@@ -722,7 +766,7 @@ elif [[ $opt_lang -ne 0 ]]; then
 else
     OPTS=""
     OPTDB=""
-    [[ $z0_repl -ne 0 ]] && restore_modules || replace_modules
+    replace_restore_modules $z0_repl
 fi
 
 if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || $opt_lang -ne 0 ]]; then
@@ -926,4 +970,3 @@ if [[ $drop_db -gt 0 ]]; then
 fi
 
 exit $sts
-

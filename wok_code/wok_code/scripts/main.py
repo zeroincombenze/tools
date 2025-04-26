@@ -23,7 +23,7 @@ import gzip
 import shutil
 
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 
 def get_pypi_info(pkgname):

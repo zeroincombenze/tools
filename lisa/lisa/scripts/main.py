@@ -18,7 +18,7 @@ import gzip
 import shutil
 
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 
 def fake_setup(**kwargs):
@@ -166,4 +166,5 @@ def main(cli_args=None):
     elif action in ("-C", "--copy-pkg-data"):
         copy_pkg_data(setup_args, verbose)
     return 0
+
 
