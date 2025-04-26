@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 import csv
 
 src_file = "/home/odoo/tmp/piano_conti.csv"
 csv.register_dialect(
-    'odoo', delimiter=(','), quotechar=('\"'), quoting=csv.QUOTE_MINIMAL
+    "odoo", delimiter=(","), quotechar=('"'), quoting=csv.QUOTE_MINIMAL
 )
 csv_obj = csv.DictReader(
-    open(src_file), fieldnames=[], restkey='undef_name', dialect='odoo'
+    open(src_file), fieldnames=[], restkey="undef_name", dialect="odoo"
 )
 hdr_read = False
 group_code = ""
@@ -13,7 +14,7 @@ group_name = ""
 ridix = {}
 for row in csv_obj:
     if not hdr_read:
-        csv_obj.fieldnames = row['undef_name']
+        csv_obj.fieldnames = row["undef_name"]
         hdr_read = True
         continue
     is_group = False
@@ -44,13 +45,13 @@ for row in csv_obj:
 
 src_file = "/home/odoo/tmp/account.account-it_ridix.csv"
 csv_obj = csv.DictReader(
-    open(src_file), fieldnames=[], restkey='undef_name', dialect='odoo'
+    open(src_file), fieldnames=[], restkey="undef_name", dialect="odoo"
 )
 hdr_read = False
 account = {}
 for row in csv_obj:
     if not hdr_read:
-        csv_obj.fieldnames = row['undef_name']
+        csv_obj.fieldnames = row["undef_name"]
         hdr_read = True
         continue
     line = {}
@@ -63,7 +64,9 @@ for row in csv_obj:
     if line["code"] in ridix:
         line["name"] = ridix[line["code"]]["name"]
         line["note"] = "Group_code='%s' / Group_name='%s'" % (
-            ridix[line["code"]]["group_code"], ridix[line["code"]]["group_name"])
+            ridix[line["code"]]["group_code"],
+            ridix[line["code"]]["group_name"],
+        )
     account[line["code"]] = line
 for code, row in ridix.items():
     if code not in account:
@@ -74,15 +77,24 @@ for code, row in ridix.items():
             "account_type": "assset_fixed!",
             "reconcile": False,
             "tag_ids": "l10n_it_ridix.account_tag_B_ATT",
-            "note": "Group_code='%s' / Group_name='%s'" % (row["group_code"],
-                                                           row["group_name"]),
+            "note": "Group_code='%s' / Group_name='%s'"
+            % (row["group_code"], row["group_name"]),
         }
         account[line["code"]] = line
-with open("/home/odoo/tmp/account.account.csv", 'w') as fd:
+with open("/home/odoo/tmp/account.account.csv", "w") as fd:
     csv_obj = csv.writer(fd)
-    writer = csv.DictWriter(fd, fieldnames=[
-        "id", "code", "name", "account_type", "reconcile", "tag_ids", "note"
-    ])
+    writer = csv.DictWriter(
+        fd,
+        fieldnames=[
+            "id",
+            "code",
+            "name",
+            "account_type",
+            "reconcile",
+            "tag_ids",
+            "note",
+        ],
+    )
     writer.writeheader()
     for code in sorted(account.keys()):
         print(account[code])

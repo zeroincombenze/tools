@@ -1,3 +1,9 @@
+2.0.21 (2025-26-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please translation: modified algorithm
+* [FIX] run_odoo_debug: module replacements
+
 2.0.20 (2025-03-01)
 ~~~~~~~~~~~~~~~~~~~
 

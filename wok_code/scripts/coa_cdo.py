@@ -22,6 +22,7 @@ optional arguments:
 """
 
 from __future__ import print_function, unicode_literals
+from past.builtins import basestring                                       # noqa: F403
 
 import csv
 import os
@@ -32,7 +33,7 @@ import time
 from python_plus import unicodes, str2bool
 from clodoo import transodoo
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 msg_time = time.time()
 VALID_ACTIONS = ("export-comparable", "export-full", "export-z0bug", "export-group")
@@ -97,12 +98,7 @@ class CvtCsvFile(object):
         ]
 
     def set_hdr_out_group_account(self):
-        return [
-            "id",
-            "code_prefix",
-            "name",
-            "parent_id:id"
-        ]
+        return ["id", "code_prefix", "name", "parent_id:id"]
 
     def set_default_hdr_tax(self):
         return {
@@ -241,13 +237,13 @@ class CvtCsvFile(object):
         return row
 
     def get_xref(self, xref):
-        if isinstance(xref, str):
+        if isinstance(xref, basestring):
             if "." not in xref:
                 xref = "z0bug.%s" % xref
         return xref
 
     def get_key(self, xref, is_id=None):
-        if isinstance(xref, str):
+        if isinstance(xref, basestring):
             if "." in xref:
                 module, xid = xref.split(".", 1)
             else:
@@ -595,4 +591,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

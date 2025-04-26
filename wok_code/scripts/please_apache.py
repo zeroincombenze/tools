@@ -8,7 +8,7 @@ except ImportError:
     import configparser as ConfigParser
 
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 APACHE_TEMPLATE = """##################################################################
 # Odoo service %(branch)s
@@ -211,4 +211,3 @@ class PleaseApache(object):
             or config.get("options", "longpolling_port"),
             "website_document_root": config.get("options", "website_document_root"),
         }
-

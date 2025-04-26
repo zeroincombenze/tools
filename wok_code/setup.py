@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.20",
+    version="2.0.21",
     description="Python developers tools",
     long_description_content_type="text/x-rst",
     long_description=long_description,
@@ -43,6 +43,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -107,4 +108,3 @@ setup(
     },
     zip_safe=False,
 )
-

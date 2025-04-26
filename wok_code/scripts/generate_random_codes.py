@@ -8,7 +8,7 @@ from random import random, randint
 import vatnumber  # pylint: disable=E0401
 
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 
 def gen_vatnumber(opt_args):
@@ -27,7 +27,7 @@ def gen_vatnumber(opt_args):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Generate random VAT number", epilog="© 2021-2023 by SHS-AV s.r.l."
+        description="Generate random VAT number", epilog="© 2021-2025 by SHS-AV s.r.l."
     )
     parser.add_argument("-i", "--iso", default="IT")
     parser.add_argument("-v", "--verbose", action="count", default=0)
@@ -44,4 +44,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

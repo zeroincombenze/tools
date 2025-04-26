@@ -61,7 +61,7 @@ COPY = {
     },
     "odoo-italia.net": {
         "author": "Odoo Italia Network",
-        "website": "https://www.odoo-italia.net"
+        "website": "https://www.odoo-italia.net",
     },
     "linkgroup.it": {
         "author": "LinkIt Spa",
@@ -167,8 +167,7 @@ class License:
     def parse_file(self, author_file, section=None):
         with open(author_file, "r") as fd:
             for line in _u(fd.read().split("\n")):
-                self.add_copyright(
-                    *self.extract_info_from_line(line, add_copy=False))
+                self.add_copyright(*self.extract_info_from_line(line, add_copy=False))
 
     def purge_duplicate(self):
         for name in self.authors.copy().keys():
@@ -202,8 +201,13 @@ class License:
                     break
 
     def extract_info_from_line(
-            self, line, force=False, add_copy=True,
-            odoo_major_version=None, force_from=False):
+        self,
+        line,
+        force=False,
+        add_copy=True,
+        odoo_major_version=None,
+        force_from=False,
+    ):
         """ "Return org_id, name, website, email, years from line"""
 
         def split_name_url(line):
@@ -247,7 +251,7 @@ class License:
                     name = " ".join(
                         [
                             x.capitalize()
-                            for x in email.split("@")[0].split(".")        # noqa: F812
+                            for x in email.split("@")[0].split(".")  # noqa: F812
                         ]
                     )
             else:
@@ -322,7 +326,8 @@ class License:
                             to_year = to_year[-2:]
                         if odoo_major_version:
                             born_date = self.odoo_version_born(
-                                odoo_major_version).split("-")[0]
+                                odoo_major_version
+                            ).split("-")[0]
                             if force_from or from_year < born_date:
                                 from_year = born_date
                             cur_year = int(to_year) + 2000
@@ -339,9 +344,11 @@ class License:
         if line.startswith("*"):
             res = from_rst_line(line[1:].strip())
         elif line.startswith("#"):
-            res = from_comment_line(line[1:].strip(),
-                                    odoo_major_version=odoo_major_version,
-                                    force_from=force_from)
+            res = from_comment_line(
+                line[1:].strip(),
+                odoo_major_version=odoo_major_version,
+                force_from=force_from,
+            )
         elif force:
             res = from_rst_line(line.strip())
         else:

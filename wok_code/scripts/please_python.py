@@ -12,10 +12,11 @@ else:
     except ImportError:
         # During local test execution, distro is loaded on local test environment
         import os
+
         os.system("python -m pip install distro")
 
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 
 class PleasePython(object):
@@ -65,16 +66,18 @@ BUGS
         else:
             dist, ver, suppl = distro.linux_distribution()
         if dist == "centos":
-            before = ("yum install libffi-devel gcc openssl-devel bzip2-devel"
-                      " ncurses-devel readline-devel")
+            before = (
+                "yum install libffi-devel gcc openssl-devel bzip2-devel"
+                " ncurses-devel readline-devel"
+            )
         else:
-            before = ("apt install libssl-dev libffi-dev libncurses5-dev"
-                      " libsqlite3-dev libreadline-dev")
+            before = (
+                "apt install libssl-dev libffi-dev libncurses5-dev"
+                " libsqlite3-dev libreadline-dev"
+            )
         parser.add_argument(
             "--cmd-before",
-            help=(
-                "Command to execute before install python; example:" + before
-            ),
+            help=("Command to execute before install python; example:" + before),
         )
         parser.add_argument(
             "--config-opts",
@@ -124,8 +127,7 @@ BUGS
             please.os_system(
                 cmd,
                 verbose=self.please.opt_args.verbose,
-                dry_run=please.opt_args.dry_run
+                dry_run=please.opt_args.dry_run,
             )
             return 0
         return please.os_system(cmd)
-

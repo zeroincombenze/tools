@@ -124,6 +124,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.14 (2025-03-23)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: new option NOLINK
+
 2.0.13 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
 

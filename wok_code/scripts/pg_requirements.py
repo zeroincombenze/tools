@@ -1,10 +1,12 @@
 #!/bin/python
+# -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 
 import os
 import sys
 from subprocess import PIPE, Popen
 from z0lib import z0lib
+from python_plus import _u
 
 
 def os_run(cmd):
@@ -14,8 +16,10 @@ def os_run(cmd):
     else:
         with Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE) as proc:
             outs, errs = proc.communicate(timeout=60)
-    return (outs.decode("utf-8") if outs else outs,
-            errs.decode("utf-8") if errs else errs)
+    return (
+        outs.decode("utf-8") if outs else outs,
+        errs.decode("utf-8") if errs else errs,
+    )
 
 
 def check_for_requirements(requirements=None):
@@ -30,7 +34,7 @@ def check_for_requirements(requirements=None):
         contents = requirements = ""
         if fqn:
             with open(fqn, "r") as fd:
-                contents = fd.read()
+                contents = _u(fd.read())
         for ln in contents.split("\n"):
             if ln.startswith(".. $set pg_requirements"):
                 requirements = eval(ln[23:].strip())
@@ -38,7 +42,7 @@ def check_for_requirements(requirements=None):
     sts = 0
     if not requirements:
         return sts
-    for (port, db) in requirements:
+    for port, db in requirements:
         vid = "oca" + str(port - 8260) if port > 8200 else "odoo" + str(port - 8160)
         outs, errs = os_run(["ss", "-lt"])
         port_found = False
@@ -51,8 +55,9 @@ def check_for_requirements(requirements=None):
         if port_found:
             z0lib.print_flush("Instance %s running at %s [OK]" % (vid, port))
         else:
-            z0lib.print_flush("*** No Odoo instance running at port <%s> (name %s)!"
-                              % (port, vid))
+            z0lib.print_flush(
+                "*** No Odoo instance running at port <%s> (name %s)!" % (port, vid)
+            )
             sts = 1
         outs, errs = os_run(["psql", "-Atl"])
         db_found = False
@@ -63,8 +68,9 @@ def check_for_requirements(requirements=None):
                     db_found = True
                     break
         if db_found:
-            z0lib.print_flush("Instance %s with db %s, user admin/admin [OK]"
-                              % (vid, db))
+            z0lib.print_flush(
+                "Instance %s with db %s, user admin/admin [OK]" % (vid, db)
+            )
         else:
             z0lib.print_flush("*** No database <%s> found (name %s)!" % (db, vid))
             sts = 1

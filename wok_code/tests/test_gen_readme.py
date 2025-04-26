@@ -18,7 +18,7 @@ sys.path.insert(0,
                 else os.path.dirname(os.getcwd()))                         # noqa: E402
 from scripts import gen_readme
 
-__version__ = "2.0.19"
+__version__ = "2.0.21"
 
 MODULE_ID = "wok_code"
 TEST_FAILED = 1

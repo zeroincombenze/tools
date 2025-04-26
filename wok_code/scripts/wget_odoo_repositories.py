@@ -18,12 +18,24 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen as urlopen
 
-__version__ = "2.0.20"
+__version__ = "2.0.21"
 
 
-ODOO_BRANCHES = ("18.0", "17.0", "16.0", "15.0",
-                 "14.0", "13.0", "12.0", "11.0",
-                 "10.0", "9.0", "8.0", "7.0", "6.1")
+ODOO_BRANCHES = (
+    "18.0",
+    "17.0",
+    "16.0",
+    "15.0",
+    "14.0",
+    "13.0",
+    "12.0",
+    "11.0",
+    "10.0",
+    "9.0",
+    "8.0",
+    "7.0",
+    "6.1",
+)
 
 XTRA_PREFIX = [
     "connector",
@@ -116,7 +128,8 @@ def cache_add_entry(cache, git_org, branch, keep_cache=None):
             "expire": (
                 (datetime.now() + timedelta(1)).strftime("%Y-%m-%dT%H:%M:%S.000")
                 if keep_cache
-                else datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")),
+                else datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")
+            ),
             # "lst": []
         }
     # Weird bug
@@ -296,8 +309,9 @@ def cache_load_from_github(cache, git_org, branch, verbose=0):
     if touch:
         hash_name = cache_hash_name(git_org, branch)
         if "lst" not in cache[hash_name]:
-            cache[hash_name]["expire"] = (
-                datetime.now() + timedelta(11)).strftime("%Y-%m-%dT%H:%M:%S.000")
+            cache[hash_name]["expire"] = (datetime.now() + timedelta(11)).strftime(
+                "%Y-%m-%dT%H:%M:%S.000"
+            )
         else:
             cache = cache_validate_repos(cache, git_org, branch)
     else:
@@ -315,8 +329,9 @@ def cache_validate_repos(cache, git_org, branch, verbose=0):
             urlopen(pageurl % (git_org, repo, branch))
         except BaseException:
             del cache[hash_name]["lst"][cache[hash_name]["lst"].index(repo)]
-    cache[hash_name]["expire"] = (
-        datetime.now() + timedelta(7)).strftime("%Y-%m-%dT%H:%M:%S.000")
+    cache[hash_name]["expire"] = (datetime.now() + timedelta(7)).strftime(
+        "%Y-%m-%dT%H:%M:%S.000"
+    )
     return cache
 
 
@@ -329,9 +344,11 @@ def cache_load_default(cache, git_org, branch):
 
 
 def cache_get_repolist(
-        cache, git_org, branch, verbose=0, force=False, ignore_github=False):
+    cache, git_org, branch, verbose=0, force=False, ignore_github=False
+):
     cache = cache_add_entry(
-        cache, git_org, branch, keep_cache=not force or not ignore_github)
+        cache, git_org, branch, keep_cache=not force or not ignore_github
+    )
     hash_name = cache_hash_name(git_org, branch)
     now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000")
     if cache[hash_name]["expire"] < now or force:
@@ -341,11 +358,10 @@ def cache_get_repolist(
         elif cache[hash_name]["expire"] < now or force:
             cache = cache_validate_repos(cache, git_org, branch)
     if (
-            "mgmtsystem" in cache[hash_name]["lst"]
-            and "management-system" in cache[hash_name]["lst"]
+        "mgmtsystem" in cache[hash_name]["lst"]
+        and "management-system" in cache[hash_name]["lst"]
     ):
-        del cache[hash_name]["lst"][cache[hash_name]["lst"].index(
-            "mgmtsystem")]
+        del cache[hash_name]["lst"][cache[hash_name]["lst"].index("mgmtsystem")]
     return sorted(cache[hash_name]["lst"])
 
 
@@ -357,8 +373,7 @@ def repo_is_valid(opt_args, repo):
             and repo not in XTRA_REPS
             and repo not in DEVEL_REPS
         )
-        or any([repo.startswith(x + "-") and x in opt_args.extra
-                for x in XTRA_PREFIX])
+        or any([repo.startswith(x + "-") and x in opt_args.extra for x in XTRA_PREFIX])
         or (repo in XTRA_REPS and repo in opt_args.extra)
         or (repo in DEVEL_REPS and "devel" in opt_args.extra)
         or (repo.startswith("l10n-") and repo in opt_args.l10n)
@@ -454,10 +469,13 @@ def main(cli_args=None):
         repositories += [
             repo
             for repo in cache_get_repolist(
-                cache, git_org, opt_args.branch,
+                cache,
+                git_org,
+                opt_args.branch,
                 verbose=opt_args.verbose,
                 force=opt_args.force or opt_args.def_repo,
-                ignore_github=opt_args.dry_run or opt_args.def_repo)
+                ignore_github=opt_args.dry_run or opt_args.def_repo,
+            )
             if repo_is_valid(opt_args, repo)
         ]
     cache_save(cache)
@@ -470,4 +488,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
