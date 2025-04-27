@@ -117,6 +117,7 @@ stdout.log
 /clodoo/build/
 /clodoo/dist/
 /clodoo/clodoo/docs/_build/
+/lisa/build/
 /lisa/lisa/docs/_build/
 /odoo_score/build/
 /odoo_score/dist/
