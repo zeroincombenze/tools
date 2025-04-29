@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.7
+#__version__=2.0.8
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -338,8 +338,10 @@ compress_tar() {
       src="$db"
       x=$(echo $TAR_EXT|awk '{print $1}')
       src="$db$x"
-      if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
+      if [[ "zjJ" =~ "$BCKFORMAT" && -f "$db-filestore.gz" ]]; then
         run_traced "tar $TAR_OPT -c${BCKFORMAT}f \"$src\" $db-*.sql \"$db-filestore.gz\""
+      elif [[ "zjJ" =~ "$BCKFORMAT" ]]; then
+        run_traced "tar $TAR_OPT -c${BCKFORMAT}f \"$src\" $db-*.sql"
       else
         run_traced "tar $TAR_OPT -cf \"$src\" $db-*.sql"
       fi

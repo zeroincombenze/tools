@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__=2.0.7
+# __version__=2.0.8
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
 # Based on template 2.0.17

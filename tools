@@ -1,5 +1,5 @@
 ============================
-|Zeroincombenze| tools 2.0.6
+|Zeroincombenze| tools 2.0.7
 ============================
 
 |license gpl|
@@ -113,6 +113,96 @@ Current version via Git
 ChangeLog History
 -----------------
 
+wok_code: 2.0.21 (2025-04-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lint_2_compare: minor bug fixing
+* [IMP] lint_2_compare: automatic detecting version from source path
+
+
+zar: 2.0.8 (2025-04-27)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Compress tar w/o filestore
+* [IMP] python 3.11 is certificated programming language
+
+
+lisa: 2.0.8 (2025-04-27)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements improvements
+
+
+wok_code: 2.0.21 (2025-04-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please translation: modified algorithm
+* [FIX] run_odoo_debug: module replacements
+
+
+lisa: 2.0.7 (2025-04-26)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements
+
+
+clodoo: 2.0.14 (2025-03-23)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: new option NOLINK
+
+
+z0lib: 2.0.17 (2025-03-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.11 is certificated programming language
+
+
+travis_emulator: 2.0.10 (2025-03-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.11 is certificated programming language
+
+
+z0lib: 2.0.16 (2025-03-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] print_flush
+
+
+z0bug_odoo: 2.0.22 (2025-03-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Lint tests
+* [IMP] Lint configuration
+
+
+zerobug: 2.0.18 (2025-03-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] flake8 configuration
+* [IMP] pylint configuration
+* [IMP] travis_run_pypi_tests searches for virtual environment
+* [IMP] build_odoo_env, parameter ctx deprecated
+* [IMP] Some function now are move in z0lib>=2.0.12
+* [IMP] build_odoo_env does not require ctx
+* [IMP] Python 3.6 deprecated
+* [IMP] pylint configuration files
+
+
+wok_code: 2.0.19 (2025-03-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] install_python_3_from_source.sh: fix bugs and improvements
+* [FIX] ssh.py: store encrypted password
+* [IMP] run_odoo_debug: now can replace modules
+* [IMP] cvt_script executable
+* [IMP] deploy_odooo: more improvements
+* [IMP] please: minor improvements
+* [IMP] please clen db: remove filestore directories too
+
+
 z0lib: 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -177,19 +267,6 @@ z0lib: 2.0.12 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] os_system with verbose
-
-
-wok_code: 2.0.19 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please python 3.9+
-* [FIX] install_python_3_from_source.sh: fix bugs and improvements
-* [FIX] ssh.py: store encrypted password
-* [IMP] run_odoo_debug: now can replace modules
-* [IMP] cvt_script executable
-* [IMP] deploy_odooo: more improvements
-* [IMP] please: minor improvements
-* [IMP] please clen db: remove filestore directories too
 
 
 clodoo: 2.0.13 (2024-08-22)
@@ -357,64 +434,6 @@ python_plus: 2.0.13 (2024-05-11)
 * [IMP] vem: pip is always updated to last version
 
 
-z0bug_odoo: 2.0.18 (2024-04-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: no data loaded in some cases
-* [FIX[ TestEnv: resource_edit manage read-only fields
-* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
-
-
-clodoo: 2.0.11 (2024-03-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Parameters review
-* [FIX] No file during pip install
-* [FIX] Call with context Odoo 10.0+
-
-
-wok_code: 2.0.16 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoo_translation.py: case correction
-* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
-* [FIX] gen_readme.py: Odoo repository documentation
-* [FIX] gen_readme.py: thumbnail figure
-* [FIX] please docs: count assertions
-* [FIX] please test: switch -K --no-ext-test
-* [FIX] deploy_odoo: crash when clone existing directory
-* [IMP] deploy_odoo: new switch --continue-after-error
-* [FIX] deploy_odoo/wget_odoo_repositories: store github query in cache
-
-
-odoo_score: 2.0.8 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] set_workers: no automatic discover for odoo multi
-* [IMP] Purged old unused code
-* [IMP] New odooctl command
-
-
-clodoo: 2.0.10 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring
-
-
-python_plus: 2.0.12 (2024-02-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New function str2bool()
-
-
-z0bug_odoo: 2.0.17 (2024-02-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: minor improvements
-* [FIX] TestEnv: crash if no account.journal in data
-* [IMP] Data with date range 2024
-
-
 os0: 2.0.1 (2022-10-20)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -463,10 +482,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.6/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.6/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -185,6 +185,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.21 (2025-04-28)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lint_2_compare: minor bug fixing
+* [IMP] lint_2_compare: automatic detecting version from source path
+
+2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] please translation: modified algorithm
@@ -422,14 +429,6 @@ ChangeLog History
 
 * [IMP] New lint_2_compare command
 * [IMP] odoo_dependecies.py: minor upgrade
-
-2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] deploy_odoo: show actual branch and organization
-* [FIX] deploy_odoo: update read from directory
-* [IMP] deploy_odoo: new command list repo info
-* [IMP] deploy_odoo: new feature link to repositories
 
 
 

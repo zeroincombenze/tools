@@ -33,7 +33,7 @@ def get_remote_path(path):
     return path
 
 
-def get_remote_user(CONF, host=None, cuser=None):
+def get_remote_user(CONF, host=None, cuser=None, root_user=None):
     cuser = cuser or os.environ["USER"]
     ruser = None
     default_user = None
@@ -117,10 +117,6 @@ def get_cmd(CONF, host, ruser, opts="", via=None, do_tunnel=False):
 
 
 def get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync, via=None):
-    # if recurse and not source.endswith("/"):
-    #     source = "%s/" % source
-    # if recurse and not dest.endswith("/"):
-    #     dest = "%s/" % dest
     if host_side == "s":
         if os.path.isdir(dest):
             if not dest.endswith("/"):
@@ -159,12 +155,27 @@ def get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse, via=None):
     return cmd
 
 
+def get_candidates(CONF, host):
+    candidates = []
+    if host and host not in CONF["RUSER"]:
+        for url in CONF["RUSER"]:
+            if host in url:
+                candidates.append(url)
+        for alias, url in CONF["ALIAS"].items():
+            if host in alias and url not in candidates:
+                candidates.append(url)
+        if len(candidates) == 1:
+            host = candidates[0]
+    return host, candidates
+
+
 def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
+    sel_host, candidates = get_candidates(CONF, sel_host)
     valid_hosts = []
     cuser = cuser or os.environ["USER"]
     prior_host = ""
     for host in sorted(CONF["RUSER"].keys(), key=lambda x: CONF["REV_ALIAS"].get(x, x)):
-        if sel_host and host != sel_host:
+        if sel_host and host != sel_host and (not candidates or host not in candidates):
             continue
         alias = CONF["REV_ALIAS"].get(host, "")
         for ruser in CONF["RUSER"][host]:
@@ -199,16 +210,16 @@ def show_host(CONF, sel_host=None, glob=False, cuser=None, do_tunnel=None):
 
 
 def show_alias(CONF):
-    for key, alias in CONF["ALIAS"].items():
-        print("%s=%s" % (key, alias))
+    for alias, url in CONF["ALIAS"].items():
+        print("%s=%s" % (alias, url))
     return
 
 
-def show_pwd(CONF, host, ruser=None):
+def show_pwd(CONF, host, ruser=None, root_user=None):
     if not host:
         print("Missing host")
         exit(1)
-    ruser = ruser or get_remote_user(CONF, host=host)
+    ruser = ruser or get_remote_user(CONF, host=host, root_user=root_user)
     if host in CONF["RUSER"].keys():
         if ruser in CONF["RUSER"][host]:
             passwd = get_pwd(CONF, host, ruser)
@@ -325,180 +336,190 @@ def load_config():
     if os.path.isfile(alias):
         with open(alias, "r") as fd:
             CONF["ALIAS"] = eval(fd.read())
-        for alias, host in CONF["ALIAS"].items():
-            CONF["REV_ALIAS"][host] = alias
+        for alias, url in CONF["ALIAS"].items():
+            CONF["REV_ALIAS"][url] = alias
     return CONF
 
 
-# import pdb; pdb.set_trace()
-CONF = load_config()
+def main():
+    # import pdb; pdb.set_trace()
+    CONF = load_config()
 
-host = None
-ruser = None
-source = None
-dest = None
-passwd = None
-verbose = False
-dry_run = False
-recurse = False
-list_host = False
-list_pwd = False
-scp = False
-rsync = 0
-sh_alias = False
-do_dir = False
-do_tunnel = False
-do_encrypt = False
-root_user = False
-force_crypt = False
-glob = False
-host_side = ""
-via_pwd = False
-if not sys.argv[1:]:
-    show_help()
-    exit(0)
-for arg in sys.argv[1:]:
-    if arg.startswith("-"):
-        if "h" in arg:
-            show_help()
-            exit(0)
-        if "a" in arg:
-            sh_alias = True
-        if "d" in arg:
-            do_dir = True
-        if "e" in arg:
-            do_encrypt = True
-        if "g" in arg:
-            glob = True
-            list_host = True
-        if "l" in arg:
-            list_host = True
-        if "m" in arg:
-            rsync = 2
-        if "n" in arg:
-            dry_run = True
-        if "p" in arg:
-            via_pwd = "pwd"
-        if "r" in arg:
-            recurse = True
-        if "s" in arg:
-            scp = True
-        if "t" in arg:
-            do_tunnel = True
-        if "v" in arg:
-            verbose = True
-        if "w" in arg:
-            list_pwd = True
-        if "x" in arg:
-            rsync = 1
-        if "Y" in arg:
-            force_crypt = True
-        if "z" in arg:
-            root_user = True
-        if "Z" in arg:
-            root_user = "root"
-    elif do_encrypt and not passwd:
-        passwd = arg
-    else:
-        if not host and not ruser:
-            host, arg = spit_host_param(host, arg)
-            ruser, host = split_user_host(ruser, host)
-            if host or ruser:
-                host_side = "d" if source else "s"
-        if not arg:
-            arg = get_remote_path(arg)
-        if not source:
-            source = arg
-        elif not dest:
-            dest = arg
-        elif not host:
-            host = source
-            source = dest
-            dest = arg
-        elif not ruser:
-            ruser = source
-            source = dest
-            dest = arg
-        else:
-            print("Invalid params %s" % arg)
-            exit(1)
-
-if do_encrypt and not passwd:
-    passwd = input("Get password ")
-if do_encrypt and passwd:
-    print(encrypt_pwd(CONF, passwd))
-    exit(0)
-if do_tunnel and (scp or rsync or do_dir):
-    print("Cannot do tunnelling with scp or rsync or dir!")
-    exit(1)
-
-if not host and source and not dest:
-    host = source
-    host_side = "s"
+    host = None
+    ruser = None
     source = None
-if host not in CONF["RUSER"] and host in CONF["ALIAS"]:
-    host = CONF["ALIAS"][host]
+    dest = None
+    passwd = None
+    verbose = False
+    dry_run = False
+    recurse = False
+    list_host = False
+    list_pwd = False
+    scp = False
+    rsync = 0
+    sh_alias = False
+    do_dir = False
+    do_tunnel = False
+    do_encrypt = False
+    root_user = False
+    force_crypt = False
+    glob = False
+    host_side = ""
+    via_pwd = False
+    if not sys.argv[1:]:
+        show_help()
+        exit(0)
+    for arg in sys.argv[1:]:
+        if arg.startswith("-"):
+            if "h" in arg:
+                show_help()
+                exit(0)
+            if "a" in arg:
+                sh_alias = True
+            if "d" in arg:
+                do_dir = True
+            if "e" in arg:
+                do_encrypt = True
+            if "g" in arg:
+                glob = True
+                list_host = True
+            if "l" in arg:
+                list_host = True
+            if "m" in arg:
+                rsync = 2
+            if "n" in arg:
+                dry_run = True
+            if "p" in arg:
+                via_pwd = "pwd"
+            if "r" in arg:
+                recurse = True
+            if "s" in arg:
+                scp = True
+            if "t" in arg:
+                do_tunnel = True
+            if "v" in arg:
+                verbose = True
+            if "w" in arg:
+                list_pwd = True
+            if "x" in arg:
+                rsync = 1
+            if "Y" in arg:
+                force_crypt = True
+            if "z" in arg:
+                root_user = True
+            if "Z" in arg:
+                root_user = "root"
+        elif do_encrypt and not passwd:
+            passwd = arg
+        else:
+            if not host and not ruser:
+                host, arg = spit_host_param(host, arg)
+                ruser, host = split_user_host(ruser, host)
+                if host or ruser:
+                    host_side = "d" if source else "s"
+            if not arg:
+                arg = get_remote_path(arg)
+            if not source:
+                source = arg
+            elif not dest:
+                dest = arg
+            elif not host:
+                host = source
+                source = dest
+                dest = arg
+            elif not ruser:
+                ruser = source
+                source = dest
+                dest = arg
+            else:
+                print("Invalid params %s" % arg)
+                exit(1)
 
-if list_host:
-    show_host(CONF, sel_host=host, glob=glob, do_tunnel=do_tunnel)
-    exit(0)
-if sh_alias:
-    show_alias(CONF)
-    exit(0)
-if force_crypt:
-    do_force_crypt(CONF)
-    exit(0)
-if host not in CONF["RUSER"]:
-    if host:
-        print("Host %s not found!" % host)
-    else:
-        print("Missing host")
-    exit(1)
+    if do_encrypt and not passwd:
+        passwd = input("Get password ")
+    if do_encrypt and passwd:
+        print(encrypt_pwd(CONF, passwd))
+        exit(0)
+    if do_tunnel and (scp or rsync or do_dir):
+        print("Cannot do tunnelling with scp or rsync or dir!")
+        exit(1)
 
-if list_pwd:
-    show_pwd(CONF, host, ruser=ruser)
-    exit(0)
-if not ruser:
-    ruser = get_remote_user(CONF, host=host)
-if not ruser:
-    print("No user supplied!")
-    exit(1)
-if ruser not in CONF["RUSER"][host]:
-    print("User %s not found for host %s!" % (ruser, host))
-    exit(1)
-if os.environ["USER"] not in CONF["RUSER"][host][ruser].get("users"):
-    print("No valid connection parameter between current and remote user!")
-    exit(1)
+    if not host and source and not dest:
+        host = source
+        host_side = "s"
+        source = None
 
-vpn_name = get_vpn_name(CONF, host, ruser)
-if vpn_name:
-    print("##### You should activate %s before issue this command #####" % vpn_name)
-if do_dir:
-    source = get_remote_path(source)
-    cmd = get_cmd(CONF, host, ruser, via=via_pwd)
-    cmd = "%s dir '%s'" % (cmd, source)
-elif scp or rsync:
-    if not source and dest:
+    if list_host:
+        show_host(CONF, sel_host=host, glob=glob, do_tunnel=do_tunnel)
+        exit(0)
+    if sh_alias:
+        show_alias(CONF)
+        exit(0)
+    if force_crypt:
+        do_force_crypt(CONF)
+        exit(0)
+
+    if host not in CONF["RUSER"] and host in CONF["ALIAS"]:
+        host = CONF["ALIAS"][host]
+    host, candidates = get_candidates(CONF, host)
+    if host not in CONF["RUSER"]:
+        if host:
+            print("Host %s not found!" % host)
+            if candidates:
+                print("Perhaps you would select: %s" % ", ".join(
+                    [CONF["REV_ALIAS"].get(x, x) for x in candidates]))
+        else:
+            print("Missing host")
+        exit(1)
+
+    if list_pwd:
+        show_pwd(CONF, host, ruser=ruser, root_user=root_user)
+        exit(0)
+    if not ruser:
+        ruser = get_remote_user(CONF, host=host, root_user=root_user)
+    if not ruser:
+        print("No user supplied!")
+        exit(1)
+    if ruser not in CONF["RUSER"][host]:
+        print("User %s not found for host %s!" % (ruser, host))
+        exit(1)
+    if os.environ["USER"] not in CONF["RUSER"][host][ruser].get("users"):
+        print("No valid connection parameter between current and remote user!")
+        exit(1)
+
+    vpn_name = get_vpn_name(CONF, host, ruser)
+    if vpn_name:
+        print("##### You should activate %s before issue this command #####" % vpn_name)
+    if do_dir:
         source = get_remote_path(source)
-    if not source:
-        print("No source path supplied!")
-        exit(1)
-    if not dest and source:
-        dest = get_remote_path(dest)
-    if not dest:
-        print("No destination path supplied!")
-        exit(1)
-    if rsync:
-        cmd = get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync)
+        cmd = get_cmd(CONF, host, ruser, via=via_pwd)
+        cmd = "%s dir '%s'" % (cmd, source)
+    elif scp or rsync:
+        if not source and dest:
+            source = get_remote_path(source)
+        if not source:
+            print("No source path supplied!")
+            exit(1)
+        if not dest and source:
+            dest = get_remote_path(dest)
+        if not dest:
+            print("No destination path supplied!")
+            exit(1)
+        if rsync:
+            cmd = get_cmd_rsync(CONF, host, host_side, ruser, source, dest, rsync)
+        else:
+            cmd = get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse)
     else:
-        cmd = get_cmd_scp(CONF, host, host_side, ruser, source, dest, recurse)
-else:
-    cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
-    website = build_website(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
-    if website:
-        print("##### You could browse remote webpage at %s #####" % website)
-if verbose:
-    print(cmd)
-if dry_run:
-    exit(0)
-exit(os.system(cmd))
+        cmd = get_cmd(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
+        website = build_website(CONF, host, ruser, via=via_pwd, do_tunnel=do_tunnel)
+        if website:
+            print("##### You could browse remote webpage at %s #####" % website)
+    if verbose:
+        print(cmd)
+    if dry_run:
+        exit(0)
+    return os.system(cmd)
+
+
+if __name__ == "__main__":
+    exit(main())

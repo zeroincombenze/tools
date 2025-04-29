@@ -1,4 +1,10 @@
-2.0.21 (2025-26-04)
+2.0.21 (2025-04-28)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lint_2_compare: minor bug fixing
+* [IMP] lint_2_compare: automatic detecting version from source path
+
+2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] please translation: modified algorithm

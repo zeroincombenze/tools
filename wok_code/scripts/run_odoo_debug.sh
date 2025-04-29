@@ -48,6 +48,12 @@ run_traced_debug() {
     fi
 }
 
+
+log_mesg() {
+    echo -e $1
+}
+
+
 check_for_modules() {
     local mods r xi xu XXX opts
     OPTI=
@@ -79,7 +85,7 @@ check_for_modules() {
             fi
         done
     fi
-    [[ -n $XXX ]] && echo "Modules $XXX not found!" && exit 1
+    [[ -n $XXX ]] && log_mesg "Modules $XXX not found!" && exit 1
 }
 
 coverage_set() {
@@ -143,45 +149,14 @@ check_path_n_branch() {
     local x
     [[ -n $1 ]] && odoo_fver=$(build_odoo_param FULLVER "$1") || odoo_fver=""
     [[ -n $2 ]] && x=$(build_odoo_param FULLVER "$2") || x=""
-    [[ -n $odoo_fver && -n $x && $odoo_fver != $x ]] && echo "Version mismatch -p $1 != -b $2" && exit 1
+    [[ -n $odoo_fver && -n $x && $odoo_fver != $x ]] && log_mesg "Version mismatch -p $1 != -b $2" && exit 1
     [[ -z $odoo_fver ]] && odoo_fver=$x
 }
-#
-#replace_web_module() {
-#    # replace_web_module()
-#    local l prm param z w woca
-#    woca="$ODOO_RUNDIR/addons/_web_oca"
-#    w="$ODOO_RUNDIR/addons/web"
-#    if [[ $odoo_maj -le 7 && -f $TEST_CONFN ]]; then
-#        z=""
-#        l=""
-#        param=$(grep -E "^server_wide_modules *=.*" $TEST_CONFN|cut -d"=" -f2|tr -d " ")
-#        [[ $param == "None" ]] && param=""
-#        if [[ -n $param ]]; then
-#          for prm in ${param//,/ }; do
-#              [[ $prm =~ ^(web|web_kanban|None)$ ]] && continue
-#              [[ $prm == "web_zeroincombenze" ]] && z=$prm || l="$l,$prm"
-#          done
-#          [[ -n $l ]] && OPTS="$OPTS --load=\"${l:1}\""
-#        fi
-#        if [[ -z $z ]]; then
-#            [[ -L $w ]] && rm -f $w
-#            [[ -d $woca ]] && mv $woca $w
-#        else
-#            z=$(find $ODOO_RUNDIR -type f -path "*/$z/*" -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/venv_odoo/*" -name "__openerp__.py"|head -n 1)
-#            if [[ -n $z ]]; then
-#                z=$(dirname $z)
-#                [[ ! -d $woca ]] && mv $w $woca
-#                [[ ! -L $w ]] && ln -s $z $w
-#            fi
-#        fi
-#    fi
-#}
 
 
 restore_module() {
 # restore_module(oldp old)
-    local d old oldp pid
+    local c d old oldp pid
 
     oldp="$1"
     old="$2"
@@ -189,35 +164,43 @@ restore_module() {
         pid=$$
         d=$(date +"%Y-%prm-%d %H:%M:%S,000")
         if [[ -L $oldp/$old || ! -d $oldp/$old ]]; then
-            echo -e "$d $pid DAEMON $opt_db $(basename $0): Original module $old restored"
+            log_mesg "$d $pid DAEMON $opt_db $(basename $0): Original module $old restored"
             run_traced_debug "rm -f $oldp/$old"
             run_traced_debug "mv $oldp/_module_replaced/$old $oldp/$old"
+            c=0 && for x in $oldp/_module_replaced/*; do ((c++)); done
+            [[ $c -eq 0 ]] && run_traced_debug "rm -fR $oldp/_module_replaced/"
         else
-            echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $oldp/_module_replaced/$old should be restored"
+            log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $oldp/_module_replaced/$old should be restored"
         fi
     fi
 }
 
 
 replace_module() {
-# replace_module(oldp old newp new)
-    local a b d new newp old oldp pid
+# replace_module(oldp old newp new spec)
+    local a b d new newp old oldp pid spec
 
     oldp="$1"
     old="$2"
     newp="$3"
     new="$4"
+    spec="$5"
     pid=$$
     d=$(date +"%Y-%prm-%d %H:%M:%S,000")
     if [[ -L $oldp/$old && -d $oldp/_module_replaced && -d $oldp/_module_replaced/$old ]]; then
-        echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $new"
+        log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $new"
+    elif [[ -n $spec ]]; then
+        [[ ! -d $oldp/_module_replaced ]] && run_traced_debug "mkdir $oldp/_module_replaced"
+        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Warning: $old replaced by $newp/$new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
+        [[ ! -d $oldp/$old ]] && run_traced_debug "ln -s $newp/$new $oldp/$old"
+        [[ ! -d $oldp/$old/addons ]] && run_traced_debug "ln -s $oldp/_module_replaced/$old/addons $oldp/$old/addons"
     else
         [[ -f $oldp/$old/__openerp__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__manifest__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__openerp__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__manifest__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ ! -d $oldp/_module_replaced ]] && run_traced_debug "mkdir $oldp/_module_replaced"
-        [[ ! -d $oldp/_module_replaced/$old ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
+        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" && run_traced_debug "mv $oldp/$old $oldp/_module_replaced/$old"
         [[ ! -d $oldp/$old ]] && run_traced_debug "ln -s $newp/$new $oldp/$old"
         [[ -n $a && -f $newp/$new/__openerp__.py ]] && run_traced "sed -E \"s|(.auto_install. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__openerp__.py"
         [[ -n $a && -f $newp/$new/__manifest__.py ]] && run_traced "sed -E \"s|(.auto_install. *: *)[a-zA-Z]+|\\1 $a|\" -i $newp/$new/__manifest__.py"
@@ -231,19 +214,36 @@ replace_restore_modules() {
 # replace_restore_modules(z0_repl)
 # Replace module by another from configuration file or restore original prm
 # server_wide_module_replacement = old_module:new_module,old_path:new_path
-    local d new newp old oldp opaths pid param prm x z
+    local c d new newp old oldp opaths oroot pid param prm x z
     [[ -n $1 ]] && z=$1 || z=0
     pid=$$
     if [[ -f $CONFN ]]; then
         opaths="$(grep -E ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
         param=$(grep -E ^server_wide_module_replacement $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
         for prm in ${param//,/ }; do
+            oroot=""
             oldp=""
             newp=""
+            c=""
             old=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
             new=$(echo $prm | awk -F: '{gsub(/^ */,"",$2); print $2}')
             d=$(date +"%Y-%prm-%d %H:%M:%S,000")
-            [[ $old =~ "/" ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Invalid parameter: server_wide_module_replacement = $old!" && continue
+            [[ $old =~ "/" ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Invalid parameter: server_wide_module_replacement = $old!" && continue
+            for d in ${opaths//,/ }; do
+                [[ -n $oroot && ( -n $newp || $z -ne 0 ) ]] && break
+                n=$(dirname $d)
+                [[ -z $oldp && $d =~ /$old/addons$ && $old =~ ^(odoo|openerp)$ ]] && oroot=$(dirname $n) && c=$old
+                [[ -z $newp && -d $d/$new && ! -d $d/$new/addons ]] && newp=$d/$(dirname $new) && new=$(basename $new)
+            done
+            [[ -n $oroot && -d $oroot/_module_replaced/$c && -z $newp ]] && z=1
+            if [[ -n $oroot && ( -n $newp || $z -ne 0 ) ]]; then
+              if [[ $z -eq 0 ]]; then
+                  replace_module "$oroot" "$c" "$newp" "$new" "$c"
+              else
+                  restore_module "$oroot" "$c"
+              fi
+              continue
+            fi
             for d in ${opaths//,/ }; do
                 [[ -n $oldp && -n $newp ]] && break
                 n=$(dirname $d)
@@ -251,7 +251,7 @@ replace_restore_modules() {
                 [[ -z $newp && -d $d/$new && ( -f $d/$new/__manifest__.py || -f $d/$new/__openerp__.py ) ]] && newp=$d
                 [[ -z $newp && -d $n/$new && ( -f $n/$new/__manifest__.py || -f $n/$new/__openerp__.py ) ]] && newp=$n/$(dirname $new) && new=$(basename $new)
             done
-            [[ -z $oldp || -z $newp ]] && echo -e "$d $pid DAEMON $opt_db $(basename $0): Module replacement $new ($newp) not found for $old ($oldp)!" && continue
+            [[ -z $oldp || -z $newp ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module replacement $new ($newp) not found for $old ($oldp)!" && continue
             if [[ $z -eq 0 ]]; then
                 replace_module "$oldp" "$old" "$newp" "$new"
             else
@@ -259,16 +259,22 @@ replace_restore_modules() {
             fi
         done
         for d in ${opaths//,/ }; do
+            n=$(dirname $d)
+            if [[ $d =~ /(odoo|openerp)/addons$ ]]; then
+                oroot=$(dirname $n)
+                c=$(basename $n)
+                [[ -d $oroot/_module_replaced && -d $oroot/_module_replaced/$c ]] && restore_module "$oroot" $c
+            fi
             if [[ -d $d/_module_replaced ]]; then
-                [[ -n $param ]] && z=1 || z=0
                 for old in $d/_module_replaced/*; do
+                    [[ -n $param ]] && z=1 || z=0
                     for prm in ${param//,/ }; do
                         x=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
                         [[ $old == "x" ]] && z=0 && break
                     done
+                    [[ $z -ne 0 ]] && continue
+                    restore_module "$d" $(basename $old)
                 done
-                [[ $z -ne 0 ]] && continue
-                restore_module "$d" $(basename $old)
             fi
         done
     fi
@@ -330,7 +336,7 @@ wait_daemon_idle() {
     local c ctr p sz t x
     ctr=0
     [[ ! -f $LOGDIR/odoo.pid ]] && p="" && sleep 3
-    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || echo "Warning! File $LOGDIR/odoo.pid not found!"
+    [[ -f $LOGDIR/odoo.pid ]] && p=$(cat $LOGDIR/odoo.pid) || log_mesg "Warning! File $LOGDIR/odoo.pid not found!"
     if [[ -n $p ]]; then
         sleep 2
         t=""
@@ -343,7 +349,7 @@ wait_daemon_idle() {
           sz=$(stat -c%s $LOGFILE)
           sleep 1;
           x=$(date +"%Y-%m-%d %H:%M:%S,000")
-          echo -e "$x $p DAEMON $opt_db $(basename $0): Waiting for process $p idle ... # $ctr"
+          log_mesg "$x $p DAEMON $opt_db $(basename $0): Waiting for process $p idle ... # $ctr"
         done
     fi
 }
@@ -361,44 +367,44 @@ clean_old_templates() {
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
         d="template_${x}_${odoo_maj}"
-        [[ $opt_verbose -gt 1 ]] && echo "Searching for $d ..."
+        [[ $opt_verbose -gt 1 ]] && log_mesg "Searching for $d ..."
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$d"; then
           run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
           c=$(pg_db_active -c "$d")
-          [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$d\"" && continue
-          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$d" && echo "Database \"$d\" removal failed!"
+          [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$d\"" && continue
+          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$d" && log_mesg "Database \"$d\" removal failed!"
         fi
     done
 }
 
 test_with_external_process() {
     local x p s
-    echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m"
-    echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
+    log_mesg "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m"
+    log_mesg "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
     export TEST_DB="$opt_db"
     export ODOO_VERSION="$odoo_fver"
     # export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
-    echo "\$ export LOGFILE=$LOGFILE"
-    echo "\$ export DAEMON_LOGFILE=$DAEMON_LOGFILE"
-    echo "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
-    echo "\$ export ODOO_VERSION=$ODOO_VERSION"
-    echo "\$ export TEST_CONFN=$TEST_CONFN"
-    echo "\$ export TEST_DB=$TEST_DB"
-    echo "\$ export TEST_VDIR=$TEST_VDIR"
+    log_mesg "\$ export LOGFILE=$LOGFILE"
+    log_mesg "\$ export DAEMON_LOGFILE=$DAEMON_LOGFILE"
+    log_mesg "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
+    log_mesg "\$ export ODOO_VERSION=$ODOO_VERSION"
+    log_mesg "\$ export TEST_CONFN=$TEST_CONFN"
+    log_mesg "\$ export TEST_DB=$TEST_DB"
+    log_mesg "\$ export TEST_VDIR=$TEST_VDIR"
     OPTS="--pidfile=$LOGDIR/odoo.pid -d $TEST_DB"
     opt_dae=1
     run_odoo_server
     for p in $(ls -1 $PKGPATH/tests/concurrent_test/|grep -E "^test_.*.py$"); do
         ext_test="$PKGPATH/tests/concurrent_test/$p"
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
-        echo -e "$x $$ DAEMON $opt_db $p: \e[37;43mStarting $ext_test\e[0m ..." | tee -a $LOGFILE
+        log_mesg "$x $$ DAEMON $opt_db $p: \e[37;43mStarting $ext_test\e[0m ..." | tee -a $LOGFILE
         run_traced "python $ext_test"
         s=$?
         x=$(date +"%Y-%m-%d %H:%M:%S,000")
         if [[ $s -eq 0 ]]; then
-            echo -e "$x $$ DAEMON $opt_db $p: \e[32mTest SUCCESSFULLY completed\e[0m" | tee -a $LOGFILE
+            log_mesg "$x $$ DAEMON $opt_db $p: \e[32mTest SUCCESSFULLY completed\e[0m" | tee -a $LOGFILE
         else
-            echo -e "$x $$ ERROR $opt_db $p: \e[31mTest $ext_test terminated with error $s\e[0m" | tee -a $LOGFILE
+            log_mesg "$x $$ ERROR $opt_db $p: \e[31mTest $ext_test terminated with error $s\e[0m" | tee -a $LOGFILE
             sts=$s
             break
         fi
@@ -506,9 +512,9 @@ odoo_fver=""
 [[ -z $MQT_TEST_DB ]] && MQT_TEST_DB="test_odoo"
 if [[ -n $opt_conf ]]; then
     CONFN=$opt_conf
-    [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
+    [[ ! -f $CONFN ]] && log_mesg "File $CONFN not found!" && exit 1
     opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
-    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
+    [[ -z $opaths ]] && log_mesg "No path list found in $CONFN!" && exit 1
     for p in ${opaths//,/ }; do
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
@@ -525,7 +531,7 @@ if [[ -n $opt_conf ]]; then
     fi
     GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
 elif [[ -n $opt_odir ]]; then
-    [[ ! -d $opt_odir ]] && echo "Path $opt_odir not found!" && exit 1
+    [[ ! -d $opt_odir ]] && log_mesg "Path $opt_odir not found!" && exit 1
     odoo_root=$(build_odoo_param ROOT "$opt_odir")
     check_path_n_branch "$opt_odir" "$opt_branch"
     PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
@@ -549,9 +555,9 @@ elif [[ -n $opt_odir ]]; then
         [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
         [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     fi
-    [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
+    [[ ! -f $CONFN ]] && log_mesg "File $CONFN not found!" && exit 1
     opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')"
-    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
+    [[ -z $opaths ]] && log_mesg "No path list found in $CONFN!" && exit 1
 elif [[ -n $opt_modules || -n $opt_branch ]]; then
     odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     odoo_root=$(build_odoo_param ROOT "$opt_branch" "" "$GIT_ORGID")
@@ -567,9 +573,8 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
-    # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
-    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
+    [[ -z $opaths ]] && log_mesg "No path list found in $CONFN!" && exit 1
 else
     odoo_fver=$(build_odoo_param FULLVER "$PWD")
     odoo_root=$(readlink -f $PWD)
@@ -583,16 +588,15 @@ else
     [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
-    # [[ ! -f $CONFN ]] && echo "File $CONFN not found!" && exit 1
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
-    [[ -z $opaths ]] && echo "No path list found in $CONFN!" && exit 1
+    [[ -z $opaths ]] && log_mesg "No path list found in $CONFN!" && exit 1
 fi
-[[ -z $odoo_root || ! -d $odoo_root ]] && echo "Odoo path $odoo_root not found!" && exit 1
+[[ -z $odoo_root || ! -d $odoo_root ]] && log_mesg "Odoo path $odoo_root not found!" && exit 1
 [[ $REPOSNAME == "addons" ]] && REPOSNAME="OCB"
 odoo_maj=$(build_odoo_param MAJVER $odoo_fver)
 LCONFN=$(build_odoo_param LCONFN $odoo_fver)
 SCRIPT=$(build_odoo_param BIN "$odoo_root" search)
-[[ -z "$SCRIPT" ]] && echo "No odoo script found!!" && exit 1
+[[ -z "$SCRIPT" ]] && log_mesg "No odoo script found!!" && exit 1
 export ODOO_RUNDIR=$(dirname $SCRIPT)
 TEST_VDIR=""
 if [[ -n $opt_venv ]]; then
@@ -609,7 +613,7 @@ else
     fi
 fi
 [[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
-[[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && echo "# Found $TEST_VDIR virtual directory"
+[[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && log_mesg "# Found $TEST_VDIR virtual directory"
 set_log_filename
 
 if [[ -n $opt_rport ]]; then
@@ -678,7 +682,7 @@ if [[ $opt_test -ne 0 ]]; then
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
-    [[ -z "$opt_modules" ]] && echo "Missing -m switch!!" && exit 1
+    [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
 elif [[ $opt_lang -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -686,34 +690,34 @@ elif [[ $opt_lang -ne 0 ]]; then
 elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
-    [[ -z "$opt_modules" ]] && echo "Missing -m switch!!" && exit 1
-    [[ -z "$opt_db" ]] && echo "Missing -d switch !!" && exit 1
+    [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
+    [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
 elif [[ $opt_upd -ne 0 ]]; then
     opt_keep=1
-    [[ -z "$opt_modules" ]] && echo "Missing -m switch!!" && exit 1
-    [[ -z "$opt_db" ]] && echo "Missing -d switch !!" && exit 1
+    [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
+    [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
 elif [[ $opt_xtl -ne 0 ]]; then
-    [[ -z "$opt_modules" ]] && echo "Missing -m switch!!" && exit 1
-    [[ -z "$opt_db" ]] && echo "Missing -d switch !!" && exit 1
+    [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
+    [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
 fi
 
 mod_test_cfg=""
 if [[ -n "$opt_modules" ]]; then
     if [[ $create_db -ne 0 ]]; then
         if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
-            echo "Test incomplete!"
-            echo "File odoo_dependencies.py not found!"
+            log_mesg "Test incomplete!"
+            log_mesg "File odoo_dependencies.py not found!"
         else
-            [[ $opt_verbose -gt 1 ]] && echo "# Searching for module paths ..."
+            [[ $opt_verbose -gt 1 ]] && log_mesg "# Searching for module paths ..."
             if [[ "$opt_modules" == "all" ]]; then
-              [[ $opt_verbose -gt 1 ]] && echo "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\")"
+              [[ $opt_verbose -gt 1 ]] && log_mesg "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\")"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths")
             else
-                [[ $opt_verbose -gt 1 ]] && echo "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\" -PM $opt_modules)"
+                [[ $opt_verbose -gt 1 ]] && log_mesg "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\" -PM $opt_modules)"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
                 [[ -f $opt_odir/readme/__manifest__.rst ]] && mod_test_cfg="$opt_odir/readme/__manifest__.rst"
             fi
-            [[ -z "$depmods" ]] && echo "Modules $opt_modules not found!" && exit 1
+            [[ -z "$depmods" ]] && log_mesg "Modules $opt_modules not found!" && exit 1
             if [[ "$opt_modules" != "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA dep $opaths -PM $opt_modules)
             fi
@@ -732,11 +736,11 @@ if [[ -n "$opt_modules" ]]; then
         elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
             src=$(find ${opaths//,/ } -maxdepth 1 -type d -name $opt_modules 2>/dev/null|head -n1)
             if [[ -z $src ]]; then
-                echo "Translation file not found!!"
+                log_mesg "Translation file not found!!"
                 exit 1
             fi
             src=$(readlink -f $src)
-            [[ ! -d $src/i18n ]] && echo "No directory $src/i18n found!!" && exit 1
+            [[ ! -d $src/i18n ]] && log_mesg "No directory $src/i18n found!!" && exit 1
             src="$src/i18n/it.po"
             makepo_it.py -f -b$odoo_fver -m$opt_modules $src
             if [[ $opt_imp -ne 0 ]]; then
@@ -750,13 +754,13 @@ if [[ -n "$opt_modules" ]]; then
         elif [[ $opt_upd -ne 0 ]]; then
             OPTS="$OPTU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
-            [[ -n $OPTI && $opt_verbose -ne 0 ]] && echo -e "Warning: some modules must be installed before\n$OPTI"
-            [[ -z $OPTU ]] && echo "No module found to update" && exit 1
+            [[ -n $OPTI && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be installed before\n$OPTI"
+            [[ -z $OPTU ]] && log_mesg "No module found to update" && exit 1
         elif [[ $opt_xtl -ne 0 ]]; then
             OPTS="$OPTI"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
-            [[ -n $OPTU && $opt_verbose -ne 0 ]] && echo -e "Warning: some modules must be updated\n$OPTU"
-            [[ -z $OPTI ]] && echo "No module found to install" && exit 1
+            [[ -n $OPTU && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be updated\n$OPTU"
+            [[ -z $OPTI ]] && log_mesg "No module found to install" && exit 1
         else
             OPTS="$OPTSIU"
         fi
@@ -780,7 +784,7 @@ ext_test=""
 if [[ $opt_nox -eq 0 && $opt_test -ne 0 && -d $PKGPATH/tests/concurrent_test ]]; then
     ext_test=$(ls -1 $PKGPATH/tests/concurrent_test/|grep -E "^test_.*.py$"|head -n1)
 fi
-[[ -n $ext_test ]] && echo -e "\e[37;43mExternal test $ext_test will be executed\e[0m"
+[[ -n $ext_test ]] && log_mesg "\e[37;43mExternal test $ext_test will be executed\e[0m"
 [[ $opt_dae -ne 0 ]] && OPTDB="$OPTDB --pidfile=$LOGDIR/odoo.pid" || OPTDB="$OPTDB --stop-after-init"
 
 if [[ $opt_stop -gt 0 ]]; then
@@ -828,7 +832,7 @@ fi
 # replace_web_module
 if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     run_traced "cd $TEST_VDIR"
-    [[ $opt_dry_run -ne 0 && $opt_verbose -ne 0 ]] && echo "> source ./bin/activate"
+    [[ $opt_dry_run -ne 0 && $opt_verbose -ne 0 ]] && log_mesg "> source ./bin/activate"
     [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
     run_traced "$SCRIPT -s --stop-after-init"
 fi
@@ -837,9 +841,9 @@ set_confn
 if [[ -n "$TEST_VDIR" ]]; then
   coverage_set
   x=$(date +"%Y-%m-%d %H:%M:%S,000")
-  [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate"
+  [[ $opt_verbose -gt 0 && $opt_test -eq 0 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate"
   [[ -d LOGDIR && ! -f $LOGFILE ]] && touch $LOGFILE
-  [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
+  [[ $opt_verbose -gt 0 && $opt_test -ne 0 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): cd $TEST_VDIR && source ./bin/activate" | tee -a $LOGFILE
   cd $TEST_VDIR
   source ./bin/activate
   PYTHON=$(which python)
@@ -870,16 +874,16 @@ if [[ $create_db -gt 0 ]]; then
             if [[ $opt_force -ne 0 ]] && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                 run_traced "pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
                 c=$(pg_db_active -c "$TEMPLATE")
-                [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
-                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && echo "Database \"$TEMPLATE\" removal failed!" && exit 1
+                [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
+                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && log_mesg "Database \"$TEMPLATE\" removal failed!" && exit 1
             fi
             if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                c=$(echo $depmods|awk "-F," '{print NF-1}')
+                c=$(log_mesg $depmods|awk "-F," '{print NF-1}')
                 [[ $opt_verbose -gt 2 ]] && LLEV="--log-level=debug"
                 [[ $opt_verbose -eq 2 ]] && LLEV="--log-level=info"
                 [[ $opt_verbose -lt 2 ]] && LLEV="--log-level=warn"
                 ((c=(c*5+45)/60))
-                [[ $c -gt 0 ]] && echo "Warning: wait for template building in about $c minutes"
+                [[ $c -gt 0 ]] && log_mesg "Warning: wait for template building in about $c minutes"
                 [[ $c -gt 2 ]] && LLEV="--log-level=info"
                 [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
                 # Notice: stdbuf and tee are requires to show log
@@ -892,8 +896,8 @@ if [[ $create_db -gt 0 ]]; then
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
             run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
             c=$(pg_db_active -c \"$opt_db\")
-            [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db" && echo "Database \"$opt_db\" removal failed!" && exit 1
+            [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
+            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db" && log_mesg "Database \"$opt_db\" removal failed!" && exit 1
         fi
         if [[ $opt_dry_run -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
             [[ -n "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
@@ -913,16 +917,16 @@ elif [[ opt_dbg -gt 1 ]]; then
     echo "Now you can test module $opt_modules on pycharm"
     echo ""
     echo "Debug Odoo by pycharm after set configuration \"Debug Odoo $odoo_fver\""
-    echo -e "parameters=\"\e[33m$SCRIPT\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
+    log_mesg "parameters=\"\e[33m$SCRIPT\e[0m \e[31m$OPT_CONF $OPT_LLEV $OPTS\e[0m\""
     echo ""
     echo "If your test code contains the follow statements"
     echo ""
-    echo -e "    \e[33mdef tearDown(self):\e[0m"
-    echo -e "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
+    log_mesg "    \e[33mdef tearDown(self):\e[0m"
+    log_mesg "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
     echo ""
     echo "you can browse test database from:"
-    echo -e "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
-    echo -e "DB=\e[31m$opt_db\e[0m login: admin/admin"
+    log_mesg "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
+    log_mesg "DB=\e[31m$opt_db\e[0m login: admin/admin"
     echo ""
 else
     run_traced "cd $ODOO_RUNDIR && $SCRIPT $OPT_CONF $OPT_LLEV $OPTS"
@@ -930,7 +934,7 @@ fi
 
 if [[ -n "$TEST_VDIR" ]]; then
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && echo "$x $$ DAEMON $opt_db $(basename $0): deactivate"
+    [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
     [[ $opt_dry_run -eq 0 ]] && deactivate
 fi
 # [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
@@ -938,12 +942,12 @@ fi
 
 if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
     if [[ $opt_dry_run -eq 0 ]]; then
-        echo -e "\n+===================================================================" | tee -a $LOGFILE
+        log_mesg "\n+===================================================================" | tee -a $LOGFILE
         x="\e[32mSUCCESS!\e[0m"
         grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
         grep -Eq "[0-9]+ (ERROR|CRITICAL|WARNING) .*invalid module names.*$opt_modules" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
-        echo -e "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
-        echo -e "+===================================================================\n"  | tee -a $LOGFILE
+        log_mesg "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
+        log_mesg "+===================================================================\n"  | tee -a $LOGFILE
         [[ $sts -eq 0 ]] && coverage_report | tee -a $LOGFILE
         echo "less -R \$(readlink -f \$(dirname \$0))/$(basename $LOGFILE)" > $LOGDIR/show-log.sh
         chmod +x $LOGDIR/show-log.sh
@@ -953,9 +957,9 @@ if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
 fi
 if [[ $opt_exp -ne 0 ]]; then
     makepo_it.py -b$odoo_fver -m$opt_modules $src
-    echo "# Translation exported to '$src' file"
+    log_mesg "# Translation exported to '$src' file"
 elif [[ $opt_imp -ne 0 ]]; then
-    echo "# Translation imported from '$src' file"
+    log_mesg "# Translation imported from '$src' file"
 fi
 
 [[ $opt_keep -eq 0 && $opt_dae -ne 0 ]] && stop_bg_process
@@ -965,7 +969,7 @@ if [[ $drop_db -gt 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists '$opt_db'"
         c=$(pg_db_active -c "$opt_db")
-        [[ $c -ne 0 ]] && echo "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
+        [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
     fi
 fi
 

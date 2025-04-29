@@ -1,3 +1,8 @@
+2.0.8 (2025-04-27)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements improvements
+
 2.0.7 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~
 
