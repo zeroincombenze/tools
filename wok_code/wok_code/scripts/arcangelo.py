@@ -1011,10 +1011,12 @@ class MigrateFile(MigrateMeta):
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
-            # cmd += " --bracket-same-line --write "
+            # cmd += " --bracket-same-line"
             cmd += " --write "
             cmd += out_fqn
-            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            if sts:
+                self.opt_args.no_parse_with_formatter = True
         else:
             if self.mime == "manifest" and self.opt_args.to_version:
                 curcwd = os.getcwd()
@@ -1038,7 +1040,9 @@ class MigrateFile(MigrateMeta):
             ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_fqn)
-            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            if sts:
+                self.opt_args.no_parse_with_formatter = True
 
     def close(self):
         if self.opt_args.output:

@@ -111,6 +111,9 @@ class PleaseCwd(object):
         parser.add_argument(
             "--vme", action="store_true", help="Update $HOME/VME virtual environments"
         )
+        parser.add_argument(
+            "--devel-venv", action="store_true", help="Update devel virtual environment"
+        )
         parser.add_argument("args", nargs="*")
         return parser
 
@@ -1097,7 +1100,7 @@ class PleaseCwd(object):
             if sts == 0 and please.opt_args.vme:
                 sts = self.do_update_vme()
             if sts == 0 and please.opt_args.odoo_venv:
-                sts = self.do_update_venv()
+                sts = self.do_update_odoo_venv()
             return sts
         return please.do_iter_action(
             "do_update",
@@ -1110,7 +1113,7 @@ class PleaseCwd(object):
             ],
         )
 
-    def do_update_venv(self):
+    def do_update_odoo_venv(self):
         please = self.please
         sts = 126
         if please.is_pypi_pkg():
