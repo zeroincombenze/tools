@@ -38,6 +38,37 @@ Usage:
 where:
 
     PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)
+Digest of features
+==================
+
+
++----------------------------------------------+-----------------------------------------+
+| Function                                     | Note                                    |
++----------------------------------------------+-----------------------------------------+
+| Add new repository                           | odoo_install_repository                 |
++----------------------------------------------+-----------------------------------------+
+| Update paid invoice                          | inv2draft_n_restore.py                  |
++----------------------------------------------+-----------------------------------------+
+| List requirement of Odoo                     | list_requirements.py                    |
++----------------------------------------------+-----------------------------------------+
+| Create full configurated Odoo DB             | manage_db                               |
++----------------------------------------------+-----------------------------------------+
+| Manage Odoo installation                     | manage_odoo                             |
++----------------------------------------------+-----------------------------------------+
+| Set Odoo Skin (backoffice)                   | odoo_skin.sh                            |
++----------------------------------------------+-----------------------------------------+
+| Run Odoo instance to debug                   | run_odoo_debug                          |
++----------------------------------------------+-----------------------------------------+
+| Manage version depending names               | transodoo.py                            |
++----------------------------------------------+-----------------------------------------+
+| General Purpose RPC                          | clodoo.py                               |
++----------------------------------------------+-----------------------------------------+
+| Export Odoo model to test file               | export_db_model.py                      |
++----------------------------------------------+-----------------------------------------+
+| Migrate Odoo                                 | migrate_odoo.py (deprecated)            |
++----------------------------------------------+-----------------------------------------+
+| Examples                                     | example*.py                             |
++----------------------------------------------+-----------------------------------------+
 Digest of transodoo
 ===================
 
@@ -57,10 +88,10 @@ Translate Odoo entity name across versions.
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.6/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.6/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.6
+__version__=2.0.7
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -369,8 +369,8 @@ if [[ $PYVER -eq 3 ]]; then
         run_traced "nvm install v20.18.0"
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
         run_traced "npm audit fix"
-        run_traced "npm install --save-dev --save-exact prettier@2.1.2"
-        run_traced "npm install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
+        run_traced "npm -g install --save-dev --save-exact prettier@2.1.2"
+        run_traced "npm -g install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
     fi
     run_traced "git clone $x https://github.com/OCA/maintainer-quality-tools.git"
 fi

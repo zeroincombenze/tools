@@ -20,6 +20,7 @@ __version__ = "2.0.21"
 IGNORE_DIRS_BASE = [".idea", ".git", "egg-info", "setup"]
 IGNORE_DIRS_NDOC = ["readme", "static"]
 IGNORE_DIRS_NLOG = ["logs"]
+IGNORE_DIRS_NPO = ["i18n"]
 REGEX_CM = re.compile("(^ *#|^.* #)")
 REGEX_OE = re.compile(r"([\"'])https?://www.openerp.com([\"'])")
 REGEX_OO = re.compile(r"([\"'])https?://(www.)?odoo.com([\"'])")
@@ -62,7 +63,7 @@ def format_xml(opt_args, source, target):
         with open(target, "w") as fd:
             fd.write(xml_text)
     else:
-        z0lib.run_traced(
+        z0lib.os_system(
             "cp %s %s" % (source, target),
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
@@ -71,21 +72,17 @@ def format_xml(opt_args, source, target):
 
 def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base):
     if (
-        base.endswith(".pyc")
-        or base.endswith(".bak")
-        or base.endswith("~")
-        or base.endswith(".po.orig")
-        or ((base.endswith(".po") or base.endswith(".pot")) and opt_args.ignore_po)
-        or (base.startswith("README") and opt_args.ignore_doc)
-        or (base.startswith("LICENSE") and opt_args.ignore_doc)
-        or (base == "index.html" and opt_args.ignore_doc)
+        base.endswith((".pyc", ".bak", "~", ".po.orig"))
+        or (base.endswith((".po", ".pot", ".mo")) and opt_args.ignore_po)
+        or (base.startswith(("README", "LICENSE")) and opt_args.ignore_doc)
+        or (base in ("index.html", ".gitignore", ".travis.yml") and opt_args.ignore_doc)
     ):
         return
     elif pth.isfile(left_path):
         if base.endswith(".xml"):
             format_xml(opt_args, left_path, pth.join(left_diff_path, base))
         else:
-            z0lib.run_traced(
+            z0lib.os_system(
                 "cp %s %s" % (left_path, pth.join(left_diff_path, base)),
                 verbose=opt_args.dry_run,
                 dry_run=opt_args.dry_run,
@@ -94,7 +91,7 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
         if base.endswith(".xml"):
             format_xml(opt_args, right_path, pth.join(right_diff_path, base))
         else:
-            z0lib.run_traced(
+            z0lib.os_system(
                 "cp %s %s" % (right_path, pth.join(right_diff_path, base)),
                 verbose=opt_args.dry_run,
                 dry_run=opt_args.dry_run,
@@ -115,14 +112,14 @@ def matchdir_based(
 ):
     left_diff_path = pth.join(left_diff_path, base)
     if not pth.isdir(left_diff_path):
-        z0lib.run_traced(
+        z0lib.os_system(
             "mkdir %s" % left_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
     right_diff_path = pth.join(right_diff_path, base)
     if not pth.isdir(right_diff_path):
-        z0lib.run_traced(
+        z0lib.os_system(
             "mkdir %s" % right_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
@@ -177,7 +174,7 @@ def remove_comment(opt_args, root, files, compare_path=None):
             cmd = "diff -rZbB %s %s"
         else:
             cmd = "diff -rEbZbB %s %s"
-        sts, stdout, stderr = z0lib.run_traced(
+        sts, stdout, stderr = z0lib.os_system_traced(
             cmd % (left_path, right_path),
             verbose=False,
             dry_run=opt_args.dry_run,
@@ -216,7 +213,7 @@ def lint_file(opt_args, from_version, path):
         opts += " -F" + from_version
     if opt_args.git_orgid:
         opts += " -G" + opt_args.git_orgid
-    z0lib.run_traced(
+    z0lib.os_system(
         "arcangelo %s %s" % (path, opts),
         verbose=opt_args.dry_run,
         dry_run=opt_args.dry_run,
@@ -228,7 +225,10 @@ def lintdir(opt_args, left_path, right_path):
     lint_file(opt_args, opt_args.from_right_version, right_path)
     if opt_args.ignore_doc:
         for root, _dirs, files in os.walk(left_path):
-            remove_comment(opt_args, root, files)
+            compare_path = None
+            if root.startswith(right_path):
+                compare_path = left_path + root[len(right_path):]
+            remove_comment(opt_args, root, files, compare_path=compare_path)
         for root, _dirs, files in os.walk(right_path):
             compare_path = None
             if root.startswith(right_path):
@@ -237,16 +237,32 @@ def lintdir(opt_args, left_path, right_path):
 
 
 def rm_dir(opt_args, path):
-    z0lib.run_traced(
+    z0lib.os_system(
         "chmod -R +w %s" % path,
         verbose=opt_args.dry_run,
         dry_run=opt_args.dry_run,
     )
-    z0lib.run_traced(
+    z0lib.os_system(
         "rm -fR %s" % path,
         verbose=opt_args.dry_run,
         dry_run=opt_args.dry_run,
     )
+
+
+def get_branch(opt_args, path):
+    branch = ""
+    os.chdir(path)
+    sts, stdout, stderr = z0lib.run_traced("git branch", verbose=False)
+    if sts == 0 and stdout:
+        branch = ""
+        for ln in stdout.split("\n"):
+            if ln.startswith("*"):
+                branch = ln[2:]
+                break
+        if branch:
+            x = re.match(r"[0-9]+\.[0-9]+", branch)
+            branch = branch[x.start(): x.end()] if x else ""
+    return branch
 
 
 def main(cli_args=None):
@@ -349,11 +365,20 @@ def main(cli_args=None):
             "GIT_ORGID", odoo_vid=opt_args.right_path, multi=True
         )
 
+    branch = get_branch(opt_args, opt_args.left_path)
+    if branch:
+        opt_args.from_left_version = branch
+    branch = get_branch(opt_args, opt_args.right_path)
+    if branch:
+        opt_args.from_right_version = branch
+
     IGNORE_DIRS = IGNORE_DIRS_BASE
     if opt_args.ignore_doc:
         IGNORE_DIRS += IGNORE_DIRS_NDOC
     if opt_args.ignore_log:
         IGNORE_DIRS += IGNORE_DIRS_NLOG
+    if opt_args.ignore_po:
+        IGNORE_DIRS += IGNORE_DIRS_NPO
     left_base, right_base = get_names(opt_args.left_path, opt_args.right_path)
     left_diff_path = pth.join(diff_path, left_base)
     right_diff_path = pth.join(diff_path, right_base)
@@ -366,12 +391,12 @@ def main(cli_args=None):
             rm_dir(opt_args, left_diff_path)
         if pth.isdir(right_diff_path):
             rm_dir(opt_args, right_diff_path)
-        z0lib.run_traced(
+        z0lib.os_system(
             "mkdir %s" % left_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
-        z0lib.run_traced(
+        z0lib.os_system(
             "mkdir %s" % right_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
@@ -384,24 +409,24 @@ def main(cli_args=None):
             opt_args.right_path,
         )
         lintdir(opt_args, left_diff_path, right_diff_path)
-        z0lib.run_traced(
+        z0lib.os_system(
             "chmod -R -w %s" % left_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
-        z0lib.run_traced(
+        z0lib.os_system(
             "chmod -R -w %s" % right_diff_path,
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
     if opt_args.meld:
-        sts, stdout, stderr = z0lib.run_traced(
+        sts, stdout, stderr = z0lib.os_system_traced(
             "meld %s %s" % (left_diff_path, right_diff_path),
             verbose=True,
             dry_run=opt_args.dry_run,
         )
     else:
-        sts, stdout, stderr = z0lib.run_traced(
+        sts, stdout, stderr = z0lib.os_system_traced(
             "diff -qr %s %s" % (left_diff_path, right_diff_path),
             verbose=True,
             dry_run=opt_args.dry_run,
