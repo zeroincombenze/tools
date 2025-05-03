@@ -88,18 +88,6 @@ DEFAULT_DATA = {
         "warehouse-logistics-stock": "git@gitlab.com:/powerp1",
         "zerobug-test": "git@github.com:zeroincombenze",
     },
-    "librerp14": {
-        "PATH": "~/14.0",
-        "URL": "git@github.com:LibrERP-network",
-        "CONFN": "odoo14.conf",
-        "custom-addons": "git@github.com:LibrERP",
-        "deploy": "git@gitlab.com:powerp1",
-        "double-trouble": "git@github.com:LibrERP",
-        "generic": "git@gitlab.com:powerp1",
-        "profiles": "",
-        "warehouse-logistics-stock": "git@gitlab.com:/powerp1",
-        "zerobug-test": "git@github.com:zeroincombenze",
-    },
     "librerp6": {
         "PATH": "~/librerp6",
         "URL": "https://github.com/iw3hxn",
@@ -293,7 +281,7 @@ class OdooDeploy(object):
                 "Missed origin for link path %s!" % opt_args.link_upstream
             )
         if opt_args.clean_repo and opt_args.action != "update":
-            raise NotImplementedError("You cna clean repo only under update action!")
+            raise NotImplementedError("You can clean repo only under update action!")
         if opt_args.action in ("clone", "amend") and not opt_args.odoo_branch:
             print("***** Missing Odoo branch: 17.0 will be used!")
             opt_args.odoo_branch = "17.0"
@@ -1064,9 +1052,20 @@ class OdooDeploy(object):
         if sts:
             print("Invalid branch %s" % branch)
         if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
+            rgit_org = False
+            srcdir = self.get_path_of_repo(repo)
+            if srcdir != tgtdir:
+                curcwd = os.getcwd()
+                os.chdir(srcdir)
+                sts, repo_branch, rgit_url = self.get_remote_info(verbose=False)[0:3]
+                if sts == 0:
+                    rgit_org = self.data_from_url(rgit_url)[2]
+                os.chdir(curcwd)
             self.repo_info[repo]["PATH"] = tgtdir
             self.repo_info[repo]["BRANCH"] = remote_branch
-            self.set_upstream(self.opt_args.origin, repo)
+            git_org = self.data_from_url(git_url)[2]
+            if git_org != rgit_org:
+                self.set_upstream(self.opt_args.origin, repo)
         return sts, remote_branch
 
     def git_pull(self, repo, tgtdir=None, branch=None):

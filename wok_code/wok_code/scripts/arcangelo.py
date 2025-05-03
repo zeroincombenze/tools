@@ -1017,7 +1017,7 @@ class MigrateFile(MigrateMeta):
             sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
             if sts:
                 self.opt_args.no_parse_with_formatter = True
-        else:
+        elif self.mime in ("py", "manifest"):
             if self.mime == "manifest" and self.opt_args.to_version:
                 curcwd = os.getcwd()
                 os.chdir(out_fqn_dir_path)

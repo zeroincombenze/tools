@@ -38,6 +38,7 @@ import os
 import os.path as pth
 import sys
 import argparse
+import math
 import re
 
 # from subprocess import call
@@ -857,6 +858,10 @@ class Please(object):
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
+    def esteem_size(self, x):
+        level = math.log10(x)
+        return 20 * level + 20  # Crea la scala: y = 20 * log10(x) + 20
+
     def merge_test_result(self):
         cat_fqn = pth.join(self.get_logdir(), "show-log.sh")
         log_fqn = contents = ""
@@ -906,6 +911,7 @@ class Please(object):
         params["qrating"] = int(
             (params["cover"] / params["total"] * 60)
             + (params["testpoints"] * 160 / params["total"])
+            #   * self.esteem_size(params["total"])
             + 1
         )
         test_cov_msg = (

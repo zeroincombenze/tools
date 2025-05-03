@@ -185,11 +185,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.21 (2025-04-28)
+2.0.21 (2025-05-03)
 ~~~~~~~~~~~~~~~~~~~
 
+* [FIX] arcangelo: sometimes wrong format .rst files
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
+* [IMP] deploy_odoo: minor improvements
 
 2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~

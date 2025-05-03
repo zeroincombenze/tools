@@ -447,7 +447,8 @@ def __init__(ctx):
     ):
         ctx["branch"] = ctx["odoo_vid"]
     else:
-        sts, stdout, stderr = z0lib.os_system_traced("git branch", verbose=False)
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "git branch", verbose=False, rtime=False)
         if sts == 0 and stdout:
             branch = ""
             for ln in stdout.split("\n"):
@@ -460,7 +461,8 @@ def __init__(ctx):
                     ctx["branch"] = branch[x.start(): x.end()]
     if not ctx["git_orgid"]:
         url = ""
-        sts, stdout, stderr = z0lib.os_system_traced("git remote -v", verbose=False)
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "git remote -v", verbose=False, rtime=False)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -1591,7 +1593,8 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         pycmd = pth.join(pth.dirname(__file__), cmd + ".py")
         if pth.isfile(pycmd):
             cmdline = sys.executable + " " + pycmd + " " + args
-        sts, stdout, stderr = z0lib.os_system_traced(cmdline, verbose=False)
+        sts, stdout, stderr = z0lib.os_system_traced(
+            cmdline, verbose=False, rtime=False)
         if sts == 0:
             # Keep lef margin for multiline output
             left_margin = line[: x.start()]
