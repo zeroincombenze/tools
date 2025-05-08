@@ -89,3 +89,11 @@ product_uom_form_view:
       - 'product.product_uom_form_view'
       - 'uom.product_uom_form_view'
       -
+MailDeliveryException:
+  match: 'from odoo.*MailDeliveryException'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - odoo.addons.base.ir.ir_mail_server
+      - odoo.addons.base.models.ir_mail_server

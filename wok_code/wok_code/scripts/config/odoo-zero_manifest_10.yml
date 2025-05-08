@@ -15,10 +15,10 @@ module_l10n_it_account_stamp:
       - 'l10n_it_account_stamp'
       - 'l10n_it_einvoice_stamp'
 module_l10n_it_fatturapa:
-  match: '.*["'']ll10n_it_einvoice_base["'']'
+  match: '.*["'']l10n_it_fatturapa["'']'
   prio: '9'
   do:
     - action: 's'
       args:
-      - 'l10n_it_einvoice_base'
       - 'l10n_it_fatturapa'
+      - 'l10n_it_einvoice_base'

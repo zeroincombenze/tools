@@ -11,8 +11,8 @@ Digest of arcangelo
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [-R RULES] [--string-normalization]
-                        [--test-res-msg TEST_RES_MSG] [-v] [-V] [-w]
+                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
+                        [-w] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -40,20 +40,23 @@ Digest of arcangelo
       --ignore-pragma
       -i, --in-place
       -j PYTHON, --python PYTHON
-      -l, --list-rules      list default rule groups (-ll list rules too, -lll to
-                            full list)
+                            python version
+      -l, --list-rules      list rule groups (-ll list with rules too, -lll full
+                            list)
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
       -R RULES, --rules RULES
                             Rules (comma separated) to parse (use - for removing)
                             use switch -ll to see default rules list
-      --string-normalization
+      -S, --string-normalization
       --test-res-msg TEST_RES_MSG
       -v, --verbose
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
+      --add-rule-group ADD_RULE_GROUP
+                            Add rule group form file, default is .arcangelo.yml
     
     © 2021-2025 by SHS-AV s.r.l.
     

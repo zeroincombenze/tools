@@ -144,6 +144,8 @@ class MigrateMeta(object):
 
         if not self.opt_args.rule_groups or "+" in self.opt_args.rule_groups:
             self.populate_default_rule_categ(mime)
+        # Local rules
+        self.rule_categ.append(self.opt_args.add_rule_group)
 
     def load_config(self, confname, ignore_not_found=True, prio=1, no_store=False):
         """Load configuration file with rules and add them to migration rules.
@@ -1109,7 +1111,7 @@ def print_rule_mime(migrate_env, opt_args, mime):
         prio -= 1
     if migrate_env.mig_rules:
         for (prio, key) in migrate_env.mig_keys:
-            print("  %-20.20s %s" % (
+            print("  %-40.40s %s" % (
                 key,
                 yellow(migrate_env.mig_rules[key].get("match", ">>> include"))))
             if opt_args.list_rules <= 2:
@@ -1124,7 +1126,7 @@ def print_rule_mime(migrate_env, opt_args, mime):
                     text += " " + green(item["args"][0])
                 elif len(item["args"]) == 2:
                     text += (" " + red(item["args"][0]) + " " + green(item["args"][1]))
-                print("%26.26s %s" % ("", text))
+                print("%8.8s %s" % ("", text))
 
 
 def print_rule_classes(migrate_env, mime):
@@ -1194,12 +1196,12 @@ def main(cli_args=None):
         help="Keep left or right side code after git merge conflict")
     parser.add_argument('--ignore-pragma', action='store_true')
     parser.add_argument('-i', '--in-place', action='store_true')
-    parser.add_argument('-j', '--python')
+    parser.add_argument('-j', '--python', help="python version")
     parser.add_argument(
         '-l', '--list-rules',
         action='count',
         default=0,
-        help='list default rule groups (-ll list rules too, -lll to full list)')
+        help='list rule groups (-ll list with rules too, -lll full list)')
     parser.add_argument(
         "-n",
         "--dry-run",
@@ -1213,7 +1215,7 @@ def main(cli_args=None):
         help=('Rules (comma separated) to parse (use - for removing)'
               ' use switch -ll to see default rules list')
     )
-    parser.add_argument("--string-normalization", action='store_true')
+    parser.add_argument("-S", "--string-normalization", action='store_true')
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
@@ -1222,6 +1224,11 @@ def main(cli_args=None):
         '--no-parse-with-formatter',
         action='store_true',
         help="do nor execute black or prettier on modified files",
+    )
+    parser.add_argument(
+        '--add-rule-group',
+        default='.arcangelo',
+        help='Add rule group form file, default is .arcangelo.yml',
     )
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)

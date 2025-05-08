@@ -1179,7 +1179,7 @@ class PleaseCwd(object):
             with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        x = regex.match(ln)
+                        x = regex.cp2tmp(ln)
                         if x:
                             ver_text = x.groups()[1]
                             cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string

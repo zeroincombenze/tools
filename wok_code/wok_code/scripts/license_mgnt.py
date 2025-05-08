@@ -331,7 +331,7 @@ class License:
                             if force_from or from_year < born_date:
                                 from_year = born_date
                             cur_year = int(to_year) + 2000
-                            if (self.cur_year - cur_year) < 3:
+                            if (self.cur_year - cur_year) < 10:
                                 to_year = str(self.cur_year)[-2:]
                         if from_year[-2:] != to_year:
                             years = "%s-%s" % (from_year, to_year)
