@@ -9,7 +9,7 @@ sort_from_odoo_import:
       args:
       - 'sort_from_odoo_import'
 class_product_uom:
-  match: '.*[^\w]ProductUom[^\w]'
+  match: '.*(?<!\w)ProductUom(?!\w)'
   prio: '9'
   do:
     - action: 's'
@@ -33,7 +33,7 @@ product_uom_unit:
       - 'product.product_uom_unit'
       - 'uom.product_uom_unit'
 class_product_uom_category:
-  match: '.*[^\w]ProductUomCateg[^\w]'
+  match: '.*(?<!\w)ProductUomCateg(?!\w)'
   prio: '9'
   do:
     - action: 's'
@@ -64,22 +64,6 @@ stock_rule:
       args:
       - 'procurement.rule'
       - 'stock.rule'
-import_oerplib:
-  match: '^ *import oerplib'
-  prio: '9'
-  do:
-    - action: 's'
-      args:
-      - import oerplib
-      - import oerplib3 as oerplib
-oerplib3:
-  match: '.*["'']oerplib["'']'
-  prio: '9'
-  do:
-    - action: 's'
-      args:
-      - oerplib
-      - oerplib3
 product_uom_form_view:
   match: '.*["'']product.product_uom_form_view["'']'
   prio: '9'

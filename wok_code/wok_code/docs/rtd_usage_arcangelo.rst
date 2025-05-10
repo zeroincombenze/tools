@@ -37,10 +37,10 @@ Digest of arcangelo
       -G GIT_ORGID, --git-org GIT_ORGID
       --git-merge-conflict left|right
                             Keep left or right side code after git merge conflict
-      --ignore-pragma
+      --ignore-pragma       ignore coding utf-8 declaration
       -i, --in-place
       -j PYTHON, --python PYTHON
-                            python version
+                            python version, format #.##, 2-3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
       -n, --dry-run         do nothing (dry-run)
@@ -50,6 +50,7 @@ Digest of arcangelo
                             Rules (comma separated) to parse (use - for removing)
                             use switch -ll to see default rules list
       -S, --string-normalization
+                            force double quote enclosing strings
       --test-res-msg TEST_RES_MSG
       -v, --verbose
       -V, --version         show program's version number and exit
@@ -148,37 +149,47 @@ while in replacement text the form is:
 
 Value list:
 
-+---------------------+-------------------------------------------------------------------+
-| Name                | Description                                                       |
-+---------------------+-------------------------------------------------------------------+
-| backport_multi      | Processing a backported version (multiple version path)           |
-+---------------------+-------------------------------------------------------------------+
-| classname           | Name of current class                                             |
-+---------------------+-------------------------------------------------------------------+
-| dedent              | Dedent statement level                                            |
-+---------------------+-------------------------------------------------------------------+
-| final               | Processing final version (multiple version path)                  |
-+---------------------+-------------------------------------------------------------------+
-| first_line          | True if current line is the 1st of source                         |
-+---------------------+-------------------------------------------------------------------+
-| from_major_version  | Major version of project by -F switch                             |
-+---------------------+-------------------------------------------------------------------+
-| header              | Current line is in header file (comments and empty lines)         |
-+---------------------+-------------------------------------------------------------------+
-| indent              | Space indentation of current line                                 |
-+---------------------+-------------------------------------------------------------------+
-| migration_multi     | Processing a migrate version (multiple version path)              |
-+---------------------+-------------------------------------------------------------------+
-| mime                | Current file mime                                                 |
-+---------------------+-------------------------------------------------------------------+
-| open_stmt           | # of open parens; if > 0, current line is a continuation line     |
-+---------------------+-------------------------------------------------------------------+
-| stmt_indent         | Space indentation of current statement                            |
-+---------------------+-------------------------------------------------------------------+
-| to_major_version    | Major version of project by -b switch                             |
-+---------------------+-------------------------------------------------------------------+
-| py23                | Value 2 if python2 else 3 (int)                                   |
-+---------------------+-------------------------------------------------------------------+
++--------------------+---------------------------------------------------------------------------+
+| Name               | Description                                                               |
++--------------------+---------------------------------------------------------------------------+
+| backport_multi     | Processing a backported version (multiple version path)                   |
++--------------------+---------------------------------------------------------------------------+
+| classname          | Name of current class                                                     |
++--------------------+---------------------------------------------------------------------------+
+| dedent             | Dedent statement level                                                    |
++--------------------+---------------------------------------------------------------------------+
+| final              | Processing final version when multiple version path                       |
++--------------------+---------------------------------------------------------------------------+
+| first_line         | True if current line is the 1st of source (see header too)                |
++--------------------+---------------------------------------------------------------------------+
+| from_major_version | Major version of project by -F switch                                     |
++--------------------+---------------------------------------------------------------------------+
+| header             | Current line is in the file header (comments and empty lines)             |
++--------------------+---------------------------------------------------------------------------+
+| imported           | Imported packages list                                                    |
++--------------------+---------------------------------------------------------------------------+
+| indent             | Space indentation of current line                                         |
++--------------------+---------------------------------------------------------------------------+
+| migration_multi    | Processing a migrate version with multiple version path                   |
++--------------------+---------------------------------------------------------------------------+
+| mime               | Current file mime                                                         |
++--------------------+---------------------------------------------------------------------------+
+| open_stmt          | # of open parens; if > 0, current line is a continuation line             |
++--------------------+---------------------------------------------------------------------------+
+| python_future      | True if source is python 2 and 3 with future                              |
++--------------------+---------------------------------------------------------------------------+
+| stage              | Parsing stage: pre,header,import,class_body,function_body,comment         |
++--------------------+---------------------------------------------------------------------------+
+| stmt_indent        | Space indentation of current statement                                    |
++--------------------+---------------------------------------------------------------------------+
+| to_major_version   | Major version of project by -b switch                                     |
++--------------------+---------------------------------------------------------------------------+
+| transition_stage   | Prior parsing stage                                                       |
++--------------------+---------------------------------------------------------------------------+
+| try_indent         | try statement indentation: if >=0 current line is inside try/except block |
++--------------------+---------------------------------------------------------------------------+
+| py23               | Value 2 if python2 else 3 (int)                                           |
++--------------------+---------------------------------------------------------------------------+
 
 
 

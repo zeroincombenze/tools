@@ -318,7 +318,7 @@ class PleaseZ0bug(object):
         with open(fqn, RMODE) as fd:
             timestamp = ""
             for ln in fd.read().split("\n"):
-                if re.search(" DAEMON ", ln):
+                if not timestamp and re.search(" (DAEMON|odoo:) ", ln):
                     timestamp = ln[:19]
                 elif re.search(
                     r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])", ln

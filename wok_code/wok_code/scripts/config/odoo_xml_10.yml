@@ -56,3 +56,11 @@ product_uom_categ_form_view:
       args:
       - 'uom.product_uom_categ_form_view'
       - 'product.product_uom_categ_form_view'
+oerplib3:
+  match: '.*["''>]oerplib3[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'oerplib3'
+      - 'oerplib'
