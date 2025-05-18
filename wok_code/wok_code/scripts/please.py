@@ -858,25 +858,61 @@ class Please(object):
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
-    def esteem_size(self, x):
-        level = math.log10(x)
-        return 20 * level + 20  # Crea la scala: y = 20 * log10(x) + 20
-
-    def merge_test_result(self):
-        cat_fqn = pth.join(self.get_logdir(), "show-log.sh")
-        log_fqn = contents = ""
-        if pth.isfile(cat_fqn):
-            with open(cat_fqn, "r") as fd:
-                contents = fd.read()
+    def get_fqn_log(self, what=None, path=None):
+        """Get fqn of logfile
+        @what:  "sts" for log directories (0=exist, 3=missing)
+                "cmd" for fqn show command
+                "fqn" for fqn log filename
+                "contents" for log filename content
+        """
+        what = what or "fqn"
+        fqn_logdir = self.get_logdir(path=path)
+        if not pth.isdir(pth.dirname(fqn_logdir)):
+            self.log_warning(
+                "Module %s w/o regression test!"
+                % pth.basename(pth.dirname(fqn_logdir))
+            )
+            return 3 if what == "sts" else ""
+        if not pth.isdir(fqn_logdir):
+            self.log_warning(
+                "Module %s w/o regression test result!"
+                % pth.basename(pth.dirname(fqn_logdir))
+            )
+            return 3 if what == "sts" else ""
+        if what == "sts":
+            return 0
+        fqn = pth.join(fqn_logdir, "show-log.sh")
+        if not pth.isfile(fqn):
+            self.log_error("Command %s not found!" % fqn)
+            return ""
+        if what == "cmd":
+            return fqn
+        contents = ""
+        with open(fqn, RMODE) as fd:
+            contents = fd.read()
+        log_fqn = ""
         for ln in contents.split("\n"):
             if ln.startswith("less"):
-                log_fqn = pth.join(self.get_logdir(), ln.split("/")[-1])
+                log_fqn = pth.join(fqn_logdir, ln.split("/")[-1])
                 break
         if not log_fqn or not pth.isfile(log_fqn):
             self.log_warning("Test log file %s not found!" % log_fqn)
-            return 3
-        with open(log_fqn, "r") as fd:
+            return ""
+        if what == "fqn":
+            return log_fqn
+        contents = ""
+        with open(log_fqn, RMODE) as fd:
             contents = fd.read()
+        return contents
+
+    def esteem_rate(self, nlines, ntest, tested_lines):
+        coverage = tested_lines * 100 / nlines
+        xtest = int(nlines * 1.3 / math.log10(nlines))
+        qrate = int(115 - math.log10(min(coverage, 80)) * 30)
+        return int((coverage * qrate / 100) + (ntest * (100 - qrate) / xtest))
+
+    def evaluate_log(self, contents, path=None):
+        log_fqn = self.get_fqn_log(what="fqn", path=path)
         params = {"testpoints": 0}
         for ln in contents.split("\n"):
             if ln.startswith("TOTAL"):
@@ -894,12 +930,10 @@ class Please(object):
                     params["testpoints"] += int(items[0])
         if "total" not in params:
             self.log_warning("No stats found in %s" % log_fqn)
-            return 3
-        log_fqn = pth.join(
-            pth.dirname(self.get_logdir()), "concurrent_test", "test_concurrent.log"
-        )
+            return {}
+        log_fqn = pth.join(log_fqn, "concurrent_test", "test_concurrent.log")
         if pth.isfile(log_fqn):
-            with open(log_fqn, "r") as fd:
+            with open(log_fqn, RMODE) as fd:
                 contents = fd.read()
             for ln in contents.split("\n"):
                 if "SUCCESSFULLY completed" in ln:
@@ -908,15 +942,18 @@ class Please(object):
                         items = ln[x.start(): x.end()].split()
                         params["testpoints"] += int(items[0])
         # Q-rating = coverage (60%) + # testpoints*4/total (40%)
-        params["qrating"] = int(
-            (params["cover"] / params["total"] * 60)
-            + (params["testpoints"] * 160 / params["total"])
-            #   * self.esteem_size(params["total"])
-            + 1
-        )
+        params["esteem_rate"] = self.esteem_rate(
+            params["total"], params["testpoints"], params["cover"])
+        return params
+
+    def merge_test_result(self):
+        contents = self.get_fqn_log(what="contents")
+        params = self.evaluate_log(contents)
+        if not params:
+            return 3
         test_cov_msg = (
             "* [QUA] Test coverage %(rate)s (%(total)d: %(uncover)d+%(cover)d)"
-            " [%(testpoints)d TestPoints] - quality rating %(qrating)d (target 100)"
+            " [%(testpoints)d TestPoints] - quality rating %(esteem_rate)d (target 100)"
             % params
         )
         changelog_fqn = pth.join("readme", "CHANGELOG.rst")

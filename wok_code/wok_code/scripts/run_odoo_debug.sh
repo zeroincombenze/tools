@@ -371,6 +371,8 @@ clean_old_templates() {
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$d"; then
           run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
           c=$(pg_db_active -c "$d")
+          [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
+          c=$(pg_db_active -c "$d")
           [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$d\"" && continue
           [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$d" && log_mesg "Database \"$d\" removal failed!"
         fi
@@ -441,6 +443,21 @@ run_odoo_server() {
     fi
     [[ $opt_dae -ne 0 ]] && wait_daemon_idle
     run_traced "popd &>/dev/null"
+}
+
+exec_before() {
+# exec_before(cmd,act)
+    bef_test=$(grep -E "^\.\. +.set +$1 " $mod_test_cfg|awk '{print $4 " " $5 " " $6 " " $7 " " $8  " " $9}')
+    bef_test=$(echo $bef_test)
+    if [[ -n $bef_test && -x "$PKGPATH/tests/$bef_test" ]]; then
+        bef_test="$PKGPATH/tests/$bef_test"
+    elif [[ -n $bef_test ]]; then
+        bef_test=$(which "$bef_test")
+    fi
+    if [[ -n $bef_test ]]; then
+        [[ $2 == "set" ]] && echo "$bef_test"
+        [[ $2 != "set" ]] && run_traced "$bef_test"
+    fi
 }
 
 
@@ -701,7 +718,7 @@ elif [[ $opt_xtl -ne 0 ]]; then
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
 fi
 
-mod_test_cfg=""
+[[ -f $PKGPATH/readme/__manifest__.rst ]] && mod_test_cfg="$PKGPATH/readme/__manifest__.rst" || mod_test_cfg=""
 if [[ -n "$opt_modules" ]]; then
     if [[ $create_db -ne 0 ]]; then
         if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
@@ -715,7 +732,6 @@ if [[ -n "$opt_modules" ]]; then
             else
                 [[ $opt_verbose -gt 1 ]] && log_mesg "depmods=\$(odoo_dependencies.py -RA mod \"$opaths\" -PM $opt_modules)"
                 depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
-                [[ -f $opt_odir/readme/__manifest__.rst ]] && mod_test_cfg="$opt_odir/readme/__manifest__.rst"
             fi
             [[ -z "$depmods" ]] && log_mesg "Modules $opt_modules not found!" && exit 1
             if [[ "$opt_modules" != "all" ]]; then
@@ -822,9 +838,7 @@ if [[ $opt_dry_run -eq 0 ]]; then
     done
 fi
 if [[ -n $mod_test_cfg ]]; then
-    # bef_test=$(grep -E "^\.\. +.set +pg_requirements " readme/__manifest__.rst|sed -E "s|^\.\. +.set +pg_requirements ([a-zA-Z0-9/_.+-]+)+|\1|")
-    # [[ -n $bef_test && ! $bef_test =~ ^(/|./|../) ]] && bef_test="$opt_odir/tests/$bef_test"
-    # [[ -z $bef_test ]] || run_traced "$bef_test"
+    exec_before "before_test"
     run_traced "$TEST_VDIR/bin/python $TDIR/pg_requirements.py"
     [[ $? -ne 0 ]] && exit 1
 fi
@@ -865,6 +879,8 @@ else
   PIP=$(which pip)
 fi
 
+[[ -n $mod_test_cfg ]] && bef_dropdb=$(exec_before "before_dropdb" "set")
+
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 if [[ $create_db -gt 0 ]]; then
     [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
@@ -873,6 +889,8 @@ if [[ $create_db -gt 0 ]]; then
             fnparam="$LOGDIR/${UDI}.sh"
             if [[ $opt_force -ne 0 ]] && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
                 run_traced "pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
+                c=$(pg_db_active -c "$TEMPLATE")
+                [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
                 c=$(pg_db_active -c "$TEMPLATE")
                 [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
                 [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && log_mesg "Database \"$TEMPLATE\" removal failed!" && exit 1
@@ -895,7 +913,9 @@ if [[ $create_db -gt 0 ]]; then
         fi
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
             run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
-            c=$(pg_db_active -c \"$opt_db\")
+            c=$(pg_db_active -c "$opt_db")
+            [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
+            c=$(pg_db_active -c "$opt_db")
             [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
             [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db" && log_mesg "Database \"$opt_db\" removal failed!" && exit 1
         fi
@@ -967,7 +987,9 @@ if [[ $drop_db -gt 0 ]]; then
     clean_old_templates
     if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-        run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists '$opt_db'"
+        run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists \"$opt_db\""
+        c=$(pg_db_active -c "$opt_db")
+        [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists \"$opt_db\""
         c=$(pg_db_active -c "$opt_db")
         [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
     fi

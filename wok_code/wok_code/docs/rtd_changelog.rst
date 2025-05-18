@@ -12,6 +12,7 @@ ChangeLog History
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
 * [IMP] deploy_odoo: minor improvements
+* [UPD] Esteem qualty rate: new algorithm
 
 2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~

@@ -192,27 +192,6 @@ class PleaseZ0bug(object):
             args.append("-n")
         return args
 
-    def check_4_test_dirs(self, full=None):
-        fqn = pth.join(os.getcwd(), "tests")
-        if not pth.isdir(fqn):
-            self.please.log_warning(
-                "Module %s w/o regression test!" % pth.basename(os.getcwd())
-            )
-            return "" if full else 3
-        if not full:
-            return 0
-        fqn = self.please.get_logdir()
-        if not pth.isdir(fqn):
-            self.please.log_warning(
-                "Module %s w/o regression test result!" % pth.basename(os.getcwd())
-            )
-            return ""
-        fqn = pth.join(self.please.get_logdir(), "show-log.sh")
-        if not pth.isfile(fqn):
-            self.please.log_error("Command %s not found!" % fqn)
-            return
-        return fqn
-
     def _do_lint_odoo(self):
         please = self.please
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
@@ -294,7 +273,7 @@ class PleaseZ0bug(object):
     def do_show(self):
         please = self.please
         if please.is_odoo_pkg():
-            cmd = pth.join(please.get_logdir(), "show-log.sh")
+            cmd = please.get_fqn_log(what="cmd")
             return please.os_system(cmd)
         elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
             please.sh_subcmd = please.pickle_params(rm_obj=True)
@@ -311,20 +290,25 @@ class PleaseZ0bug(object):
             return please.os_system(cmd)
         return 126
 
-    def _do_show_summary(self, fqn):
-        if not pth.isfile(fqn):
-            self.please.log_error("File %s not found!" % fqn)
-            return 3
-        with open(fqn, RMODE) as fd:
-            timestamp = ""
-            for ln in fd.read().split("\n"):
-                if not timestamp and re.search(" (DAEMON|odoo:) ", ln):
-                    timestamp = ln[:19]
-                elif re.search(
-                    r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])", ln
-                ):
-                    print(ln.replace("| please test", "") + " (" + timestamp + ")")
-                    timestamp = ""
+    def _do_show_summary(self):
+        sts = self.please.get_fqn_log(what="sts")
+        if sts:
+            return sts
+        contents = self.please.get_fqn_log(what="contents")
+        params = self.please.evaluate_log(contents)
+        timestamp = ""
+        for ln in contents.split("\n"):
+            if not timestamp and re.search(" (DAEMON|odoo:) ", ln):
+                timestamp = ln[:19]
+            elif re.search(
+                r"(\| .*test|TODAY=|PKGNAME=|LOGFILE=|Build python [23])", ln
+            ):
+                print(ln.replace("| please test", "")
+                      + " Quality: "
+                      + str(params.get("esteem_rate", 0))
+                      + " / 100"
+                      + " (" + timestamp + ")")
+                timestamp = ""
         return 0
 
     def _do_show_summary_odoo(self):
@@ -340,14 +324,7 @@ class PleaseZ0bug(object):
                 "Module %s not installable!" % pth.basename(os.getcwd())
             )
             return 3
-
-        cmd = self.check_4_test_dirs(full=True)
-        if not cmd:
-            return 3
-        with open(cmd, RMODE) as fd:
-            fn = fd.read().split("\n")[0].split("/")[-1]
-            fqn = pth.join(self.please.get_logdir(), fn)
-            return self._do_show_summary(fqn)
+        return self._do_show_summary()
 
     def do_summary(self):
         please = self.please
@@ -381,9 +358,7 @@ class PleaseZ0bug(object):
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
-        sts = self.check_4_test_dirs()
-        # if please.is_fatal_sts(sts):
-        #     return sts
+        sts = self.please.get_fqn_log(what="sts")
         if sts:
             return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
@@ -468,7 +443,7 @@ class PleaseZ0bug(object):
 
     def _do_test_pypi_pkg(self):
         please = self.please
-        sts = self.check_4_test_dirs()
+        sts = self.please.get_fqn_log(what="sts")
         if please.is_fatal_sts(sts):
             return sts
         print("#### Running Tests ... ####")
