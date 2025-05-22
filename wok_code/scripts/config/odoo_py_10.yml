@@ -5,7 +5,7 @@ include_odoo_api_multi:
   ctx: 'final'
   include: 'odoo_py_api_multi'
 class_product_uom:
-  match: '.*[^\w]UomUom[^\w]'
+  match: '.*(?<!\w)UomUom(?!\w)'
   prio: '9'
   do:
     - action: 's'
@@ -29,7 +29,7 @@ product_uom_unit:
       - 'uom.product_uom_unit'
       - 'product.product_uom_unit'
 class_product_uom_category:
-  match: '.*[^\w]UomCategory[^\w]'
+  match: '.*(?<!\w)UomCategory(?!\w)'
   prio: '9'
   do:
     - action: 's'
@@ -84,3 +84,11 @@ product_uom_form_view:
       args:
       - 'uom.product_uom_form_view'
       - 'product.product_uom_form_view'
+MailDeliveryException:
+  match: 'from odoo.*MailDeliveryException'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - odoo.addons.base.models.ir_mail_server
+      - odoo.addons.base.ir.ir_mail_server

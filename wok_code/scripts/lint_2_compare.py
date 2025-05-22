@@ -98,7 +98,7 @@ def cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, ba
             )
 
 
-def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):
+def cp2tmp(opt_args, left_diff_path, right_diff_path, left_path, right_path):
     if pth.isfile(left_path):
         base = pth.basename(left_path)
         cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
@@ -107,7 +107,7 @@ def match(opt_args, left_diff_path, right_diff_path, left_path, right_path):
         cp_file(opt_args, left_diff_path, right_diff_path, left_path, right_path, base)
 
 
-def matchdir_based(
+def cpdir2tmp_base(
     opt_args, left_diff_path, right_diff_path, left_path, right_path, base
 ):
     left_diff_path = pth.join(left_diff_path, base)
@@ -127,7 +127,7 @@ def matchdir_based(
     if pth.isdir(left_path):
         for fn in os.listdir(left_path):
             base = pth.basename(fn)
-            matchdir(
+            cpdir2tmp(
                 opt_args,
                 left_diff_path,
                 right_diff_path,
@@ -138,7 +138,7 @@ def matchdir_based(
         for fn in os.listdir(right_path):
             base = pth.basename(fn)
             if not pth.exists(pth.join(left_path, base)):
-                matchdir(
+                cpdir2tmp(
                     opt_args,
                     left_diff_path,
                     right_diff_path,
@@ -147,21 +147,21 @@ def matchdir_based(
                 )
 
 
-def matchdir(opt_args, left_diff_path, right_diff_path, left_path, right_path):
+def cpdir2tmp(opt_args, left_diff_path, right_diff_path, left_path, right_path):
     if pth.isdir(left_path):
         base = pth.basename(left_path)
         if base not in IGNORE_DIRS:
-            matchdir_based(
+            cpdir2tmp_base(
                 opt_args, left_diff_path, right_diff_path, left_path, right_path, base
             )
     elif pth.isdir(right_path):
         base = pth.basename(right_path)
         if base not in IGNORE_DIRS:
-            matchdir_based(
+            cpdir2tmp_base(
                 opt_args, left_diff_path, right_diff_path, left_path, right_path, base
             )
     else:
-        match(opt_args, left_diff_path, right_diff_path, left_path, right_path)
+        cp2tmp(opt_args, left_diff_path, right_diff_path, left_path, right_path)
 
 
 def remove_comment(opt_args, root, files, compare_path=None):
@@ -251,6 +251,8 @@ def rm_dir(opt_args, path):
 
 def get_branch(opt_args, path):
     branch = ""
+    if not pth.isdir(path):
+        path = pth.dirname(path)
     os.chdir(path)
     sts, stdout, stderr = z0lib.run_traced("git branch", verbose=False)
     if sts == 0 and stdout:
@@ -401,7 +403,7 @@ def main(cli_args=None):
             verbose=opt_args.dry_run,
             dry_run=opt_args.dry_run,
         )
-        matchdir(
+        cpdir2tmp(
             opt_args,
             left_diff_path,
             right_diff_path,

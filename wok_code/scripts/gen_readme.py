@@ -440,20 +440,29 @@ def __init__(ctx):
             ctx["product_doc"] = "odoo"
 
     ctx["read_only"] = ctx.get("read_only", False)
-    sts, stdout, stderr = z0lib.run_traced("git branch", verbose=False)
-    if sts == 0 and stdout:
-        branch = ""
-        for ln in stdout.split("\n"):
-            if ln.startswith("*"):
-                branch = ln[2:]
-                break
-        if branch:
-            x = re.match(r"[0-9]+\.[0-9]+", branch)
-            if x:
-                ctx["branch"] = branch[x.start(): x.end()]
+    if (
+            ctx["odoo_vid"]
+            and ctx["odoo_vid"] != "."
+            and re.match(r"[0-9]+\.[0-9]+", ctx["odoo_vid"])
+    ):
+        ctx["branch"] = ctx["odoo_vid"]
+    else:
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "git branch", verbose=False, rtime=False)
+        if sts == 0 and stdout:
+            branch = ""
+            for ln in stdout.split("\n"):
+                if ln.startswith("*"):
+                    branch = ln[2:]
+                    break
+            if branch:
+                x = re.match(r"[0-9]+\.[0-9]+", branch)
+                if x:
+                    ctx["branch"] = branch[x.start(): x.end()]
     if not ctx["git_orgid"]:
         url = ""
-        sts, stdout, stderr = z0lib.run_traced("git remote -v", verbose=False)
+        sts, stdout, stderr = z0lib.os_system_traced(
+            "git remote -v", verbose=False, rtime=False)
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -600,7 +609,9 @@ def chain_python_cmd(pyfile, args):
 
 def assure_docdir(ctx, path):
     if not pth.isdir(path):
-        print_red_message("*** Documentation directory %s not found!" % path)
+        if not ctx["suppress_warning"]:
+            print_red_message(
+                "*** Documentation directory %s not found!" % pth.abspath(path))
         if ctx["force"] or ctx["write_authinfo"]:
             os.mkdir(path)
 
@@ -614,7 +625,7 @@ def print_green_message(text):
 
 
 def create_def___manifest__(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/__manifest__.rst"
         with open(fn, "w") as fd:
             fd.write(".. $set lang %s\n" % ctx["lang"])
@@ -626,7 +637,7 @@ def create_def___manifest__(ctx):
 
 
 def create_def_changelog(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/CHANGELOG.rst"
         with open(fn, "w") as fd:
             # Conventional date on Odoo Days (October, 1st Thursday)
@@ -656,42 +667,42 @@ def create_def_changelog(ctx):
 
 
 def create_def_description(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/DESCRIPTION.rst"
         with open(fn, "w") as fd:
             fd.write("Missed description\n")
 
 
 def create_def_description_i18n(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/DESCRIPTION.%s.rst" % ctx["lang"]
         with open(fn, "w") as fd:
             fd.write("Descrizione non disponibile\n")
 
 
 def create_def_configuration(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/CONFIGURATION.rst"
         with open(fn, "w") as fd:
             fd.write("")
 
 
 def create_def_configuration_i18n(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/CONFIGURATION.%s.rst" % ctx["lang"]
         with open(fn, "w") as fd:
             fd.write("")
 
 
 def create_def_usage(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/USAGE.rst"
         with open(fn, "w") as fd:
             fd.write("")
 
 
 def create_def_usage_i18n(ctx):
-    if not ctx["read_only"]:
+    if not ctx["read_only"] and pth.isdir("./readme"):
         fn = "./readme/USAGE.%s.rst" % ctx["lang"]
         with open(fn, "w") as fd:
             fd.write("")
@@ -1582,12 +1593,14 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         pycmd = pth.join(pth.dirname(__file__), cmd + ".py")
         if pth.isfile(pycmd):
             cmdline = sys.executable + " " + pycmd + " " + args
-        sts, stdout, stderr = z0lib.run_traced(cmdline, verbose=False)
-        # Keep lef margin for multiline output
-        left_margin = line[: x.start()]
-        line = ""
-        for ln in stdout.split("\n"):
-            line += left_margin + ln + "\n"
+        sts, stdout, stderr = z0lib.os_system_traced(
+            cmdline, verbose=False, rtime=False)
+        if sts == 0:
+            # Keep lef margin for multiline output
+            left_margin = line[: x.start()]
+            line = ""
+            for ln in stdout.split("\n"):
+                line += left_margin + ln + "\n"
 
     return line
 
@@ -2667,7 +2680,7 @@ def read_dependecies_license(ctx):
 
 
 def manifest_contents(ctx):
-    fqn = ctx["manifest_filename"]
+    fqn = ctx.get("manifest_filename")
     source = ""
     if fqn:
         with open(fqn, RMODE) as fd:
@@ -2835,7 +2848,7 @@ def set_default_values(ctx):
         and ctx["odoo_layer"] == "module"
         and ctx["rewrite_manifest"]
     ):
-        ctx["dst_file"] = ctx["manifest_filename"]
+        ctx["dst_file"] = ctx.get("manifest_filename")
     elif ctx["product_doc"] == "odoo" and (
         ctx["write_index"] or ctx["odoo_marketplace"]
     ):
@@ -3540,13 +3553,13 @@ def generate_readme(ctx):
         )
         if ctx["opt_verbose"]:
             print("Writing %s" % ctx["dst_file"])
-        sts, stdout, stderr = z0lib.run_traced(cmdline, verbose=False)
+        sts, stdout, stderr = z0lib.os_system_traced(cmdline, verbose=False)
         os.unlink(tmp_file)
         if sts != 0:
             print("OpenOffice/Libreoffice document creattion FAILED!")
             print(stderr)
         else:
-            z0lib.run_traced("mv %s /mnt/c/Users/anton/Downloads/" % ctx["dst_file"])
+            z0lib.os_system("mv %s /mnt/c/Users/anton/Downloads/" % ctx["dst_file"])
         return sts
     elif ctx["write_index"] and ctx["product_doc"] == "odoo":
         copy_img_file_template(ctx["src_icon"], destination_fn="icon.png")

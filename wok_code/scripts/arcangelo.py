@@ -25,6 +25,8 @@ RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
 GREEN = "\033[1;32m"
 CLEAR = "\033[0;m"
+DEFAULT_ODOO_VER = "18.0"
+DEFAULT_PYTHON_VER = "3.10"
 
 INVALID_NAMES = [
     "build",
@@ -51,7 +53,7 @@ def get_pyver_4_odoo(odoo_ver):
 
 class MigrateMeta(object):
 
-    def raise_error(self, message):
+    def raise_error(self, message):   # pragma: no cover
         sys.stderr.write(message)
         sys.stderr.write("\n")
         self.sts = 3
@@ -144,6 +146,8 @@ class MigrateMeta(object):
 
         if not self.opt_args.rule_groups or "+" in self.opt_args.rule_groups:
             self.populate_default_rule_categ(mime)
+        # Local rules
+        self.rule_categ.append(self.opt_args.add_rule_group)
 
     def load_config(self, confname, ignore_not_found=True, prio=1, no_store=False):
         """Load configuration file with rules and add them to migration rules.
@@ -377,7 +381,7 @@ class MigrateEnv(MigrateMeta):
             curcwd = os.getcwd()
             if pth.isdir(opt_args.path[0]):
                 os.chdir(opt_args.path[0])
-            if pth.isdir(pth.dirname(opt_args.path[0])):
+            elif pth.isdir(pth.dirname(opt_args.path[0])):
                 os.chdir(pth.dirname(opt_args.path[0]))
             sts, stdout, stderr = z0lib.os_system_traced(
                 "git branch", verbose=False, dry_run=False
@@ -398,7 +402,7 @@ class MigrateEnv(MigrateMeta):
                 branch = branch[x.start(): x.end()]
                 opt_args.to_version = branch
             elif opt_args.package_name == "odoo":
-                opt_args.to_version = "17.0"
+                opt_args.to_version = DEFAULT_ODOO_VER
             else:
                 opt_args.to_version = "0.0"
         self.to_version = opt_args.to_version
@@ -412,16 +416,25 @@ class MigrateEnv(MigrateMeta):
                 and opt_args.to_version
         ):
             opt_args.python = get_pyver_4_odoo(opt_args.to_version)
-        if opt_args.python:
+        if opt_args.python == "2-3":
+            if opt_args.package_name == "odoo":
+                self.python_version = get_pyver_4_odoo(opt_args.to_version)
+            else:
+                self.python_version = DEFAULT_PYTHON_VER
+            self.def_python_future = True
+        elif opt_args.python:
             self.python_version = opt_args.python
-            self.py23 = int(opt_args.python.split(".")[0])
         else:
-            self.python_version = "3.9"
-            self.py23 = 3
+            self.python_version = DEFAULT_PYTHON_VER
             if opt_args.package_name == "pypi":
                 self.def_python_future = True
+        self.py23 = int(self.python_version.split(".")[0])
         self.first_line = False
         self.header = True
+        self.stage = "header"
+        self.transition_stage = ""
+        self.imported = []
+        self.try_indent = -1
         self.opt_args = opt_args
 
         self.store_mig_rules(mime="path")
@@ -488,6 +501,10 @@ class MigrateFile(MigrateMeta):
         for trigger in ("first_line", "migrate_multi", "backport_multi"):
             setattr(self, trigger, False)
         self.header = True
+        self.stage = "pre"
+        self.transition_stage = ""
+        self.imported = []
+        self.try_indent = -1
         self.fqn = fqn
         base = pth.basename(fqn)
         self.out_fn = migrate_env.out_fn or base
@@ -524,6 +541,17 @@ class MigrateFile(MigrateMeta):
         self.python_future = self.def_python_future
         self.exception_osv = False
         self.exceptions = []
+        if (
+                not self.opt_args.from_version
+                and self.lines
+                and self.lines[0].startswith("#!")
+        ):
+            if "python3" in self.lines[0]:
+                self.from_version = DEFAULT_PYTHON_VER
+                self.from_major_version = 3
+            elif "python3" in self.lines[0]:
+                self.from_version = "2.7"
+                self.from_major_version = 2
         for ln in self.lines:
             if not ln:
                 continue
@@ -870,17 +898,49 @@ class MigrateFile(MigrateMeta):
             lineno = parens = brackets = braces = quotes = angles = 0
             self.open_stmt = False
             self.header = True
+            self.stage = "header"
+            self.transition_stage = ""
+            self.imported = []
+            self.try_indent = -1
             self.indent = self.stmt_indent = ""
             while lineno < len(self.lines):
                 self.first_line = lineno == 0
                 if self.lines[lineno]:
                     if not re.match("^ *#", self.lines[lineno]):
                         self.header = False
+                        if (
+                                re.match("^ *from .* import ", self.lines[lineno])
+                                or re.match("^ *import ", self.lines[lineno])
+                        ):
+                            self.transition_stage = self.stage
+                            self.stage = "import"
+                            pkgs = re.split("import", self.lines[lineno])[1]
+                            pkgs = pkgs.split("#")[0]
+                            for pkg in pkgs.split(","):
+                                pkg = pkg.strip()
+                                if pkg not in self.imported:
+                                    self.imported.append(pkg)
+                        elif re.match("^ *def ", self.lines[lineno]):
+                            self.transition_stage = self.stage
+                            self.stage = "function_body"
+                        elif re.match("^ *class ", self.lines[lineno]):
+                            self.transition_stage = self.stage
+                            self.stage = "class_body"
+                        elif self.stage:
+                            self.transition_stage = self.stage
+                            self.stage = ""
+                    else:
+                        self.transition_stage = self.stage
+                        self.stage = "comment"
                     x = re.match(r"[\s]*", self.lines[lineno])
                     self.indent = self.lines[lineno][x.start():x.end()] if x else ""
                     if not self.open_stmt:
                         self.dedent = self.indent < self.stmt_indent
                         self.stmt_indent = self.indent
+                        if re.match("^ *try:", self.lines[lineno]):
+                            self.try_indent = len(self.indent)
+                        elif len(self.indent) <= self.try_indent:
+                            self.try_indent = -1
                 lineno = self.apply_rules_on_item(self.lines[lineno], lineno=lineno)
                 if lineno < len(self.lines) and self.lines[lineno]:
                     if self.mime == "xml":
@@ -1011,11 +1071,13 @@ class MigrateFile(MigrateMeta):
             else:
                 cmd = "npx prettier --plugin=@prettier/plugin-xml --print-width=88"
             cmd += " --no-xml-self-closing-space --tab-width=4 --prose-wrap=always"
-            # cmd += " --bracket-same-line --write "
+            # cmd += " --bracket-same-line"
             cmd += " --write "
             cmd += out_fqn
-            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
-        else:
+            sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            if sts:
+                self.opt_args.no_parse_with_formatter = True
+        elif self.mime in ("py", "manifest"):
             if self.mime == "manifest" and self.opt_args.to_version:
                 curcwd = os.getcwd()
                 os.chdir(out_fqn_dir_path)
@@ -1038,7 +1100,9 @@ class MigrateFile(MigrateMeta):
             ):
                 opts += " --skip-string-normalization"
             cmd = "black %s -q %s" % (opts, out_fqn)
-            z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+            if sts:
+                self.opt_args.no_parse_with_formatter = True
 
     def close(self):
         if self.opt_args.output:
@@ -1105,7 +1169,7 @@ def print_rule_mime(migrate_env, opt_args, mime):
         prio -= 1
     if migrate_env.mig_rules:
         for (prio, key) in migrate_env.mig_keys:
-            print("  %-20.20s %s" % (
+            print("  %-40.40s %s" % (
                 key,
                 yellow(migrate_env.mig_rules[key].get("match", ">>> include"))))
             if opt_args.list_rules <= 2:
@@ -1120,7 +1184,7 @@ def print_rule_mime(migrate_env, opt_args, mime):
                     text += " " + green(item["args"][0])
                 elif len(item["args"]) == 2:
                     text += (" " + red(item["args"][0]) + " " + green(item["args"][1]))
-                print("%26.26s %s" % ("", text))
+                print("%8.8s %s" % ("", text))
 
 
 def print_rule_classes(migrate_env, mime):
@@ -1188,14 +1252,21 @@ def main(cli_args=None):
         "--git-merge-conflict",
         metavar="left|right",
         help="Keep left or right side code after git merge conflict")
-    parser.add_argument('--ignore-pragma', action='store_true')
+    parser.add_argument(
+        '--ignore-pragma',
+        action='store_true',
+        help='ignore coding utf-8 declaration'
+    )
     parser.add_argument('-i', '--in-place', action='store_true')
-    parser.add_argument('-j', '--python')
+    parser.add_argument(
+        '-j', '--python',
+        help="python version, format #.##, 2-3 use future"
+    )
     parser.add_argument(
         '-l', '--list-rules',
         action='count',
         default=0,
-        help='list default rule groups (-ll list rules too, -lll to full list)')
+        help='list rule groups (-ll list with rules too, -lll full list)')
     parser.add_argument(
         "-n",
         "--dry-run",
@@ -1209,7 +1280,11 @@ def main(cli_args=None):
         help=('Rules (comma separated) to parse (use - for removing)'
               ' use switch -ll to see default rules list')
     )
-    parser.add_argument("--string-normalization", action='store_true')
+    parser.add_argument(
+        "-S", "--string-normalization",
+        action='store_true',
+        help='force double quote enclosing strings'
+    )
     parser.add_argument('--test-res-msg')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
@@ -1218,6 +1293,11 @@ def main(cli_args=None):
         '--no-parse-with-formatter',
         action='store_true',
         help="do nor execute black or prettier on modified files",
+    )
+    parser.add_argument(
+        '--add-rule-group',
+        default='.arcangelo',
+        help='Add rule group form file, default is .arcangelo.yml',
     )
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
