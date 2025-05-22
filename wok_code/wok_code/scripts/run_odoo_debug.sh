@@ -98,7 +98,7 @@ coverage_set() {
       [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -E "/^ *.\/tests\/./d" -i $COVERAGE_PROCESS_START
       if [[ $opt_dry_run -eq 0 ]]; then
         for m in ${opt_modules//,/ }; do
-          p=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*" -not -path "*/venv_odoo/*" -name $m|head -n1)
+          p=$(find $odoo_root -type d -not -path "*/setup/*" -not -path "*/.*/*"  -not -path "*/_*/*" -not -path "*/venv_odoo/*" -name $m|head -n1)
           sed -E "/    \*\.py/a\\    $p/*" -i $COVERAGE_PROCESS_START
         done
         sed -E "s/    \*\.py/#    *.py/" -i $COVERAGE_PROCESS_START
@@ -536,7 +536,7 @@ if [[ -n $opt_conf ]]; then
         [[ -x $p/../odoo-bin || -x $p/../openerp-server ]] && odoo_root=$(readlink -f $p/..) && break
     done
     check_path_n_branch "$odoo_root" "$opt_branch"
-    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*" -not -path "*/venv_odoo/*" -name $opt_modules|head -n1)
+    [[ -n $opt_modules && -z $opt_odir ]] && opt_odir=$(find $odoo_root -type d -not -path "*/doc/*" -not -path "*/setup/*" -not -path "*/.*/*"  -not -path "*/_*/*" -not -path "*/venv_odoo/*" -name $opt_modules|head -n1)
     if [[ -n $opt_odir ]]; then
       PKGNAME=$(build_odoo_param PKGNAME "$opt_odir")
       PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
@@ -837,9 +837,9 @@ if [[ $opt_dry_run -eq 0 ]]; then
         done
     done
 fi
-if [[ -n $mod_test_cfg ]]; then
+if [[ $opt_test -ne 0 && -n $mod_test_cfg ]]; then
     exec_before "before_test"
-    run_traced "$TEST_VDIR/bin/python $TDIR/pg_requirements.py"
+    run_traced "cd $opt_odir && $TEST_VDIR/bin/python $TDIR/pg_requirements.py"
     [[ $? -ne 0 ]] && exit 1
 fi
 [[ -f "$CONFN" ]] && run_traced "cp $CONFN $TEST_CONFN"
