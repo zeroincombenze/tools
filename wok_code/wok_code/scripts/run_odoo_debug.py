@@ -46,6 +46,12 @@ class RunOdoo(object):
             ),
         )
         parser.add_argument(
+            "-A",
+            "--assets",
+            action="store_true",
+            help="Reset assets if GUI troubles (require -um web)",
+        )
+        parser.add_argument(
             "-B",
             "--debug",
             action="count",

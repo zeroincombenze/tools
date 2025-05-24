@@ -461,46 +461,47 @@ exec_before() {
 }
 
 
-OPTOPTS=(h        B       b          c        C           d        D       e      f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_ex opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1      1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
-OPTDEFL=(1        0       ""         ""       0           ""       0       0      0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""     ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
+OPTOPTS=(h        A       B       b          c        C           d        D       e      f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     assets  debug   branch     config   no-coverage database daemon  export force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_ast opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_ex opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      1       "+"     "=>"       "=>"     1           "="      1       1      1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       0       ""         ""       0           ""       0       0      0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      ""      "version"  "fname"  ""          "name"   ""      ""     ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
-    "debug mode (-BB debug via pycharm)"
-    "odoo branch"
-    "odoo configuration file"
-    "no use coverage to run test"
-    "db name to test,translate o upgrade (require -m switch)"
-    "run odoo as daemon"
-    "export translation (conflict with -i -u -I -T)"
-    "force update or install modules or default parameters or create db template"
-    "do not run external test (tests/concurrent_test/test_*.py)"
-    "do not create new DB and keep it after run"
-    "import translation (conflict with -e -u -I -T)"
-    "install module (conflict with -e -i -u -T)"
-    "load language"
-    "set log level: may be info or debug"
-    "modules to test, translate or upgrade"
-    "multi-version odoo environment"
-    "do nothing (dry-run)"
-    "output file (if export multiple modules)"
-    "odoo root path"
-    "psql port"
-    "silent mode"
-    "show coverage stats (do not run odoo)"
-    "stop after init"
-    "execute odoo test on module (conflict with -e -i -I -u)"
-    "db username"
-    "upgrade module (conflict with -e -i -I -T)"
-    "show version"
-    "verbose mode"
-    "virtual environment path"
-    "run as web server"
-    "set odoo long-polling port"
-    "set odoo http/xmlrpc port"
-    "clear all module replacements")
+  "reset assets if GUI troubles (require -um web)"
+  "debug mode (-BB debug via pycharm)"
+  "odoo branch"
+  "odoo configuration file"
+  "no use coverage to run test"
+  "db name to test,translate o upgrade (require -m switch)"
+  "run odoo as daemon"
+  "export translation (conflict with -i -u -I -T)"
+  "force update or install modules or default parameters or create db template"
+  "do not run external test (tests/concurrent_test/test_*.py)"
+  "do not create new DB and keep it after run"
+  "import translation (conflict with -e -u -I -T)"
+  "install module (conflict with -e -i -u -T)"
+  "load language"
+  "set log level: may be info or debug"
+  "modules to test, translate or upgrade"f
+  "multi-version odoo environment"
+  "do nothing (dry-run)"
+  "output file (if export multiple modules)"
+  "odoo root path"
+  "psql port"
+  "silent mode"
+  "show coverage stats (do not run odoo)"
+  "stop after init"
+  "execute odoo test on module (conflict with -e -i -I -u)"
+  "db username"
+  "upgrade module (conflict with -e -i -I -T)"
+  "show version"
+  "verbose mode"
+  "virtual environment path"
+  "run as web server"
+  "set odoo long-polling port"
+  "set odoo http/xmlrpc port"
+  "clear all module replacements")
 OPTARGS=()
 
 parseoptargs "$@"
@@ -713,9 +714,14 @@ elif [[ $opt_upd -ne 0 ]]; then
     opt_keep=1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
+    [[ $opt_ast -ne 0 && ! $opt_modules =~ web ]] && log_mesg "Switch -A requires web module update (-um web)!!" && exit 1
+    [[ $opt_ast -ne 0 ]] && opt_stop=1
 elif [[ $opt_xtl -ne 0 ]]; then
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
+elif [[ $opt_ast -ne 0 ]]; then
+    [[ $opt_upd -eq 0 || ! $opt_modules =~ web ]] && log_mesg "Switch -A requires web module update (-um web)!!" && exit 1
+    opt_stop=1
 fi
 
 [[ -f $PKGPATH/readme/__manifest__.rst ]] && mod_test_cfg="$PKGPATH/readme/__manifest__.rst" || mod_test_cfg=""
@@ -770,6 +776,7 @@ if [[ -n "$opt_modules" ]]; then
         elif [[ $opt_upd -ne 0 ]]; then
             OPTS="$OPTU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
+            [[ $opt_ast -ne 0 ]] && OPTS="$OPTS --load=web --dev=all"
             [[ -n $OPTI && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be installed before\n$OPTI"
             [[ -z $OPTU ]] && log_mesg "No module found to update" && exit 1
         elif [[ $opt_xtl -ne 0 ]]; then

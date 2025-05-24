@@ -11,6 +11,7 @@ ChangeLog History
 * [FIX] arcangelo: sometimes wrong format .rst files
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
+* [IMP] run_odoo_debug: new -A switch
 * [IMP] deploy_odoo: minor improvements
 * [UPD] Esteem qualty rate: new algorithm
 
