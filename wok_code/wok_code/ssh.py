@@ -4,7 +4,7 @@ import os
 import sys
 from cryptography.fernet import Fernet
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 
 def spit_host_param(host, param):
@@ -523,3 +523,4 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
+

@@ -21,7 +21,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -1159,7 +1159,7 @@ class PleaseCwd(object):
             with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        x = regex.cp2tmp(ln)
+                        x = regex.match(ln)
                         if x:
                             ver_text = x.groups()[1]
                             cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string
@@ -1291,3 +1291,4 @@ class PleaseCwd(object):
             please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
+
