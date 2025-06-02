@@ -23,7 +23,7 @@ except ImportError:  # pragma: no cover
 
 # from python_plus import unicodes
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 
 MODULE_SEP = "\ufffa"
@@ -1636,3 +1636,4 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
