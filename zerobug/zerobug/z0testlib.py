@@ -28,7 +28,7 @@ import magic
 from z0lib import z0lib
 from python_plus import _c, str2bool
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 # return code
 TEST_FAILED = 1
@@ -651,6 +651,8 @@ class Z0test(object):
                 "assertIn", "assertNotIn",
                 "assertLess", "assertLessEqual", "assertGreater", "assertGreaterEqual",
                 "assertMatch", "assertNotMatch",
+                "build_os_tree", "remove_os_tree",
+                "testdir", "rundir",
                 "ret_sts",
         ):
             setattr(test_cls, name, getattr(self, name))
@@ -1680,15 +1682,14 @@ if __name__ == '__main__':
 
     def build_odoo_env(self, *args, **kwargs):
         """Build a simplified Odoo directory tree
-        version: 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
+        version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
         name: name of odoo dir (default equal to version)
         hierarchy: flat,tree,server (def=flat)
 
-        # Old version had the following signature: build_odoo_env(self, ctx, version)
-        # Now param ctx is deprecated, so we have to analyze parameters
+        Old version had the following signature: build_odoo_env(self, ctx, version)
+        Now param ctx is deprecated, so we have to analyze parameters
         """
         if len(args) > 1:
-            # ctx = args[0]
             version = args[1]
         else:
             version = args[0]
@@ -1748,13 +1749,13 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
             if fn == "api.py" and (version.startswith("6") or version.startswith("7")):
                 continue
             if fn == script:
-                ffn = os.path.join(os.path.dirname(odoo_home), fn)
+                fqn = os.path.join(os.path.dirname(odoo_home), fn)
                 for fn2 in ("release", "osv", "service", "tools"):
                     init_py += "import %s\n" % fn2
             else:
-                ffn = os.path.join(odoo_home, fn)
+                fqn = os.path.join(odoo_home, fn)
                 init_py += "import %s\n" % fn[:-3]
-            with open(ffn, 'w') as fd:
+            with open(fqn, 'w') as fd:
                 fd.write('print("Fake Odoo")\n')
                 if fn == script:
                     mode = os.fstat(fd.fileno()).st_mode
@@ -1770,15 +1771,28 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
             return odoo_root
         return root
 
-    def create_repo(
-        self, ctx, root, reponame, version, hierarchy=None, name=None, repotype=None
-    ):
+    def create_repo(self, *args, **kwargs):
+        """Build a simplified Odoo repository
+        version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
+
+        Old version had the following signature:
+            create_repo(self, ctx, root, reponame, version, name=None, repotype=None)
+        Now param ctx is deprecated, so we have to analyze parameters"""
+        if len(args) > 3:
+            root = args[1]
+            reponame = args[2]
+            version = args[3]
+        else:
+            root = args[0]
+            reponame = args[1]
+            version = args[2]
+
         REPOTYPES = {
             'oca': {'d': ['.git'], 'f': ['README.md', '.travis.yml']},
             'zero': {'d': ['egg-info', '.git'], 'f': ['README.rst', '.travis.yml']},
         }
-        name = name or version
-        repotype = repotype or 'oca'
+        name = kwargs.get("name") or version
+        repotype = kwargs.get("repotype") or "oca"
         odoo_root = os.path.join(root, name)
         if not os.path.isdir(odoo_root):
             odoo_root = root
@@ -1795,11 +1809,26 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                 open(path, 'w').close()
         return repodir
 
-    def create_module(
-        self, ctx, repo_root, name, version, moduletype=None, dependencies=None
-    ):
+    def create_module(self, *args, **kwargs):
+        """Build a simplified Odoo module
+        version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, ..., 7.0, 6.1
+
+        Old version had the following signature:
+            create_module(self, ctx, repo_root, name, version,
+                        moduletype=None, dependencies=None)
+        Now param ctx is deprecated, so we have to analyze parameters"""
+        if len(args) > 3:
+            repo_root = args[1]
+            name = args[2]
+            version = args[3]
+        else:
+            repo_root = args[0]
+            name = args[1]
+            version = args[2]
+
         MODULETYPES = {'simple': {'d': [], 'f': ['__init__.py']}}
-        moduletype = moduletype or 'simple'
+        moduletype = kwargs.get("moduletype") or 'simple'
+        dependencies = kwargs.get("dependencies") or []
         moduledir = os.path.join(repo_root, name)
         if not os.path.isdir(moduledir):
             os.mkdir(moduledir)
@@ -1876,3 +1905,4 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
+
