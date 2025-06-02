@@ -26,9 +26,6 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, z0bug):
-    #     self.Z = z0bug
-    #     self.Z.inherit_cls(self)
 
     def _touch_file(self, fn):
         if not os.path.isfile(fn):
@@ -392,7 +389,19 @@ class RegressionTest:
             stdout.split("\n")[1],
             msg="Bash command not found in stdout")
 
-        return self.ret_sts()
+    def test_09(self):
+        os.chdir(self.odoo_moduledir)
+        cmd = "please translate -vfn"
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
+        self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        self.assertMatch(
+            stdout.split("\n")[0],
+            ".*run_odoo_debug.*-l it_IT",
+            msg="Bash command not found in stdout")
+        self.assertMatch(
+            stdout.split("\n")[1],
+            ".*msgmerge",
+            msg="Bash command not found in stdout")
 
     def create_pofile(self, pofile):
         if os.path.isfile(pofile):

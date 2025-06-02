@@ -5,15 +5,16 @@ ChangeLog History
 =================
 
 
-2.0.21 (2025-05-03)
+2.0.22 (2025-05-31)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] arcangelo: sometimes wrong format .rst files
+* [FIX] please translate: new algorithm
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
 * [IMP] run_odoo_debug: new -A switch
 * [IMP] deploy_odoo: minor improvements
-* [UPD] Esteem qualty rate: new algorithm
+* [UPD] Esteem quality rate: new algorithm
 
 2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~

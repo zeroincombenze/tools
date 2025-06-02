@@ -123,7 +123,7 @@ class RunOdoo(object):
         parser.add_argument(
             "-L", "--log-level", help="set log level: may be info or debug"
         )
-        parser.add_argument("-l", "--lang", action="store_true", help="Load language")
+        parser.add_argument("-l", "--lang", help="Load language")
         parser.add_argument(
             "-M",
             "--multi",
@@ -311,6 +311,8 @@ class RunOdoo(object):
     def prepare_os_cmd(self):
         cmd = "%s.sh" % os.path.splitext(os.path.abspath(__file__))[0]
         opts = ""
+        if self.opt_args.assets:
+            opts += "A"
         if self.opt_args.debug:
             opts += "B" * self.opt_args.debug
         if self.opt_args.no_coverage:
@@ -327,8 +329,6 @@ class RunOdoo(object):
             opts += "k"
         if self.opt_args.import_i18n:
             opts += "I"
-        if self.opt_args.lang:
-            opts += "l"
         if self.opt_args.multi:
             opts += "M"
         if self.opt_args.dry_run:
@@ -351,6 +351,8 @@ class RunOdoo(object):
             cmd += " -c" + self.opt_args.config
         if self.opt_args.database:
             cmd += " -d" + self.opt_args.database
+        if self.opt_args.lang:
+            opts += "l" + self.opt_args.lang
         if self.opt_args.log_level:
             cmd += " -L" + self.opt_args.log_level
         if self.opt_args.modules:

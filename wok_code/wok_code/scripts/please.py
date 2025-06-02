@@ -330,6 +330,10 @@ class Please(object):
                 metavar="PYVER",
                 help="Run test with specific python version",
             )
+        elif arg in ("-L", "--lang"):
+            parser.add_argument(
+                "-L", "--lang", action="store", help="iso code", default="it_IT"
+            )
         elif arg in ("-l", "--log"):
             parser.add_argument("-l", "--log", metavar="FILE", help="log file name")
         elif arg in ("-n", "--dry-run"):

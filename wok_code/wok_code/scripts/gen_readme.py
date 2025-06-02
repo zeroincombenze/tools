@@ -441,14 +441,15 @@ def __init__(ctx):
 
     ctx["read_only"] = ctx.get("read_only", False)
     if (
-            ctx["odoo_vid"]
-            and ctx["odoo_vid"] != "."
-            and re.match(r"[0-9]+\.[0-9]+", ctx["odoo_vid"])
+        ctx["odoo_vid"]
+        and ctx["odoo_vid"] != "."
+        and re.match(r"[0-9]+\.[0-9]+", ctx["odoo_vid"])
     ):
         ctx["branch"] = ctx["odoo_vid"]
     else:
         sts, stdout, stderr = z0lib.os_system_traced(
-            "git branch", verbose=False, rtime=False)
+            "git branch", verbose=False, rtime=False
+        )
         if sts == 0 and stdout:
             branch = ""
             for ln in stdout.split("\n"):
@@ -462,7 +463,8 @@ def __init__(ctx):
     if not ctx["git_orgid"]:
         url = ""
         sts, stdout, stderr = z0lib.os_system_traced(
-            "git remote -v", verbose=False, rtime=False)
+            "git remote -v", verbose=False, rtime=False
+        )
         if sts == 0 and stdout:
             for ln in stdout.split("\n"):
                 if not ln:
@@ -611,7 +613,8 @@ def assure_docdir(ctx, path):
     if not pth.isdir(path):
         if not ctx["suppress_warning"]:
             print_red_message(
-                "*** Documentation directory %s not found!" % pth.abspath(path))
+                "*** Documentation directory %s not found!" % pth.abspath(path)
+            )
         if ctx["force"] or ctx["write_authinfo"]:
             os.mkdir(path)
 
@@ -1594,7 +1597,8 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         if pth.isfile(pycmd):
             cmdline = sys.executable + " " + pycmd + " " + args
         sts, stdout, stderr = z0lib.os_system_traced(
-            cmdline, verbose=False, rtime=False)
+            cmdline, verbose=False, rtime=False
+        )
         if sts == 0:
             # Keep lef margin for multiline output
             left_margin = line[: x.start()]
