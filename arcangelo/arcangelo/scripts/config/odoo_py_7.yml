@@ -1,0 +1,6 @@
+include_openerp_py_old_api:
+  ctx: 'final or backport_multi'
+  include: 'openerp_py_old_api'
+include_odoo_no_api_multi:
+  ctx: 'final or backport_multi'
+  include: 'odoo_py_no_api_multi'

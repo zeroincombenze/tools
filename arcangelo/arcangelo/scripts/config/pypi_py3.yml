@@ -1,0 +1,14 @@
+int_long:
+  match: '\(int, *long\)'
+  do:
+    - action: 's'
+      args:
+      - '\(int, *long\)'
+      - 'int'
+long_int:
+  match: '\(long, *int\)'
+  do:
+    - action: 's'
+      args:
+      - '\(long, *int\)'
+      - 'int'

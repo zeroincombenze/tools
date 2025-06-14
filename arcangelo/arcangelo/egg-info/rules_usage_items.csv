@@ -1,0 +1,20 @@
+Name,Description
+backport_multi,Processing a backported version (multiple version path)
+classname,Name of current class
+dedent,Dedent statement level
+final,Processing final version when multiple version path
+first_line,True if current line is the 1st of source (see header too)
+from_major_version,Major version of project by -F switch
+header,Current line is in the file header (comments and empty lines)
+imported,Imported packages list
+indent,Space indentation of current line
+migration_multi,Processing a migrate version with multiple version path
+mime,Current file mime
+open_stmt,"# of open parens; if > 0, current line is a continuation line"
+python_future,True if source is python 2 and 3 with future
+stage,"Parsing stage: pre,header,import,class_body,function_body,comment"
+stmt_indent,Space indentation of current statement
+to_major_version,Major version of project by -b switch
+transition_stage,"Prior parsing stage"
+try_indent,try statement indentation: if >=0 current line is inside try/except block
+py23,Value 2 if python2 else 3 (int)

@@ -1,0 +1,22 @@
+include_openerp_py_new_api:
+  ctx: 'final or migrate_multi'
+  include: 'openerp_py_new_api'
+include_odoo_api_multi:
+  ctx: 'final or migrate_multi'
+  include: 'odoo_py_api_multi'
+super:
+  match: '^ *super\([^)]*\)'
+  prio: '6'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'
+    - action: 's'
+      args:
+      - '(\)\.[^(]+)\('
+      - '\1(cr, uid, '
+    - action: 's'
+      args:
+      - '(super[^)]+\)[^)]+)'
+      - '\1, context=context'

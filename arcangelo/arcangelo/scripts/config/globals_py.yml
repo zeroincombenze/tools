@@ -1,0 +1,58 @@
+0_match_ignore_line:
+  match: '^#!'
+  ctx: 'first_line'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_ignore_line
+0_update_coding_utf8:
+  match: '^# -\*- *encoding[:=] utf-8 -\*-'
+  prio: '1'
+  do:
+    - action: 's'
+      args:
+        - '^# -\*- encoding[:=] utf-8 -\*-'
+        - '^# -*- coding: utf-8 -*-'
+1_match_end_utf8:
+  match: '$'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_end_utf8
+2_match_utf8:
+  match: '^# -\*- coding[:=] utf-8 -\*-'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_utf8
+4_match_lint:
+  match: '^# (flake8|pylint):'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_lint
+5_match_end_utf8:
+  match: '!(coding|flake8|pylint|python|/bin/env)^#'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_end_utf8
+6_match_end_utf8:
+  match: '^[^#]'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - match_end_utf8
+match_class:
+  match: '^ *class *([^(]+)\('
+  prio: '9'
+  do:
+    - action: '+'
+      args:
+      - classname

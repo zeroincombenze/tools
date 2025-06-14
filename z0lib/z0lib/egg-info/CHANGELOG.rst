@@ -1,3 +1,9 @@
+2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Local package automatic recognition
+* [FIX] License declaration compatible with pypi
+
 2.0.17 (2025-03-22)
 ~~~~~~~~~~~~~~~~~~~
 

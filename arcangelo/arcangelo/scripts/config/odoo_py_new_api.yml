@@ -1,0 +1,15 @@
+from_openerp:
+  match: '^from openerp([a-z_.]*) import'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'from openerp([a-z_.]*) import'
+      - 'from odoo\1 import'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'sort_from_odoo_import'

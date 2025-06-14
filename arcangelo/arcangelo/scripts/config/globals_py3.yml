@@ -1,0 +1,56 @@
+super:
+  match: '^.* *super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super()'
+base64_encode:
+  match: '.*base64\.encodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.encodestring'
+      - 'base64.encodebytes'
+base64_decode:
+  match: '.*base64\.decodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.decodestring'
+      - 'base64.decodebytes'
+is_instance_str:
+  match: '^.*isinstance\([^,]*, *basestring *\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'basestring'
+      - 'str'
+is_instance_int:
+  match: '^.*isinstance\(.*int,.*\) *\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'long'
+      - ''
+    - action: 's'
+      args:
+      - ', *,'
+      - ','
+    - action: 's'
+      args:
+        - ', *\)'
+        - ')'
+    - action: 's'
+      args:
+        - '\(int\)'
+        - 'int'
+    - action: 's'
+      args:
+        - 'long, long'
+        - 'long'

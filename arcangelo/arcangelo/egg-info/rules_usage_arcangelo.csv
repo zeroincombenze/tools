@@ -1,0 +1,6 @@
+Pos,Example,Note,Action
+1,REGEX,REGEX is a python re,"item is processed if it matches REGEX"
+2,!REGEX,REGEX is a python re,"item is processes if it does not match REGEX"
+3,\\!REGEX,REGEX is a python re beginning with ! (exclamation point),"like case 1"
+4,!(RE)REGEX,RE and REGEX are two python re,"if item does not match (by search) the RE, apply rule 1"
+5,\{\{EXPR\}\}EREGEX,EXPR is double expression,"EREGEX is processed if pythonic EXPR is true"
