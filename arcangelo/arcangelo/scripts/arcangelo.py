@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
-# from past.builtins import basestring
 from io import open
 import sys
 import os
@@ -13,13 +12,9 @@ import lxml.etree as ET
 import yaml
 from python_plus import _b, _u, qsplit
 from z0lib import z0lib
+from . import license_mgnt
 
-try:
-    import license_mgnt
-except ImportError:
-    from wok_code.scripts import license_mgnt
-
-__version__ = "2.0.22"
+__version__ = "2.1.0"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -1295,6 +1290,11 @@ def main(cli_args=None):
         help="do nor execute black or prettier on modified files",
     )
     parser.add_argument(
+        '-y', '--assume-yes',
+        action='store_true',
+        help='force target path creation with different base name'
+    )
+    parser.add_argument(
         '--add-rule-group',
         default='.arcangelo',
         help='Add rule group form file, default is .arcangelo.yml',
@@ -1329,6 +1329,25 @@ def main(cli_args=None):
 
     for path in migrate_env.opt_args.path:
         if pth.isdir(path):
+            if (
+                not migrate_env.opt_args.assume_yes
+                and migrate_env.opt_args.output
+                and pth.isdir(migrate_env.opt_args.output)
+                and pth.basename(path) != pth.basename(migrate_env.opt_args.output)
+                and migrate_env.opt_args.from_version
+                and migrate_env.opt_args.to_version
+                and migrate_env.opt_args.from_version != migrate_env.opt_args.to_version
+            ):
+                sys.stderr.write(
+                    'Target path %s conflicts with source ptah %s for migration!!\n'
+                    % (migrate_env.opt_args.output, path)
+                )
+                return 2
+            if (
+                migrate_env.opt_args.output
+                and not pth.isdir(migrate_env.opt_args.output)
+            ):
+                os.makedirs(migrate_env.opt_args.output)
             for root, dirs, files in os.walk(path):
                 dirs[:] = [
                     d
@@ -1361,4 +1380,5 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
+
 

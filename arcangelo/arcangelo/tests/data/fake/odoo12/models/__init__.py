@@ -1,2 +1,2 @@
 # flake8: noqa - pylint: skip-file
-from . import models
+from . import paartner

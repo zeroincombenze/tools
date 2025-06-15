@@ -106,15 +106,14 @@ class RegressionTest:
     def _test_module(self, file_list, version_from=None, version_to=None):
         module_from = "odoo" + version_from.split(".")[0]
         module_to = "odoo" + version_to.split(".")[0]
-        os.mkdir(self.get_test_fullname(module_to))
         if version_from == version_to:
-            cmd = "arcangelo -fiw -cci -b%s %s -o %s" % (
+            cmd = "arcangelo -fiw -ci -b%s %s -o %s" % (
                 version_to,
                 self.get_fake_fullname(module_from),
                 self.get_test_fullname(module_to),
             )
         else:
-            cmd = "arcangelo -fiw -cci -F%s -b%s %s -o %s" % (
+            cmd = "arcangelo -fiw -ci -F%s -b%s %s -o %s -y" % (
                 version_from,
                 version_to,
                 self.get_fake_fullname(module_from),
@@ -398,7 +397,7 @@ class RegressionTest:
         file_list = [
             "__manifest__.py",
             "__init__.py",
-            "partner.py",
+            "models/partner.py",
         ]
         self._test_module(file_list, version_from="12.0", version_to="13.0")
 
@@ -406,7 +405,7 @@ class RegressionTest:
         file_list = [
             "__manifest__.py",
             "__init__.py",
-            "partner.py",
+            "models/partner.py",
         ]
         self._test_module(file_list, version_from="12.0", version_to="10.0")
 
@@ -414,7 +413,7 @@ class RegressionTest:
         file_list = [
             ["__manifest__.py", "__openerp__.py"],
             "__init__.py",
-            "partner.py",
+            "models/partner.py",
         ]
         self._test_module(file_list, version_from="12.0", version_to="8.0")
 
@@ -422,7 +421,7 @@ class RegressionTest:
         file_list = [
             ["__manifest__.py", "__openerp__.py"],
             "__init__.py",
-            "partner.py",
+            "models/partner.py",
         ]
         self._test_module(file_list, version_from="12.0", version_to="7.0")
 
@@ -430,7 +429,7 @@ class RegressionTest:
         file_list = [
             "__manifest__.py",
             "__init__.py",
-            "partner.py",
+            "models/partner.py",
         ]
         self._test_module(file_list, version_from="12.0", version_to="12.0")
 
