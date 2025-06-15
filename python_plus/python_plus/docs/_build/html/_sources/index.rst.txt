@@ -1,10 +1,10 @@
 .. python_plus documentation master file, created by
-   gen_readme.py on 2025-03-01 21:06:05
+   gen_readme.py on 2025-06-15 09:08:03
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ============================================
-Welcome to python_plus 2.0.17 documentation!
+Welcome to python_plus 2.0.18 documentation!
 ============================================
 
 .. toctree::
@@ -35,10 +35,10 @@ Welcome to python_plus 2.0.17 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

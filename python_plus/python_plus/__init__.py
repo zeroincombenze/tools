@@ -10,7 +10,7 @@ from . import scripts
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
 __copyright__ = 'Copyright 2018-2025 SHS-AV srl'
-__version__ = '2.0.17'
+__version__ = '2.0.18'
 
 PYCODESET = 'utf-8'
 if PY3:
@@ -60,11 +60,34 @@ def bstrings(src):
         for x in src2.keys():
             if isinstance(x, text_type):
                 del src[x]
-            src[_b(x)] = _b(src2[x])
-    elif isinstance(src, (list, tuple)):
+            src[_b(x)] = bstrings(src2[x])
+    elif isinstance(src, list):
         for i, x in enumerate(src):
-            src[i] = _b(x)
-    return src
+            src[i] = bstrings(x)
+    elif isinstance(src, tuple):
+        src = list(src)
+        for i, x in enumerate(src):
+            src[i] = bstrings(x)
+        src = tuple(src)
+    return _b(src)
+
+
+def cstrings(src):
+    if isinstance(src, dict):
+        src2 = src.copy()
+        for x in src2.keys():
+            if isinstance(x, text_type):
+                del src[x]
+            src[_b(x)] = cstrings(src2[x])
+    elif isinstance(src, list):
+        for i, x in enumerate(src):
+            src[i] = cstrings(x)
+    elif isinstance(src, tuple):
+        src = list(src)
+        for i, x in enumerate(src):
+            src[i] = cstrings(x)
+        src = tuple(src)
+    return _c(src)
 
 
 def unicodes(src):
@@ -73,11 +96,16 @@ def unicodes(src):
         for x in src2.keys():
             if isinstance(x, bytestr_type):
                 del src[x]
-            src[_u(x)] = _u(src2[x])
-    elif isinstance(src, (list, tuple)):
+            src[_u(x)] = unicodes(src2[x])
+    elif isinstance(src, list):
         for i, x in enumerate(src):
-            src[i] = _u(x)
-    return src
+            src[i] = unicodes(x)
+    elif isinstance(src, tuple):
+        src = list(src)
+        for i, x in enumerate(src):
+            src[i] = unicodes(x)
+        src = tuple(src)
+    return _u(src)
 
 
 def str2bool(item, default=True):

@@ -5,6 +5,14 @@ ChangeLog History
 =================
 
 
+2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] bstring and unicode now work deeply
+* [FIX] list_requirements: twine version
+* [FIX] License declaration compatible with pypi
+* [IMP] New function cstrings
+
 2.0.17 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -152,10 +160,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

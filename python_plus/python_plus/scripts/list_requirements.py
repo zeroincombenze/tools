@@ -27,7 +27,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.17"
+__version__ = "2.0.18"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -297,6 +297,7 @@ REQVERSION = {
     "suds": {"6.1": "==0.4"},
     "suds-jurko": {"6.1": "==0.6"},
     "translators": {"0": "<4.11.3"},
+    "twine": {"2.7": "<6.0", "3.5": ">=6.0"},
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
@@ -1252,7 +1253,7 @@ def get_pyver_4_odoo(odoo_ver):
 
 def get_pyver(ctx):
     if not ctx.get("odoo_ver"):
-        global python_version
+        global python_version  # noqa: F824
         ctx["pyver"] = python_version
     else:
         ctx["pyver"] = get_pyver_4_odoo(ctx["odoo_ver"])

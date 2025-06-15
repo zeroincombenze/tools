@@ -1,3 +1,11 @@
+2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] bstring and unicode now work deeply
+* [FIX] list_requirements: twine version
+* [FIX] License declaration compatible with pypi
+* [IMP] New function cstrings
+
 2.0.17 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
 
