@@ -3,7 +3,7 @@ import os.path as pth
 
 from setuptools import find_packages, setup
 
-name = "z0lib"
+name = "universal_connector"
 github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
 author_email = "antoniomaria.vigliotti@gmail.com"
@@ -17,12 +17,11 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.15",
-    description="Bash zeroincombenze lib",
+    version="1.3.16",
+    description="Universal Connector",
     long_description=long_description,
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.7",
@@ -44,11 +43,11 @@ setup(
     },
     author=author,
     author_email=author_email,
-    license="Affero GPL",
+    license="GPL-3.0-or-later",
     install_requires=["configparser", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
-    package_data={"": ["scripts/setup.info", "./xuname", "./z0librc"]},
-    entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
+    package_data={"": ["scripts/setup.info"]},
+    entry_points={},
     zip_safe=False,
 )
 

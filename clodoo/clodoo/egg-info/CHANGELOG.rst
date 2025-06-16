@@ -1,3 +1,10 @@
+2.0.15 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: Odoo 17.0 and 18.0
+* [IMP] powerp is not more a default gitorg
+* [FIX] License declaration compatible with pypi
+
 2.0.14 (2025-03-23)
 ~~~~~~~~~~~~~~~~~~~
 

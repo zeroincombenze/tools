@@ -1,3 +1,10 @@
+2.0.8 (2025-06-15)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] install_tools.sh: new package arcangelo
+* [IMP] Flags compliance to Odoo 16.0+ in template library
+* [FIX] License declaration compatible with pypi
+
 2.0.3 (2022-12-07)
 ~~~~~~~~~~~~~~~~~~
 

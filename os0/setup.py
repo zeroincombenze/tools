@@ -38,7 +38,6 @@ ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
 """,
     classifiers=[
         'Development Status :: 4 - Beta',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',
@@ -58,7 +57,7 @@ ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
     },
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
-    license='Affero GPL',
+    license="GPL-3.0-or-later",
     install_requires=['z0lib', 'future'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': ['scripts/setup.info']},

@@ -51,7 +51,6 @@ restart() {
 
 status() {
     systemd_running
-    set -x
     if [ -z "$SYSDPID" ]; then
         echo "systemd is stopped"
         RETVAL=1
@@ -59,7 +58,6 @@ status() {
         echo "systemd is running..."
         RETVAL=0
     fi
-    set +x
     return $RETVAL
 }
 

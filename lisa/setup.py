@@ -17,7 +17,6 @@ over every Linux distribution.
 """,
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: POSIX',
         'Programming Language :: Unix Shell',
         'Intended Audience :: Developers',
@@ -29,7 +28,7 @@ over every Linux distribution.
     url='http://wiki.zeroincombenze.org/it/Linux',
     author='Antonio Maria Vigliotti',
     author_email='antoniomaria.vigliotti@gmail.com',
-    license='Affero GPL',
+    license="GPL-3.0-or-later",
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': [
         'scripts/setup.info',

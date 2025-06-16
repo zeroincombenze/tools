@@ -2,7 +2,7 @@
 from . import main
 
 # from . import create_translation_file
-from . import arcangelo
+# from . import arcangelo
 from . import cvt_csv_2_rst
 from . import cvt_csv_2_xml
 from . import cvt_csv_coa
@@ -11,7 +11,7 @@ from . import deploy_odoo
 from . import dist_pkg
 
 # from . import do_odoo_site
-from . import gen_readme
+# from . import gen_readme
 
 # from . import generate_random_codes
 from . import license_mgnt

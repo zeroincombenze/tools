@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Split from wok_code
+* [IMP] Graphical files are copied only if they does not exist on target
 * [IMP] Before migration warns on different base name
 * [FIX] If target direcotry does not exist, will be create
 

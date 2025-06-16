@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; wok_code 2.0.22 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=7318b3e0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="rtd_getting_started.html" />
+    <link rel="prev" title="Overview" href="rtd_description.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 2.0.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>usage: please.py [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
+
+Zeroincombenze® developer shell.
+obj after action may be on of apache, cwd, python, z0bug, zerobug, travis
+
+positional arguments:
+  action
+
+options:
+  -h, --help            show this help message and exit
+  -H PATH, --home-devel PATH
+                        Home devel directory
+  -n, --dry-run         do nothing (dry-run)
+  -Q FILE, --tools-config FILE
+                        Configuration file
+  -q, --quiet           silent mode
+  -v, --verbose         verbose mode
+  -V, --version         show program&#39;s version number and exit
+
+Help available issuing: please help ACTION
+© 2015-2023 by SHS-AV s.r.l.
+Author: antoniomaria.vigliotti@gmail.com
+Full documentation at: https://zeroincombenze-tools.readthedocs.io/
+</pre></div>
+</div>
+<p>Action is one of:</p>
+<ul class="simple">
+<li><p>help</p></li>
+<li><p>build</p></li>
+<li><p>chkconfig</p></li>
+<li><p>config</p></li>
+<li><p>docs</p></li>
+<li><p>duplicate</p></li>
+<li><p>export MODULE DB</p></li>
+<li><p>import</p></li>
+<li><p>list</p></li>
+<li><p>lsearch</p></li>
+<li><p>publish</p></li>
+<li><p>push</p></li>
+<li><p>pythonhosted</p></li>
+<li><p>replace</p></li>
+<li><p>replica</p></li>
+<li><p>show</p></li>
+<li><p>status</p></li>
+<li><p>test</p></li>
+<li><p>translate MODULE DB</p></li>
+<li><p>version</p></li>
+<li><p>wep</p></li>
+</ul>
+<p><em>build</em></p>
+<blockquote>
+<div><p>Build a tar file for current PYPI project</p>
+</div></blockquote>
+<p><em>chkconfig</em></p>
+<blockquote>
+<div><p>Display various values of current project.</p>
+</div></blockquote>
+<p><em>config global|local</em></p>
+<blockquote>
+<div><p>Set various parameter by edit with vim.
+Set various parameter editing with vim.
+Comments inside configuration file can aim to set values.</p>
+<p>Some variable are:</p>
+<ul class="simple">
+<li><p>GBL_EXCLUDE=test_impex -&gt; Module globally escluded by test because can fail locally</p></li>
+<li><p>PYTHON_MATRIX=”2.7 3.7” -&gt; python version to use in tests</p></li>
+</ul>
+</div></blockquote>
+<p><em>docs</em></p>
+<blockquote>
+<div><p>Prepare documentation to publish on readthedocs website (PYPI).
+Create / update README and index.html of Odoo module.
+Notice: README of repository history is tailored with last 60 days items;
+on README and index,html of module, history is tailored with last 180 days items;
+However max 12 items are added in README / index.html
+Summary showed to console are tailored with last 15 days.</p>
+</div></blockquote>
+<p><em>export MODULE DB [-bBRANCH]</em></p>
+<blockquote>
+<div><p>Export po file of Odoo project.
+If current directory is a module directory you can use ‘.’ (dot) for module name.</p>
+<p>To declare specific version use -b switch</p>
+</div></blockquote>
+<p><em>import MODULE DB</em></p>
+<blockquote>
+<div><p>Import po file of Odoo project.</p>
+<p>To declare target version use fB-bfR switch</p>
+</div></blockquote>
+<p><em>publish docs|download|pypi|svg|testpypi</em></p>
+<blockquote>
+<div><p>Publish documentation or package.</p>
+<ul class="simple">
+<li><p>publish docs     -&gt; publish generate docs to website (require system privileges)</p></li>
+<li><dl class="simple">
+<dt>publish download -&gt; publish tarball to download (require system privileges)</dt><dd><p>type fBplease buildfR to generate tarball file</p>
+</dd>
+</dl>
+</li>
+<li><p>publish pypi     -&gt; publish package to pypi website (from odoo user)</p></li>
+<li><p>publish svg      -&gt; publish test result svg file (require system privileges)</p></li>
+<li><p>publish tar      -&gt; write a tarball with package files</p></li>
+</ul>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of wok_code"/>
+            </a></p>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description.html"
+                          title="previous chapter">Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_getting_started.html"
+                          title="next chapter">Getting started</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 2.0.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2019-24, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

@@ -580,13 +580,9 @@ def __init__(ctx):
         assure_docdir(ctx, "./readme")
         if ctx["odoo_layer"] == "module":
             assure_docdir(ctx, "./static")
-            if ctx["odoo_majver"] <= 7:
-                assure_docdir(ctx, "./static/src")
-                assure_docdir(ctx, "./static/src/img")
-                ctx["img_dir"] = "./static/src/img"
-            else:
-                assure_docdir(ctx, "./static/description")
-                ctx["img_dir"] = "./static/description"
+            img_dir = get_imgdir(ctx, dir=".")
+            assure_docdir(ctx, img_dir)
+            ctx["img_dir"] = img_dir
     elif ctx["product_doc"] == "pypi":
         assure_docdir(ctx, "./egg-info")
         assure_docdir(ctx, "./docs")
@@ -616,7 +612,7 @@ def assure_docdir(ctx, path):
                 "*** Documentation directory %s not found!" % pth.abspath(path)
             )
         if ctx["force"] or ctx["write_authinfo"]:
-            os.mkdir(path)
+            os.makedirs(path)
 
 
 def print_red_message(text):
@@ -716,6 +712,10 @@ def get_actual_fqn(ctx, path, filename):
         fqn = pth.join(path, filename)
         if pth.isfile(fqn):
             return fqn
+        if filename.endswith((".png", ".jpg", ".gif")):
+            fqn = pth.join(path, "icons", filename)
+            if pth.isfile(fqn):
+                return fqn
     if pth.basename(pth.abspath(path)) in ("readme", "egg-info", "docs"):
         docdirs = [pth.basename(pth.abspath(path))]
         path = pth.dirname(pth.abspath(path))
@@ -798,7 +798,7 @@ def iter_template_path(ctx, debug_mode=None, body=None):
         yield src_path
 
 
-def get_template_fn(ctx, template, ignore_ntf=None):
+def get_template_fqn(ctx, template, ignore_ntf=None):
 
     def search_tmpl(ctx, template, body):
         found = False
@@ -971,20 +971,19 @@ def url_by_doc(ctx, url):
             and (not repo or repo == ctx["repos_name"])
         ):
             if module and module != ctx["module_name"]:
-                fmt = "/%s/static/"
-                if ctx["odoo_majver"] < 8:
-                    fmt += "src/img/%s"
-                else:
-                    fmt += "description/%s"
-                return fmt % (module or ctx["module_name"], pth.basename(url))
+                # fmt = "./static/"
+                # if ctx["odoo_majver"] < 8:
+                #     fmt += "src/img/%s"
+                # else:
+                #     fmt += "description/%s"
+                return (country + ".png" or pth.basename(url))
             else:
                 return pth.basename(url)
         else:
-            fmt = "https://raw.githubusercontent.com/%s/%s/%s/%s/static/"
-            if ctx["odoo_majver"] < 8:
-                fmt += "src/img/%s"
-            else:
-                fmt += "description/%s"
+            fmt = get_imgdir(
+                ctx,
+                dir="https://raw.githubusercontent.com/%s/%s/%s/%s/",
+                filename="%s")
             return fmt % (
                 git_orgid or GIT_USER[ctx["git_orgid"]],
                 repo or ctx["repos_name"],
@@ -1916,9 +1915,8 @@ def write_automodule(ctx):
         ctx["header"] = ctx["contents"] = ""
         for name in names:
             write_1_automodule(ctx, name)
-        # if pth.isfile("./testenv/testenv.py"):
-        #     write_1_automodule(ctx, "testenv")
-        contents = parse_local_file(ctx, "rtd_template_automodule.rst", section="usage")
+        contents = parse_local_file(
+            ctx, "rtd_template_automodule.rst", section="usage")
         with open(rtd_fn, "w") as fd:
             fd.write(contents)
         if "contents" in ctx:
@@ -2222,7 +2220,7 @@ def parse_source(ctx, source, in_fmt=None, out_fmt=None, section=None, no_end_nl
 
 
 def load_hdr_foo(ctx, filename):
-    fqn = get_template_fn(ctx, "header_" + filename)
+    fqn = get_template_fqn(ctx, "header_" + filename)
     hdr_foo = ""
     if fqn:
         fd = open(fqn, RMODE)
@@ -2278,7 +2276,7 @@ def parse_local_file(
         else:
             in_fmt = ctx["in_fmt"]
     out_fmt = out_fmt or ctx["out_fmt"]
-    fqn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
+    fqn = get_template_fqn(ctx, filename, ignore_ntf=ignore_ntf)
     if not fqn:
         base, ext = pth.splitext(filename)
         action = "get_default_%s" % base
@@ -2856,8 +2854,9 @@ def set_default_values(ctx):
     elif ctx["product_doc"] == "odoo" and (
         ctx["write_index"] or ctx["odoo_marketplace"]
     ):
-        if pth.isdir("./static/description"):
-            ctx["dst_file"] = "./static/description/index.html"
+        img_dir = get_imgdir(ctx, dir=".")
+        if pth.isdir(img_dir):
+            ctx["dst_file"] = pth.join(img_dir, "index.html")
         else:
             ctx["dst_file"] = "./index.html"
         ctx["trace_file"] = False
@@ -3136,9 +3135,21 @@ def item_2_text(ctx, section):
         ctx[section] += "\n"
 
 
+def get_imgdir(ctx, dir=None, filename=None):
+    path = (
+        ["static", "src", "img"]
+        if ctx["odoo_majver"] <= 7
+        else ["static", "description"])
+    if dir:
+        path.insert(0, dir)
+    if filename:
+        path.append(filename)
+    return pth.join(*path)
+
+
 def look_up_image(ctx, img_name):
     for img_type in (".png", ".jpg", ".gif"):
-        img_fqn = pth.join("static", "description", "%s%s" % (img_name, img_type))
+        img_fqn = get_imgdir(ctx, filename="%s%s" % (img_name, img_type))
         if pth.isfile(img_fqn):
             return img_fqn
     return ""
@@ -3530,17 +3541,17 @@ def generate_readme(ctx):
         if img_fqn:
             copy_img_file_template(pth.basename(img_fqn))
             ctx["def_images"].insert(0, img_fqn)
-        src_icon_path = ctx["path_name"]
-        while pth.basename(src_icon_path) in (ctx["module_name"], ctx["repos_name"]):
-            src_icon_path = pth.dirname(src_icon_path)
-
+    if ctx["product_doc"] == "odoo":
+        # src_icon_path = ctx["path_name"]
+        # while pth.basename(src_icon_path) in (ctx["module_name"], ctx["repos_name"]):
+        #     src_icon_path = pth.dirname(src_icon_path)
         for country in ("l10n_uk", "l10n_us", "l10n_it"):
-            src_icon = pth.join(
-                src_icon_path, "addons", country, "static", "description", "icon.png"
-            )
-            icon_fqn = pth.join("static", "description", "%s.png" % country)
+            png_fn = "%s.png" % country
+            src_icon = get_template_fqn(ctx, png_fn)
+            icon_fqn = get_imgdir(ctx, dir=".", filename=png_fn)
             copyfile(src_icon, icon_fqn)
-            ctx["def_images"].append(icon_fqn)
+            if ctx["odoo_marketplace"] or ctx["repos_name"] == "marketplace":
+                ctx["def_images"].append(icon_fqn)
 
     if ctx["write_office"]:
         if not ctx["template_name"]:
@@ -3721,4 +3732,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-

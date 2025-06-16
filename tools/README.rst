@@ -1,5 +1,5 @@
 ============================
-|Zeroincombenze| tools 2.0.7
+|Zeroincombenze| tools 2.0.8
 ============================
 
 |license gpl|
@@ -113,11 +113,86 @@ Current version via Git
 ChangeLog History
 -----------------
 
-wok_code: 2.0.21 (2025-04-28)
+arcangelo: 2.1.0 (2025-06-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* [IMP] Split from wok_code
+* [IMP] Before migration warns on different base name
+* [FIX] If target direcotry does not exist, will be create
+
+
+zerobug: 2.0.20 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+
+z0lib: 2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Local package automatic recognition
+* [FIX] License declaration compatible with pypi
+
+
+z0bug_odoo: 2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+
+wok_code: 2.0.13 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] No crash if invalid modules declaration
+* [FIX] License declaration compatible with pypi
+
+
+python_plus: 2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] bstring and unicode now work deeply
+* [FIX] list_requirements: twine version
+* [FIX] License declaration compatible with pypi
+* [IMP] New function cstrings
+
+
+odoo_score: 2.0.11 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+
+clodoo: 2.0.15 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: Odoo 17.0 and 18.0
+* [IMP] powerp is not more a default gitorg
+* [FIX] License declaration compatible with pypi
+
+
+wok_code: 2.0.22 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] arcangelo: sometimes wrong format .rst files
+* [FIX] please translate: new algorithm
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
+* [IMP] run_odoo_debug: new -A switch
+* [IMP] deploy_odoo: minor improvements
+* [UPD] Esteem quality rate: new algorithm
+
+
+universal_connector: 1.3.16 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Refactoring
+
+
+arcangelo: 2.0.22 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] arcangelo: sometimes wrong format .rst files
+
 
 
 zar: 2.0.8 (2025-04-27)
@@ -234,7 +309,7 @@ python_plus: 2.0.16 (2025-01-16)
 oerplib3: 1.0.0 (2025-01-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] Python 3.12 porting
+* [FIX] Python 3.9+ porting
 
 
 zar: 2.0.7 (2024-12-30)
@@ -365,6 +440,12 @@ odoo_score: 2.0.9 (2024-07-10)
 * [IMP] Python 3.6 deprecated
 
 
+arcangelo: 2.0.18 (2024-07-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Python 3.6 deprecated
+
+
 python_plus: 2.0.14 (2024-07-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -392,46 +473,6 @@ clodoo: 2.0.12 (2024-07-03)
 * [FIX] Rpc with odoo < 10.0
 * [IMP] It does no more depends on os0
 * [IMP] Python 3.6 deprecated
-
-
-zar: 2.0.5 (2024-05-22)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] zar_upd
-
-
-zerobug: 2.0.16 (2024-05-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] z0testlib: no crash without coverage
-
-~~~~~~~~~~~~~~~~~~~
-
-* [FIX] build_cmd: command not in scripts directory
-
-
-z0bug_odoo: 2.0.19 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Colored test results
-
-
-wok_code: 2.0.17 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoo_translate.py various fixes
-* [IMP] Log file of daemon process of test in tests/logs
-* [IMP] run_odoo_debug: OCB repository does not search for other repositories
-* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
-
-
-python_plus: 2.0.13 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: package versions improvements
-* [FIX] list_requirements.py: in some rare cases wrong version to apply (factur-x)
-* [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
-* [IMP] vem: pip is always updated to last version
 
 
 os0: 2.0.1 (2022-10-20)
@@ -482,10 +523,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.7/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.7/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

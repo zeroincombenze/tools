@@ -211,4 +211,3 @@ def main(cli_args=None):
     elif action in ("-C", "--copy-pkg-data"):
         copy_pkg_data(pypi_metadata, verbose)
     return 0
-

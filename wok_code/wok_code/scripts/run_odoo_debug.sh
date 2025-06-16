@@ -3,7 +3,7 @@
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.21
+# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -363,7 +363,7 @@ stop_bg_process() {
 clean_old_templates() {
     local c d m x opts
     [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-    m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
+    m=$(odoo_dependencies.py -RA rev $opaths -PB "$opt_modules")
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
         d="template_${x}_${odoo_maj}"
@@ -1012,4 +1012,3 @@ if [[ $drop_db -gt 0 ]]; then
 fi
 
 exit $sts
-

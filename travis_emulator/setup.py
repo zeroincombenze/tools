@@ -43,7 +43,6 @@ Read furthermore info read `travis-ci phase
 ''',
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.7",
@@ -64,7 +63,7 @@ Read furthermore info read `travis-ci phase
     },
     author="Antonio Maria Vigliotti",
     author_email="antoniomaria.vigliotti@gmail.com",
-    license="Affero GPL",
+    license="GPL-3.0-or-later",
     install_requires=["z0lib>=2.0.12", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [

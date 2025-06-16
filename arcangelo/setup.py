@@ -18,6 +18,7 @@ except IOError:
 
 install_requires = [
     "python_plus",
+    "clodoo",
     "future",
 ]
 if sys.version_info >= (3, 0):
@@ -68,7 +69,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "arcangelo = wok_code.scripts.arcangelo:main",
+            "arcangelo = arcangelo.scripts.arcangelo:main",
+            "gen_readme.py = arcangelo.scripts.gen_readme:main",
         ]
     },
     zip_safe=False,

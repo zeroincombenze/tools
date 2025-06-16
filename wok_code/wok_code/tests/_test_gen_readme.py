@@ -18,7 +18,7 @@ sys.path.insert(0,
                 else os.path.dirname(os.getcwd()))                         # noqa: E402
 from scripts import gen_readme
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 MODULE_ID = "wok_code"
 TEST_FAILED = 1
@@ -172,16 +172,16 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, z0bug):
-    #     self.Z = z0bug
-    #     self.Z.inherit_cls(self)
 
     def setup(self):
         self.templatedir = os.path.join(
             os.path.expanduser("~"), "devel", "pypi", "tools", "templates"
         )
+        self.icon_templatedir = os.path.join(self.templatedir, "icons")
         if not os.path.isdir(self.templatedir):
             os.makedirs(self.templatedir)
+        if not os.path.isdir(self.icon_templatedir):
+            os.makedirs(self.icon_templatedir)
         with open(os.path.join(self.templatedir, "footer.rst"), "w") as fd:
             fd.write(
                 _c(
@@ -244,8 +244,14 @@ Acknoledges to
 """
                 )
             )
+        with open(os.path.join(self.icon_templatedir, "l10n_it.png"), "w") as fd:
+            pass
+        with open(os.path.join(self.icon_templatedir, "l10n_uk.png"), "w") as fd:
+            pass
+        with open(os.path.join(self.icon_templatedir, "l10n_us.png"), "w") as fd:
+            pass
         z0lib.os_system(
-            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
+            "build_cmd %s" % os.path.join(self.rundir, "scripts", "gen_readme.py")
         )
 
     def get_doc_path(self, odoo_path, gitorg):
@@ -337,17 +343,17 @@ Acknoledges to
         self.assertEqual(gen_readme.url_by_doc(ctx, src_url), tgt_url)
 
     def test_02(self):
-        sts = 0
-        base_cmd = os.path.join(self.Z.rundir, "scripts", "gen_readme.py")
+        base_cmd = os.path.join(self.rundir, "scripts", "gen_readme.py")
         gitorg = "zero"
         for odoo_version in ODOO_VERSIONS:
-            self.root = z0testodoo.build_odoo_env({}, odoo_version)
+            os.chdir(self.testdir)
+            self.root = z0testodoo.build_odoo_env(odoo_version)
             odoo_root = os.path.join(self.root, odoo_version)
             repodir = z0testodoo.create_repo(
-                {}, odoo_root, "test_repo", odoo_version
+                odoo_root, "test_repo", odoo_version
             )
             moduledir = z0testodoo.create_module(
-                {}, repodir, "test_module", "%s.0.1.0" % odoo_version
+                repodir, "test_module", "%s.0.1.0" % odoo_version
             )
             self.create_description_file(moduledir, odoo_version, gitorg)
             self.create_authors_file(moduledir, odoo_version, gitorg)
@@ -355,7 +361,7 @@ Acknoledges to
             os.chdir(moduledir)
             cmd = "%s -fBwG%s" % (base_cmd, gitorg)
             sts, stdout, stderr = z0lib.os_system_traced(cmd)
-            self.assertEqual(sts, 0, msg_info=cmd)
+            self.assertEqual(sts, 0, msg_info="cd %s; %s" % (moduledir, cmd))
             for fn in ("__manifest__.rst",
                        "CHANGELOG.rst",
                        "DESCRIPTION.it_IT.rst",
@@ -366,7 +372,7 @@ Acknoledges to
                        ):
                 self.assertTrue(
                     os.path.isfile(os.path.join(moduledir, "readme", fn)),
-                    msg_info=cmd)
+                    msg_info="%s -> %s" % (cmd, fn))
 
             if odoo_version == "7.0":
                 self.assertEqual(
@@ -386,7 +392,6 @@ Acknoledges to
                     self.fn_source(os.path.join(moduledir, "README.rst")),
                     msg_info=os.path.join(moduledir,
                                           "README.rst") + "  #" + odoo_version)
-        return self.ret_sts()
 
 
 #

@@ -12,7 +12,10 @@ import lxml.etree as ET
 import yaml
 from python_plus import _b, _u, qsplit
 from z0lib import z0lib
-from . import license_mgnt
+try:
+    from . import license_mgnt
+except ImportError:
+    import license_mgnt
 
 __version__ = "2.1.0"
 
@@ -522,6 +525,9 @@ class MigrateFile(MigrateMeta):
         ):
             setattr(self, kk, getattr(migrate_env, kk))
 
+        if fqn.endswith((".png", ".gif", ".jpg", ".jpeg")):
+            self.keep_as_is = True
+            return
         self.lines = []
         try:
             with open(fqn, "r", encoding="utf-8") as fd:
@@ -1136,6 +1142,12 @@ class MigrateFile(MigrateMeta):
                 self.format_file(out_fqn)
             if self.opt_args.verbose > 0:
                 print('👽 %s' % out_fqn)
+        elif self.keep_as_is and out_fqn.endswith((".png", ".gif", ".jpg", ".jpeg")):
+            if not pth.exists(out_fqn):
+                cmd = "cp %s %s" % (self.fqn, out_fqn)
+                z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
+                if self.opt_args.verbose > 0:
+                    print('👽 %s' % out_fqn)
         elif self.keep_as_is and self.fqn != out_fqn:
             cmd = "cp %s %s" % (self.fqn, out_fqn)
             z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
@@ -1380,5 +1392,3 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     exit(main())
-
-
