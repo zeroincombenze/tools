@@ -1,5 +1,5 @@
 include_odoo_py_new_api:
-  ctx: 'final or migrate_multi'
+  ctx: 'final'
   include: 'odoo_py_new_api'
 include_odoo_api_multi:
   ctx: 'final'

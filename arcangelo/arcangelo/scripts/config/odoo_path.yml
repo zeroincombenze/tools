@@ -1,0 +1,21 @@
+# This configuration is always used to apply an action on searched files
+# when product is Odoo
+#
+test_files:
+  match: '.*/(testenv.py|conf.py|check4deps_.py)$'
+  ctx: 'not force'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+      - 'file_action'
+      - 'no'
+test_files_2:
+  match: '.*/tests/data/'
+  ctx: 'not force'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+      - 'file_action'
+      - 'new'

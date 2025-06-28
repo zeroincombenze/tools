@@ -11,12 +11,11 @@ arcangelo 2.1.0
 Overview
 ========
 
-**arcangelo** is an automatic editor for mass transforming python source code.
+**arcangelo** is an automatic editor for mass building python source code.
 **arcangelo** is used to perform basic text transformation based on user rules.
-While in some ways similar to an editor which permits scripted edits (such as
-ed or sed), **arcangelo** works by making editor command from rule files.
-Rule files are simple yaml files, read by arcangelo which try to apply all rules
-to all lines of files processed.
+While in some ways is similar to an editor which permits scripted edits (such as
+ed or sed), **arcangelo** operates by making change command from rule files.
+Rule files are simple yaml files, read by arcangelo which apply these rules to every line of files processed.
 
 In this way migration workflow is very simple, accurate, precise and fast.
 
@@ -87,59 +86,60 @@ Usage
 **arcangelo** is based on rules files located in config directory where arcangelo
 is running. Configuration files are yaml formatted.
 
+Python stages
+-------------
+
+Source process analysis is split in stages which would enable or disable rules. Process stages are:
+
+    #. "header" -> Initial source stage, include comment lines
+    #. "import" -> Import statements
+    #. "class_body" -> Inside class, from class to last line (not function)
+    #. "function_body" -> Inside function, from def to last line
+
+When stage transition is detected, the transition_stage macro contains the previous value and
+stage macro contains new value.
+If no import stage was found, on the first class transition transition_stage is set to "import",
+so it is possible adding import statements.
+
+
+Rules
+-----
+
 Every rule is list of following format:
 
-    PYEREX, (ACTION, PARAMETERS), ...
+    CTX, PYEXPR, EREGEX, (ACTION, PARAMETERS), ...
 
     where
 
-    * PYEREX is (python expression + enhanced regular expression) for applying the rule
-    * ACTION is the action to apply on current item (if PYEREX is matched)
+    * CTX: would be a python context to load rule
+    * PYEXPR: would be a python expression for applying the rule
+    * EREGEX is  enhanced regular expression for applying the rule
+    * ACTION is the action to apply on current item (if PYEXPR and EREGEX are both matched)
     * PARAMETERS are the values supplying to action
 
-The list/tuple (ACTION, PARAMETERS) can be repeated more than once under PYEREX
+The list/tuple (ACTION, PARAMETERS) can be repeated more than once inside rule.
 
 
-**PYEREX is (python expression + enhanced regular expression)** is a set of 3
-distinct expressions, which are:
+CTX and PYEXPR
+~~~~~~~~~~~~~~
 
-    #. Python expression (in order to apply eregex): enclosed by double braces
-    #. Status eregex match (in order to apply eregex): enclosed by parens
-    #. Applicable eregex to match item
+CTX and PYEXPR are python expression for applying the rule.
+CTX is matched when file is loaded while PYEXPR is matched on every file line.
+Valid macros to validate expression are:
 
-    ACTION is applied if (python expression AND status eregex AND applicable eregex);
-    the undeclared python expression or undeclared status eregx returns always true.
+EREGEX
+~~~~~~
 
-    eregex is a regular expression (python re) that may be negative if it starts with !
-    (exclamation mark)
-
-    Examples:
-
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| Pos | Example            | Note                                                      | Action                                                  |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| 1   | REGEX              | REGEX is a python re                                      | item is processed if it matches REGEX                   |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| 2   | !REGEX             | REGEX is a python re                                      | item is processes if it does not match REGEX            |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| 3   | \\!REGEX           | REGEX is a python re beginning with ! (exclamation point) | like case 1                                             |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| 4   | !(RE)REGEX         | RE and REGEX are two python re                            | if item does not match (by search) the RE, apply rule 1 |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
-| 5   | \{\{EXPR\}\}EREGEX | EXPR is double expression                                 | EREGEX is processed if pythonic EXPR is true            |
-+-----+--------------------+-----------------------------------------------------------+---------------------------------------------------------+
+EREGEX is enhanced regular expression (python re) that may be negative
+if it starts with ! (exclamation mark).
 
 
+ACTION and ARGS
+~~~~~~~~~~~~~~~
 
-    * !(import xyz)import -> Rules is applied if matches the statemente "import" but not "import zyz"
-    * \{\{self.to_major_version>10\}\}import something -> If target Odoo version is >10.0 matches statement "import something", otherwise ignore rule
-    * \{\{self.from_major_version<=10\}\}import something -> If original Odoo version is <=10.0 matches statement "import something", otherwise ignore rule
-    * \{\{self.python_version==3.10\}\}open -> If python version is 3.10, matches statemente import, otherwise ignore rule
-    * \{\{self.py23==3\}\}open -> If python major version is 3, matches statemente import, otherwise ignore rule
+ACTION is applied on current item (file or line) if CTX and PYEXPR and EREGEX are True.
 
-**ACTION is the action will be executed** when EREGEX is True or when EREGEX fails if action begins with "/" (slash).
-
-    **ACTION values**:
+    ACTION values for lines:
 
     * **s**: substitute REGEX REPLACE_TEXT
     * **d**: delete line; stop immediately rule processing and re-read the line
@@ -150,68 +150,12 @@ distinct expressions, which are:
     * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
-**Python test and replacing macros**.
 
-Above you can find some simple example of python expression. The following table
-contains the list of values can used in python expression or in text replacement for
-substitute action. For example, the value classname can be used in following python
-expression:
+    ACTION values for files:
 
-::
-
-    {\{self.classname=="MyClass"}}
-
-while in replacement text the form is:
-
-::
-
-    's' super() super(%(classname)s)
-
-Value list:
-
-+--------------------+---------------------------------------------------------------------------+
-| Name               | Description                                                               |
-+--------------------+---------------------------------------------------------------------------+
-| backport_multi     | Processing a backported version (multiple version path)                   |
-+--------------------+---------------------------------------------------------------------------+
-| classname          | Name of current class                                                     |
-+--------------------+---------------------------------------------------------------------------+
-| dedent             | Dedent statement level                                                    |
-+--------------------+---------------------------------------------------------------------------+
-| final              | Processing final version when multiple version path                       |
-+--------------------+---------------------------------------------------------------------------+
-| first_line         | True if current line is the 1st of source (see header too)                |
-+--------------------+---------------------------------------------------------------------------+
-| from_major_version | Major version of project by -F switch                                     |
-+--------------------+---------------------------------------------------------------------------+
-| header             | Current line is in the file header (comments and empty lines)             |
-+--------------------+---------------------------------------------------------------------------+
-| imported           | Imported packages list                                                    |
-+--------------------+---------------------------------------------------------------------------+
-| indent             | Space indentation of current line                                         |
-+--------------------+---------------------------------------------------------------------------+
-| migration_multi    | Processing a migrate version with multiple version path                   |
-+--------------------+---------------------------------------------------------------------------+
-| mime               | Current file mime                                                         |
-+--------------------+---------------------------------------------------------------------------+
-| open_stmt          | # of open parens; if > 0, current line is a continuation line             |
-+--------------------+---------------------------------------------------------------------------+
-| python_future      | True if source is python 2 and 3 with future                              |
-+--------------------+---------------------------------------------------------------------------+
-| stage              | Parsing stage: pre,header,import,class_body,function_body,comment         |
-+--------------------+---------------------------------------------------------------------------+
-| stmt_indent        | Space indentation of current statement                                    |
-+--------------------+---------------------------------------------------------------------------+
-| to_major_version   | Major version of project by -b switch                                     |
-+--------------------+---------------------------------------------------------------------------+
-| transition_stage   | Prior parsing stage                                                       |
-+--------------------+---------------------------------------------------------------------------+
-| try_indent         | try statement indentation: if >=0 current line is inside try/except block |
-+--------------------+---------------------------------------------------------------------------+
-| py23               | Value 2 if python2 else 3 (int)                                           |
-+--------------------+---------------------------------------------------------------------------+
-
-
+    * **mv**: mv current file to new fqn
+    * **rm**: remove file
+    * **no**: no action done
 
 Action **substitute**: "s REGEX REPLACE_TEXT"
 
@@ -222,14 +166,17 @@ Action **delete**: "d"
 
     * Delete current line
     * Break rules analyzing
+    * Must be the last action of the rule
 
 Action **insert**: "i text"
 
     * Insert text before current line
+    * Must be the last action of the rule
 
 Action **append**: "a text"
 
     * Append text after current line
+    * Must be the last action of the rule
 
 Action **execute**: "$ FUNCTION"
 
@@ -249,22 +196,115 @@ Action **execute**: "$ FUNCTION"
             offset = 1
         return do_break, offset
 
-Rules examples:
+Action **set trigger**: "+ TRIGGER name [value]"
 
-Follow rule replace "@api.one" with "# @api.one" and adds comment line:
+    * Set a trigger value to match next line contexts
+    * Value of trigger is the 1st match group, enclose by parens
+    * If there are no parens in match text, trigger is set to value if supplied
+    * If there are no parens in match text and no value is supplied, trigger is set to True
+    * If value matches "[+-][0-9]+" value is added or subtracted
+
+Action **reset trigger**: "- TRIGGER name"
+
+    * Reset a boolean trigger value to match next line contexts
+
+
+Replacing macros in actions and args
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The regular expression EREGEX may contains macro names enclose by "%(name)s".
+
++--------------------+---------------------------------------------------------------------------+--------------+
+| Name               | Description                                                               | usage        |
++--------------------+---------------------------------------------------------------------------+--------------+
+| backport_multi     | Processing a backported version (multiple version path)                   | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| classname          | Name of current class                                                     | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| dedent             | Dedent statement level                                                    | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| final              | Processing final version when multiple version path                       | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| first_line         | True if current line is the 1st of source (see header too)                | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| from_major_version | Major version of project by -F switch                                     | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| header             | Current line is in the file header (comments and empty lines)             | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| imported           | Imported packages list                                                    | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| indent             | Space indentation of current line                                         | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| line               | current line                                                              | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| migration_multi    | Processing a migrate version with multiple version path                   | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| mime               | Current file mime                                                         | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| open_stmt          | # of open parens; if > 0, current line is a continuation line             | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| python_future      | True if source is python 2 and 3 with future                              | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| python_version     | python version to run source.CTX + PYEXPR                                 | None         |
++--------------------+---------------------------------------------------------------------------+--------------+
+| stage              | Parsing stage: pre,header,import,class_body,function_body,comment         | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| stmt_indent        | Space indentation of current statement                                    | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| to_major_version   | Major version of project by -b switch                                     | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+| transition_stage   | Prior parsing stage                                                       | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| try_indent         | try statement indentation: if >=0 current line is inside try/except block | PYEXPR       |
++--------------------+---------------------------------------------------------------------------+--------------+
+| py23               | Value 2 if python2 else 3 (int)                                           | CTX + PYEXPR |
++--------------------+---------------------------------------------------------------------------+--------------+
+
+
+
+Rules examples
+--------------
+
+Replace statement "(int, long)" with "int"
 
 ::
 
-    no_api_mix:
-      match: '^ *@api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
+    mig_int_long_2_python3:
+      ctx: 'py23 == 3'
+      search: '\(int, *long\)'
       do:
         - action: 's'
           args:
-          - '@api\.(one|returns|cr|model_cr|model_cr_context|v8|noguess)'
-          - '# @api.\1'
-        - action: 'a'
+          - '\(int, *long\)'
+          - 'int'
+
+Replace statement "int" with "int, long" for python 2 form:
+
+::
+
+    mig_int_2_python2:
+      ctx: 'py23 == 2'
+      expr: '"int(" not in line'
+      search: 'int'
+      do:
+        - action: 's'
           args:
-          - '# TODO> Update code to multi or add self.ensure_one()'
+          - 'int'
+          - 'int, long'
+
+
+Replace statement "super()" with python 2 form, including current class name "super(classname, self)"
+
+::
+
+    super:
+      ctx: 'py23 == 2'
+      search: 'super\([^)]*\)'
+      do:
+        - action: 's'
+          args:
+          - 'super\(\)'
+          - 'super(%(classname)s, self)'
 
 
 
@@ -316,12 +356,22 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.1.1 (2025-06-28)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] New trigger search rather than match in rules
+* [IMP] Two passes parsing
+* [IMP] New pass1 context
+* [IMP] Set trigger with parameters
+* [FIX] New rule parsing algorithm
+
 2.1.0 (2025-06-15)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Split from wok_code
+* [IMP] Graphical files are copied only if they does not exist on target
 * [IMP] Before migration warns on different base name
-* [FIX] If target direcotry does not exist, will be create
+* [FIX] If target directory does not exist, will be create
 
 2.0.22 (2025-05-31)
 ~~~~~~~~~~~~~~~~~~~

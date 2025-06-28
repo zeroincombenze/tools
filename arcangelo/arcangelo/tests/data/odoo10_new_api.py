@@ -4,7 +4,12 @@ from odoo import fields, models
 from odoo.exceptions import UserError
 
 
-class ResExample(models.Model):
+class ResPartner(models.Model):
+    _inherit = "res.partner"
+
+    def unlink(self, param):
+        return super(ResPartner, self).unlink(param)
+
     def my_fun(self, param):
-        super(ResExample, self).my_fun(param)
+        super(ResPartner, self).my_fun(param)
         raise UserError("Example")

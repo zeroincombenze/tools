@@ -54,7 +54,7 @@ class RegressionTest:
     def get_match_fullname(self, fn):
         fqn = os.path.join(self.odoo_matchdir, fn)
         if not os.path.exists(fqn):
-            fqn = os.path.join(self.odoo_testdir, fn)
+            fqn = os.path.join(self.odoo_datadir, fn)
         return fqn
 
     def get_test_fullname(self, fn):
@@ -107,13 +107,13 @@ class RegressionTest:
         module_from = "odoo" + version_from.split(".")[0]
         module_to = "odoo" + version_to.split(".")[0]
         if version_from == version_to:
-            cmd = "arcangelo -fiw -ci -b%s %s -o %s" % (
+            cmd = "arcangelo -cifw -b%s %s -o %s -y" % (
                 version_to,
                 self.get_fake_fullname(module_from),
                 self.get_test_fullname(module_to),
             )
         else:
-            cmd = "arcangelo -fiw -ci -F%s -b%s %s -o %s -y" % (
+            cmd = "arcangelo -cifw -F%s -b%s %s -o %s -y" % (
                 version_from,
                 version_to,
                 self.get_fake_fullname(module_from),
@@ -140,9 +140,58 @@ class RegressionTest:
         self.assertEqual(__version__, (stdout + stderr).split("\n")[0])
 
     def test_02_api_py(self):
+        # Test migrate package from python 2 to python 2 (no update)
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py2_02.py", "pkg_py2_02.py"
+        )
+        cmd = "arcangelo --python=2.7 --package-name=pypi -fiw %s -o %s" % (
+            src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
+
+        # Test migrate package from python 2 to python 3
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py2_02.py", "pkg_py3_02.py"
+        )
+        cmd = "arcangelo --python=3.10 --package-name=pypi -fiw %s -o %s" % (
+            src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
+
+        # Test migrate package from python 3 to python 2
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py3_02.py", "pkg_py2_02.py"
+        )
+        cmd = "arcangelo --python=2.7 --package-name=pypi -fiw %s -o %s" % (
+            src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
+
+        # Test migrate package from python 2 to python future
+        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
+            "pkg_py2_02.py", "pkg_future_02.py"
+        )
+        cmd = "arcangelo --python=2+3 --package-name=pypi -fiw %s -o %s" % (
+            src_fqn, res_fqn)
+        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
+        self.assertEqual(sts, 0, msg_info=cmd)
+        self.assertTrue(
+            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
+        )
+
+    def test_07_odoo_api_py(self):
         # Test migrate from OpenERP 7.0 with old API to Odoo 12.0 with new API
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_02.py", "new_api_py3_02.py"
+            "openerp7_old_api.py", "odoo12_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -153,7 +202,7 @@ class RegressionTest:
 
         # Test backport from Odoo 12.0 with new API to OpenERP 7.0 with old API
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py3_02.py", "old_api_02.py"
+            "odoo12_new_api.py", "openerp7_old_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -164,7 +213,7 @@ class RegressionTest:
 
         # Test migrate from Odoo 10.0 (python 2) to Odoo 12.0 (python 3, both new API)
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py2_02.py", "new_api_py3_02.py"
+            "odoo10_new_api.py", "odoo12_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F10.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -175,7 +224,7 @@ class RegressionTest:
 
         # Test backport from Odoo 12.0 (python 3) to Odoo 10.0 (python 2, both new API)
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py3_02.py", "new_api_py2_02.py"
+            "odoo12_new_api.py", "odoo10_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -184,10 +233,10 @@ class RegressionTest:
             self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
         )
 
-    def test_03_api_xml(self):
+    def test_07_old_api_xml(self):
         # Test migrate XML from OpenERP 7.0 with tag openerp to Odoo 12.0 with tag odoo
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_03.xml", "new_api_03.xml"
+            "openerp7_old_api.xml", "odoo12_new_api.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -199,7 +248,7 @@ class RegressionTest:
 
         # Test backport XML from Odoo 12.0 with tag odoo to OpenERP 7.0 with tag openerp
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_03.xml", "old_api_03.xml"
+            "odoo12_new_api.xml", "openerp7_old_api.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -209,10 +258,10 @@ class RegressionTest:
             "File %s differs %s" % (res_fqn, tgt_fqn),
         )
 
-    def test_04_api_xml(self):
+    def test_07_old_api_data_xml(self):
         # Test migrate XML from OpenERP 7.0 with tag data to Odoo 12.0 w/o tag data
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_04.xml", "new_api_04.xml"
+            "openerp7_old_api_data.xml", "odoo12_new_api_data.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -224,7 +273,7 @@ class RegressionTest:
 
         # Test backport XML from Odoo 12.0 w/o tag data to OpenERP 7.0 with tag data
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_04.xml", "old_api_04.xml"
+            "odoo12_new_api_data.xml", "openerp7_old_api_data.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -234,86 +283,7 @@ class RegressionTest:
             "File %s differs %s" % (res_fqn, tgt_fqn),
         )
 
-    def test_05_api_py(self):
-        # Test migrate package from python 2 to python 2 (no update)
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py2_05.py", "pkg_py2_05.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-        # Test migrate package from python 2 to python 3
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py2_05.py", "pkg_py3_05.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-        # Test migrate package from python 3 to python 2
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py3_05.py", "pkg_py2_05.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-    def test_06_api(self):
-        # Test migrate package from python 2 to python 2 (non update)
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py2_06.py", "pkg_py2_06.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-        # Test migrate package from python 3 to python 2
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py3_06.py", "pkg_py2_06.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-        # Test migrate package from python 3 to python future
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py3_06.py", "pkg_future_06.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-        # Test migrate package from python 2 to python future
-        src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "pkg_py2_06.py", "pkg_future_06.py"
-        )
-        cmd = "arcangelo --package-name=pypi -fiw %s -o %s" % (src_fqn, res_fqn)
-        sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
-        self.assertEqual(sts, 0, msg_info=cmd)
-        self.assertTrue(
-            self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
-        )
-
-    def test_07_migrate(self):
+    def test_12_13_migrate(self):
         # Test migrate from Odoo 12.0 to Odoo 13.0
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo12.py", "odoo13.py")
         cmd = "arcangelo -Podoo -fiw -F12.0 -b13.0 %s -o %s" % (src_fqn, res_fqn)
@@ -357,7 +327,47 @@ class RegressionTest:
             self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
         )
 
-    def test_08_backport(self):
+    def test_12_13_migrate_module(self):
+        file_list = [
+            "__manifest__.py",
+            "__init__.py",
+            "models/partner.py",
+        ]
+        self._test_module(file_list, version_from="12.0", version_to="13.0")
+
+    def test_12_10_migrate_module(self):
+        file_list = [
+            "__manifest__.py",
+            "__init__.py",
+            "models/partner.py",
+        ]
+        self._test_module(file_list, version_from="12.0", version_to="10.0")
+
+    def test_12_8_migrate_module(self):
+        file_list = [
+            ["__manifest__.py", "__openerp__.py"],
+            "__init__.py",
+            "models/partner.py",
+        ]
+        self._test_module(file_list, version_from="12.0", version_to="8.0")
+
+    def test_12_7_migrate_module(self):
+        file_list = [
+            ["__manifest__.py", "__openerp__.py"],
+            "__init__.py",
+            "models/partner.py",
+        ]
+        self._test_module(file_list, version_from="12.0", version_to="7.0")
+
+    def test_12_12_migrate_module(self):
+        file_list = [
+            "__manifest__.py",
+            "__init__.py",
+            "models/partner.py",
+        ]
+        self._test_module(file_list, version_from="12.0", version_to="12.0")
+
+    def test_13_12_backport(self):
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo13.py", "odoo12.py")
         cmd = "arcangelo -Podoo -fiw -F13.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -386,52 +396,13 @@ class RegressionTest:
         )
 
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname("odoo11.py", "odoo10.py")
-        cmd = "arcangelo -Podoo -fiw -F11.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
+        cmd = "arcangelo '-R -basest_str' -Podoo -fiw -F11.0 -b10.0 %s -o %s" % (
+            src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(
             self.compare_fn(res_fqn, tgt_fqn), "File %s differs %s" % (res_fqn, tgt_fqn)
         )
-
-    def test_10_migrate_module(self):
-        file_list = [
-            "__manifest__.py",
-            "__init__.py",
-            "models/partner.py",
-        ]
-        self._test_module(file_list, version_from="12.0", version_to="13.0")
-
-    def test_11_migrate_module(self):
-        file_list = [
-            "__manifest__.py",
-            "__init__.py",
-            "models/partner.py",
-        ]
-        self._test_module(file_list, version_from="12.0", version_to="10.0")
-
-    def test_12_migrate_module(self):
-        file_list = [
-            ["__manifest__.py", "__openerp__.py"],
-            "__init__.py",
-            "models/partner.py",
-        ]
-        self._test_module(file_list, version_from="12.0", version_to="8.0")
-
-    def __test_13_migrate_module(self):
-        file_list = [
-            ["__manifest__.py", "__openerp__.py"],
-            "__init__.py",
-            "models/partner.py",
-        ]
-        self._test_module(file_list, version_from="12.0", version_to="7.0")
-
-    def test_30_migrate_module(self):
-        file_list = [
-            "__manifest__.py",
-            "__init__.py",
-            "models/partner.py",
-        ]
-        self._test_module(file_list, version_from="12.0", version_to="12.0")
 
     def test_90(self):
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
