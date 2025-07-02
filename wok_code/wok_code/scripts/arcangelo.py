@@ -1162,7 +1162,7 @@ def green(text):
 
 def print_rule_mime(migrate_env, opt_args, mime):
     print("\n===[%s]===" % mime)
-    migrate_env.store_mig_rules(mime=mime)
+    migrate_env.detect_mig_rules(mime=mime)
     prio = len(migrate_env.rule_categ) + 1
     for rule in migrate_env.rule_categ:
         migrate_env.load_config(rule, prio=0 if mime == "path" else prio)
@@ -1189,7 +1189,7 @@ def print_rule_mime(migrate_env, opt_args, mime):
 
 def print_rule_classes(migrate_env, mime):
     print()
-    migrate_env.store_mig_rules(mime=mime)
+    migrate_env.detect_mig_rules(mime=mime)
     for rule in migrate_env.rule_categ:
         print("%4.4s> %s" % (mime, rule))
 

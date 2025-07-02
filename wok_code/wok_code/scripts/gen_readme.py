@@ -1598,12 +1598,13 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         sts, stdout, stderr = z0lib.os_system_traced(
             cmdline, verbose=False, rtime=False
         )
-        if sts == 0:
-            # Keep lef margin for multiline output
-            left_margin = line[: x.start()]
-            line = ""
-            for ln in stdout.split("\n"):
-                line += left_margin + ln + "\n"
+        if sts:
+            break
+        # Keep lef margin for multiline output
+        left_margin = line[: x.start()]
+        line = ""
+        for ln in stdout.split("\n"):
+            line += left_margin + ln + "\n"
 
     return line
 

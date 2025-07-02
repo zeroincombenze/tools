@@ -195,7 +195,7 @@ PYTHON3=""
 [[ -x $LOCAL_VENV/bin/python3 ]] && PYTHON3=$LOCAL_VENV/bin/python3
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
-LOCAL_PKGS="z0lib os0 python-plus arcangelo clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+LOCAL_PKGS="z0lib python-plus arcangelo clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(which pip)
 [[ -z $PIPVER ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1

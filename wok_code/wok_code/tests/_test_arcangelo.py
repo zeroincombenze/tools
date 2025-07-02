@@ -143,7 +143,7 @@ class RegressionTest:
     def test_02_api_py(self):
         # Test migrate from OpenERP 7.0 with old API to Odoo 12.0 with new API
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_02.py", "new_api_py3_02.py"
+            "old_api_02.py", "odoo12_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -154,7 +154,7 @@ class RegressionTest:
 
         # Test backport from Odoo 12.0 with new API to OpenERP 7.0 with old API
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py3_02.py", "old_api_02.py"
+            "odoo12_new_api.py", "old_api_02.py"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -165,7 +165,7 @@ class RegressionTest:
 
         # Test migrate from Odoo 10.0 (python 2) to Odoo 12.0 (python 3, both new API)
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py2_02.py", "new_api_py3_02.py"
+            "odoo10_new_api.py", "odoo12_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F10.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -176,7 +176,7 @@ class RegressionTest:
 
         # Test backport from Odoo 12.0 (python 3) to Odoo 10.0 (python 2, both new API)
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_py3_02.py", "new_api_py2_02.py"
+            "odoo12_new_api.py", "odoo10_new_api.py"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b10.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -188,7 +188,7 @@ class RegressionTest:
     def test_03_api_xml(self):
         # Test migrate XML from OpenERP 7.0 with tag openerp to Odoo 12.0 with tag odoo
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_03.xml", "new_api_03.xml"
+            "old_api_03.xml", "odoo12_new_api.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -200,7 +200,7 @@ class RegressionTest:
 
         # Test backport XML from Odoo 12.0 with tag odoo to OpenERP 7.0 with tag openerp
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_03.xml", "old_api_03.xml"
+            "odoo12_new_api.xml", "old_api_03.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -213,7 +213,7 @@ class RegressionTest:
     def test_04_api_xml(self):
         # Test migrate XML from OpenERP 7.0 with tag data to Odoo 12.0 w/o tag data
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "old_api_04.xml", "new_api_04.xml"
+            "old_api_04.xml", "odoo12_new_api_data.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F7.0 -b12.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
@@ -225,7 +225,7 @@ class RegressionTest:
 
         # Test backport XML from Odoo 12.0 w/o tag data to OpenERP 7.0 with tag data
         src_fqn, tgt_fqn, res_fqn = self.get_all_fullname(
-            "new_api_04.xml", "old_api_04.xml"
+            "odoo12_new_api_data.xml", "old_api_04.xml"
         )
         cmd = "arcangelo -Podoo -fiw -F12.0 -b7.0 %s -o %s" % (src_fqn, res_fqn)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
