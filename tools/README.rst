@@ -113,12 +113,23 @@ Current version via Git
 ChangeLog History
 -----------------
 
+arcangelo: 2.1.1 (2025-06-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New trigger search rather than match in rules
+* [IMP] Two passes parsing
+* [IMP] New pass1 context
+* [IMP] Set trigger with parameters
+* [FIX] New rule parsing algorithm
+
+
 arcangelo: 2.1.0 (2025-06-15)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Split from wok_code
+* [IMP] Graphical files are copied only if they does not exist on target
 * [IMP] Before migration warns on different base name
-* [FIX] If target direcotry does not exist, will be create
+* [FIX] If target directory does not exist, will be create
 
 
 zerobug: 2.0.20 (2025-06-14)
@@ -140,9 +151,10 @@ z0bug_odoo: 2.0.23 (2025-06-14)
 * [FIX] License declaration compatible with pypi
 
 
-wok_code: 2.0.13 (2025-06-14)
+wok_code: 2.0.23 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* [IMP] arcangelo became a pypi package
 * [FIX] No crash if invalid modules declaration
 * [FIX] License declaration compatible with pypi
 
