@@ -55,31 +55,41 @@ log_mesg() {
 
 
 check_for_modules() {
-    local mods r xi xu XXX opts
+    local mods r xi xu XXX opts db mods
     OPTI=
     xi=-i
     OPTU=
     xu=-u
     XXX=
-    if [[ $opt_modules == "all" ]]; then
+    [[ -n "$1" ]] && db="$1" || db="$opt_db"
+    [[ -n "$2" ]] && mods="$2" || mods="$opt_modules"
+    if [[ $mods == "all" ]]; then
         OPTU="-uall"
     else
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-        mods=${opt_modules//,/ }
+        mods=${mods//,/ }
         for m in $mods; do
-            r=$(psql $opts $opt_db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
+            r=$(psql $opts $db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
             if [[ $r =~ uninstallable ]]; then
                 XXX="$XXX $m"
             elif [[ $r =~ (uninstalled|to install) ]]; then
-                OPTI="$OPTI$xi$m"
-                xi=,
+                if [[ -n "$1" ]]; then
+                    XXX="$XXX $m"
+                else
+                    OPTI="$OPTI$xi$m"
+                    xi=,
+                fi
             elif [[ $r =~ (installed|to upgrade) ]]; then
-                OPTU="$OPTU$xu$m"
-                xu=,
+                if [[ -z "$1" ]]; then
+                    OPTU="$OPTU$xu$m"
+                    xu=,
+                fi
             elif [[ $opt_force -ne 0 ]]; then
-                OPTI="$OPTI$xi$m"
-                OPTU="$OPTU$xu$m"
-                xu=,
+                if [[ -z "$1" ]]; then
+                    OPTI="$OPTI$xi$m"
+                    OPTU="$OPTU$xu$m"
+                    xu=,
+                fi
             else
                 XXX="$XXX $m"
             fi
@@ -385,7 +395,6 @@ test_with_external_process() {
     log_mesg "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
     export TEST_DB="$opt_db"
     export ODOO_VERSION="$odoo_fver"
-    # export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
     log_mesg "\$ export LOGFILE=$LOGFILE"
     log_mesg "\$ export DAEMON_LOGFILE=$DAEMON_LOGFILE"
     log_mesg "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
@@ -521,7 +530,6 @@ fi
 SCOPE="gnu"
 [[ -z $opt_odir && $(basename $(dirname $PWD)) == "marketplace" ]] && SCOPE="marketplace"
 [[ -n $opt_odir && $(basename $(dirname $opt_odir)) == "marketplace" ]] && SCOPE="marketplace"
-# [[ $SCOPE == "marketplace" ]] && GIT_ORGID="oca"
 CONFN=""
 opaths=""
 odoo_root=""
@@ -620,8 +628,6 @@ TEST_VDIR=""
 if [[ -n $opt_venv ]]; then
     export TEST_VDIR="$opt_venv"
 else
-    # [[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
-    # [[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
     export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
     if [[ $SCOPE == "marketplace" ]]; then
       p=$(dirname $(dirname $PWD))
@@ -702,10 +708,6 @@ if [[ $opt_test -ne 0 ]]; then
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
-#elif [[ $opt_lang != "" ]]; then
-#    opt_keep=1
-#    opt_stop=1
-#    [[ -n "$opt_modules" ]] && opt_modules=""
 elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -729,7 +731,7 @@ fi
 [[ -f $PKGPATH/readme/__manifest__.rst ]] && mod_test_cfg="$PKGPATH/readme/__manifest__.rst" || mod_test_cfg=""
 if [[ -n "$opt_modules" ]]; then
     if [[ $create_db -ne 0 ]]; then
-        if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
+        if [[ -z $(which odoo_dependencies.py 2>/dev/null) ]]; then
             log_mesg "Test incomplete!"
             log_mesg "File odoo_dependencies.py not found!"
         else
@@ -742,8 +744,11 @@ if [[ -n "$opt_modules" ]]; then
                 depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
             fi
             [[ -z "$depmods" ]] && log_mesg "Modules $opt_modules not found!" && exit 1
+            [[ $opt_verbose -gt 1 ]] && log_mesg "# Searching for module dependencies ..."
             if [[ "$opt_modules" != "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA dep $opaths -PM $opt_modules)
+            else
+                depmods=""
             fi
             [[ -n "$depmods" && $opt_test -eq 0 ]] && opt_modules="$opt_modules,$depmods"
         fi
@@ -766,7 +771,6 @@ if [[ -n "$opt_modules" ]]; then
             fi
             src=$(readlink -f $src)
             [[ ! -d $src/i18n ]] && log_mesg "No directory $src/i18n found!!" && exit 1
-            set -x  #debug
             saved="$src/i18n/saved.po"
             [[ -f $src/i18n/$opt_lang2.po ]] && src="$src/i18n/$opt_lang2.po"
             [[ -f $src/i18n/$opt_lang.po ]] && src="$src/i18n/$opt_lang.po"
@@ -779,7 +783,6 @@ if [[ -n "$opt_modules" ]]; then
                 OPTS="--modules=$opt_modules --i18n-export=$src -l$opt_lang"
             fi
             [[ -n $opt_lang ]] && OPTS="--load-language=$opt_lang $OPTS"
-            set +x  #debug
         elif [[ $opt_upd -ne 0 && $opt_xtl -ne 0 ]]; then
             OPTS="$OPTSIU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
@@ -923,7 +926,11 @@ if [[ $create_db -gt 0 ]]; then
                 [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
                 [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
                 run_traced "$cmd"
-                [[ -f $LOGFILE ]] && rm -f $LOGFILE
+                if [[ -f $LOGFILE ]]; then
+                    grep -q " ERROR " $LOGFILE && cat $LOGFILE && exit 1
+                    tail $LOGFILE
+                    rm -f $LOGFILE
+                fi
             fi
         fi
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
@@ -942,6 +949,7 @@ if [[ $create_db -gt 0 ]]; then
 fi
 
 [[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
+check_for_modules "$opt_db" "$depmods"
 if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
     coverage_erase

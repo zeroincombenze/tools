@@ -355,6 +355,12 @@ class Please(object):
                 dest="verbose",
                 help="silent mode",
             )
+        elif arg in ("-R", "--read-only"):
+            parser.add_argument(
+                "-R",
+                "--read-only",
+                action="store_true",
+            )
         elif arg in ("-v", "--verbose"):
             parser.add_argument(
                 "-v", "--verbose", help="verbose mode", action="count", default=1
@@ -773,9 +779,14 @@ class Please(object):
             )
             stash_list = stdout
         else:
-            if self.path_is_ocb(os.getcwd()):
+            if self.is_repo_ocb(os.getcwd()):
                 url = "https://github.com/odoo/odoo.git"
+                sts = 0
             else:
+                pkg = os.path.basename(os.getcwd())
+                if sts == 128 and pkg == "test_module":
+                    # Regression test
+                    sts = 0
                 url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
         return sts, url, upstream, stash_list
 
@@ -814,9 +825,12 @@ class Please(object):
             return "2.0.0"
         return stdout.split("\n")[0].strip()
 
-    def get_logdir(self, path=None):
+    def get_logdir(self, path=None, git_org=None, read_only=False):
+        if read_only:
+            # git_org = git_org or "odoo"
+            return pth.abspath(pth.join(pth.expanduser("~/travis_log")))
         path = path or os.getcwd()
-        return pth.join(path, "tests", "logs")
+        return pth.abspath(pth.join(path, "tests", "logs"))
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
@@ -862,7 +876,7 @@ class Please(object):
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
-    def get_fqn_log(self, what=None, path=None):
+    def get_fqn_log(self, what=None, path=None, git_org=None, read_only=False):
         """Get fqn of logfile
         @what:  "sts" for log directories (0=exist, 3=missing)
                 "cmd" for fqn show command
@@ -870,7 +884,9 @@ class Please(object):
                 "contents" for log filename content
         """
         what = what or "fqn"
-        fqn_logdir = self.get_logdir(path=path)
+        fqn_logdir = self.get_logdir(path=path, git_org=git_org, read_only=read_only)
+        if read_only and not pth.isdir(fqn_logdir):
+            os.mkdir(fqn_logdir)
         if not pth.isdir(pth.dirname(fqn_logdir)):
             self.log_warning(
                 "Module %s w/o regression test!"

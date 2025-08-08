@@ -121,6 +121,11 @@ class PleaseZ0bug(object):
         if not for_help:
             self.please.add_argument(parser, "-q")
         parser.add_argument(
+            "-R",
+            "--read-only",
+            action="store_true",
+        )
+        parser.add_argument(
             "-S",
             "--syspkg",
             metavar="true|false",
@@ -348,6 +353,11 @@ class PleaseZ0bug(object):
 
     def _do_test_odoo_pkg(self):
         please = self.please
+        sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
+        if sts:
+            return sts
+        git_org, read_only = please.data_from_url(url)
+        read_only = read_only or please.opt_args.read_only
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
         manifest_path = (
             "__openerp__.py"
@@ -358,7 +368,7 @@ class PleaseZ0bug(object):
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
-        sts = self.please.get_fqn_log(what="sts")
+        sts = self.please.get_fqn_log(what="sts", git_org=git_org, read_only=read_only)
         if sts:
             return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
@@ -495,6 +505,7 @@ class PleaseZ0bug(object):
 
     def do_zerobug(self):
         please = self.please
+        # import pdb; pdb.set_trace()
         if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_repo_ocb():
             sts = self.do_lint()
             if not please.is_fatal_sts(sts):

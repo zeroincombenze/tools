@@ -1190,6 +1190,8 @@ class PleaseCwd(object):
                     do_rewrite = False
                     please.log_error("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
+                    while target.endswith("\n\n"):
+                        target = target[:-2]
                     if please.opt_args.verbose:
                         print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:
