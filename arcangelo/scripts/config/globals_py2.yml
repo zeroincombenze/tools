@@ -1,0 +1,79 @@
+# This configuration is always loaded for all python2 .py files
+# Some rules may be processed just in pass1 (before file update)
+#
+no_action:
+  match: '^.*# (flake8: noqa|pylint: skip-file)'
+  ctx: 'pass1 and not force'
+  do:
+    - action: '+'
+      args:
+      - 'file_action'
+      - 'no'
+super:
+  match: '^.* *super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'
+base64_encode:
+  match: '.*base64\.encodebytes'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.encodebytes'
+      - 'base64.encodestring'
+base64_decode:
+  match: '.*base64\.decodebytes'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.decodebytes'
+      - 'base64.decodestring'
+is_instance_str:
+  match: '^.*isinstance\([^,]*, *str *\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'str'
+      - 'basestring'
+is_instance_int:
+  match: '^.*isinstance\([^,]+,.*int.*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'int,'
+      - 'int, long,'
+    - action: 's'
+      args:
+      - '\(([^,]+, )*int\)'
+      - '(\1(int, long))'
+    - action: 's'
+      args:
+      - ', *int\)'
+      - 'int, long)'
+    - action: 's'
+      args:
+        - 'long, long'
+        - 'long'
+urlparse:
+  match: 'import urllib.parse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urllib.parse .*'
+      - 'urlparse'
+from urlparse:
+  match: 'from urllib.parse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urllib.parse'
+      - 'urlparse'

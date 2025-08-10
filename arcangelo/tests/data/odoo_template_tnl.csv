@@ -1,0 +1,27 @@
+module	msgid	msgstr
+	Acceptance Account	Conto RI.BA. all'incasso
+	Access to the Lead	Accesso alla Lead
+	DDT	DDT
+	First Name	Nome di battesimo
+	Last Name	Cognome
+	account	conto
+	Credit	Avere
+	Customer	Cliente
+	ddt	DdT
+	Dear	Gentile
+	iban	IBAN
+	Invoice	Fattura
+	Invoice lines	Righe fattura
+	Invoices	Fatture
+	iva	IVA
+	line	riga
+	lines	righe
+	Name	Nome
+	Order	Ordine
+	Print	Stampa
+	Purchase	Acquisto
+	Sale	Vendite
+	Sale lines	Righe vendita
+	sepa	SEPA
+	tax	IVA
+test_module	Credit	Credito

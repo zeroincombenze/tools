@@ -207,7 +207,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 
 #############################################################################
@@ -256,10 +256,7 @@ def msg_log(ctx, level, text):
 
 def debug_msg_log(ctx, level, text):
     """Log a debug message and show if needed"""
-    global db_msg_sp, db_msg_stack
-    # if level == -999:
-    #     db_msg_sp += 1
-    #     return
+    # global db_msg_sp, db_msg_stack
     ident = " " * abs(level)
     if ctx.get("dbg_mode", False):
         if "test_unit_mode" in ctx:

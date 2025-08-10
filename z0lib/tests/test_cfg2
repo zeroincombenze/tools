@@ -102,6 +102,8 @@ test_02() {
       test_result "get_cfg_value $tid param2 -D" "Debug" "$TRES"
       test_result "ext function called" "2" "$PASSED"
       PASSED=0
+      TRES=$(get_cfg_value $tid "LOCAL_PKGS")
+      test_result "get_cfg_value $tid LOCAL_PKGS" "arcangelo clodoo lisa odoo_score os0 oerplib3 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug" "$TRES"
     done
 }
 

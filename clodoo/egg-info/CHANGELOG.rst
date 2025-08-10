@@ -1,7 +1,11 @@
-2.0.14 (2025-03-23)
+2.0.14 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoorc: new option NOLINK
+* [IMP] odoorc: Odoo 17.0 and 18.0
+* [IMP] powerp is not more a default gitorg
+* [FIX] License declaration compatible with pypi
+* [IMP+ python 3.11
 
 2.0.13 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~

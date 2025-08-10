@@ -1,0 +1,12 @@
+# This configuration is always used to apply an action on searched files
+# when product is Odoo and Odoo version is 9.0
+#
+manifest:
+  match: '.*/__manifest__.py'
+  ctx: 'final or backport_multi'
+  prio: '0'
+  do:
+    - action: 'mv'
+      args:
+        - '__manifest__.py'
+        - '__openerp__.py'

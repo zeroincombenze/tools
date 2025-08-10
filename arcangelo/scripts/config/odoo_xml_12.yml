@@ -1,0 +1,67 @@
+include_odoo_xml_new_api:
+  ctx: 'final'
+  include: 'odoo_xml_new_api'
+binding_model:
+  match: '.*binding_model="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'binding_model="([^"]*)"'
+      - 'src_model="\1"'
+product_uom:
+  match: '.*["''>]product\.uom[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom'
+      - 'uom.uom'
+product_uom_unit:
+  match: '.*["''>]product\.product_uom_unit[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_unit'
+      - 'uom.product_uom_unit'
+uom_category:
+  match: '.*[\"''>]product\.uom\.categ["''<]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.uom.categ'
+      - 'uom.category'
+product_uom_categ_unit:
+  match: '.*["''>]product\.product_uom_categ_unit[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_categ_unit'
+      - 'uom.product_uom_categ_unit'
+stock_rule:
+  match: '.*["''>]procurement\.rule[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'procurement.rule'
+      - 'stock.rule'
+product_uom_form_view:
+  match: '.*["''>]product.product_uom_form_view[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_form_view'
+      - 'uom.product_uom_form_view'
+      -
+product_uom_categ_form_view:
+  match: '.*["''>]product.product_uom_categ_form_view[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'product.product_uom_categ_form_view'
+      - 'uom.product_uom_categ_form_view'

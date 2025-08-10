@@ -1,0 +1,7 @@
+super:
+  match: '^ *super\([^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'

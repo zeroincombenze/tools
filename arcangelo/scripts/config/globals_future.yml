@@ -1,0 +1,49 @@
+# This configuration is always loaded when source code contains "from _future_ import"
+# or when future is required by optional line switch
+#
+import_future:
+  expr: 'transition_stage=="import" and transition_stage!=stage and set_python_future and not python_future'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+        - 'python_future'
+    - action: 'i'
+      args:
+        - 'from __future__ import print_function, unicode_literals'
+super:
+  search: 'super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'
+is_instance_str:
+  match: '^.*isinstance\([^,]*, *str *\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'str'
+      - 'basestring'
+is_instance_int:
+  match: '^.*isinstance\([^,]+,.*int.*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'int,'
+      - 'int, long,'
+    - action: 's'
+      args:
+      - '\(([^,]+, )*int\)'
+      - '(\1(int, long))'
+    - action: 's'
+      args:
+      - ', *int\)'
+      - 'int, long)'
+    - action: 's'
+      args:
+        - 'long, long'
+        - 'long'

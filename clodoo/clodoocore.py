@@ -124,7 +124,7 @@ SUPPL_PARAMS = [
     "user"
 ]
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 
 
 class Clodoo(object):
@@ -153,6 +153,9 @@ class Clodoo(object):
         self.run_tty = not self.run_daemon
         self.set_odoo_version(self.odoo_version)
         self.read_config()
+        for item in CNX_PARAMS:
+            if item in kwargs:
+                setattr(self, item, kwargs[item])
         self.env = []
         if self.autoconnect:
             self.connect()

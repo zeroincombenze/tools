@@ -5,6 +5,17 @@ ChangeLog History
 =================
 
 
+2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] arcangelo became a pypi package
+* [IMP] please install python: now can install python 3.12
+* [FIX] please version does not add line at the end of file
+* [FIX] please: best recognition of read-only repositories
+* [FIX] please test: check on templates to use
+* [FIX] No crash if invalid modules declaration
+* [FIX] License declaration compatible with pypi
+
 2.0.22 (2025-05-31)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -248,12 +259,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] stable version
-
-2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New lint_2_compare command
-* [IMP] odoo_dependecies.py: minor upgrade
 
 |
 |

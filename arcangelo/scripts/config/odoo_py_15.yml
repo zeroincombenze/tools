@@ -1,0 +1,13 @@
+include_odoo_py_new_api:
+  ctx: 'final'
+  include: 'odoo_py_new_api'
+include_odoo_no_api_multi:
+  ctx: 'final'
+  include: 'odoo_py_no_api_multi'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+        - 'sort_from_odoo_import'

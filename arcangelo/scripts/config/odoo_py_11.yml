@@ -1,0 +1,22 @@
+include_odoo_py_new_api:
+  ctx: 'final'
+  include: 'odoo_py_new_api'
+include_odoo_api_multi:
+  ctx: 'final'
+  include: 'odoo_py_api_multi'
+import_oerplib:
+  match: '^ *import oerplib(?!\w)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - import oerplib
+      - import oerplib3 as oerplib
+oerplib3:
+  match: '.*["'']oerplib["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - oerplib
+      - oerplib3

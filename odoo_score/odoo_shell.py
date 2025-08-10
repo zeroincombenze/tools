@@ -20,7 +20,7 @@ from datetime import date, datetime, timedelta
 
 from future import standard_library
 
-from os0 import os0
+from os0 import os0  # pylint: disable=import-error
 from python_plus import _b
 
 try:
@@ -37,7 +37,7 @@ import pdb  # pylint: disable=deprecated-module
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.10'
+__version__ = '2.0.11'
 
 
 MAX_DEEP = 20
@@ -3920,4 +3920,3 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main())
-

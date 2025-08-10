@@ -1190,6 +1190,8 @@ class PleaseCwd(object):
                     do_rewrite = False
                     please.log_error("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
+                    while target.endswith("\n\n"):
+                        target = target[:-2]
                     if please.opt_args.verbose:
                         print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:
@@ -1291,4 +1293,3 @@ class PleaseCwd(object):
             please.log_error("Version options are not applicable to all packages")
             return 126
         return please.do_iter_action("do_version", act_all_pypi=True, act_tools=False)
-

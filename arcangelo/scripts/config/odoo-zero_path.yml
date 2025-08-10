@@ -1,0 +1,8 @@
+# This configuration is used to apply an action on searched files
+# when organization is "zero" and product is Odoo
+#
+no_setup:
+  match: '.*/setup/'
+  prio: '0'
+  do:
+    - action: 'rm'

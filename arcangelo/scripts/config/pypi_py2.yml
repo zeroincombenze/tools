@@ -1,0 +1,7 @@
+int_long:
+  match: 'int[^(]'
+  do:
+    - action: 's'
+      args:
+      - 'int'
+      - '\(int, *long\)'

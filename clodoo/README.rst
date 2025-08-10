@@ -1,5 +1,5 @@
 =============
-clodoo 2.0.13
+clodoo 2.0.14
 =============
 
 
@@ -38,8 +38,7 @@ Some values may depends by environment:
 Usage:
 
     . odoorc
-    RES=
-
+    RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
 
 where:
 
@@ -124,10 +123,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.14 (2025-03-23)
+2.0.14 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] odoorc: new option NOLINK
+* [IMP] odoorc: Odoo 17.0 and 18.0
+* [IMP] powerp is not more a default gitorg
+* [FIX] License declaration compatible with pypi
+* [IMP+ python 3.11
 
 2.0.13 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
@@ -266,10 +269,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.13/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.13/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
