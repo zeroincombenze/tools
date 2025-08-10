@@ -31,6 +31,7 @@ class RegressionTest:
         self.db = "test"
         self.model = "test.model"
         self.channel = 1
+        self.values = {"a": "A"}
 
     def test_01(self):
         lifetime = self.cache.clean_cache(self.db)
@@ -101,6 +102,23 @@ class RegressionTest:
             self.cache.get_model_field_attr(
                 self.db, self.channel, self.model, "name", "val"),
             msg_info="Cache model field")
+
+        self.cache.set_attr(self.db, self.channel, "LOGLEVEL", 1)
+        self.assertEqual(
+            1,
+            self.cache.get_attr(self.db, self.channel, "LOGLEVEL"))
+
+        self.cache.set_struct_model_attr(self.db, self.model, "field", self.values)
+        self.assertEqual(
+            self.values,
+            self.cache.get_struct_model_attr(self.db, self.model, "field"))
+
+        self.cache.set_model_field_attr(
+            self.db, self.channel, self.model, "field", "val", self.values)
+        self.assertEqual(
+            self.values,
+            self.cache.get_model_field_attr(
+                self.db, self.channel, self.model, "field", "val"))
 
 
 # Run main if executed as a script

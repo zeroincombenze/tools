@@ -207,31 +207,32 @@ class SingletonCache(object):
     def reset_struct_cache(self, dbname, model):
         self.mutex.acquire()
         self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
-        self.STRUCT[dbname][model] = {}
-        self.STRUCT[dbname][model]["XPIRE"] = False
+        if self.is_struct(model):
+            self.STRUCT[dbname][model] = {}
+            self.STRUCT[dbname][model]["XPIRE"] = False
         self.mutex.release()
 
     def set_struct_cache(self, dbname, model):
         self.mutex.acquire()
         self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
-        self.STRUCT[dbname][model] = self.STRUCT[dbname].get(model, {})
-        self.STRUCT[dbname][model]["XPIRE"] = datetime.now() + timedelta(
-            seconds=self.EXPIRATION_TIME
-        )
+        if self.is_struct(model):
+            self.STRUCT[dbname][model] = self.STRUCT[dbname].get(model, {})
+            self.STRUCT[dbname][model]["XPIRE"] = datetime.now() + timedelta(
+                seconds=self.EXPIRATION_TIME)
         self.mutex.release()
 
     def age_struct_cache(self, dbname, model):
         self.mutex.acquire()
         self.STRUCT[dbname] = self.STRUCT.get(dbname, {})
         self.STRUCT[dbname][model] = self.STRUCT[dbname].get(model, {})
-        if self.get_struct_attr(dbname, "XPIRE"):
-            self.STRUCT[dbname][model]["XPIRE"] = self.STRUCT[dbname][model][
-                "XPIRE"
-            ] + timedelta(seconds=self.INCR_EXPIRATION_TIME)
-        else:
-            self.STRUCT[dbname][model]["XPIRE"] = datetime.now() + timedelta(
-                seconds=self.EXPIRATION_TIME
-            )
+        if self.is_struct(model):
+            if self.get_struct_attr(dbname, "XPIRE"):
+                self.STRUCT[dbname][model]["XPIRE"] = (
+                    self.STRUCT[dbname][model]["XPIRE"] + timedelta(
+                        seconds=self.INCR_EXPIRATION_TIME))
+            else:
+                self.STRUCT[dbname][model]["XPIRE"] = datetime.now() + timedelta(
+                    seconds=self.EXPIRATION_TIME)
         self.mutex.release()
 
     def reset_struct_model(self, dbname, model):
@@ -240,6 +241,7 @@ class SingletonCache(object):
             self.reset_struct_cache(dbname, model)
 
     def set_struct_model(self, dbname, model):
+        # Deprecated: use set_struct_cache()
         if model:
             self.age_struct_cache(dbname, model)
 
@@ -258,34 +260,36 @@ class SingletonCache(object):
     def reset_model_cache(self, dbname, channel_id, model):
         self.mutex.acquire()
         self.set_channel_base(dbname, channel_id, no_mutex=True)
-        self.MANAGED_MODELS[dbname][channel_id][model] = {}
-        self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] = False
+        if self.is_struct(model):
+            self.MANAGED_MODELS[dbname][channel_id][model] = {}
+            self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] = False
         self.mutex.release()
 
     def set_model_cache(self, dbname, channel_id, model):
         self.mutex.acquire()
         self.set_channel_base(dbname, channel_id, no_mutex=True)
-        self.MANAGED_MODELS[dbname][channel_id][model] = (
-            self.MANAGED_MODELS[dbname].get(channel_id, {}).get(model, {}))
-        self.MANAGED_MODELS[dbname][channel_id][model][
-            "XPIRE"
-        ] = datetime.now() + timedelta(seconds=self.EXPIRATION_TIME)
+        if self.is_struct(model):
+            self.MANAGED_MODELS[dbname][channel_id][model] = (
+                self.MANAGED_MODELS[dbname].get(channel_id, {}).get(model, {}))
+            self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] = (
+                datetime.now() + timedelta(seconds=self.EXPIRATION_TIME))
         self.mutex.release()
 
     def age_model(self, dbname, channel_id, model):
         self.mutex.acquire()
         self.set_channel_base(dbname, channel_id, no_mutex=True)
-        self.MANAGED_MODELS[dbname][channel_id][model] = (
-            self.MANAGED_MODELS[dbname].get(channel_id, {}).get(model, {}))
-        if self.get_model_attr(dbname, channel_id, model, "XPIRE"):
-            self.MANAGED_MODELS[dbname][channel_id][model][
-                "XPIRE"
-            ] = self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] + timedelta(
-                seconds=self.INCR_EXPIRATION_TIME
-            )
-        else:
-            self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] = datetime.now(
-                ) + timedelta(seconds=self.EXPIRATION_TIME)
+        if self.is_struct(model):
+            self.MANAGED_MODELS[dbname][channel_id][model] = (
+                self.MANAGED_MODELS[dbname].get(channel_id, {}).get(model, {}))
+            if self.get_model_attr(dbname, channel_id, model, "XPIRE"):
+                self.MANAGED_MODELS[dbname][channel_id][model][
+                    "XPIRE"
+                ] = self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] + timedelta(
+                    seconds=self.INCR_EXPIRATION_TIME
+                )
+            else:
+                self.MANAGED_MODELS[dbname][channel_id][model]["XPIRE"] = datetime.now(
+                    ) + timedelta(seconds=self.EXPIRATION_TIME)
         self.mutex.release()
 
     #
@@ -297,11 +301,12 @@ class SingletonCache(object):
             if expire and expire > datetime.now():
                 return expire
             return False
-        elif self.is_struct(attrib):
-            default = default if default is not None else {}
-            self.set_struct_model(self, dbname, model)
-        else:
+        elif not self.is_struct(attrib):
             default = default if default is not None else ''
+            self.set_struct_cache(dbname, model)
+            return self.STRUCT.get(dbname, {}).get(model, {}).get(attrib, default)
+        default = default if default is not None else {}
+        self.set_struct_cache(dbname, model)
         if self.get_struct_model_attr(dbname, model, "XPIRE"):
             return self.STRUCT.get(dbname, {}).get(model, {}).get(attrib, default)
         return default
@@ -327,10 +332,13 @@ class SingletonCache(object):
             if expire and expire > datetime.now():
                 return expire
             return False
-        elif self.is_struct(attrib):
-            default = default if default is not None else {}
-        else:
+        elif not self.is_struct(attrib):
             default = default if default is not None else ''
+            return (
+                self.MANAGED_MODELS.get(dbname, {}).get(channel_id, {}).get(attrib,
+                                                                            default)
+            )
+        default = default if default is not None else {}
         if self.get_attr(dbname, channel_id, "XPIRE"):
             return (
                 self.MANAGED_MODELS.get(dbname, {}).get(channel_id, {}).get(attrib,
@@ -356,10 +364,15 @@ class SingletonCache(object):
             if expire and expire > datetime.now():
                 return expire
             return False
-        if self.is_struct(attrib):
-            default = default if default is not None else {}
-        else:
+        if not self.is_struct(attrib):
             default = default if default is not None else ''
+            return (
+                self.MANAGED_MODELS.get(dbname, {})
+                .get(channel_id, {})
+                .get(model, {})
+                .get(attrib, default)
+            )
+        default = default if default is not None else {}
         if self.get_model_attr(dbname, channel_id, model, "XPIRE"):
             return (
                 self.MANAGED_MODELS.get(dbname, {})
@@ -397,10 +410,16 @@ class SingletonCache(object):
     def get_model_field_attr(
         self, dbname, channel_id, model, field, attrib, default=None
     ):
-        if self.is_struct(attrib):
-            default = default if default is not None else {}
-        else:
+        if not self.is_struct(attrib):
             default = default if default is not None else ''
+            return (
+                self.MANAGED_MODELS.get(dbname, {})
+                .get(channel_id, {})
+                .get(model, {})
+                .get(attrib, {})
+                .get(field, default)
+            )
+        default = default if default is not None else {}
         if self.get_attr(dbname, channel_id, "XPIRE"):
             return (
                 self.MANAGED_MODELS.get(dbname, {})

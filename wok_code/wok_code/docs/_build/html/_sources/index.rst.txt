@@ -1,5 +1,5 @@
 .. wok_code documentation master file, created by
-   gen_readme.py on 2025-08-08 20:06:34
+   gen_readme.py on 2025-08-08 20:07:46
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
