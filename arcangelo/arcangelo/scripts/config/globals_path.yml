@@ -1,6 +1,6 @@
 # This configuration is always used to apply an action on searched files
 #
-graphic_file:
+noop_file:
   match: '.*/.*\.(jpg|jpeg|gif|png)$'
   prio: '0'
   do:

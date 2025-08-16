@@ -2,13 +2,21 @@
 # -*- coding: utf-8 -*-
 # template 26
 """
+**arcangelo** is an automatic editor for mass building python source code.
+**arcangelo** is used to perform basic text transformation based on user rules.
+While in some ways is similar to an editor which permits scripted edits (such as
+ed or sed), **arcangelo** operates by making change command from rule files.
+Rule files are simple yaml files, read by arcangelo which apply these rules to every
+line of files processed.
+
+In this way migration workflow is very simple, accurate, precise and fast
 """
 import os
 import os.path as pth
 import sys
 
 
-__version__ = "2.0.8"
+__version__ = "2.1.0"
 
 
 def get_pypi_info(pypi):   # pragma: no cover

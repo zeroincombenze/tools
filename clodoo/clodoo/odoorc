@@ -205,6 +205,67 @@ traverse() {
     echo "$PKGNAME|$PKGPATH|$PARENTDIR|$REPOS|$PRJPATH"
 }
 
+findpkg() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local p2 p3 p4 p5 p6
+    local r2 r3 r4 r5 r6
+    local i2 i3 i4 i5 i6
+    local result
+    [[ -n "$3" ]] && i3="$3" || i3="."
+    [[ -n "$4" ]] && i4="$4" || i4="."
+    [[ -n "$5" ]] && i5="$5" || i5="."
+    [[ -n "$6" ]] && i6="$6" || i6="."
+    for p2 in $2; do
+      r2=$p2
+      if [[ -n "$1" && -e $r2/$1 ]]; then
+        result=$(readlink -e $r2/$1)
+        break
+      fi
+      for p3 in $i3; do
+        [[ -n "$p3" ]] && r3=/$p3 || r3=""
+        if [[ -n "$1" && -e $r2$r3/$1 ]]; then
+          result=$(readlink -e $r2$r3/$1)
+          break
+        fi
+        for p4 in $i4; do
+          [[ -n "$p4" ]] && r4=/$p4 || r4=""
+          if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
+            result=$(readlink -e $r2$r3$r4/$1)
+            break
+          fi
+          for p5 in $i5; do
+            [[ -n "$p5" ]] && r5=/$p5 || r5=""
+            if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
+              result=$(readlink -e $r2$r3$r4$r5/$1)
+              break
+            fi
+            for p6 in $i6; do
+              [[ -n "$p6" ]] && r6=/$p6 || r6=""
+              if [[ -z "$1" ]]; then
+                if [[ -d $r2$r3$r4$r5$r6 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6)
+                  break
+                fi
+              else
+                if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                  break
+                fi
+              fi
+            done
+            [[ -n "$result" ]] && break
+          done
+          [[ -n "$result" ]] && break
+        done
+        [[ -n "$result" ]] && break
+      done
+      [[ -n "$result" ]] && break
+    done
+    echo "$result"
+    $SETX
+}
+
 build_odoo_param() {
     # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|DIRLEVEL|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|IS_MULTI|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SESS_PATH|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER|MULTI|NOLINK)])

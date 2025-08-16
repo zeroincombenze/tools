@@ -481,8 +481,6 @@ class PleaseZ0bug(object):
         if not please.opt_args.no_verify:
             print("## Git sync ... ##")
             sts = please.os_system("git add ./", rtime=True)
-        # if sts:
-        #     return sts
         return sts
 
     def do_test(self):
@@ -518,5 +516,16 @@ class PleaseZ0bug(object):
                 slist=[("--no-verify", ""), ("--no-translate", "")],
             )
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.os_system(cmd, rtime=True)
+            sts = please.os_system(cmd, rtime=True)
+            if please.is_fatal_sts(sts) or please.opt_args.debug:
+                return sts
+            if not please.opt_args.no_verify:
+                print("## Update documentation ... ##")
+                sts = please.do_docs()
+            if please.is_fatal_sts(sts):
+                return sts
+            if not please.opt_args.no_verify:
+                print("## Git sync ... ##")
+                sts = please.os_system("git add ./", rtime=True)
+            return sts
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)

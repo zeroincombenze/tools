@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "os0"
-copyright = "2020-24, Antonio Maria Vigliotti"
+copyright = "2020-25, Antonio Maria Vigliotti"
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version

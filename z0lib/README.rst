@@ -1,5 +1,5 @@
 ============
-z0lib 2.0.15
+z0lib 2.0.16
 ============
 
 
@@ -107,26 +107,19 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.18 (2025-06-14)
+2.0.16 (2025-08-14)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] Local package automatic recognition
 * [FIX] License declaration compatible with pypi
-
-2.0.17 (2025-03-22)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] python 3.11 is certificated programming language
-
-2.0.16 (2025-03-21)
-~~~~~~~~~~~~~~~~~~~
-
 * [FIX] print_flush
+* [IMP] python 3.11 is certificated programming language
+* [QUA]
 
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
-* [IMP] simulate get_metadat in test environment
+* [IMP] simulate get_metadata in test environment
 
 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
@@ -229,11 +222,6 @@ ChangeLog History
 * [IMP] set_pybin accept filename
 * [IMP] check_pythonpath removed
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
 
 
 Credits
@@ -271,10 +259,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.15/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.15/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

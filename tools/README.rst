@@ -113,6 +113,20 @@ Current version via Git
 ChangeLog History
 -----------------
 
+travis_emulator: 2.0.11 (2025-08-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.12 is certificated programming language
+
+
+odoo_score: 2.0.11 (2025-08-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+* [IMP] Python 3.11
+* [IMP] Odoo 18.0
+
+
 arcangelo: 2.1.1 (2025-06-28)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -149,12 +163,18 @@ z0bug_odoo: 2.0.23 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi
+* [FIX] testenv.py with Odoo 16.0+
+* [IMP] python 3.11
 
 
 wok_code: 2.0.23 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] arcangelo became a pypi package
+* [IMP] please install python: now can install python 3.12
+* [FIX] please version does not add line at the end of file
+* [FIX] please: best recognition of read-only repositories
+* [FIX] please test: check on templates to use
 * [FIX] No crash if invalid modules declaration
 * [FIX] License declaration compatible with pypi
 
@@ -165,21 +185,18 @@ python_plus: 2.0.18 (2025-06-14)
 * [FIX] bstring and unicode now work deeply
 * [FIX] list_requirements: twine version
 * [FIX] License declaration compatible with pypi
+* [IMP] Python 3.11 and 3.12
 * [IMP] New function cstrings
 
 
-odoo_score: 2.0.11 (2025-06-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] License declaration compatible with pypi
-
-
-clodoo: 2.0.15 (2025-06-14)
+clodoo: 2.0.14 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* [IMP] odoorc: new option NOLINK
 * [IMP] odoorc: Odoo 17.0 and 18.0
 * [IMP] powerp is not more a default gitorg
 * [FIX] License declaration compatible with pypi
+* [IMP+ python 3.11
 
 
 wok_code: 2.0.22 (2025-05-31)
@@ -231,12 +248,6 @@ lisa: 2.0.7 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] lisa_bld_ods: module replacements
-
-
-clodoo: 2.0.14 (2025-03-23)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: new option NOLINK
 
 
 z0lib: 2.0.17 (2025-03-22)
@@ -405,85 +416,10 @@ lisa: 2.0.4 (2024-08-12)
 * [FIX] lisa_bld_ods: fixes & improvements
 
 
-z0lib: 2.0.11 (2024-07-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New function os_system
-* [IMP] New function print_flush
-
-
-z0bug_odoo: 2.0.20 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Offical _check4deps_.py
-* [FIX] No more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-wok_code: 2.0.18 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please python 3.9+
-* [FIX] deploy_odoo update addons_path in config file
-* [FIX] deploy_odoo update that requires checkout, requires -f switch
-* [FIX] deploy_odoo default branch from repo in actions different from clone
-* [IMP] deploy_odoo new action merge
-* [IMP] deploy_odoo new action new-branch
-* [IMP] deploy_odoo: new features on status
-* [FIX] gen_readme now check for images value for marketplace
-* [IMP] gen_readme now can use .jpg and .gif images
-* [IMP] new pg_requirements.py
-* [IMP] run_odoo_debug checks fro pg_requirements from __manifest__.rst
-* [FIX] No more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-travis_emulator: 2.0.9 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] It does no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-odoo_score: 2.0.9 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] It does no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-arcangelo: 2.0.18 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Python 3.6 deprecated
-
-
-python_plus: 2.0.14 (2024-07-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: package versions improvements
-* [IMP] Python 3.6 deprecated
-
-
 zerobug: 2.0.17 (2024-07-07)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] z0testlib: no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-z0lib: 2.0.10 (2024-07-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_traced improvements
-* [IMP] Python 3.6 deprecated
-
-
-clodoo: 2.0.12 (2024-07-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Rpc with odoo < 10.0
-* [IMP] It does no more depends on os0
 * [IMP] Python 3.6 deprecated
 
 

@@ -14,12 +14,12 @@ cache:
 
 python:
   - "2.7"
-  - "3.6"
   - "3.7"
   - "3.8"
   - "3.9"
   - "3.10"
   - "3.11"
+  - "3.12"
 
 virtualenv:
   system_site_packages: false
@@ -28,7 +28,11 @@ git:
   submodules: false
   depth: false
 
+# services:
+#   - postgresql
+
 addons:
+  # postgresql: "9.5"
   apt:
     sources:
       - pov-wkhtmltopdf
@@ -37,7 +41,7 @@ addons:
     packages:
       # - build-essential                 # Pre-installed
       # - curl                            # Pre-installed
-      - expect-dev
+      # - expect-dev
       # - less-plugin-clean-css           # Pre-installed
       # - lessc                           # Pre-installed
       # - libevent-dev
@@ -80,7 +84,7 @@ env:
   # Set this variable to some version existing as linux-generic build on
   # https://github.com/wkhtmltopdf/wkhtmltopdf/releases
   # if you need to install wkhtmltopdf
-  - WKHTMLTOPDF_VERSION="0.12.5"
+  # - WKHTMLTOPDF_VERSION="0.12.5"
   # Set the above to install a `wkhtmltopdf` version that is not the one provided
   # by the `pov-wkhtmltopdf` repo.
   # - PHANTOMJS_VERSION="latest"

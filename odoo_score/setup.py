@@ -38,7 +38,7 @@ and makes available a simple odoo shell.
     install_requires=["z0lib>=2.0.11", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [
-        "scripts/setup.info",
+        # "scripts/setup.info",
         "./set_workers",
         "./odooctl",
     ]},

@@ -71,10 +71,14 @@ basestr:
       - 'basestring'
       -
 int_long:
-  search: '\bint[^(]'
+  search: '\bint[^("'']'
   prio: '9'
   do:
     - action: 's'
       args:
       - '\bint\b'
       - 'int, long'
+    - action: 's'
+      args:
+      - '\bint\)'
+      - '(int, long)'

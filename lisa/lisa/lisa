@@ -105,7 +105,7 @@ conf_default() {
     p="$p python-unittest2 python-utidylib python-vobject"
     p="$p python-werkzeug docutils-common docutils-doc wkhtmltopdf"
     if [ -n "$opt_dev" ]; then
-      p="$p oerplib erppeek os0 pytok"
+      p="$p oerplib erppeek pytok"
     fi
     CFG_set "odoo_BOP" "$p" "0" "Debian"
     p="Babel==1.3 dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"

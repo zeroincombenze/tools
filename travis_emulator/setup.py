@@ -50,6 +50,7 @@ Read furthermore info read `travis-ci phase
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Build Tools",
@@ -67,7 +68,7 @@ Read furthermore info read `travis-ci phase
     install_requires=["z0lib>=2.0.12", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [
-        "scripts/setup.info",
+        # "scripts/setup.info",
         "./template_travis.yml",
         # "scripts/travis.sh",
         "./travis",

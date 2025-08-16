@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.7 (Debian)
+# version: 2.0.8 (Debian)
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -320,34 +320,11 @@ set_publicsep_dir() {
 }
 
 
-restore_modules() {
-    local d dt m opaths p
-    p=$$
-    if [[ -f $CONFIGFILE ]]; then
-        opaths="$(grep -E ^addons_path $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
-        for d in ${opaths//,/ }; do
-            [[ ! -d $d/_module_replaced ]] && continue
-            for m in $d/_module_replaced/*; do
-                m=$(basename $m)
-                [[ -d $d/$m && ! -L $d/$m ]] && continue
-                dt=$(date +"%Y-%m-%d %H:%M:%S,000")
-                log_mesg "$dt $$ DAEMON ? $0: Original module $m restored"
-                [[ -L $d/$m ]] && rm -f $d/$m
-                mv $d/_module_replaced/$m $d/$m
-            done
-        done
-    fi
-}
-
-
 restore_module() {
-# restore_module(oldp old newp new)
-    local d new newp old oldp pid
+    local c d old oldp pid
 
     oldp="$1"
     old="$2"
-    newp="$3"
-    new="$4"
     if [[ -d $oldp/_module_replaced && -d $oldp/_module_replaced/$old ]]; then
         pid=$$
         d=$(date +"%Y-%prm-%d %H:%M:%S,000")
@@ -355,6 +332,8 @@ restore_module() {
             log_mesg "$d $pid DAEMON $opt_db $(basename $0): Original module $old restored"
             rm -f $oldp/$old
             mv $oldp/_module_replaced/$old $oldp/$old
+            c=0 && for x in $oldp/_module_replaced/*; do ((c++)); done
+            [[ $c -eq 0 ]] && rm -fR $oldp/_module_replaced/
         else
             log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $oldp/_module_replaced/$old should be restored"
         fi
@@ -363,24 +342,31 @@ restore_module() {
 
 
 replace_module() {
-# replace_module(oldp old newp new)
-    local a b d new newp old oldp pid
+    local a b d new newp old oldp pid spec
 
     oldp="$1"
     old="$2"
     newp="$3"
     new="$4"
+    spec="$5"
     pid=$$
     d=$(date +"%Y-%prm-%d %H:%M:%S,000")
     if [[ -L $oldp/$old && -d $oldp/_module_replaced && -d $oldp/_module_replaced/$old ]]; then
         log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $new"
+    elif [[ -n $spec ]]; then
+        [[ ! -d $oldp/_module_replaced && $DRY_RUN -eq 0 ]] && mkdir $oldp/_module_replaced
+        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Warning: $old replaced by $newp/$new" && [[ $DRY_RUN -eq 0 ]] && mv $oldp/$old $oldp/_module_replaced/$old
+        if [[ $DRY_RUN -eq 0 ]]; then
+            [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
+            [[ ! -d $oldp/$old/addons ]] && ln -s $oldp/_module_replaced/$old/addons $oldp/$old/addons
+        fi
     else
         [[ -f $oldp/$old/__openerp__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__manifest__.py ]] && a=$(grep -E "^ *[\"\']auto_install[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__openerp__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__manifest__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced
-        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" &&  [[ $DRY_RUN -eq 0 ]] && mv $oldp/$old $oldp/_module_replaced/$old
+        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" && [[ $DRY_RUN -eq 0 ]] && mv $oldp/$old $oldp/_module_replaced/$old
         if [[ $DRY_RUN -eq 0 ]]; then
             [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
             [[ -n $a && -f $newp/$new/__openerp__.py ]] && sed -E "s|(.auto_install. *: *)[a-zA-Z]+|\1 $a|" -i $newp/$new/__openerp__.py
@@ -392,23 +378,41 @@ replace_module() {
 }
 
 
+# shellcheck disable=SC2120
 replace_restore_modules() {
-# replace_restore_modules(zero_repl)
+# replace_restore_modules(z0_repl)
 # Replace module by another from configuration file or restore original prm
 # server_wide_module_replacement = old_module:new_module,old_path:new_path
-    local d new newp old oldp opaths pid param prm x z
+    local c d new newp old oldp opaths oroot pid param prm x z
     [[ -n $1 ]] && z=$1 || z=0
     pid=$$
     if [[ -f $CONFIGFILE ]]; then
         opaths="$(grep -E ^addons_path $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')"
         param=$(grep -E ^server_wide_module_replacement $CONFIGFILE | awk -F= '{gsub(/^ */,"",$2); print $2}')
         for prm in ${param//,/ }; do
+            oroot=""
             oldp=""
             newp=""
+            c=""
             old=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
             new=$(echo $prm | awk -F: '{gsub(/^ */,"",$2); print $2}')
             d=$(date +"%Y-%prm-%d %H:%M:%S,000")
             [[ $old =~ "/" ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Invalid parameter: server_wide_module_replacement = $old!" && continue
+            for d in ${opaths//,/ }; do
+                [[ -n $oroot && ( -n $newp || $z -ne 0 ) ]] && break
+                n=$(dirname $d)
+                [[ -z $oldp && $d =~ /$old/addons$ && $old =~ ^(odoo|openerp)$ ]] && oroot=$(dirname $n) && c=$old
+                [[ -z $newp && -d $d/$new && ! -d $d/$new/addons ]] && newp=$d/$(dirname $new) && new=$(basename $new)
+            done
+            [[ -n $oroot && -d $oroot/_module_replaced/$c && -z $newp ]] && z=1
+            if [[ -n $oroot && ( -n $newp || $z -ne 0 ) ]]; then
+              if [[ $z -eq 0 ]]; then
+                  replace_module "$oroot" "$c" "$newp" "$new" "$c"
+              else
+                  restore_module "$oroot" "$c"
+              fi
+              continue
+            fi
             for d in ${opaths//,/ }; do
                 [[ -n $oldp && -n $newp ]] && break
                 n=$(dirname $d)
@@ -420,20 +424,26 @@ replace_restore_modules() {
             if [[ $z -eq 0 ]]; then
                 replace_module "$oldp" "$old" "$newp" "$new"
             else
-                restore_module "$oldp" "$old" "$newp" "$new"
+                restore_module "$oldp" "$old"
             fi
         done
         for d in ${opaths//,/ }; do
+            n=$(dirname $d)
+            if [[ $d =~ /(odoo|openerp)/addons$ ]]; then
+                oroot=$(dirname $n)
+                c=$(basename $n)
+                [[ -d $oroot/_module_replaced && -d $oroot/_module_replaced/$c ]] && restore_module "$oroot" $c
+            fi
             if [[ -d $d/_module_replaced ]]; then
-                [[ -n $param ]] && z=1 || z=0
                 for old in $d/_module_replaced/*; do
+                    [[ -n $param ]] && z=1 || z=0
                     for prm in ${param//,/ }; do
                         x=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
                         [[ $old == "x" ]] && z=0 && break
                     done
+                    [[ $z -ne 0 ]] && continue
+                    restore_module "$d" $(basename $old)
                 done
-                [[ $z -ne 0 ]] && continue
-                restore_module "$d" $(basename $old)
             fi
         done
     fi

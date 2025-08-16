@@ -46,7 +46,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             "scripts/pg_db_active.sh",
             "./bck_filestore.sh",
             "./pg_db_reassign_owner",

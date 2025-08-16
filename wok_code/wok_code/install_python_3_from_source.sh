@@ -288,8 +288,8 @@ if [[ $py != $DEFPYVER ]]; then
     apt install -y python$py-setuptools
     echo "\$ " apt install -y python$py-dev
     apt install -y python$py-dev
-    echo "\$ " apt install -y python$1-venv
-    apt install -y python$1-venv
+    echo "\$ " apt install -y python$py-venv
+    apt install -y python$py-venv
     echo "\$ " cd /tmp
     cd /tmp
     echo "\$ " wget $WGET_OPTS https://bootstrap.pypa.io/pip/$py/get-pip.py
@@ -302,11 +302,20 @@ if [[ $py != $DEFPYVER ]]; then
     if [[ ! -f get-pip.py ]]; then
         echo "Warning! pip no installed!"
     else
-        echo "\$ " python$py get-pip.py
-        python$py get-pip.py
-        rm -f get-pip.py
-        echo "\$ " python$py -m pip install pip
-        python$py -m pip install pip
+        if [[ $py =~ ^(3.9|3.10|3.11|3.12) ]]; then
+            echo "\$ python$py -m ensurepip --upgrade"
+            python$py -m ensurepip --upgrade
+            if [[ $py == "3.12" ]]; then
+                echo "\$ python$py -m pip install --upgrade \"setuptools>=75.0.1\""
+                python$py -m pip install --upgrade "setuptools>=75.0.1"
+            fi
+        else
+            echo "\$ " python$py get-pip.py
+            python$py get-pip.py
+            rm -f get-pip.py
+            echo "\$ " python$py -m pip install pip
+            python$py -m pip install pip
+        fi
     fi
 else
     echo "\$ " python$py -m pip install pip -U

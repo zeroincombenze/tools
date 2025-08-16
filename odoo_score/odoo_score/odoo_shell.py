@@ -20,7 +20,7 @@ from datetime import date, datetime, timedelta
 
 from future import standard_library
 
-from os0 import os0  # pylint: disable=import-error
+# from os0 import os0  # pylint: disable=import-error
 from python_plus import _b
 
 try:
@@ -1685,16 +1685,16 @@ def check_rec_links(ctx):
                 sale_line.order_id.partner_invoice_id.id,
                 sale_line.order_id.partner_shipping_id.id,
             ):
-                os0.wlog(
-                    '!!! Invoice %s (%d) partner differs from '
-                    'sale order %s (%d) partner!!!'
-                    % (
-                        invoice.number,
-                        invoice.id,
-                        sale_line.order_id.name,
-                        sale_line.order_id.id,
-                    )
-                )
+                # os0.wlog(
+                #     '!!! Invoice %s (%d) partner differs from '
+                #     'sale order %s (%d) partner!!!'
+                #     % (
+                #         invoice.number,
+                #         invoice.id,
+                #         sale_line.order_id.name,
+                #         sale_line.order_id.id,
+                #     )
+                # )
                 err_ctr += 1
                 clodoo.writeL8(
                     ctx,
@@ -1761,14 +1761,14 @@ def check_rec_links(ctx):
                 invoice_line.ddt_line_id.sale_line_id
                 and invoice_line.ddt_line_id.sale_line_id.order_id.id not in orders
             ):
-                os0.wlog(
-                    '!!! Invoice sale orders differs from '
-                    'DdT sale order %s (%d)!!!'
-                    % (
-                        invoice_line.ddt_line_id.sale_line_id.order_id.name,
-                        invoice_line.ddt_line_id.sale_line_id.order_id.id,
-                    )
-                )
+                # os0.wlog(
+                #     '!!! Invoice sale orders differs from '
+                #     'DdT sale order %s (%d)!!!'
+                #     % (
+                #         invoice_line.ddt_line_id.sale_line_id.order_id.name,
+                #         invoice_line.ddt_line_id.sale_line_id.order_id.id,
+                #     )
+                # )
                 err_ctr += 1
                 clodoo.writeL8(
                     ctx, invline_model, invoice_line.id, {'ddt_line_id': False}
@@ -1791,16 +1791,16 @@ def check_rec_links(ctx):
                     )
                 )
             ):
-                os0.wlog(
-                    '!!! Invoice %s (%d) partner differs from '
-                    'ddt sale order %s (%d) partner!!!'
-                    % (
-                        invoice.number,
-                        invoice.id,
-                        invoice_line.ddt_line_id.sale_line_id.order_id.name,
-                        invoice_line.ddt_line_id.sale_line_id.order_id.id,
-                    )
-                )
+                # os0.wlog(
+                #     '!!! Invoice %s (%d) partner differs from '
+                #     'ddt sale order %s (%d) partner!!!'
+                #     % (
+                #         invoice.number,
+                #         invoice.id,
+                #         invoice_line.ddt_line_id.sale_line_id.order_id.name,
+                #         invoice_line.ddt_line_id.sale_line_id.order_id.id,
+                #     )
+                # )
                 err_ctr += 1
                 clodoo.writeL8(
                     ctx, invline_model, invoice_line.id, {'ddt_line_id': False}
@@ -1809,11 +1809,11 @@ def check_rec_links(ctx):
             for sale_line in invoice_line.sale_line_ids:
                 for inv_line in sale_line.invoice_lines:
                     if inv_line.id == invoice_line.id:
-                        os0.wlog(
-                            '!!! Missed DdT line for invoice %s (%d) '
-                            'order %s!!!'
-                            % (invoice.number, invoice.id, sale_line.order_id.id)
-                        )
+                        # os0.wlog(
+                        #     '!!! Missed DdT line for invoice %s (%d) '
+                        #     'order %s!!!'
+                        #     % (invoice.number, invoice.id, sale_line.order_id.id)
+                        # )
                         err_ctr += 1
                         ids = clodoo.searchL8(
                             ctx,
@@ -1891,18 +1891,19 @@ def check_rec_links(ctx):
         diff = list({x.id for x in invoice.ddt_ids} - set(ddts))
         do_write = False
         if diff:
-            os0.wlog(
-                '!!! Found some DdT %s in invoice %s (%d) header '
-                'not detected in invoice lines!!!' % (diff, invoice.number, invoice.id)
-            )
+            # os0.wlog(
+            #     '!!! Found some DdT %s in invoice %s (%d) header '
+            #     'not detected in invoice lines!!!'
+            #     % (diff, invoice.number, invoice.id)
+            # )
             err_ctr += 1
             do_write = True
         diff = list(set(ddts) - {x.id for x in invoice.ddt_ids})
         if diff:
-            os0.wlog(
-                '!!! Some DdT (%s) in invoice lines are not detected '
-                'in invoice %s (%d)!!!' % (diff, invoice.number, invoice.id)
-            )
+            # os0.wlog(
+            #     '!!! Some DdT (%s) in invoice lines are not detected '
+            #     'in invoice %s (%d)!!!' % (diff, invoice.number, invoice.id)
+            # )
             err_ctr += 1
             do_write = True
         if do_write:
@@ -1946,12 +1947,13 @@ def check_rec_links(ctx):
                         ctx, ddtline_model, ddt_line.id, {'invoice_line_id': ids[0]}
                     )
                 err_ctr += 1
-                os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!' % (ddt.id))
+                # os0.wlog('!!! Found line of DdT %s w/o invoice line ref!!!'
+                # % (ddt.id))
         diff = list(set(invoices) - {x.id for x in ddt.invoice_ids})
         if diff:
             ddt_state = ddt.state
             err_ctr += 1
-            os0.wlog('!!! Invoice refs updated in DdT %s!!!' % (ddt.id))
+            # os0.wlog('!!! Invoice refs updated in DdT %s!!!' % (ddt.id))
             if ctx['_cr']:
                 query = "update %s set %s=%s,%s='%s' where id=%d" % (
                     ddt_model.replace('.', '_'),

@@ -74,5 +74,5 @@ repos:
       - id: arcangelo
         name: arcangelo
         language: python
-        entry: arcangelo -i -P
+        entry: arcangelo -i -P pypi
       # odoo repositories

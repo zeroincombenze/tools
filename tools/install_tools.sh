@@ -98,6 +98,8 @@ CLR="\e[0m"
 [[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
+[[ -d $SRCPATH/zerobug/zerobug && -d $SRCPATH/wok_code/wok_code && -d $SRCPATH/z0lib/z0lib && ! $opts =~ ^-.*d ]] && echo "# Source environment is devel: please use -d switch!" && exit 1
+[[ $opts =~ ^-.*d && $opts =~ ^-.*U ]] && echo "# Switches -d and -U are mutually exclusive!" && exit 1
 
 [[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL && -f $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
 [[ ! $opts =~ ^-.*t && -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
@@ -105,6 +107,7 @@ CLR="\e[0m"
 [[ ! $opts =~ ^-.*t && $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
 [[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
+[[ $DSTPATH =~ /devel/devel$ ]] && DSTPATH=$(dirname $DSTPATH)
 LOCAL_VENV="$DSTPATH/venv"
 [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
 [[ $opts =~ ^-.*t && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
@@ -112,7 +115,7 @@ LOCAL_VENV="$DSTPATH/venv"
 DEVELPATH="$(readlink $DSTPATH/pypi)"
 
 if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
-    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Use development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
+    [[ $opts =~ ^-.*d && ! $opts =~ ^-.*q ]] && echo "# Using development branch" && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "devel" ]] && git stash -q && git checkout devel -f
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
@@ -122,6 +125,7 @@ fi
 [[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
 [[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
+
 [[ -x $SRCPATH/python_plus/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/python_plus/scripts/vem.sh"
 [[ -z "$VEM" && -x $SRCPATH/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/scripts/vem.sh"
 if [[ -z "$VEM" ]]; then
@@ -146,18 +150,19 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+# [[ -z $PYVER ]] && PYVER=$(python3.12 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $PYVER ]] && PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
-[[ -z $PYVER ]] && PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 [[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9|10|11)$ && $PYVER != "2.7" ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9|10|11|12)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
         echo "Please install python 3.10 typing following command:"
         echo ""
@@ -251,7 +256,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
         fi
         [[ $pkg == "tools" ]] && continue
         # Tools PYPI installation
-        if [[ -f $SRCPATH/$pfn/$pfn/scripts/setup.info && -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
+        if [[ -f $SRCPATH/$pfn/$pfn/__init__.py ]]; then
             srcpath="$SRCPATH/$pfn"
         else
             run_traced "mkdir $LOCAL_VENV/tmp/$pfn"
@@ -288,7 +293,8 @@ fi
 #fi
 
 [[ ! $opts =~ ^-.*k && -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
-[[ ! $opts =~ ^-.*k && -f $SRCPATH/tests/test_tools.sh ]] && run_traced "cp $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
+[[ -f $SRCPATH/tests/test_tools.sh ]] && run_traced "ln -s $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
+[[ -f $SRCPATH/tools/tests/test_tools.sh ]] && run_traced "ln -s $SRCPATH/tools/tests/test_tools.sh $BINPATH/test_tools.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"
 
 for fn in $FILES_2_DELETE; do
