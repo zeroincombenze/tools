@@ -28,8 +28,11 @@ def check_for_requirements(requirements=None):
             fqn = os.path.abspath("egg-info/__manifest__.rst")
         elif os.path.isfile("readme/__manifest__.rst"):
             fqn = os.path.abspath("readme/__manifest__.rst")
+        elif os.path.isdir("egg-info") or os.path.isdir("readme"):
+            z0lib.print_flush("Warning! No configuration file __manifest__.rst found!")
+            return 0
         else:
-            z0lib.print_flush("No configuration file found!")
+            z0lib.print_flush("No configuration file __manifest__.rst found!")
             return 126
         contents = requirements = ""
         if fqn:

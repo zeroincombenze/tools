@@ -32,10 +32,11 @@ function.
 __author__ = 'Antonio Maria Vigliotti'
 __email__ = 'antoniomaria.vigliotti@gmail.com'
 __licence__ = 'LGPL v3'
-__version__ = '0.8.5'
+__version__ = '1.0.0'
 
 #__all__ = ['OERP', 'error']
 
 from oerplib3.oerp import OERP
 from oerplib3 import error
+
 

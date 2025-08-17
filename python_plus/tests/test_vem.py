@@ -89,6 +89,8 @@ class RegressionTest:
 
         if sys.version_info[0] == 2:
             werkz_version = "0.11.11"
+        elif sys.version_info[0:2] >= (3, 12):
+            werkz_version = "3.1.3"
         elif sys.version_info[0:2] >= (3, 9):
             werkz_version = "2.0.2"
         else:
@@ -114,7 +116,9 @@ class RegressionTest:
         pypi = "zar"
         cmd = "vem %s -q install %s" % (
             self.venv_dir,
-            os.path.join(os.environ["TRAVIS_SAVED_HOME_DEVEL"], "pypi", pypi),
+            os.path.join(
+                os.environ.get("TRAVIS_SAVED_HOME_DEVEL",
+                               os.path.expanduser("~/devel")), "pypi", pypi),
         )
         sts = z0lib.os_system(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
@@ -235,7 +239,7 @@ class RegressionTest:
             odoo_versions = ["12.0", "14.0"]
         else:
             # odoo_ver = "16.0"
-            odoo_versions = ["16.0", "14.0"]
+            odoo_versions = ["18.0", "16.0", "14.0"]
         for odoo_ver in odoo_versions:
             majver = int(odoo_ver.split(".")[0])
             # Isolated environment + devel packages + Odoo
@@ -243,10 +247,6 @@ class RegressionTest:
             print(cmd, "... please wait for a minute")
             sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
             self.assertEqual(0, sts, msg_info=cmd)
-            # Weird behavior for pyYAML with python 3.9
-            # if odoo_ver == "16.0":
-            #     z0lib.run_traced('vem %s install pyyaml' % self.venv_dir,
-            #                      dry_run=z0ctx['dry_run'])
             self.assertTrue(os.path.isdir(self.venv_dir), msg_info=cmd)
             self.check_4_paths()
             self.check_4_homedir(self.venv_dir)

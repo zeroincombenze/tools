@@ -229,7 +229,7 @@ class RegressionTest:
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             " travis test -vn",
-            stdout.split("\n")[3]
+            stdout.split("\n")[2]
         )
 
         os.chdir(self.pypi_dir)
@@ -238,7 +238,7 @@ class RegressionTest:
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
         self.assertIn(
             " travis test -vn",
-            stdout.split("\n")[3]
+            stdout.split("\n")[2]
         )
 
         # TMODARS = "-m test_module -b 12.0"

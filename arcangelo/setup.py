@@ -63,14 +63,16 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             "scripts/config/*",
+            "scripts/cvt_script.sh",
         ]
     },
     entry_points={
         "console_scripts": [
             "arcangelo = arcangelo.scripts.arcangelo:main",
             "gen_readme.py = arcangelo.scripts.gen_readme:main",
+            "cvt_script = arcangelo.scripts.cvt_script:main",
         ]
     },
     zip_safe=False,

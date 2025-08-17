@@ -376,8 +376,6 @@ pip_install_tools() {
     run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
     [[ -d $tmpdir/$pfn/scripts ]] && run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/scripts/setup.info"
     [[ -f $tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
-    # x=$(grep -A3 -E "^ *package_data" $tmpdir/$pfn/setup.py|grep --color=never -Eo "\./README.rst")
-    # [[ $x == "\./README.rst" ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
     run_traced "$PIP install $tmpdir/$pfn $popts"
     return $?
 }
@@ -396,6 +394,7 @@ pip_install() {
   pfn=$(get_pkg_wo_version "$pkg")
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   if [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]]; then
+    echo -e "${RED}Warning! Package $pkg requires 'setuptools<58.0'!${CLR}"
     run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
     [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
@@ -533,10 +532,12 @@ pip_install() {
       if [[ -d $vpkg && $vpkg =~ /tools/ ]]; then
         pip_install_tools "$vpkg"
         sts=$?
+        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info) -C"
       else
         [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
         run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
         sts=$?
+        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info) -C"
       fi
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
@@ -1128,10 +1129,7 @@ do_venv_mgr() {
       run_traced "$PIP install \"pip<21.0\" -U"
     else
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      # [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
       [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
-      # x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-      # [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
     fi
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
@@ -1329,11 +1327,6 @@ do_venv_create() {
     # bugfix for packages with regexpr like invoice2data
     run_traced "$PIP install regex==2021.3.17"
   else
-    # PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-    # [[ ( -n $opt_oever || -n $opt_oepath ) && $PIPVER -ge 23 ]] && run_traced "$PIP install 'pip<23.0' -U"
-    # [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
-    # x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-    # [[ ( -n $opt_oever || -n $opt_oepath ) && $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
     run_traced "$PIP install pip -U"
   fi
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)

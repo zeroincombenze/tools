@@ -20,7 +20,7 @@ from configparser import ConfigParser
 from zerobug import z0test
 import oerplib3
 
-__version__ = "0.8.4"
+__version__ = "1.0.0"
 
 ODOO_VERSION_TO_TEST = ("7.0", "8.0")
 
@@ -53,6 +53,8 @@ class RegressionTest:
             os.path.join(os.path.dirname(__file__), 'default-odoo.conf')
         )
         config.read(default_confn)
+        if not config.has_section("options"):
+            config.add_section("options")
         self.version_ctx = {}
         self.version_default = {}
         for odoo_version in ODOO_VERSION_TO_TEST:

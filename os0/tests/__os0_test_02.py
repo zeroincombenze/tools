@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     os0 Regression Test Suite
@@ -32,6 +32,6 @@ if __name__ == "__main__":
     exit(
         z0test.main(
             z0test.parseoptest(sys.argv[1:], version=version()),
-            UT=['__doctest_${rundir}/egg-info/os0_${os_name}.rst'],
+            unittest_list=['__doctest_${rundir}/egg-info/os0_${os_name}.rst'],
         )
     )

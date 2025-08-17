@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'lisa'
-copyright = '2019-21, SHS-AV s.r.l.'
+copyright = '2019-25, SHS-AV s.r.l.'
 author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version

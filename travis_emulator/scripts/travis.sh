@@ -815,7 +815,7 @@ process_yaml() {
 
   if [[ $sts -eq $STS_SUCCESS ]]; then
     [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
-    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="3.11 3.10 3.9 3.8 3.7 3.6 3.5 2.7"
+    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 2.7"
     if [[ -n $opt_pyv ]]; then
       TRAVIS_PYTHON_MATRIX="${opt_pyv//,/ }"
       python_ver_yaml="$TRAVIS_PYTHON_MATRIX"
@@ -823,7 +823,7 @@ process_yaml() {
       TRAVIS_PYTHON_MATRIX=$(get_pyver_4_odoo $BRANCH)
     else
       TRAVIS_PYTHON_MATRIX=""
-      for v in "3.11" "3.10" "3.9" "3.8" "3.7" "3.6" "3.5" "2.7"; do
+      for v in "3.12 3.11" "3.10" "3.9" "3.8" "3.7" "3.6" "3.5" "2.7"; do
           grep -q "^ *.Programming Language :: Python :: $v" $PKGPATH/setup.py && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX|$v"
       done
       TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX:1}"
@@ -1055,7 +1055,7 @@ fi
 ACTIONS="(help|emulate|force-lint|lint|force-test|test|force-test-multi|test-multi|force-testdeps|testdeps|force-translate|translate|chkconfig|parseyaml|show|show-log|show-color|summary|wep-db)"
 if [[ $opt_help -gt 0 ]]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: ${ACTIONS//|/,}" \
-  "© 2015-2022 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "© 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 

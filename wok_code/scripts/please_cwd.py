@@ -697,7 +697,6 @@ class PleaseCwd(object):
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
-            # pkg_name = pth.basename(pth.dirname(os.getcwd()))
             sts = self.assure_doc_dirs(pkgtype="pypi")
             if sts:
                 return sts
@@ -706,11 +705,7 @@ class PleaseCwd(object):
                     "Document template directory %s not found!" % self.docs_dir
                 )
                 return 33 if not self.please.opt_args.dry_run else 0
-            args = self.build_gen_readme_base_args(branch=self.branch)
-            sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
-            if sts == 0:
-                args.append("-I")
-                sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+            sts = please.merge_test_result()
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
@@ -718,6 +713,7 @@ class PleaseCwd(object):
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
+            sts = 0
             return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 
@@ -1102,6 +1098,18 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 rex = re.compile(r"[a-z0-9][a-z0-9_.]+$")
                 for root, dirs, files in os.walk(pth.expanduser("~/")):
+                    dirs[:] = [
+                        d
+                        for d in dirs
+                        if (
+                            not d.startswith(".")
+                            and not d.startswith("_")
+                            and not d.endswith("~")
+                            and d
+                            not in ("setup", "venv_odoo", "tests", "addons")
+                            and not os.path.islink(pth.join(root, d))
+                        )
+                    ]
                     for fn in sorted(dirs):
                         if not rex.match(fn):
                             continue

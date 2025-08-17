@@ -6,7 +6,8 @@
 **arcangelo** is based on rules files located in config directory where arcangelo
 is running. Configuration files are yaml formatted.
 
-**Python stages**
+Python stages
+-------------
 
 Source process analysis is split in stages which would enable or disable rules. Process stages are:
 
@@ -21,7 +22,8 @@ If no import stage was found, on the first class transition transition_stage is 
 so it is possible adding import statements.
 
 
-**Rules**
+Rules
+-----
 
 Every rule is list of following format:
 
@@ -38,15 +40,24 @@ Every rule is list of following format:
 The list/tuple (ACTION, PARAMETERS) can be repeated more than once inside rule.
 
 
-**CTX and PYEXPR are python expression** for applying the rule. CTX is matched when file is loaded
-while PYEXPR is matched on every file line. Valid macroes to validate expression are:
+CTX and PYEXPR
+~~~~~~~~~~~~~~
 
+CTX and PYEXPR are python expression for applying the rule.
+CTX is matched when file is loaded while PYEXPR is matched on every file line.
+Valid macros to validate expression are:
 
-**EREGEX is enhanced regular expression** is a regular expression (python re) that may be negative
+EREGEX
+~~~~~~~
+
+EREGEX is enhanced regular expression (python re) that may be negative
 if it starts with ! (exclamation mark).
 
 
-**ACTION is applied if CTX and PYEXPR and eregex are True**:
+ACTION and ARGS
+~~~~~~~~~~~~~~~
+
+ACTION is applied on current item (file or line) if CTX and PYEXPR and EREGEX are True.
 
     ACTION values for lines:
 
@@ -66,53 +77,6 @@ if it starts with ! (exclamation mark).
     * **rm**: remove file
     * **no**: no action done
 
-
-**Python test and replacing macros**.
-
-The regular expression EREGEX may contains macroes enclose by "%(name)s".
-
-Examples.
-
-Replace statement "(int, long)" with "int"
-
-::
-
-    int_long:
-      search: '\(int, *long\)'
-      do:
-        - action: 's'
-          args:
-          - '\(int, *long\)'
-          - 'int'
-
-Replace statement "int" with "int, long" for python 2 form:
-
-::
-
-    int:
-      expr: '"int(" not in line'
-      search: 'int'
-      do:
-        - action: 's'
-          args:
-          - 'int'
-          - 'int, long'
-
-
-Replace statement "super()" with python 2 form, including current class name "super(classname, self)"
-
-::
-
-    super:
-      ctx: 'python_version == "2.7"'
-      search: 'super\([^)]*\)'
-      do:
-        - action: 's'
-          args:
-          - 'super\(\)'
-          - 'super(%(classname)s, self)'
-
-
 Action **substitute**: "s REGEX REPLACE_TEXT"
 
     * The 1.st item is the EREGEX to search for replace (negate is not applied)
@@ -122,14 +86,17 @@ Action **delete**: "d"
 
     * Delete current line
     * Break rules analyzing
+    * Must be the last action of the rule
 
 Action **insert**: "i text"
 
     * Insert text before current line
+    * Must be the last action of the rule
 
 Action **append**: "a text"
 
     * Append text after current line
+    * Must be the last action of the rule
 
 Action **execute**: "$ FUNCTION"
 
@@ -149,10 +116,66 @@ Action **execute**: "$ FUNCTION"
             offset = 1
         return do_break, offset
 
-Action **set trigger**: "+ TRIGGER [value]"
+Action **set trigger**: "+ TRIGGER name [value]"
 
     * Set a trigger value to match next line contexts
     * Value of trigger is the 1st match group, enclose by parens
     * If there are no parens in match text, trigger is set to value if supplied
     * If there are no parens in match text and no value is supplied, trigger is set to True
     * If value matches "[+-][0-9]+" value is added or subtracted
+
+Action **reset trigger**: "- TRIGGER name"
+
+    * Reset a boolean trigger value to match next line contexts
+
+
+Replacing macros in actions and args
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The regular expression EREGEX may contains macro names enclose by "%(name)s".
+
+.. $include rules_usage_items.csv
+
+Rules examples
+--------------
+
+Replace statement "(int, long)" with "int"
+
+::
+
+    mig_int_long_2_python3:
+      ctx: 'py23 == 3'
+      search: '\(int, *long\)'
+      do:
+        - action: 's'
+          args:
+          - '\(int, *long\)'
+          - 'int'
+
+Replace statement "int" with "int, long" for python 2 form:
+
+::
+
+    mig_int_2_python2:
+      ctx: 'py23 == 2'
+      expr: '"int(" not in line'
+      search: 'int'
+      do:
+        - action: 's'
+          args:
+          - 'int'
+          - 'int, long'
+
+
+Replace statement "super()" with python 2 form, including current class name "super(classname, self)"
+
+::
+
+    super:
+      ctx: 'py23 == 2'
+      search: 'super\([^)]*\)'
+      do:
+        - action: 's'
+          args:
+          - 'super\(\)'
+          - 'super(%(classname)s, self)'

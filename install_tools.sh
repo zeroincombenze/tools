@@ -17,7 +17,7 @@ pull_n_run() {
 }
 
 # From here, code may be update
-__version__=2.0.6
+__version__=2.0.8
 
 [ $BASH_VERSINFO -lt 4 ] && echo "This script cvt_script requires bash 4.0+!" && exit 4
 complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
@@ -43,7 +43,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo "  -2  create virtual environment with python2"
-    echo -e "\n(C) 2015-2024 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo -e "\n(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -93,19 +93,21 @@ GREEN="\e[32m"
 CLR="\e[0m"
 
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
-[[ -d $TDIR/clodoo && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
+[[ -d $TDIR/zerobug && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
 [[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 
 [[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL && -f $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
-[[ -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
-[[ $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
+[[ ! $opts =~ ^-.*t && -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
+[[ $opts =~ ^-.*t && -z "$DSTPATH" ]] && DSTPATH="$(readlink -f $HOME/devel)"
+[[ ! $opts =~ ^-.*t && $(basename $(dirname $SRCPATH)) == "devel" ]] && DSTPATH="$(readlink -f $(dirname $(dirname $SRCPATH))/devel)"
 [[ -z "$DSTPATH" && -d $HOME/odoo/devel ]] && DSTPATH="$HOME/odoo/devel"
 [[ -z "$DSTPATH" && -d $HOME/devel ]] && DSTPATH="$HOME/devel"
 LOCAL_VENV="$DSTPATH/venv"
 [[ $DSTPATH != $LOCAL_VENV && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
+[[ $opts =~ ^-.*t && ! -d $DSTPATH && ! $opts =~ ^-.*p ]] && run_traced "mkdir -p $DSTPATH"
 [[ -z "$DSTPATH" ]] && echo "# Environment not found! Please use -p switch" && exit 1
 DEVELPATH="$(readlink $DSTPATH/pypi)"
 
@@ -114,6 +116,7 @@ if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*D && -d $SRCPATH/.git ]]; then
     [[ ! $opts =~ ^-.*d ]] && cd $SRCPATH && [[ $(git branch --list|grep "^\* "|grep --color=never -Eo "[a-zA-Z0-9_-]+") != "master" ]] && git stash -q && git checkout master -fq
     [[ $opts =~ ^-.*U ]] && git stash -q && pull_n_run "$SRCPATH" "$0" "$opts"
 fi
+
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo -e "${GREEN}# Creating development environment $DEVELPATH ...${CLR}"
 [[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
@@ -143,18 +146,19 @@ if [[ $opts =~ ^-.*t ]]; then
     [[ -n $TRAVIS_PYTHON_VERSION ]] && PYVER="$TRAVIS_PYTHON_VERSION"
     [[ -z $PYVER ]] && PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 fi
+# [[ -z $PYVER ]] && PYVER=$(python3.12 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $PYVER ]] && PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
-[[ -z $PYVER ]] && PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && PYVER=$(python3 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 [[ -z $PYVER && ! $opts =~ ^-.*2 ]] && PYVER=$(python --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER ]] && echo "No python not found in path|" && exit 1
 
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
-    if [[ ! $PYVER =~ ^3\.(7|8|9|10|11)$ && $PYVER != "2.7" ]]; then
+    if [[ ! $PYVER =~ ^3\.(7|8|9|10|11|12)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
         echo "Please install python 3.10 typing following command:"
         echo ""
@@ -192,7 +196,7 @@ PYTHON3=""
 [[ -x $LOCAL_VENV/bin/python3 ]] && PYTHON3=$LOCAL_VENV/bin/python3
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
-LOCAL_PKGS="z0lib os0 python-plus clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+LOCAL_PKGS="z0lib python-plus arcangelo clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
 PIPVER=$(which pip)
 [[ -z $PIPVER ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1
@@ -304,7 +308,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
     echo "# DSTPATH=$DSTPATH">>$DSTPATH/activate_tools
     echo "# LOCAL_VENV=$LOCAL_VENV">>$DSTPATH/activate_tools
     echo "[ \"\${BASH_SOURCE-}\" == \"\$0\" ] && echo \"Please use: source \${BASH_SOURCE-}\" && exit 1">>$DSTPATH/activate_tools
-    echo "[[ \${BASH_SOURCE-} != $DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
+    echo "[[ \$(readlink -f \${BASH_SOURCE-}) != $DSTPATH/activate_tools ]] && echo \"wrong script\" && exit 33">>$DSTPATH/activate_tools
     echo "export SAVED_HOME_DEVEL=\"\$HOME_DEVEL:\$SAVED_HOME_DEVEL\"">>$DSTPATH/activate_tools
     echo "export HOME_DEVEL=\"$DSTPATH\"">>$DSTPATH/activate_tools
     echo "BINDIR=\"$LOCAL_VENV/bin\"">>$DSTPATH/activate_tools
@@ -366,8 +370,8 @@ if [[ $PYVER -eq 3 ]]; then
         run_traced "nvm install v20.18.0"
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
         run_traced "npm audit fix"
-        run_traced "npm install --save-dev --save-exact prettier@2.1.2"
-        run_traced "npm install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
+        run_traced "npm -g install --save-dev --save-exact prettier@2.1.2"
+        run_traced "npm -g install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
     fi
     run_traced "git clone $x https://github.com/OCA/maintainer-quality-tools.git"
 fi
@@ -466,5 +470,6 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "--------------------------------------------------------------${CLR}"
     echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
+
 
 

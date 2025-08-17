@@ -18,7 +18,7 @@ except IOError:
 
 install_requires = [
     "clodoo", "z0lib>=2.0.13", "python_plus",
-    "future", "Babel", "lxml", "openpyxl", "pyyaml"
+    "future", "Babel", "lxml", "openpyxl", "pyyaml", "six",
 ]
 if sys.version_info >= (3, 0):
     install_requires.append("translators")

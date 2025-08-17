@@ -44,12 +44,23 @@ class_model:
       - 'osv.osv_memory'
       - 'models.TransientModel'
 def_cr_uid:
-  match: '^ *def [^(]+\(self, *cr, *uid, [^)]*\)'
+  search: '\(self, *cr, *uid, [^)]*\)'
   do:
     - action: 's'
       args:
       - '\(self, *cr, *uid,'
       -  '(self,'
+    - action: 's'
+      args:
+      - ', *context=[^)]+'
+      - ''
+call_cr_uid:
+  search: '\(cr, *uid, [^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(cr, *uid, *'
+      -  '('
     - action: 's'
       args:
       - ', *context=[^)]+'

@@ -76,11 +76,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
-            # "./manage_db",
-            # "./manage_odoo",
-            # "./manage_odoo.man",
-            # "./odoo_install_repository",
+            # "scripts/setup.info",
             "./odoorc",
             "./transodoo.xlsx",
             "./bck_filestore.sh",

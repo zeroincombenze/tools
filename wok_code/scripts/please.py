@@ -579,7 +579,7 @@ class Please(object):
             tools_path = self.get_home_tools()
         return tools_path
 
-    def is_pypi_pkg(self, path=None):
+    def get_pkgname(self, path=None):
         path = path or os.getcwd()
         pkgname = pth.basename(path)
         while pkgname in (
@@ -594,6 +594,10 @@ class Please(object):
         ):
             path = pth.dirname(path)
             pkgname = pth.basename(path)
+        return path, pkgname
+
+    def is_pypi_pkg(self, path=None):
+        path, pkgname = self.get_pkgname(path=path)
         pkgpath = self.get_home_pypi_pkg(pkgname)
         root = pkgpath if pkgname == "tools" else pth.dirname(pkgpath)
         pkgpath2 = self.get_home_tools_pkg(pkgname)
@@ -825,12 +829,17 @@ class Please(object):
             return "2.0.0"
         return stdout.split("\n")[0].strip()
 
-    def get_logdir(self, path=None, git_org=None, read_only=False):
-        if read_only:
-            # git_org = git_org or "odoo"
-            return pth.abspath(pth.join(pth.expanduser("~/travis_log")))
-        path = path or os.getcwd()
-        return pth.abspath(pth.join(path, "tests", "logs"))
+    def get_pypi_valid(self, fqn):
+        info_path = pth.join(fqn, pth.basename(fqn), "egg-info")
+        if not pth.isdir(info_path):
+            return False
+        manifest_path = pth.join(info_path, "__manifest__.rst")
+        try:
+            with open(manifest_path, RMODE) as fd:
+                contents = fd.read()
+        except (ImportError, IOError, SyntaxError):
+            contents = ""
+        return not ".. $set no_pypi 1" in contents
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
@@ -846,7 +855,7 @@ class Please(object):
                     continue
                 if not pth.isdir(fqn):
                     continue
-                if self.is_pypi_pkg(path=fqn):
+                if self.is_pypi_pkg(path=fqn) and self.get_pypi_valid(fqn):
                     pypi_list.append(fn)
         return sorted(pypi_list)
 
@@ -876,6 +885,24 @@ class Please(object):
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
+    def get_uniqid(self, path=None, git_org=None, read_only=False):
+        # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+        # UMLI (Unique Module Log Identifier):
+        #     format "{git_org}{major_version}.{repos}.{pkgname}"
+        path, pkgname = self.get_pkgname(path=path)
+        git_org = git_org or "zero"
+        repos = "tools"
+        # TODO>
+        udi = pkgname
+        umli = git_org + "." + repos + "." + pkgname + ".log"
+        return udi, umli
+
+    def get_logdir(self, path=None, git_org=None, read_only=False):
+        if read_only or self.is_pypi_pkg(path=path):
+            return pth.abspath(pth.join(pth.expanduser("~/travis_log")))
+        path = path or os.getcwd()
+        return pth.abspath(pth.join(path, "tests", "logs"))
+
     def get_fqn_log(self, what=None, path=None, git_org=None, read_only=False):
         """Get fqn of logfile
         @what:  "sts" for log directories (0=exist, 3=missing)
@@ -901,20 +928,27 @@ class Please(object):
             return 3 if what == "sts" else ""
         if what == "sts":
             return 0
-        fqn = pth.join(fqn_logdir, "show-log.sh")
-        if not pth.isfile(fqn):
-            self.log_error("Command %s not found!" % fqn)
-            return ""
-        if what == "cmd":
-            return fqn
-        contents = ""
-        with open(fqn, RMODE) as fd:
-            contents = fd.read()
-        log_fqn = ""
-        for ln in contents.split("\n"):
-            if ln.startswith("less"):
-                log_fqn = pth.join(fqn_logdir, ln.split("/")[-1])
-                break
+        fqn = ""
+        if self.is_odoo_pkg(path=path):
+            fqn = pth.join(fqn_logdir, "show-log.sh")
+            if not pth.isfile(fqn):
+                self.log_error("Command %s not found!" % fqn)
+                return ""
+            if what == "cmd":
+                return fqn
+            contents = ""
+            with open(fqn, RMODE) as fd:
+                contents = fd.read()
+            log_fqn = ""
+            for ln in contents.split("\n"):
+                if ln.startswith("less"):
+                    log_fqn = pth.join(fqn_logdir, ln.split("/")[-1])
+                    break
+        elif self.is_pypi_pkg(path=path):
+            if what == "cmd":
+                return fqn
+            udi, umli = self.get_uniqid(path=path, git_org=git_org, read_only=read_only)
+            log_fqn = pth.join(fqn_logdir, umli)
         if not log_fqn or not pth.isfile(log_fqn):
             self.log_warning("Test log file %s not found!" % log_fqn)
             return ""
@@ -983,7 +1017,8 @@ class Please(object):
             self.log_warning("Changelog history file not found!")
             return 3
         sts = self.chain_python_cmd(
-            "arcangelo.py", [changelog_fqn, "-i", '--test-res-msg="%s"' % test_cov_msg]
+            "arcangelo.py", [pth.abspath(changelog_fqn),
+                             "-i", '--test-res-msg="%s"' % test_cov_msg]
         )
         return sts
 

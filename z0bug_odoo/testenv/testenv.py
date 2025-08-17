@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
-"""Test Environment v2.0.22
+"""Test Environment v2.0.24
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -169,7 +169,7 @@ Module test execution session
 
 Module test execution workflow should be:
 
-    #. Data declaration, in file .csv or .xlszìx or in source code
+    #. Data declaration, in file .csv or .xlsx or in source code
     #. Base data creation, in setUp() function
     #. Tests execution
     #. Supplemental data creation, during test execution, by group name
@@ -1060,23 +1060,32 @@ class MainTest(test_common.TransactionCase):
         if resource not in self.childs_name:
             return values
         field = self.childs_name[resource]
-        if values.get(field):
-            return values
-        values[field] = []
-        childs_resource = self.childs_resource[resource]
-        for child_xref in self.get_resource_data_list(childs_resource, group=group):
-            if child_xref.startswith(xref):
-                record = self.resource_browse(
-                    child_xref,
-                    raise_if_not_found=False,
-                    resource=childs_resource,
-                    group=group,
-                    no_warning=True,
-                )
-                if record:
-                    values[field].append((1, record.id, child_xref))
-                else:
-                    values[field].append((0, 0, child_xref))
+        if not values.get(field):
+            values[field] = []
+            childs_resource = self.childs_resource[resource]
+            for child_xref in self.get_resource_data_list(childs_resource, group=group):
+                if child_xref.startswith(xref):
+                    record = self.resource_browse(
+                        child_xref,
+                        raise_if_not_found=False,
+                        resource=childs_resource,
+                        group=group,
+                        no_warning=True,
+                    )
+                    if record:
+                        values[field].append((1, record.id, child_xref))
+                    else:
+                        values[field].append((0, 0, child_xref))
+        if (
+            self.odoo_major_version >= 13
+            and resource == "account.move"
+            and values.get("move_type") in ("out_invoice",
+                                            "out_refund",
+                                            "in_invoice",
+                                            "in_refund")
+        ):
+            values["invoice_line_ids"] = values[field]
+            del values[field]
         return values
 
     # --------------------------------
@@ -1559,7 +1568,7 @@ class MainTest(test_common.TransactionCase):
             res = []
             if value:
                 for item in value:
-                    if hasattr(item, "__iter__"):
+                    if isinstance(item, (list, tuple)):
                         for x in mergelist(item):
                             res.append(x)
                     else:
@@ -1594,15 +1603,24 @@ class MainTest(test_common.TransactionCase):
                 res = (items[0], items[1], res1) if fmt in ("cmd", None) else res1
                 is_cmd = True
                 items = []
-            elif len(items) == 2 and items[0] in (2, 3, 4, 5):
-                # (2|3|4|5,id)  -> as is
-                # (2|3|4|5,xref) -> (2|3|4|5,int)
+            elif len(items) == 2 and items[0] in (2, 3, 5):
+                # (2|3|5,id)  -> as is
+                # (2|3|5,xref) -> (2|3|4|5,int)
                 res = (
                     items[0],
                     self._cast_field_many2one(
                         resource, field, items[1], fmt="id" if fmt else None
                     ),
                 )
+                is_cmd = True
+                items = []
+            elif len(items) == 2 and items[0] == 4:
+                # (4,id)  -> as is
+                # (4,xref) -> create record
+                res = self._cast_field_many2one(resource, field, items[1])
+                if not isinstance(res, (int, long)):
+                    self.raise_error("Invalid value %s of %s" % (items[1], items))
+                res = (4, res)
                 is_cmd = True
                 items = []
             elif len(items) == 3 and items[0] == 6 and items[1] == 0:
@@ -1666,7 +1684,7 @@ class MainTest(test_common.TransactionCase):
                     )
                 )
             elif isinstance(item, (list, tuple)) and levl > 0:
-                # '§(6,0,§ ids )'         -> ids
+                # '(6,0,ids)'         -> ids
                 res.append(
                     self._cast_2many(
                         resource, field, item, group=group, fmt="id", levl=levl + 1
@@ -1886,13 +1904,16 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _purge_values(self, values, timed=None, fieldname=None):
-        for field in BITTER_COLUMNS + [fieldname]:
+        for field in BITTER_COLUMNS:
             if field in values:
                 del values[field]
         if timed:  # pragma: no cover
             for field in LOG_ACCESS_COLUMNS:
                 if field in values:
                     del values[field]
+        if fieldname and fieldname in values:
+            values = values.copy()
+            del values[fieldname]
         return values
 
     # --------------------------------------
@@ -1956,7 +1977,7 @@ class MainTest(test_common.TransactionCase):
                 )
         if hasattr(record, "default_get"):
             self._upgrade_record(
-                record, record.default_get(record.fields_get_keys()), default
+                record, record.default_get(record._fields.keys()), default
             )
         for field in record._onchange_methods.values():
             for method in field:
@@ -3041,7 +3062,7 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.22 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.23 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(
