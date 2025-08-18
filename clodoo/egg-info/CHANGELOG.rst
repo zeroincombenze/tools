@@ -1,7 +1,8 @@
-2.0.15 (2025-08-14)
+2.0.15 (2025-08-18)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] odoorc: integrated findpkg
+* [FIX] clodoo.py
 * [FIX] python 3.11
 
 2.0.14 (2025-06-14)
@@ -111,3 +112,4 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Stable version
+* [QUA] Test coverage 17% (3481: 2877+604) [0 TestPoints] - quality rating 13 (target 100)

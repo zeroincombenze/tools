@@ -294,7 +294,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -339,7 +339,7 @@ def print_hdr_msg(ctx):
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
     msg = "Configuration from"
-    for f in ctx.get('confns'):
+    for f in ctx.get('conf_fns'):
         msg = msg + ' ' + f
     msg_log(ctx, ctx['level'], msg)
 

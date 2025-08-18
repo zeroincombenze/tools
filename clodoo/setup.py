@@ -46,7 +46,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.14",
+    version="2.0.15",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[
@@ -85,10 +85,9 @@ setup(
     entry_points={
         "console_scripts": [
             "clodoo-info = clodoo.scripts.main:main",
-            # "clodoo.py = clodoo.clodoo_main:main",
+            "clodoo.py = clodoo.clodoo_main:main",
             "transodoo.py = clodoo.transodoo:main",
         ]
     },
     zip_safe=False,
 )
-
