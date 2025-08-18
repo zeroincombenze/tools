@@ -23,7 +23,7 @@ import os.path as pth
 import sys
 
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 
 def get_pypi_info(pypi):   # pragma: no cover

@@ -38,7 +38,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
     echo "  -t  this script is executing in test environment"
-    echo "  -T  execute regression tests"
+    echo "  -T  execute regression tests (deprecated)"
     echo "  -U  pull from github for upgrade"
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
@@ -84,7 +84,7 @@ RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
 # MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|makepo_it.py|odoo_translation.py|please.man|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc)"
-FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn test_tools.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
+FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn please_test_install.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
 
 SRCPATH=
 DSTPATH=
@@ -164,9 +164,9 @@ fi
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
     if [[ ! $PYVER =~ ^3\.(7|8|9|10|11|12)$ && $PYVER != "2.7" ]]; then
         echo "This tools are not tested with python $PYVER!"
-        echo "Please install python 3.10 typing following command:"
+        echo "Please install python 3.11 typing following command:"
         echo ""
-        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.10"
+        echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.11"
         echo ""
         exit 1
     fi
@@ -236,7 +236,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
                     tgt="$BINPATH/$fn"
                     [[ -d "$src" ]] && ftype=d || ftype=f
                     if [[ ! -e "$src" ]]; then
-                        echo "# File $src not found!"
+                        echo "# File $src not found!" && exit 1
                     else
                         [[ -L $DSTPATH/${fn} || -f $DSTPATH/${fn} ]] && run_traced "rm -f $DSTPATH/${fn}"
                         [[ -d $DSTPATH/${fn} ]] && run_traced "rm -fR $DSTPATH/${fn}"
@@ -265,13 +265,13 @@ if [[ ! $opts =~ ^-.*k ]]; then
             [[ -f $LOCAL_VENV/tmp/$pfn/$pfn/README.rst ]] && run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/README.rst $LOCAL_VENV/tmp/$pfn/README.rst"
             srcpath="$LOCAL_VENV/tmp/$pfn"
         fi
-        run_traced "pip install $srcpath $popts"
+        run_traced "pip install -q $srcpath $popts"
         [[ ! -d $PYLIB/$pfn ]] && echo "FAILED: local path $PYLIB/$pfn not found!" && exit 1
         if [[ $pkg =~ (python-plus|python_plus) ]]; then
             [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
-        elif [[ $pkg == "clodoo" ]]; then
-            [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
-            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
+#        elif [[ $pkg == "clodoo" ]]; then
+#            [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
+#            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
         elif [[ $pkg == "zerobug" ]]; then
           set_hashbang $PYLIB/$pfn/_travis
         elif [[ $pkg =~ (z0bug-odoo|z0bug_odoo) ]]; then
@@ -282,19 +282,10 @@ if [[ ! $opts =~ ^-.*k ]]; then
         fi
     done
 fi
-#if [[ -f $BINPATH/please ]]; then
-#    PLEASE_CMDS=$(grep "^HLPCMDLIST=" $BINPATH/please|awk -F= '{print $2}'|tr -d '"')
-#    PLEASE_CMDS="${PLEASE_CMDS//|/ }"
-#fi
-#if [[ -f $BINPATH/travis ]]; then
-#    TRAVIS_CMDS=$(grep "^ACTIONS=" $BINPATH/travis|awk -F= '{print $2}'|tr -d '"')
-#    TRAVIS_CMDS=${TRAVIS_CMDS:1: -1}
-#    TRAVIS_CMDS="${TRAVIS_CMDS//|/ }"
-#fi
 
 [[ ! $opts =~ ^-.*k && -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
-[[ -f $SRCPATH/tests/test_tools.sh ]] && run_traced "ln -s $SRCPATH/tests/test_tools.sh $BINPATH/test_tools.sh"
-[[ -f $SRCPATH/tools/tests/test_tools.sh ]] && run_traced "ln -s $SRCPATH/tools/tests/test_tools.sh $BINPATH/test_tools.sh"
+[[ -f $SRCPATH/tests/please_test_install.sh ]] && run_traced "ln -s $SRCPATH/tests/please_test_install.sh $BINPATH/please_test_install.sh"
+[[ -f $SRCPATH/tools/tests/please_test_install.sh ]] && run_traced "ln -s $SRCPATH/tools/tests/please_test_install.sh $BINPATH/please_test_install.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"
 
 for fn in $FILES_2_DELETE; do
@@ -330,7 +321,7 @@ if [[ ! $opts =~ ^-.*n ]]; then
         echo "[[ \$opts =~ ^-.*t && -d \$PYLIB/z0bug_odoo/travis ]] && echo \":\$PATH:\"|grep -qv \"\$PYLIB/z0bug_odoo/travis:\" && export PATH=\"\$PYLIB/z0bug_odoo/travis:\$PATH\"">>$DSTPATH/activate_tools
     fi
     echo "[[ \$opts =~ ^-.*h ]] && echo \$0 [-f][-t] && exit 0">>$DSTPATH/activate_tools
-    for fn in coverage coverage3 coveralls flake8 pylint; do
+    for fn in coverage coverage3 flake8 pylint; do
         [[ $fn == "coveralls" && ! $opts =~ ^-.*t ]] && continue
         echo "p=\$(which $fn 2>/dev/null)">>$DSTPATH/activate_tools
         echo "[[ -z \$p ]] && p=\$BINDIR/$fn">>$DSTPATH/activate_tools
@@ -356,21 +347,22 @@ if [[ $PYVER -eq 3 ]]; then
     if [[ ! $opts =~ ^-.*t ]]; then
         if [[ $opts =~ ^-.*f ]]; then
             run_traced "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash"
+            run_traced "unset npm_config_prefix"
             run_traced "export NVM_DIR=\"$HOME/.nvm\""
             run_traced "[ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\""
+            echo ""
         fi
         [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
         run_traced "git clone https://github.com/OCA/maintainer-tools.git"
         if [[ -d $DSTPATH/maintainer-tools ]]; then
-            run_traced "cd $DSTPATH/maintainer-tools"
-            run_traced "$PYTHON setup.py $x install"
+            run_traced "pip install -e $DSTPATH/maintainer-tools"
             for pkg in black pre-commit pyupgrade flake8-bugbear; do
-                run_traced "pip install $pkg $popts"
+                run_traced "pip install -q $pkg $popts"
             done
         fi
         run_traced "git clone $x https://github.com/OCA/odoo-module-migrator.git"
         for pkg in sphinx sphinx_rtd_theme; do
-            run_traced "pip install $pkg $popts"
+            run_traced "pip install -q $pkg $popts"
         done
         run_traced "nvm install v20.18.0"
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
@@ -382,28 +374,38 @@ if [[ $PYVER -eq 3 ]]; then
 fi
 
 # Final test to validate environment
-[[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-for pkg in odoorc clodoo/odoorc cvt_csv_2_xml.py gen_readme.py odoo_dependencies.py odoo_translation.py please transodoo.py wget_odoo_repositories.py; do
-  echo -n "."
-  [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
-done
-#for pkg in vem; do
-#  echo -n "."
-#  [[ ! -f $LOCAL_VENV/bin/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/bin/$pkg!!${CLR}" && exit
-#done
-for pkg in templates; do
-  echo -n "."
-  [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
-done
-for pkg in babel lxml python-magic pyyaml python-plus z0lib z0bug-odoo zerobug; do
-    echo -n "."
-    pfn=$(echo "$pkg"| grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
-    x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep  --color=never -E "^Location: .*")
-    [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
-done
-echo ""
-run_traced "deactivate"
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
+[[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
+[[ -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
+[[ -f $BINPATH/list_requirements.py ]] && run_traced "chmod +x $BINPATH/list_requirements.py"
+#for pkg in clodoo templates; do
+#  echo -n "."
+#  [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
+#done
+#for pkg in clodoo/odoorc odoorc odoo_dependencies.py zerobug; do
+#  echo -n "."
+#  [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
+#done
+$BINPATH/please_test_install.sh "$VEM"
+#for pkg in cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
+#  echo -n "."
+#  [[ ! -x $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
+#  [[ $pkg == "odooctl" ]] && continue
+#  if [[ $pkg =~ (lisa_bld_ods|odoo_install_repository|makepo_it.py) ]]; then
+#    $pkg -V &>/dev/null
+#    [[ $? -ne 0 ]] && echo "****** TEST $pkg FAILED ******"
+#  else
+#    $pkg --version &>/dev/null
+#    [[ $? -ne 0 ]] && echo "****** TEST $pkg FAILED ******"
+#  fi
+#done
+#for pkg in babel lxml python-magic pyyaml z0lib z0bug-odoo zerobug; do
+#    echo -n "."
+#    pfn=$(echo "$pkg"| grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
+#    x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep  --color=never -E "^Location: .*")
+#    [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
+#done
+run_traced "deactivate"
 
 if [[ $opts =~ ^-.*D ]]; then
     run_traced "mkdir -p $DEVELPATH"
@@ -460,9 +462,6 @@ if [[ ! $opts =~ ^-.*t && $opts =~ ^-.*[gG] ]]; then
     done
 fi
 
-[[ $opts =~ ^-.*T ]] && $BINPATH/test_tools.sh
-
-[[ $opts =~ ^-.*U && ! $opts =~ ^-.*q && -f $DSTPATH/egg-info/history.rst ]] && tail $DSTPATH/egg-info/history.rst
 if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "${GREEN}--------------------------------------------------------------"
     echo -e "Zeroincombenze® tools successfully installed on your system."
@@ -475,6 +474,3 @@ if [[ ! $opts =~ ^-.*q && ! $opts =~ ^-.*P ]]; then
     echo -e "--------------------------------------------------------------${CLR}"
     echo -e "For furthermore info visit https://zeroincombenze-tools.readthedocs.io/"
 fi
-
-
-
