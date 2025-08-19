@@ -62,6 +62,8 @@ def expand_macro(line, section, ctx):
                 "14": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
                 "15": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
                 "16": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
+                "17": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
+                "18": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
             }.get(branch, line)
     elif section == "env.matrix":
         if (

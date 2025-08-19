@@ -1,4 +1,4 @@
-2.0.11 (2025-08-01)
+2.0.11 (2025-08-19)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi
@@ -87,3 +87,4 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Stable version
+* [QUA] Test coverage 67% (271: 90+181) [0 TestPoints] - quality rating 40 (target 100)

@@ -776,6 +776,10 @@ get_pyver_4_odoo() {
     fi
 }
 
+msg_python_ver() {
+    echo "Build python $1"
+}
+
 process_yaml() {
   # process_yaml ()
   local sts=$STS_SUCCESS
@@ -842,7 +846,7 @@ process_yaml() {
     for TRAVIS_PYTHON_VERSION in $python_matrix; do
       [[ $sts -eq $STS_SUCCESS ]] || break
       echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-      wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[0m"
+      wlog "\e[${PS_HDR1_COLOR}m===== [$(msg_python_ver $TRAVIS_PYTHON_VERSION)] =====\e[0m"
       set_pybin $TRAVIS_PYTHON_VERSION "PYTHON_VERSION"
       TRAVIS_PYVER_1=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]" | head -n1)
       TRAVIS_PYVER_2=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo "[0-9]\.[0-9]" | head -n1)
@@ -1267,11 +1271,18 @@ if [[ $sts -eq $STS_SUCCESS ]]; then
             echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
             process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $TMP_LOGFILE
             sts=$?
+#            set -x  #debug
+#            x="$(grep \"$(msg_python_ver '[23]\.[0-9][0-9]*')\" $TMP_LOGFILE|tail -n1)"
+#            if $(grep -q "$x" $LOGFILE); then
+#                cat $TMP_LOGFILE >> $LOGFILE
+#            else
             if [[ -f "$LOGFILE" && $LOGFILE != $OLD_LOGFILE ]]; then
                 [[ -f $OLD_LOGFILE ]] && rm -f $OLD_LOGFILE
                 mv -f $LOGFILE $OLD_LOGFILE
             fi
             mv -f $TMP_LOGFILE $LOGFILE
+#            fi
+#            set +x  #debug
             $0 wep-db &>/dev/null
             travis_status "$LOGFILE"
             sts=$?

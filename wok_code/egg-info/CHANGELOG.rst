@@ -1,4 +1,4 @@
-2.0.23 (2025-08-14)
+2.0.23 (2025-08-19)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] arcangelo became a pypi package
@@ -284,3 +284,4 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Refactoring
+* [QUA] Test coverage 12% (6360: 5605+755) [0 TestPoints] - quality rating 9 (target 100)
