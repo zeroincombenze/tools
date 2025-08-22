@@ -55,7 +55,6 @@ NEEDING_PKGS="configparser future python_plus z0lib"
 # SUP_PKGS="future python-plus"
 EI_PKGS="(distribute)"
 BZR_PKGS="(aeroolib)"
-# WGET_PKGS="(pychart|python-chart)"
 WGET_PKGS="(_FAULT_)"
 GIT_PKGS="(openupgradelib|prestapyt)"
 PYBIN_PKGS="(dateutil|ldap|openid)"
@@ -532,12 +531,12 @@ pip_install() {
       if [[ -d $vpkg && $vpkg =~ /tools/ ]]; then
         pip_install_tools "$vpkg"
         sts=$?
-        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info) -C"
+        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info -C"
       else
         [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
         run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
         sts=$?
-        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info) -C"
+        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info -C"
       fi
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi

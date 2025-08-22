@@ -1105,14 +1105,14 @@ link_cfg_def() {
   x=$(readlink -f $HOME_DEVEL/../tools)
   [[ -n $x ]] && LOCAL_PKGS=$(for f in $(find $x -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
   [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(for f in $(find $HOME_DEVEL/pypi -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
-  [[ -z $LOCAL_LOCAL_PKGS ]] && LOCAL_PKGS="arcangelo clodoo odoo_score python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
+  [[ -z $LOCAL_PKGS ]] && LOCAL_PKGS="arcangelo clodoo odoo_score python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
   LOCAL_PKGS=$(echo $LOCAL_PKGS)
   CFG_set "LOCAL_PKGS" "$LOCAL_PKGS"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
   CFG_set "DEV_SVG" "$HOME_DEVEL/svg"
   CFG_set "HTML_DOCS_DIR" "/var/www/html/mw/html"
   CFG_set "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
-  CFG_set "PYTHON_MATRIX" "(2.7|3.6|3.7|3.8|3.9)"
+  CFG_set "PYTHON_MATRIX" "(2.7|3.7|3.8|3.9|3.10|3.11|3.12|3.13)"
   CFG_set "distpath" "$(readlink -f $HOME_DEVEL/..)/tools/\${pkgname}"
   [[ -z $DIST_CONF ]] && DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
   [[ -z $TCONF ]] && TCONF="$HOME/.z0tools.conf"
@@ -1396,10 +1396,10 @@ is_odoo_module() {
 is_pypi() {
     local x
     [[ -z $1 ]] && return 1
-    [[ ( -f $1/setup.py || -f $1/../setup.py ) && -f $1/__init__.py && ( -d $1/egg-info || -f $1/oerp.py ) ]] && return 0
-    x=$(get_cfg_value "" "LOCAL_PKGS")
-    x="(${x// /|})"
-    [[ $(basename $1) =~ $x && $(basename $(dirname $1)) == "local" ]] && return 0
+    [[ ( -f $1/setup.py || -f $1/../setup.py ) && -f $1/__init__.py ]] && return 0
+    # x=$(get_cfg_value "" "LOCAL_PKGS")
+    # x="(${x// /|})"
+    # [[ $(basename $1) =~ $x && $(basename $(dirname $1)) == "local" ]] && return 0
     return 1
 }
 
@@ -1428,8 +1428,12 @@ get_value_from_setup() {
 repos_tools_params() {
     if [[ -z "$_SETUP" && -f "$1/setup.py" ]]; then
       _SETUP="$1/setup.py"
-      [[ -z "$_PKGPATH" ]] && _PKGPATH=$1
-      [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $1)
+      _PKGPATH="$1"
+      _PKGNAME=$(basename "$1")
+      _REPOS="tools"
+    elif [[ ! -f $x/setup.py ]]; then
+      _PRJPATH="$1"
+      _PRJNAME=$(basename "$1")
     fi
 }
 
@@ -1468,13 +1472,10 @@ get_pypi_param() {
     _SETUP=$w
   fi
   INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|travis|_travis|__to_remove|__unported__)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $ODOO_ROOT && $x != "/" ]]; do
+  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $ODOO_ROOT && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
     if $(is_pypi "$x"); then
-      _PRJNAME=$(basename $x)
-      _PKGNAME=$(basename $x)
-      _PRJPATH=$x
-      _REPOS="tools"
+      repos_tools_params "$x"
     elif $(is_odoo_module "$x"); then
       _PRJNAME="Odoo"
       _PKGNAME=$(basename $x)
@@ -1486,31 +1487,31 @@ get_pypi_param() {
       _REPOS="OCB"
       break
     elif $(is_repos "$x"); then
-      [[ -z $_PRJNAME || $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
+      # [[ -z $_PRJNAME || $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
       _REPOS=$(basename $x)
-      repos_tools_params "$x"
-      [[ -z $_PKGNAME ]] && _PKGNAME=$_REPOS
+      # repos_tools_params "$x"
+      # [[ -z $_PKGNAME ]] && _PKGNAME=$_REPOS
       break
-    elif [[ $_REPOS = "tools" ]]; then
-      repos_tools_params "$x"
-      [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
-      break
-    elif [[ ! $r =~ $INV_MODS ]]; then
-      [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
-      [[ -z "$_PRJNAME" ]] && _PRJNAME=$(basename $x)
-      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || $(basename $(dirname $x)) != $(basename $x)) ]]; then
-        _SETUP="$x/setup.py"
-        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
-        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
-        if [[ $_PRJNAME != "Odoo" ]]; then
-          [[ $x != $ODOO_ROOT && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
-        fi
-        break
-      elif [[ -z "$_REPOS" ]]; then
-        _REPOS=$(basename $x)
-      fi
+#    elif [[ $_REPOS = "tools" ]]; then
+#      repos_tools_params "$x"
+#      [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
+#      break
+#    elif [[ ! $r =~ $INV_MODS ]]; then
+#      [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
+#      [[ -z "$_PRJNAME" ]] && _PRJNAME=$(basename $x)
+#      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || $(basename $(dirname $x)) != $(basename $x)) ]]; then
+#        _SETUP="$x/setup.py"
+#        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
+#        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
+#        if [[ $_PRJNAME != "Odoo" ]]; then
+#          [[ $x != $ODOO_ROOT && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+#        fi
+#        break
+#      elif [[ -z "$_REPOS" ]]; then
+#        _REPOS=$(basename $x)
+#      fi
     fi
-    [[ $x != $ODOO_ROOT && $x != "/" ]] && x=$(readlink -e $x/..) || x=
+    [[ $x != $ODOO_ROOT && $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
   done
   if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
     r=$(get_value_from_setup "$_SETUP" "name")

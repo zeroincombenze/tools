@@ -9,7 +9,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.0
+# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -33,6 +33,8 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -193,52 +195,52 @@ git_clone_ocb() {
     done
   fi
 }
-
-set_pythonpath() {
-  # set_pythonpath(toolspath sitecustomize PIP)
-  local TOOLS_PATH="${1//,/ }"
-  TOOLS_PATH="${TOOLS_PATH//:/ }"
-  local FSITE=$2
-  local pth PYLIB
-  PYLIB=$(echo -e "import os,sys\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  print(x);break"|python)
-  if [[ -n "$PYLIB" ]]; then
-    if [[ -n "$TOOLS_PATH" && -w $PYLIB ]]; then
-      if [[ -f $PYLIB/sitecustomize.py ]]; then
-        if grep -q "import sys" $PYLIB/sitecustomize.py; then
-          :
-        else
-          echo 'import sys' >>$PYLIB/sitecustomize.py
-        fi
-      else
-        echo 'import sys' >$PYLIB/sitecustomize.py
-      fi
-      for pth in $TOOLS_PATH; do
-        if grep -q "if '$pth' not in sys.path" $PYLIB/sitecustomize.py; then
-          :
-        else
-          echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >>$PYLIB/sitecustomize.py
-        fi
-        if echo ":$PYTHONPATH": | grep -q ":$pth:"; then
-          x=${PYTHONPATH//$pth/}
-          export PYTHONPATH=${x//::/:}
-        fi
-      done
-      [[ ${PYTHONPATH:0:1} == ":" ]] && export $PYTHONPATH=${PYTHONPATH:1}
-    fi
-    if [[ -n "$FSITE" && -f $FSITE && -w $PYLIB ]]; then
-      if [[ -f $PYLIB/sitecustomize.py ]]; then
-        if grep -q "import sys" $PYLIB/sitecustomize.py; then
-          run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
-        else
-          run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
-        fi
-      else
-        run_traced "cp $FSITE $PYLIB"
-      fi
-      export PYTHONPATH=
-    fi
-  fi
-}
+#
+#set_pythonpath() {
+#  # set_pythonpath(toolspath sitecustomize PIP)
+#  local TOOLS_PATH="${1//,/ }"
+#  TOOLS_PATH="${TOOLS_PATH//:/ }"
+#  local FSITE=$2
+#  local pth PYLIB
+#  PYLIB=$(echo -e "import os,sys\nfor x in sys.path:\n if os.path.basename(x)=='site-packages':\n  print(x);break"|python)
+#  if [[ -n "$PYLIB" ]]; then
+#    if [[ -n "$TOOLS_PATH" && -w $PYLIB ]]; then
+#      if [[ -f $PYLIB/sitecustomize.py ]]; then
+#        if grep -q "import sys" $PYLIB/sitecustomize.py; then
+#          :
+#        else
+#          echo 'import sys' >>$PYLIB/sitecustomize.py
+#        fi
+#      else
+#        echo 'import sys' >$PYLIB/sitecustomize.py
+#      fi
+#      for pth in $TOOLS_PATH; do
+#        if grep -q "if '$pth' not in sys.path" $PYLIB/sitecustomize.py; then
+#          :
+#        else
+#          echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >>$PYLIB/sitecustomize.py
+#        fi
+#        if echo ":$PYTHONPATH": | grep -q ":$pth:"; then
+#          x=${PYTHONPATH//$pth/}
+#          export PYTHONPATH=${x//::/:}
+#        fi
+#      done
+#      [[ ${PYTHONPATH:0:1} == ":" ]] && export $PYTHONPATH=${PYTHONPATH:1}
+#    fi
+#    if [[ -n "$FSITE" && -f $FSITE && -w $PYLIB ]]; then
+#      if [[ -f $PYLIB/sitecustomize.py ]]; then
+#        if grep -q "import sys" $PYLIB/sitecustomize.py; then
+#          run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
+#        else
+#          run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
+#        fi
+#      else
+#        run_traced "cp $FSITE $PYLIB"
+#      fi
+#      export PYTHONPATH=
+#    fi
+#  fi
+#}
 
 install_n_activate_tools() {
     local x
@@ -392,17 +394,17 @@ if [[ $opt_verbose -gt 1 ]]; then
   fi
 fi
 # Build secure environment (python2)
-echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
-for p in build-essential libssl-dev libffi-dev; do
-  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-  [[ $? -ne 0 ]] && run_traced "$LISA install $p" "nolocal"
-done
-if [[ $TRAVIS != "false" ]]; then
-  for p in urllib3[secure] cryptography idna certifi; do
-    run_traced "$VEM update \"$p\"" "nolocal"
-  done
-  [[ "$MQT_TEST_MODE" == "tools" ]] && run_traced "$VEM update \"pyOpenSSL\"" "nolocal"
-fi
+#echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
+#for p in build-essential libssl-dev libffi-dev; do
+#  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
+#  [[ $? -ne 0 ]] && run_traced "$LISA install $p" "nolocal"
+#done
+#if [[ $TRAVIS != "false" ]]; then
+#  for p in urllib3[secure] cryptography idna certifi; do
+#    run_traced "$VEM update \"$p\"" "nolocal"
+#  done
+#  [[ "$MQT_TEST_MODE" == "tools" ]] && run_traced "$VEM update \"pyOpenSSL\"" "nolocal"
+#fi
 # coverage_ensure_installed
 
 [[ -z "${VERSION}" ]] && VERSION="$opt_branch"

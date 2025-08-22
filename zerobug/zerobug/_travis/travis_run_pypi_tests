@@ -11,7 +11,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.0
+# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -35,6 +35,8 @@ TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
 
+# DIST_CONF=$(findpkg ".z0tools.conf" "$PYPATH")
+# TCONF="$HOME/.z0tools.conf"
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -125,7 +127,7 @@ please_test_flake8() {
 _please_test_flake8() {
     echo "======== Testing test_flake8 ========"
     local opts s sts x
-    sts=0    
+    sts=0
     run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../_travis/cfg)"
     [[ -z "$FLAKE8_CONFIG_DIR" ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $TDIR/../travis/cfg)"
     if [[ -z $FLAKE8_CONFIG_DIR && -n $HOME_DEVEL ]]; then
@@ -203,7 +205,7 @@ _please_test_pylint() {
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
       [[ -n $x ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
     fi
-    [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1    
+    [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1
     if [[ ${opt_dry_run:-0} -eq 0 ]]; then
       if [[ $PRJNAME == "Odoo" ]]; then
         PYLINT_CONFIG=${PYLINT_CONFIG_DIR}/travis_run_pylint_beta.cfg
@@ -304,52 +306,52 @@ do_test () {
     fi
     return $sts
 }
-
-set_pythonpath() {
-# set_pythonpath(path file PIP)
-    local PYPATH="${1//,/ }"
-    PYPATH="${PYPATH//:/ }"
-    local FSITE=$2
-    local PIP=${3:-pip}
-    local pth PYLIB x
-    if [[ -n "$PYPATH" || -n "$FSITE" ]]; then
-        PYLIB=$(dirname $($PIP --version | grep --color=never -Eo "from [^ ]+" | awk '{print $2}'))
-        if [ -z "$PYLIB" ]; then
-            PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
-        fi
-    fi
-    if [ -n "$PYLIB" ]; then
-        if [ -f $PYLIB/sitecustomize.py ]; then
-            if grep -q "import sys" $PYLIB/sitecustomize.py; then
-                :
-            else
-                echo 'import sys' >> $PYLIB/sitecustomize.py
-            fi
-        else
-            echo 'import sys' > $PYLIB/sitecustomize.py
-        fi
-        for pth in $PYPATH; do
-            echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
-            if echo ":$PYTHONPATH": | grep -q ":$pth:"; then
-                x=${PYTHONPATH//$pth/}
-                export $PYTHONPATH = ${x//::/:}
-            fi
-        done
-        [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH = ${PYTHONPATH:1}
-        if [[ -n "$FSITE" && -f $FSITE ]]; then
-            if [ -f $PYLIB/sitecustomize.py ]; then
-                if grep -q "import sys" $PYLIB/sitecustomize.py; then
-                    run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
-                else
-                    run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
-                fi
-            else
-                run_traced "cp $FSITE $PYLIB"
-            fi
-            export PYTHONPATH=
-        fi
-    fi
-}
+#
+#set_pythonpath() {
+## set_pythonpath(path file PIP)
+#    local PYPATH="${1//,/ }"
+#    PYPATH="${PYPATH//:/ }"
+#    local FSITE=$2
+#    local PIP=${3:-pip}
+#    local pth PYLIB x
+#    if [[ -n "$PYPATH" || -n "$FSITE" ]]; then
+#        PYLIB=$(dirname $($PIP --version | grep --color=never -Eo "from [^ ]+" | awk '{print $2}'))
+#        if [ -z "$PYLIB" ]; then
+#            PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
+#        fi
+#    fi
+#    if [ -n "$PYLIB" ]; then
+#        if [ -f $PYLIB/sitecustomize.py ]; then
+#            if grep -q "import sys" $PYLIB/sitecustomize.py; then
+#                :
+#            else
+#                echo 'import sys' >> $PYLIB/sitecustomize.py
+#            fi
+#        else
+#            echo 'import sys' > $PYLIB/sitecustomize.py
+#        fi
+#        for pth in $PYPATH; do
+#            echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
+#            if echo ":$PYTHONPATH": | grep -q ":$pth:"; then
+#                x=${PYTHONPATH//$pth/}
+#                export $PYTHONPATH = ${x//::/:}
+#            fi
+#        done
+#        [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH = ${PYTHONPATH:1}
+#        if [[ -n "$FSITE" && -f $FSITE ]]; then
+#            if [ -f $PYLIB/sitecustomize.py ]; then
+#                if grep -q "import sys" $PYLIB/sitecustomize.py; then
+#                    run_traced "tail $FSITE -n -1 >> $PYLIB/sitecustomize.py"
+#                else
+#                    run_traced "cat $FSITE >> $PYLIB/sitecustomize.py"
+#                fi
+#            else
+#                run_traced "cp $FSITE $PYLIB"
+#            fi
+#            export PYTHONPATH=
+#        fi
+#    fi
+#}
 
 check_pythonpath() {
 # check_pythonpath(path python)
@@ -412,6 +414,7 @@ opts_travis
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 init_travis
+# prepare_env_travis
 prepare_env_travis
 
 sts=0
@@ -471,7 +474,7 @@ if [[ $PRJNAME == "Odoo" ]]; then
     [[ -d $(dirname $p)/oca$x/venv_odoo ]] && VDIR="$(dirname $p)/oca$x/venv_odoo"
     [[ -d $(dirname $p)/odoo$x/venv_odoo ]] && VDIR="$(dirname $p)/odoo$x/venv_odoo"
   fi
-fi  
+fi
 sts_bash=127
 sts_flake8=127
 sts_pylint=127

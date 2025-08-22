@@ -32,7 +32,7 @@ else:
         [
             "future",
             "coverage",
-            "pylint-odoo<=3.5.0",
+            "pylint-odoo<=3.10.0",
             "python-magic",
             "python-plus",
             "z0lib>=2.0.14",

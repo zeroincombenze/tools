@@ -42,6 +42,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "RUNDIR=$RUNDIR"
 
+
 CFG_init "ALL"
 link_cfg_def
 link_cfg $DIST_CONF $TCONF
@@ -201,6 +202,7 @@ process_yaml_do() {
   fi
   if [[ $YML_sect == "python" ]]; then
     python_ver_yaml="$lne $python_ver_yaml"
+    python_ver_yaml=$(echo $python_ver_yaml)
     lne="#"
   elif [[ $YML_sect == "addons.apt.packages" ]]; then
     YML_packages="$YML_packages $lne"
@@ -472,7 +474,7 @@ process_yaml_before_install() {
       fi
       process_yaml_run_cmd "$line"
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-      [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement failed!\e[${PS_TXT_COLOR}m"
+      [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement <<$(process_yaml_quote_xtl \"$line\")>>failed!\e[${PS_TXT_COLOR}m"
     done
     [[ -n $opt_tafter && ::addons.apt.package =~ $opt_tafter ]] && debug_shell
   fi
@@ -484,7 +486,7 @@ process_yaml_before_install() {
       [[ $TRAVIS_DEBUG_MODE -ge 3 ]] && echo "#> $(process_yaml_quote_xtl $lne)"
       process_yaml_run_cmd "$lne"
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-      [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement failed!\e[${PS_TXT_COLOR}m"
+      [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement <<$(process_yaml_quote_xtl \"$lne\")>>failed failed!\e[${PS_TXT_COLOR}m"
     done
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
@@ -784,9 +786,10 @@ process_yaml() {
   # process_yaml ()
   local sts=$STS_SUCCESS
   local i s p v X x
-  local line lne line1 lne1
+  local line lne line1 lne1 python_matrix ymtrx
   load_colors
   export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
+  export TRAVIS_BRANCH=$(git branch --list|grep "^\* "|cut -d" " -f2|head -n1|tr -d "\n")
   if [[ -n $opt_fyaml ]]; then
       export TRAVIS_YAML_FILE=$opt_fyaml
   else
@@ -818,32 +821,28 @@ process_yaml() {
   process_yaml_file "$TRAVIS_YAML_FILE"
   unset PYTHONPATH
   sts=$STS_SUCCESS
-
   if [[ $sts -eq $STS_SUCCESS ]]; then
     [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
-    [[ -z "$python_ver_yaml" ]] && python_ver_yaml="3.12 3.11 3.10 3.9 3.8 3.7 2.7"
-    if [[ -n $opt_pyv ]]; then
-      TRAVIS_PYTHON_MATRIX="${opt_pyv//,/ }"
-      python_ver_yaml="$TRAVIS_PYTHON_MATRIX"
-    elif [[ $PRJNAME == "Odoo" ]]; then
+    if [[ $PRJNAME == "Odoo" ]]; then
       TRAVIS_PYTHON_MATRIX=$(get_pyver_4_odoo $BRANCH)
     else
       TRAVIS_PYTHON_MATRIX=""
-      for v in "3.12 3.11" "3.10" "3.9" "3.8" "3.7" "2.7"; do
-          grep -q "^ *.Programming Language :: Python :: $v" $PKGPATH/setup.py && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX|$v"
+      for v in "3.13" "3.12" "3.11" "3.10" "3.9" "3.8" "3.7" "2.7"; do
+          grep -q "^ *.Programming Language :: Python :: $v" $PKGPATH/setup.py && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX,$v"
       done
-      TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX:1}"
     fi
-    TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX//,/|}"
-    TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX// /|}"
-    [[ $TRAVIS_PYTHON_MATRIX =~ ^\( ]] || TRAVIS_PYTHON_MATRIX="($TRAVIS_PYTHON_MATRIX)"
-    python_matrix=""
-    for v in $python_ver_yaml; do
-      [[ $v =~ $TRAVIS_PYTHON_MATRIX ]] && python_matrix="$python_matrix $v"
+    [[ ${TRAVIS_PYTHON_MATRIX:0:1} == "," ]] && TRAVIS_PYTHON_MATRIX="${TRAVIS_PYTHON_MATRIX:1}"
+    [[ -n $opt_pyv ]] && x="$opt_pyv"
+    [[ -z $opt_pyv ]] && x="${TRAVIS_PYTHON_MATRIX//,/ }"
+    python_matrix="(${TRAVIS_PYTHON_MATRIX//,/|})"
+    [[ -n $python_ver_yaml ]] && ymtrx="(${python_ver_yaml// /|})"
+    [[ -z $python_ver_yaml ]] && ymtrx=".*"
+    TRAVIS_PYTHON_MATRIX=""
+    for v in $x; do
+      [[ $v =~ $python_matrix && $v =~ $ymtrx ]] && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX $v"
     done
-    [[ -n $python_matrix ]] || python_matrix=$(get_pyver_4_odoo $BRANCH)
-
-    for TRAVIS_PYTHON_VERSION in $python_matrix; do
+    [[ -z $TRAVIS_PYTHON_MATRIX ]] && echo -e "${RED}No valid python version declared! Use $python_matrix${CLR}"
+    for TRAVIS_PYTHON_VERSION in $TRAVIS_PYTHON_MATRIX; do
       [[ $sts -eq $STS_SUCCESS ]] || break
       echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
       wlog "\e[${PS_HDR1_COLOR}m===== [$(msg_python_ver $TRAVIS_PYTHON_VERSION)] =====\e[0m"
@@ -912,7 +911,6 @@ process_yaml() {
           fi
           [[ -n "$X" || $p =~ PATH ]] && wlog "\e[${PS_NOP_COLOR}m\$ $p=$X\e[0m"
         done
-
         if [[ $sts -eq $STS_SUCCESS ]]; then
           process_yaml_defaults
           s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
@@ -1096,9 +1094,9 @@ elif [[ $action == "parseyaml" ]]; then
   check_4_travis
   if [[ -z "$sub" ]]; then
     sub=$PRJPATH/.travis.yml
-    if [[ ! -f $sub ]]; then
-      sub=$TOOLS_PATH/travis.yml
-    fi
+#    if [[ ! -f $sub ]]; then
+#      sub=$TOOLS_PATH/travis.yml
+#    fi
   fi
   process_yaml_file "$sub"
 

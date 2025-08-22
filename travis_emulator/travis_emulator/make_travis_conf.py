@@ -27,21 +27,18 @@ def expand_macro(line, section, ctx):
     branch = ctx["TRAVIS_BRANCH"].split(".")[0]
     if re.match(r"^ *#", line) or not line.strip():
         pass
-    elif ctx["PRJNAME"] == "Odoo" and section == "python":
-        if (
-            (re.match(r"^ *\- *[\"']?3", line)
-             and ctx["TRAVIS_PYTHON_VERSION"].startswith("2"))
-            or (re.match(r"^ *\- *[\"']?2", line)
-                and ctx["TRAVIS_PYTHON_VERSION"].startswith("3"))
-        ):
-            line = comment_line(line)
+    # elif ctx["PRJNAME"] == "Odoo" and section == "python":
+    #     if (
+    #         (re.match(r"^ *\- *[\"']?3", line)
+    #          and ctx["TRAVIS_PYTHON_VERSION"].startswith("2"))
+    #         or (re.match(r"^ *\- *[\"']?2", line)
+    #             and ctx["TRAVIS_PYTHON_VERSION"].startswith("3"))
+    #     ):
+    #         line = comment_line(line)
     elif section == "before_install":
         if re.match(r"^ *\- \$HOME/tools/install_tools.sh", line):
             verbose = "q" if int(ctx["TRAVIS_DEBUG_MODE"]) < 3 else "vv"
-            if ctx["TRAVIS_PYTHON_VERSION"].startswith("2"):
-                line = "  - $HOME/tools/install_tools.sh -%spt2" % verbose
-            else:
-                line = "  - $HOME/tools/install_tools.sh -%spt" % verbose
+            line = "  - $HOME/tools/install_tools.sh -%spt" % verbose
     elif section == "install":
         if re.match(r"^ *\- travis_install_env", line):
             if ctx["PRJNAME"] == "Odoo":
@@ -77,8 +74,8 @@ def expand_macro(line, section, ctx):
         if re.match(r"^ *\- travis_run", line):
             if ctx["PRJNAME"] == "Odoo":
                 line = "  - travis_run_tests"
-            elif ctx["REPOSNAME"] == "tools" and ctx["PRJNAME"] == "tools":
-                line = "  - cd $MODULE_PATH; travis_run_pypi_tests"
+            elif ctx["REPOSNAME"] == "tools":
+                line = "  - cd $MODULE_PATH && travis_run_pypi_tests"
             else:
                 line = "  - travis_run_pypi_tests"
     return line
@@ -99,23 +96,24 @@ def make_travis_conf(cli_args=None):
     tgt = cli_args[1]
     ctx = {
         "PKGNAME": os_env("PKGNAME", os.path.basename(os.getcwd())),
+        "PKGPATH": os_env("PKGPATH"),
         "PRJNAME": os_env("PRJNAME"),
         "REPOSNAME": os_env("REPOSNAME"),
         "TRAVIS_BRANCH": os_env("TRAVIS_BRANCH", os_env("BRANCH")),
         "TRAVIS_DEBUG_MODE": os_env("TRAVIS_DEBUG_MODE", "0"),
         "TRAVIS_BUILD_DIR": os_env("TRAVIS_BUILD_DIR", os.getcwd()),
-        "TRAVIS_PYTHON_VERSION": os_env("TRAVIS_PYTHON_VERSION"),
+        # "TRAVIS_PYTHON_VERSION": os_env("TRAVIS_PYTHON_VERSION"),
         "TRAVIS_REPO_SLUG":
             os_env("TRAVIS_REPO_SLUG", "local/%s" % os.path.basename(os.getcwd())),
     }
-    odoo_major = ctx["TRAVIS_BRANCH"].split(".")[0]
-    ctx["GIT_ORG"] = "zeroincombenze"
-    if odoo_major.isdigit():
-        odoo_major = eval(odoo_major)
-        ctx["ODOO_MAIN_VERSION"] = odoo_major
-        ctx["TRAVIS_PYTHON_VERSION"] = get_pyver_4_odoo(odoo_major)
-    else:
-        ctx["ODOO_MAIN_VERSION"] = 0
+    # odoo_major = ctx["TRAVIS_BRANCH"].split(".")[0]
+    # ctx["GIT_ORG"] = "zeroincombenze"
+    # if odoo_major.isdigit():
+    #     odoo_major = eval(odoo_major)
+    #     ctx["ODOO_MAIN_VERSION"] = odoo_major
+    #     ctx["TRAVIS_PYTHON_VERSION"] = get_pyver_4_odoo(odoo_major)
+    # else:
+    #     ctx["ODOO_MAIN_VERSION"] = 0
 
     contents = section = ""
     with open(src, "r") as fd:

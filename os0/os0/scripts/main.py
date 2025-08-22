@@ -24,50 +24,94 @@ import sys
 
 __version__ = "2.0.1"
 
+PKG_FILES = (
+    "bck_filestore.sh",
+    "clodoo",
+    "force_password.sh",
+    "odooctl",
+    "odoorc",
+    "set_workers",
+    "travis",
+    "travisrc",
+    "xuname",
+    "z0librc"
+)
+BIN_FILES = (
+    "bck_filestore.sh",
+    "force_password.sh",
+    "odooctl",
+    "list_requirements.py",
+    "set_workers",
+    "travis",
+    "xuname",
+)
 
-def get_pypi_info(pypi):   # pragma: no cover
+
+def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
+    if base == "clodoo":
+        fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, "odoorc")
+        if fn:
+            fn = pth.dirname(fn)
+        return fn
+    fn = pth.abspath(pth.join(
+        pypi_metadata["libpath"],
+        pkg_resources.resource_filename(pypi, base)))
+    if not pth.isfile(fn) and not pth.isdir(fn):
+        fn = ""
+    return fn
+
+
+def get_fn_from_base_3(metadata, pypi, base):
+    if base == "clodoo":
+        fn = get_fn_from_base_3(metadata, pypi, "odoorc")
+        if fn:
+            fn = pth.dirname(fn)
+        return fn
+    fn = ""
+    util = [p for p in metadata.files(pypi) if pth.basename(str(p)) == base]
+    if util:
+        fn = pth.abspath(str(util[0].locate()))
+    return fn
+
+
+def get_pypi_info(pypi):
     pypi_metadata = {
         "name": pypi,
         "version": False,
         "long_description": __doc__,
         "requires": [],
         "package_data": [],
+        "bin_files": [],
         "libpath": __file__,
     }
     while (pth.basename(pypi_metadata["libpath"]) not in (
-            "site-packages", "bin", "lib")):
+            "site-packages", "bin", "lib", "pypi")):
         pypi_metadata["libpath"] = pth.dirname(pypi_metadata["libpath"])
     if sys.version_info[0] == 2:
         import pkg_resources
         pypi_metadata["version"] = pkg_resources.get_distribution(pypi).version
-        # TODO> compatibility mode to remove early
-        for base in ("z0librc", "odoorc", "odooctl", "travisrc"):
-            fn = pth.join(
-                pypi_metadata["libpath"],
-                pkg_resources.resource_filename(pypi, base))
-            if pth.isfile(fn):
+        for base in PKG_FILES:
+            fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base)
+            if fn:
                 pypi_metadata["package_data"].append(fn)
-                if base == "odoorc":
-                    pypi_metadata["package_data"].append(pth.dirname(fn))
-                elif base == "travisrc":
-                    pypi_metadata["package_data"].append(
-                        pth.join(pth.dirname(fn), "travis"))
+        for base in BIN_FILES:
+            fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base)
+            if fn:
+                pypi_metadata["bin_files"].append(fn)
     else:
         if sys.version_info < (3, 8):
             import importlib_metadata as metadata
         else:
             from importlib import metadata
         pypi_metadata["version"] = metadata.version(pypi)
-        for base in ("z0librc", "odoorc", "odooctl", "travisrc"):
-            util = [p for p in metadata.files(pypi) if base in str(p)]
-            if util:
-                fn = str(util[0].locate())
+        for base in PKG_FILES:
+            fn = get_fn_from_base_3(metadata, pypi, base)
+            if fn:
                 pypi_metadata["package_data"].append(fn)
-                if base == "odoorc":
-                    pypi_metadata["package_data"].append(pth.dirname(fn))
-                elif base == "travisrc":
-                    pypi_metadata["package_data"].append(
-                        pth.join(pth.dirname(fn), "travis"))
+        for base in BIN_FILES:
+            fn = get_fn_from_base_3(metadata, pypi, base)
+            if fn:
+                pypi_metadata["bin_files"].append(fn)
     return pypi_metadata
 
 
@@ -98,11 +142,16 @@ def copy_pkg_data(pypi_metadata, verbose):  # pragma: no cover
         for fqn in pypi_metadata.get("package_data"):
             base = pth.basename(fqn)
             tgt_fqn = pth.join(bin_path, base)
-            if pth.exists(fqn):
-                if pth.islink(tgt_fqn):
-                    os.unlink(tgt_fqn)
-                print("$ ln -s %s %s" % (fqn, tgt_fqn))
-            os.symlink(fqn, tgt_fqn)
+            if pth.exists(fqn) and pth.islink(tgt_fqn):
+                os.unlink(tgt_fqn)
+            if pth.exists(fqn) and not pth.exists(tgt_fqn):
+                if verbose:
+                    print("$ ln -s %s %s" % (fqn, tgt_fqn))
+                os.symlink(fqn, tgt_fqn)
+    for fqn in pypi_metadata.get("bin_files"):
+        if verbose:
+            print("$ chmod +x %s" % fqn)
+        os.system("chmod +x %s" % fqn)
 
 
 def main(cli_args=None):  # pragma: no cover
@@ -115,7 +164,6 @@ def main(cli_args=None):  # pragma: no cover
             action = arg
         elif arg == "-v":
             verbose = True
-    # setup_args = read_setup()
     pypi_metadata = get_metadata()
     if action == "-h":
         print(

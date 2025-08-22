@@ -183,8 +183,6 @@ from past.builtins import basestring
 #     except ImportError:
 #         raise ImportError("Package oerplib3 not found!")
 
-# from passlib.context import CryptContext
-# from os0 import os0
 from python_plus import _c, _u, str2bool
 
 try:

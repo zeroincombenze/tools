@@ -63,7 +63,7 @@ run_traced() {
     return $sts
 }
 
-set_hashbang() {
+set_shebang() {
     local d f
     d=$(find $1 \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
     for f in $d; do
@@ -93,13 +93,16 @@ GREEN="\e[32m"
 CLR="\e[0m"
 
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
+[[ $opts =~ ^-.*t ]] && echo "$PMPT $0"
 [[ -d $TDIR/zerobug && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
-[[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
+[[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../zerobug && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
 [[ -z "$SRCPATH" && -d $HOME/tools ]] && SRCPATH=$HOME/tools
-[[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
+[[ -z "$SRCPATH" || ! -d $SRCPATH || ! -d $SRCPATH/zerobug || ! -d $SRCPATH/z0lib ]] && echo "# Environment not found! No tools path found" && exit 1
 [[ -d $SRCPATH/zerobug/zerobug && -d $SRCPATH/wok_code/wok_code && -d $SRCPATH/z0lib/z0lib && ! $opts =~ ^-.*d ]] && echo "# Source environment is devel: please use -d switch!" && exit 1
 [[ $opts =~ ^-.*d && $opts =~ ^-.*U ]] && echo "# Switches -d and -U are mutually exclusive!" && exit 1
+[[ $opts =~ ^-.*o ]] && echo "# WARNING! The switch -o is not more supported!"
+[[ $opts =~ ^-.*T ]] && echo "# WARNING! The switch -T is deprecated!"
 
 [[ ! $opts =~ ^-.*p && ! $opts =~ ^-.*t && -n $HOME_DEVEL && -f $HOME_DEVEL ]] && DSTPATH=$HOME_DEVEL
 [[ ! $opts =~ ^-.*t && -z "$DSTPATH" && $(basename $SRCPATH) =~ (pypi|tools) ]] && DSTPATH="$(readlink -f $(dirname $SRCPATH)/devel)"
@@ -122,9 +125,8 @@ fi
 
 [[ $opts =~ ^-.*v && ! $opts =~ ^-.*D ]] && echo -e "${GREEN}# Installing tools from $SRCPATH to $DSTPATH ...${CLR}"
 [[ $opts =~ ^-.*v && $opts =~ ^-.*D ]] && echo -e "${GREEN}# Creating development environment $DEVELPATH ...${CLR}"
-[[ $opts =~ ^-.*v ]] && echo "# Virtual environment is $LOCAL_VENV ..."
+[[ $opts =~ ^-.*v ]] && echo -e "# Virtual environment is ${GREEN}$LOCAL_VENV${CLR} ..."
 [[ $opts =~ ^-.*n ]] || find $SRCPATH -name "*.pyc" -delete
-[[ $opts =~ ^-.*o ]] && echo -e "${RED}# WARNING! The switch -o is not more supported!${CLR}"
 
 [[ -x $SRCPATH/python_plus/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/python_plus/scripts/vem.sh"
 [[ -z "$VEM" && -x $SRCPATH/python_plus/scripts/vem.sh ]] && VEM="$SRCPATH/python_plus/scripts/vem.sh"
@@ -140,8 +142,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
     done
 fi
 
-# Chose python version to use: if _t supplied, python version MUST be the same of the
-# current python
+# Chose python version to use: if -t supplied, python version MUST be the same of the current python
 VPYVER="0.0"
 [[ -x $LOCAL_VENV/python ]] && VPYVER=$($LOCAL_VENV/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ -x $LOCAL_VENV/bin/python ]] && VPYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
@@ -180,6 +181,7 @@ if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*vv ]] && x="-vviDBB"
+    [[ $opts =~ ^-.*d ]] && x="${x}B"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
     run_traced "$VEM create $LOCAL_VENV -p$PYVER $x -f"
     [[ $? -ne 0 ]] && echo -e "${RED}# Error creating Tools virtual environment!${CLR}" && exit 1
@@ -189,9 +191,8 @@ if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $PYVER != $VPYVER ]]; then
 fi
 
 [[ $opts =~ ^-.*n ]] || find $DSTPATH -not -path "*/.*/*" -name "*.pyc" -delete
-[[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment"
+[[ ! $opts =~ ^-.*q ]] && echo "# Moving local PYPI packages into virtual environment $LOCAL_VENV"
 run_traced ". $LOCAL_VENV/bin/activate"
-
 PYLIB=$(find $LOCAL_VENV/lib -type d -name site-packages)
 PYTHON=""
 PYTHON3=""
@@ -202,8 +203,9 @@ PLEASE_CMDS=""
 TRAVIS_CMDS=""
 LOCAL_PKGS="z0lib python-plus arcangelo clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
 BINPATH="$LOCAL_VENV/bin"
-PIPVER=$(which pip)
-[[ -z $PIPVER ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1
+PIP=$(which pip)
+[[ -z $PIP ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1
+[[ ! $PIP =~ $LOCAL_VENV/bin ]] && echo -e "${RED}# Wrong command pip ($PIP)!${CLR}" && exit 1
 PIPVER=$(pip --version | grep --color=never -Eo '[0-9]+' | head -n1)
 PYVER=$($PYTHON --version 2>&1 | grep "Python" | grep --color=never -Eo "[0-9]" | head -n1)
 popts="--disable-pip-version-check --no-python-version-warning"
@@ -212,10 +214,11 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -eq 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
 [[ ! $opts =~ ^-.*v ]] && popts="$popts -q"
+[[ ! $opts =~ ^-.*vv ]] && popts="$popts -v"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp
-[[ ! -d $LOCAL_VENV/tmp ]] && mkdir -p $LOCAL_VENV/tmp
+mkdir -p $LOCAL_VENV/tmp
 [[ $PYVER -eq 2 ]] && run_traced "$VEM install future"
 
 if [[ ! $opts =~ ^-.*k ]]; then
@@ -249,7 +252,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
                             [[ $ftype == f ]] && copts="" || copts="-r"
                             run_traced "cp $copts $src $tgt"
                             [[ ! $opts =~ ^-.*n && "${tgt: -3}" == ".py" && -f ${tgt}c ]] && rm -f ${tgt}c
-                            set_hashbang $tgt
+                            set_shebang $tgt
                         fi
                     fi
                 done
@@ -265,7 +268,7 @@ if [[ ! $opts =~ ^-.*k ]]; then
             [[ -f $LOCAL_VENV/tmp/$pfn/$pfn/README.rst ]] && run_traced "mv $LOCAL_VENV/tmp/$pfn/$pfn/README.rst $LOCAL_VENV/tmp/$pfn/README.rst"
             srcpath="$LOCAL_VENV/tmp/$pfn"
         fi
-        run_traced "pip install -q $srcpath $popts"
+        run_traced "pip install $srcpath $popts"
         [[ ! -d $PYLIB/$pfn ]] && echo "FAILED: local path $PYLIB/$pfn not found!" && exit 1
         if [[ $pkg =~ (python-plus|python_plus) ]]; then
             [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
@@ -273,17 +276,19 @@ if [[ ! $opts =~ ^-.*k ]]; then
 #            [[ -d $BINPATH/clodoo ]] && run_traced "rm -f $BINPATH/clodoo"
 #            [[ -d $PYLIB/$pfn ]] && run_traced "ln -s $PYLIB/$pfn $BINPATH/clodoo"
         elif [[ $pkg == "zerobug" ]]; then
-          set_hashbang $PYLIB/$pfn/_travis
+          set_shebang $PYLIB/$pfn/_travis
         elif [[ $pkg =~ (z0bug-odoo|z0bug_odoo) ]]; then
-          set_hashbang $PYLIB/$pfn/travis
+          set_shebang $PYLIB/$pfn/travis
         fi
         if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
-            run_traced "${pkg}-info --copy-pkg-data"
+            [[ $opts =~ ^-.*v ]] && run_traced "${pkg}-info --copy-pkg-data -v"
+            [[ ! $opts =~ ^-.*v ]] && run_traced "${pkg}-info --copy-pkg-data"
         fi
     done
 fi
 
 [[ ! $opts =~ ^-.*k && -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"
+[[ ! $opts =~ ^-.*k && -d "$DSTPATH/travis" ]] && run_traced "rm -fR $DSTPATH/travis"
 [[ -f $SRCPATH/tests/please_test_install.sh ]] && run_traced "ln -s $SRCPATH/tests/please_test_install.sh $BINPATH/please_test_install.sh"
 [[ -f $SRCPATH/tools/tests/please_test_install.sh ]] && run_traced "ln -s $SRCPATH/tools/tests/please_test_install.sh $BINPATH/please_test_install.sh"
 [[ -d $LOCAL_VENV/tmp ]] && run_traced "rm -fR $LOCAL_VENV/tmp"
@@ -357,12 +362,12 @@ if [[ $PYVER -eq 3 ]]; then
         if [[ -d $DSTPATH/maintainer-tools ]]; then
             run_traced "pip install -e $DSTPATH/maintainer-tools"
             for pkg in black pre-commit pyupgrade flake8-bugbear; do
-                run_traced "pip install -q $pkg $popts"
+                run_traced "pip install $pkg $popts"
             done
         fi
         run_traced "git clone $x https://github.com/OCA/odoo-module-migrator.git"
         for pkg in sphinx sphinx_rtd_theme; do
-            run_traced "pip install -q $pkg $popts"
+            run_traced "pip install $pkg $popts"
         done
         run_traced "nvm install v20.18.0"
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
@@ -376,35 +381,9 @@ fi
 # Final test to validate environment
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-[[ -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
+[[ ! $opts =~ ^-.*t && -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
 [[ -f $BINPATH/list_requirements.py ]] && run_traced "chmod +x $BINPATH/list_requirements.py"
-#for pkg in clodoo templates; do
-#  echo -n "."
-#  [[ ! -d $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit
-#done
-#for pkg in clodoo/odoorc odoorc odoo_dependencies.py zerobug; do
-#  echo -n "."
-#  [[ ! -f $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
-#done
-$BINPATH/please_test_install.sh "$VEM"
-#for pkg in cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
-#  echo -n "."
-#  [[ ! -x $BINPATH/$pkg ]] && echo -e "${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit
-#  [[ $pkg == "odooctl" ]] && continue
-#  if [[ $pkg =~ (lisa_bld_ods|odoo_install_repository|makepo_it.py) ]]; then
-#    $pkg -V &>/dev/null
-#    [[ $? -ne 0 ]] && echo "****** TEST $pkg FAILED ******"
-#  else
-#    $pkg --version &>/dev/null
-#    [[ $? -ne 0 ]] && echo "****** TEST $pkg FAILED ******"
-#  fi
-#done
-#for pkg in babel lxml python-magic pyyaml z0lib z0bug-odoo zerobug; do
-#    echo -n "."
-#    pfn=$(echo "$pkg"| grep --color=never -Eo '[^!<=>\\[]*'|head -n1)
-#    x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep  --color=never -E "^Location: .*")
-#    [[ -z "$x" ]] && echo -e "${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit
-#done
+$BINPATH/please_test_install.sh "$opts" "$VEM"
 run_traced "deactivate"
 
 if [[ $opts =~ ^-.*D ]]; then

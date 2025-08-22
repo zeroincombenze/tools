@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from . import scripts
-
-from . import clodoo_main as clodoo
 from . import transodoo
 
 try:
@@ -30,3 +28,4 @@ try:
     from clodoolib import build_odoo_param, crypt
 except:
     from clodoo.clodoolib import build_odoo_param, crypt
+from . import clodoo_main as clodoo
