@@ -205,14 +205,6 @@ init_travis() {
 #  fi
 }
 
-revaluate_travis() {
-  PRJNAME=
-  REPOSNAME=
-  PRJPATH=
-  PGKNAME=
-  PKGPATH=
-  init_travis
-}
 
 get_dbuser() {
   # get_dbuser(suffix)
@@ -277,12 +269,6 @@ custom_env() {
   fi
 }
 
-uname() {
-    local x UNAME
-    UNAME=$(which uname)
-    [[ -x $TRAVIS_HOME/bin/greadlink ]] && echo "Darwin" || $UNAME "$@"
-}
-
 create_virtual_env() {
   local f opts p sts=0 t x xp1 xp2
   [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
@@ -321,13 +307,7 @@ create_virtual_env() {
   if [[ $xp -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SRC_VME not found or expired!${CLR}"
     echo -e "Now virtual environment $TRAVIS_SRC_VME will be (re)created."
-    if [[ -n $BRANCH ]]; then
-      [[ $BRANCH =~ ^(6|7|8|9|10) ]] && pv="2.7" || pv="3.7"
-      [[ $BRANCH =~ ^(15|16) ]] && pv="3.8"
-      run_traced "vem create $VENVOPTS $TRAVIS_SRC_VME -DI -p$pv -fq -O$BRANCH -o$(build_odoo_param ROOT $PRJPATH)"
-    else
-      run_traced "vem create $VENVOPTS $TRAVIS_SRC_VME -DI -p$TRAVIS_PYTHON_VERSION -fq"
-    fi
+    run_traced "vem create $VENVOPTS $TRAVIS_SRC_VME -DI -p$TRAVIS_PYTHON_VERSION -fq"
     echo -e "\n\n"
     vem $TRAVIS_SRC_VME update flake8    # STRANGE ERROR! WORKAROUND!
     [[ -d $TRAVIS_HOME ]] && rm -fR $TRAVIS_HOME    # STRANGE ERROR! WORKAROUND!
@@ -381,7 +361,7 @@ create_virtual_env() {
   [[ ${opt_keep:-0} -ne 0 ]] && run_traced "export ODOO_COMMIT_TEST=\"1\""
   set_pybin $TRAVIS_PYTHON_VERSION
   if [[ $opt_dbgmnt -ne 0 ]]; then
-    # Install unstable packages to run them when needed
+    # -Z: Install unstable packages to run them when needed
     for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Use unstable version
         [[ $p =~ (python-plus|z0bug-odoo) ]] && p="${p//-/_}"
@@ -399,19 +379,17 @@ create_virtual_env() {
   [[ -d $TRAVIS_HOME/maintainer-quality-tools ]] && rm -fR -d $TRAVIS_HOME/maintainer-quality-tools
   export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
   echo "Download testing repository ..."
-  if [[ $PKGNAME == "OCB" ]]; then
-    emulate_git_clone_OCB $TRAVIS_HOME_BRANCH $TRAVIS_BUILD_DIR
-  else
-    mkdir -p $TRAVIS_BUILD_DIR
-    x=$(readlink -f $TRAVIS_BUILD_DIR/..)
-    run_traced "cp -R $TRAVIS_HOME_BRANCH/ $x/"
-    [[ -f $TRAVIS_HOME_BRANCH/setup.py ]] && run_traced "cp $TRAVIS_HOME_BRANCH/setup.py $x/"
-    if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
-      git_clone "https://github.com/zeroincombenze/tools.git"
-      [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
-    fi
+  mkdir -p $TRAVIS_BUILD_DIR
+  x=$(readlink -f $TRAVIS_BUILD_DIR/..)
+  run_traced "cp -R $TRAVIS_SAVED_PKGPATH/ $x/"
+  # [[ -f $TRAVIS_SAVED_PKGPATH/setup.py ]] && run_traced "cp $TRAVIS_SAVED_PKGPATH/setup.py $x/"
+  [[ -f $TRAVIS_SAVED_PKGPATH/../setup.py ]] && run_traced "cp $TRAVIS_SAVED_PKGPATH/../setup.py $TRAVIS_BUILD_DIR/"
+  if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
+    git_clone "https://github.com/zeroincombenze/tools.git"
+    [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  get_pypi_param "ALL"
   if [[ -n "$opt_pybrk" ]]; then
     IFS=":" read f t <<<"$opt_pybrk"
     [[ $f =~ ^\. ]] && x=$(readlink -f $TRAVIS_BUILD_DIR/$f) || x=$(find $TRAVIS_BUILD_DIR -name $f)
@@ -442,7 +420,7 @@ drop_virtual_env() {
   unset TRAVIS_SAVED_HOME
   unset TRAVIS_SAVED_HOME_DEVEL
   unset SAVED_ODOO_ROOT
-  [[ "$PRJNAME" == "Odoo" ]] && cd $PKGPATH || cd $PRJPATHJ
+  cd $TRAVIS_SAVED_PKGPATH
   if [[ ${opt_keep:-0} -eq 0 ]]; then
     drop_test_db
     if [[ $TRAVIS != "true" ]]; then
@@ -453,26 +431,6 @@ drop_virtual_env() {
   fi
   [[ ${opt_virt:-0} -gt 0 ]] && echo "HOME=$HOME" && echo "HOME_DEVEL=$HOME_DEVEL" && echo "ODOO_ROOT=$ODOO_ROOT" && echo "PWD=$PWD"
   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-}
-
-emulate_git_clone_OCB() {
-  # emulate_git_clone_OCB(src tgt)
-  local d f
-  # local SAVE_COLOR=$PS_RUN_COLOR
-  # export PS_RUN_COLOR="1;90;46"
-  run_traced "mkdir -p $2/"
-  valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
-  for d in $1/*; do
-    f=$(basename $d)
-    if [[ " $valid " =~ " $f " ]]; then
-      if [ -d $1/$f ]; then
-        run_traced "cp -R $1/$f/ $2/"
-      else
-        run_traced "cp $1/$f $2"
-      fi
-    fi
-  done
-  # export PS_RUN_COLOR=$SAVE_COLOR
 }
 
 git_clone() {
@@ -518,19 +476,6 @@ git_clone() {
 prepare_env_travis() {
   local action="$1"
   local v x
-#  if [[ $action =~ ^(force-lint|lint|force-test|test|force-test-multi|test-multi|force-testdeps|testdeps|force-translate|translate|emulate)$ ]]; then
-#    if [[ -n "$TOOLS_PATH" ]]; then
-#      if [ ${opt_r:-0} -gt 0 ]; then
-#        if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
-#          run_traced "export PATH=$TOOLS_PATH:$PATH"
-#        fi
-#      elif [ "$2" == "-r" ]; then
-#        if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
-#          run_traced "export PATH=$TOOLS_PATH:$PATH"
-#        fi
-#      fi
-#    fi
-#  fi
   NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
   export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
   export BRANCH
@@ -557,54 +502,43 @@ prepare_env_travis() {
     export ODOO_TNLBOT="1"
   fi
   [[ "$PRJNAME" == "Odoo" ]] && export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
-  if [[ -n "$opt_dpath" ]]; then
-    LGITPATH="$opt_dpath"
-  elif [[ $PRJNAME == "Odoo" ]]; then
-    if [[ -n "$opt_branch" ]]; then
-      x=$(build_odoo_param PKGNAME ".")
-      LGITPATH=$(build_odoo_param HOME "$opt_branch" "$REPOSNAME")
-      [[ -n "$x" ]] && LGITPATH="$LGITPATH/$x"
-    fi
-  else
-    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
-  fi
-  if [[ -n "$LGITPATH" ]]; then
-    if [[ "$PRJNAME" == "Odoo" ]]; then
-      export LGITPATH=$(expand_path "$LGITPATH")
-    else
-      local x="$(readlink -e $PWD/..)"
-      local y=$(dirname $LGITPATH)
-      if [[ "$PWD" == "$y" || "$x" == "$y" ]]; then
-        export LGITPATH=$y
-      else
-        export LGITPATH=$(expand_path "$LGITPATH")
-      fi
-    fi
-    if [[ "$LGITPATH" == "$PWD" ]]; then
-      LGITPATH=
-    fi
-  fi
+#  if [[ -n "$opt_dpath" ]]; then
+#    LGITPATH="$opt_dpath"
+#  elif [[ $PRJNAME == "Odoo" ]]; then
+#    if [[ -n "$opt_branch" ]]; then
+#      x=$(build_odoo_param PKGNAME ".")
+#      LGITPATH=$(build_odoo_param HOME "$opt_branch" "$REPOSNAME")
+#      [[ -n "$x" ]] && LGITPATH="$LGITPATH/$x"
+#    fi
+#  else
+#    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+#    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+#    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
+#  fi
+#  if [[ -n "$LGITPATH" ]]; then
+#    if [[ "$PRJNAME" == "Odoo" ]]; then
+#      export LGITPATH=$(expand_path "$LGITPATH")
+#    else
+#      local x="$(readlink -e $PWD/..)"
+#      local y=$(dirname $LGITPATH)
+#      if [[ "$PWD" == "$y" || "$x" == "$y" ]]; then
+#        export LGITPATH=$y
+#      else
+#        export LGITPATH=$(expand_path "$LGITPATH")
+#      fi
+#    fi
+#    if [[ "$LGITPATH" == "$PWD" ]]; then
+#      LGITPATH=
+#    fi
+#  fi
   # export TOOLS_PATH
   export ODOO_SETUP
   export REPOSNAME
-  export PRJNAME
-  export PRJPATH
   export PKGPATH
   export PKGNAME
-  export LGITPATH
+  # export LGITPATH
 }
 
-check_4_travis() {
-  if [[ ! -d "$PRJPATH" ]]; then
-    echo "Invalid project path $PRJPATH"
-    exit $STS_FAILED
-  elif [[ ! -d "$PKGPATH" ]]; then
-    echo "Invalid package path $PKGPATH"
-    exit $STS_FAILED
-  fi
-}
 
 conf_default() {
   [[ -z $(get_cfg_value "" "loglevel") ]] && CFG_set "loglevel" "-1"
@@ -824,57 +758,57 @@ do_summary() {
   done
   echo -e "${CLR}+=======================================\e[0m"
 }
-
-ant_rm_trap() {
-  # wlog "... recover $1"
-  local f1=$(readlink -f $1)
-  if [ -n "$f1" -a -f "$f1" ]; then
-    local lne=$(head -n1 $f1)
-    if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
-      echo "... recover $f1"
-      tail -n+2 $f1 >$f1.tmp
-      mv -f $f1.tmp $f1
-    fi
-  fi
-}
-
-ant_add_trap() {
-  echo "... analyzing $1"
-  local f1=$(readlink -f $1)
-  if [ -n "$f1" -a -f "$f1" ]; then
-    ant_rm_trap "$f1"
-    echo "trap \"echo [\$LINENO] \$BASH_SOURCE:\$BASH_COMMAND>>$FHIST\" DEBUG" >$f1.sh
-    local line=
-    while IFS=\~ read -r line || [ -n "$line" ]; do
-      echo "$line" >>$f1.sh
-      if [ "${line:0:1}" == "." ]; then
-        local fn="${line:2}"
-        local p="$(dirname $fn)"
-        if [ "$p" == "." ]; then
-          if [ "$(echo " $FL_2_TEST " | grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
-            FL_2_TEST="$FL_2_TEST $fn"
-          fi
-        fi
-      fi
-    done <"$f1"
-    rm -f $FHIST
-    chmod +x $f1.sh
-    mv -f $f1.sh $f1
-  fi
-}
-
-ant_erase() {
-  local fn
-  for fn in $(find . -type f -executable); do
-    if [[ $fn =~ \.[a-zA-Z0-9_]{1,3} ]]; then
-      if [ ${fn: -3} == ".sh" ]; then
-        ant_rm_trap $fn
-      fi
-    else
-      ant_rm_trap $fn
-    fi
-  done
-}
+#
+#ant_rm_trap() {
+#  # wlog "... recover $1"
+#  local f1=$(readlink -f $1)
+#  if [ -n "$f1" -a -f "$f1" ]; then
+#    local lne=$(head -n1 $f1)
+#    if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
+#      echo "... recover $f1"
+#      tail -n+2 $f1 >$f1.tmp
+#      mv -f $f1.tmp $f1
+#    fi
+#  fi
+#}
+#
+#ant_add_trap() {
+#  echo "... analyzing $1"
+#  local f1=$(readlink -f $1)
+#  if [ -n "$f1" -a -f "$f1" ]; then
+#    ant_rm_trap "$f1"
+#    echo "trap \"echo [\$LINENO] \$BASH_SOURCE:\$BASH_COMMAND>>$FHIST\" DEBUG" >$f1.sh
+#    local line=
+#    while IFS=\~ read -r line || [ -n "$line" ]; do
+#      echo "$line" >>$f1.sh
+#      if [ "${line:0:1}" == "." ]; then
+#        local fn="${line:2}"
+#        local p="$(dirname $fn)"
+#        if [ "$p" == "." ]; then
+#          if [ "$(echo " $FL_2_TEST " | grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
+#            FL_2_TEST="$FL_2_TEST $fn"
+#          fi
+#        fi
+#      fi
+#    done <"$f1"
+#    rm -f $FHIST
+#    chmod +x $f1.sh
+#    mv -f $f1.sh $f1
+#  fi
+#}
+#
+#ant_erase() {
+#  local fn
+#  for fn in $(find . -type f -executable); do
+#    if [[ $fn =~ \.[a-zA-Z0-9_]{1,3} ]]; then
+#      if [ ${fn: -3} == ".sh" ]; then
+#        ant_rm_trap $fn
+#      fi
+#    else
+#      ant_rm_trap $fn
+#    fi
+#  done
+#}
 
 set_executable() {
   local b cmd d excl f gx="" o p w XXXX x yy
@@ -907,176 +841,22 @@ set_executable() {
   run_traced "$cmd -not -name '*.js' -not -perm /+x -exec grep -El '#. *(/bin/|/usr/)' '{}' \;|xargs -I{} chmod $x {}"
 }
 
-coverage() {
-  if [ -z "$COVERAGE" ]; then
-    COVERAGE=$(which coverage 2>/dev/null)
-  fi
-  if [ "$1" == "erase" ]; then
-    mkdir -p $PRJPATH/cover
-    find . -name "*.tracehistory" -delete
-    find . -name "*,cover" -delete
-    find . -name ".coverage" -delete
-    ant_erase
-  fi
-  if [ -n "$COVERAGE" ]; then
-    eval $COVERAGE "$@"
-  else
-    :
-  fi
-  return $?
-}
-
-emulate_install_nightly() {
-  run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
-  clone_oca_dependencies $1
-}
-
-clone_1_dependence() {
-  local n sts
-  sts=0
-  if [ -n "$1" ]; then
-    if [ -d $1 ]; then
-      n=$(basename $1)
-      if [ "$n" != "__unported__" ]; then
-        if [ ! -d $HOME/dependencies/$n ]; then
-          run_traced "ln -s $1 $HOME/dependencies/"
-          sts=$?
-        else
-          wlog "Module $1 already cloned!"
-        fi
-      fi
-    fi
-  fi
-  return $sts
-}
-
-clone_core_dependencies() {
-  local line
-  local p d s sts
-  local CORE_MODULES=""
-  local oetpath=$(readlink -e $PRJPATH/..)
-  sts=0
-  for line in $CORE_MODULES; do
-    d=$(find $oetpath -type d -name "$line")
-    if [ -n "$d" ]; then
-      if [ -n "$REPOSNAME" ]; then
-        for p in $d/*; do
-          clone_1_dependence "$p"
-          s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-        done
-      else
-        clone_1_dependence "$d"
-        s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-      fi
-    else
-      elog "!????? Module $line not found!??????"
-      sts=2
-    fi
-  done
-  if [ -n "$REPOSNAME" ]; then
-    clone_1_dependence "$oetpath/addons"
-    s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-  fi
-  return $sts
-}
-
-clone_oca_dependencies() {
-  local f1=$1
-  local line p d r s sts
-  local oetpath=$(readlink -e $PRJPATH/..)
-  sts=0
-  if [ -f "$f1" ]; then
-    while IFS="#" read -r line r || [ -n "$line" ]; do
-      if [[ $line =~ ^[[:space:]]*$ ]]; then
-        :
-      else
-        d="$line"
-        IFS=" " read line r <<<"$d"
-        d=$(find $oetpath -maxdepth 1 -type d -name "$line")
-        if [ -n "$d" ]; then
-          if [ -n "$REPOSNAME" ]; then
-            for p in $d/*; do
-              clone_1_dependence "$p"
-              s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-            done
-          else
-            clone_1_dependence "$d"
-            s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-          fi
-        else
-          elog "!????? Module $line not found!??????"
-          sts=2
-        fi
-      fi
-    done <"$f1"
-  fi
-  return $sts
-}
-
-clone_dependencies() {
-  local p s sts
-  if [ ! -d $HOME/dependencies ]; then
-    run_traced "mkdir $HOME/dependencies"
-  fi
-  sts=0
-  if [ -n "$REPOSNAME" ]; then
-    run_traced "export INCLUDE=$PKGNAME"
-    local oetpath=$(readlink -e $PRJPATH/..)
-    for p in $oetpath/*; do
-      clone_1_dependence "$p"
-      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    done
-    p=$(readlink -e $oetpath/odoo)
-    if [ -n "$p" ]; then
-      clone_1_dependence "$p"
-      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    fi
-    p=$(readlink -e $oetpath/openerp)
-    if [ -n "$p" ]; then
-      clone_1_dependence "$p"
-      s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-    fi
-    clone_core_dependencies
-    s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
-  else
-    run_traced "export INCLUDE="
-  fi
-  return $sts
-}
-
-run_svr_test_rm_ln() {
-  #run_svr_test_rm_ln(wep|)
-  drop_test_db
-  run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
-  run_unvirt "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
-  if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-    run_unvirt "if [ -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server; fi"
-  fi
-  run_unvirt "if [ -L $HOME/$PKGNAME-$VERSION ]; then rm -f $HOME/$PKGNAME-$VERSION; fi"
-  run_unvirt "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
-  if [ "$2" != "wep" -o ${opt_keep:-0} -ne 0 ]; then
-    run_unvirt "if [ -L $HOME/odoo-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
-  fi
-  if [ -f stdout.log ]; then
-    chmod +rw stdout.log
-  fi
-  # some version of local travis added some bug; here workaround |TODO solve actual trouble
-  for d in ~/*; do
-    if [ -L $d ] && [ "$2" == "wep" -o "$d" != "/opt/odoo/maintainer-quality-tools" ]; then
-      run_traced "rm -f $d"
-    elif [ -d $d ] && [ "$2" == "wep" -o "$d" == "/opt/odoo/maintainer-quality-tools" ]; then
-      run_traced "rm -fR $d"
-    fi
-  done
-  for d in account-financial-tools bank-payment dependencies l10n-italy LibrERP partner-contact reporting-engine web webkit-tools; do
-    if [ -d ~/$d ]; then
-      run_traced "rm -fR ~/$d"
-    fi
-  done
-  if [ -L ~/7.0/openerp/addons/decimal_precision ]; then
-    run_traced "rm -f ~/7.0/openerp/addons/decimal_precision"
-  fi
-}
+#coverage() {
+#  [[ -z $COVERAGE ]] && COVERAGE=$(which coverage 2>/dev/null)
+#  if [[ $1 == "erase" ]]; then
+#    mkdir -p $PKGPATH/cover
+#    find . -name "*.tracehistory" -delete
+#    find . -name "*,cover" -delete
+#    find . -name ".coverage" -delete
+#    # ant_erase
+#  fi
+#  if [[ -n $COVERAGE ]]; then
+#    eval $COVERAGE "$@"
+#  else
+#    :
+#  fi
+#  return $?
+#}
 
 run_unvirt() {
   #run_unvirt (cmd)
@@ -1086,20 +866,6 @@ run_unvirt() {
     :
   fi
   return $?
-}
-
-run_svr_test_exit() {
-  if [ "$PRJNAME" == "Odoo" ]; then
-    run_svr_test_rm_ln wep
-  fi
-}
-
-run_server_test() {
-  echo "======== Running server_test ========"
-  run_svr_test_init
-  run_svr_test_exit
-  sts=$STS_FAILED
-  return $sts
 }
 
 conf_default

@@ -39,12 +39,12 @@ def expand_macro(line, section, ctx):
         if re.match(r"^ *\- \$HOME/tools/install_tools.sh", line):
             verbose = "q" if int(ctx["TRAVIS_DEBUG_MODE"]) < 3 else "vv"
             line = "  - $HOME/tools/install_tools.sh -%spt" % verbose
-    elif section == "install":
-        if re.match(r"^ *\- travis_install_env", line):
-            if ctx["PRJNAME"] == "Odoo":
-                line = "  - travis_install_env"
-            else:
-                line = "  - travis_install_env tools"
+    # elif section == "install":
+    #     if re.match(r"^ *\- travis_install_env", line):
+    #         if ctx["PRJNAME"] == "Odoo":
+    #             line = "  - travis_install_env"
+    #         else:
+    #             line = "  - travis_install_env tools"
     elif section == "env.global":
         if re.match(r"^ *\- WKHTMLTOPDF_VERSION", line):
             line = {
@@ -71,11 +71,11 @@ def expand_macro(line, section, ctx):
         ):
             line = comment_line(line)
     elif section == "script":
-        if re.match(r"^ *\- travis_run", line):
+        if re.match(r"^ *\- .*travis_run_.*tests", line):
             if ctx["PRJNAME"] == "Odoo":
                 line = "  - travis_run_tests"
             elif ctx["REPOSNAME"] == "tools":
-                line = "  - cd $MODULE_PATH && travis_run_pypi_tests"
+                line = "  - cd $TESTDIR && travis_run_pypi_tests"
             else:
                 line = "  - travis_run_pypi_tests"
     return line

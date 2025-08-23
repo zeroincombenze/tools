@@ -64,7 +64,7 @@ setup(
     package_data={
         "": [
             "scripts/setup.info",
-            "scripts/dist_pkg.sh",
+            # "scripts/dist_pkg.sh",
             "scripts/please.sh",
             "scripts/config/*",
             "scripts/run_odoo_debug.sh",
@@ -82,7 +82,7 @@ setup(
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
             # "cvt_script = wok_code.scripts.cvt_script:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
-            "dist_pkg = wok_code.scripts.dist_pkg:main",
+            # "dist_pkg = wok_code.scripts.dist_pkg:main",
             "do_gitignore = wok_code.do_gitignore:main",
             # "arcangelo = wok_code.scripts.arcangelo:main",
             # "gen_readme.py = wok_code.scripts.gen_readme:main",

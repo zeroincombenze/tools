@@ -46,155 +46,155 @@ CLR="\e[0m"
 
 __version__=2.0.18
 
-
-run_traced() {
-  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
-  [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
-  ((Z0_STACK=Z0_STACK+2))
-  local xcmd="$1" lm="                    "
-  local sts=$STS_SUCCESS
-  local pfx=
-  if [[ $1 =~ ^# ]]; then
-    pfx=
-  elif [[ ${opt_dry_run:-0} -eq 0 && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
-    pfx="${lm:0:$Z0_STACK}\$ "
-  else
-    pfx="${lm:0:$Z0_STACK}> "
-  fi
-  if [[ ${opt_dry_run:-0} -eq 0 ]]; then
-    if [[ ${opt_verbose:-0} -gt 0 ]]; then
-      [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
-      echo "$pfx$xcmd"
-      [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
-    fi
-    if [[ ! $1 =~ ^# && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
-      eval $xcmd
-      sts=$?
-    fi
-  elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
-    if [[ ${opt_verbose:-0} -gt 0 ]]; then
-      echo "$pfx$xcmd"
-    fi
-    if [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]]; then
-      eval "$xcmd" 2>/dev/null
-    fi
-  fi
-  echo -en "\e[0m"
-  ((Z0_STACK=Z0_STACK-2))
-  [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
-  return $sts
-}
-
-cp_n_upd_odoo_conf() {
-  local odoo_ver=$(echo $VERSION | grep --color=never -Eo '[0-9]*' | head -n1)
-  if [ $odoo_ver -ge 10 ]; then
-    local tgt=~/.odoorc
-    local atgt=~/.openerp_serverrc
-  else
-    local tgt=~/.openerp_serverrc
-    local atgt=
-  fi
-  [ -f $atgt ] && rm -f $atgt
-  [ -f $tgt ] && rm -f $tgt
-  if [ "$TRAVIS" == "true" ]; then
-    return
-  fi
-  local t="$TRAVIS_SAVED_HOME/$(basename $tgt)"
-  [ -n "$atgt" ] && local at="$TRAVIS_SAVED_HOME/$(basename $atgt)" || local at=
-  [ -f $at ] && rm -f $at
-  [ -f $t ] && rm -f $t
-  return
-  local pfx="odoo$odoo_ver"
-  local pfx2=odoo
-  local sfx=
-  local ODOO_LOGFILE="False"
-  local confn=/etc/odoo/${pfx}-server.conf
-  if [ ! -f $confn ]; then
-    confn=/etc/odoo/${pfx}.conf
-  fi
-  if [ ! -f $confn ]; then
-    confn=/etc/odoo/${pfx2}-server.conf
-  fi
-  if [ ! -f $confn ]; then
-    confn=/etc/odoo/${pfx2}.conf
-  fi
-  if [ ! -f $confn ]; then
-    echo "File $confn not found!"
-    exit 1
-  fi
-  touch $tgt
-  while IFS=\| read -r line || [ -n "$line" ]; do
-    if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
-      line=$(echo "$line" | sed -e "s:Odoo$odoo_ver:Odoo-test:")
-    elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*[0-9A-Za-z]+ ]]; then
-      line=$(echo "logfile = $ODOO_LOGFILE")
-    elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
-      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
-    elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]]*[0-9A-Za-z]+ ]]; then
-      line="xmlrpc_port = $((18060 + $odoo_ver))"
-    elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
-      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
-    elif [[ $line =~ .*odoo${odoo_ver}-server.conf.* ]]; then
-      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
-    elif [[ $line =~ .*$confn.* ]]; then
-      line=$(echo "$line" | sed -e "s:$confn:odoo-test:")
-    elif [[ $line =~ .*odoo${odoo_ver}-server.pid.* ]]; then
-      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
-    elif [[ $line =~ .*odoo${odoo_ver}-server.log.* ]]; then
-      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
-    elif [[ $line =~ ^server_wide_modules[[:space:]]*=[[:space:]] ]]; then
-      line="server_wide_modules = web"
-    fi
-    echo "$line" >>$tgt
-  done <"$confn"
-}
-
-git_clone_ocb() {
-  local majver prjhome u
-  local SRCREPOPATH=
-  local ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
-  echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
-  if [[ ! -L ${ODOO_PATH} && ! "$TRAVIS" == "true" ]]; then
-    prjhome=$(echo $TRAVIS_HOME_BRANCH | grep --color=never -Eo "$TRAVIS_SAVED_HOME/[^/]+")
-    majver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
-    if [[ -n "$prjhome" ]]; then
-      if [[ $REMOTE == "oca" && -d $prjhome/oca$majver ]]; then
-        SRCREPOPATH="$prjhome/oca$majver"
-      elif [[ ! $REMOTE == "oca" && -d $prjhome/$BRANCH ]]; then
-        SRCREPOPATH="$prjhome/$BRANCH"
-      elif [[ ! $REMOTE == "oca" && -d $prjhome/odoo && -f $prjhome/odoo/odoo-bin ]]; then
-        SRCREPOPATH="$prjhome/odoo"
-      fi
-    fi
-    if [[ -z "$SRCREPOPATH" ]]; then
-      if [[ $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-        SRCREPOPATH="$TRAVIS_SAVED_HOME/oca$majver"
-      elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/$BRANCH ]]; then
-        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
-      elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/odoo && -f $TRAVIS_SAVED_HOME/odoo/odoo-bin ]]; then
-        SRCREPOPATH="$TRAVIS_SAVED_HOME/odoo"
-      fi
-    fi
-  fi
-  if [[ -n "$SRCREPOPATH" ]]; then
-    run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
-  else
-    if [[ $REMOTE == "oca" ]]; then
-      run_traced "git clone --depth=50 https://github.com/${REMOTE^^}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-    else
-      run_traced "git clone --depth=50 https://github.com/${REMOTE}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-    fi
-    run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-  fi
-  if [[ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]]; then
-    for u in $USER odoo openerp postgresql; do
-      if [[ -n "$u" ]]; then
-        psql -U$u -l &>/dev/null
-        [[ $? -eq 0 ]] && psql -U$u -l
-      fi
-    done
-  fi
-}
+#
+#run_traced() {
+#  [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x
+#  [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
+#  ((Z0_STACK=Z0_STACK+2))
+#  local xcmd="$1" lm="                    "
+#  local sts=$STS_SUCCESS
+#  local pfx=
+#  if [[ $1 =~ ^# ]]; then
+#    pfx=
+#  elif [[ ${opt_dry_run:-0} -eq 0 && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
+#    pfx="${lm:0:$Z0_STACK}\$ "
+#  else
+#    pfx="${lm:0:$Z0_STACK}> "
+#  fi
+#  if [[ ${opt_dry_run:-0} -eq 0 ]]; then
+#    if [[ ${opt_verbose:-0} -gt 0 ]]; then
+#      [[ ${opt_humdrum:-0} -eq 0 && -n "$PS_RUN_COLOR" ]] && echo -en "\e[${PS_RUN_COLOR}m"
+#      echo "$pfx$xcmd"
+#      [[ ${opt_humdrum:-0} -eq 0 && -n $PS_NOP_COLOR ]] && echo -en "\e[${PS_NOP_COLOR}m"
+#    fi
+#    if [[ ! $1 =~ ^# && ( $2 != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
+#      eval $xcmd
+#      sts=$?
+#    fi
+#  elif [[ ! $1 =~ ^sleep[[:space:]] ]]; then
+#    if [[ ${opt_verbose:-0} -gt 0 ]]; then
+#      echo "$pfx$xcmd"
+#    fi
+#    if [[ $1 =~ ^(cd[[:space:]].*|cd)$ ]]; then
+#      eval "$xcmd" 2>/dev/null
+#    fi
+#  fi
+#  echo -en "\e[0m"
+#  ((Z0_STACK=Z0_STACK-2))
+#  [[ :$SHELLOPTS: =~ :xtrace: ]] && set -x
+#  return $sts
+#}
+#
+#cp_n_upd_odoo_conf() {
+#  local odoo_ver=$(echo $VERSION | grep --color=never -Eo '[0-9]*' | head -n1)
+#  if [ $odoo_ver -ge 10 ]; then
+#    local tgt=~/.odoorc
+#    local atgt=~/.openerp_serverrc
+#  else
+#    local tgt=~/.openerp_serverrc
+#    local atgt=
+#  fi
+#  [ -f $atgt ] && rm -f $atgt
+#  [ -f $tgt ] && rm -f $tgt
+#  if [ "$TRAVIS" == "true" ]; then
+#    return
+#  fi
+#  local t="$TRAVIS_SAVED_HOME/$(basename $tgt)"
+#  [ -n "$atgt" ] && local at="$TRAVIS_SAVED_HOME/$(basename $atgt)" || local at=
+#  [ -f $at ] && rm -f $at
+#  [ -f $t ] && rm -f $t
+#  return
+#  local pfx="odoo$odoo_ver"
+#  local pfx2=odoo
+#  local sfx=
+#  local ODOO_LOGFILE="False"
+#  local confn=/etc/odoo/${pfx}-server.conf
+#  if [ ! -f $confn ]; then
+#    confn=/etc/odoo/${pfx}.conf
+#  fi
+#  if [ ! -f $confn ]; then
+#    confn=/etc/odoo/${pfx2}-server.conf
+#  fi
+#  if [ ! -f $confn ]; then
+#    confn=/etc/odoo/${pfx2}.conf
+#  fi
+#  if [ ! -f $confn ]; then
+#    echo "File $confn not found!"
+#    exit 1
+#  fi
+#  touch $tgt
+#  while IFS=\| read -r line || [ -n "$line" ]; do
+#    if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
+#      line=$(echo "$line" | sed -e "s:Odoo$odoo_ver:Odoo-test:")
+#    elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*[0-9A-Za-z]+ ]]; then
+#      line=$(echo "logfile = $ODOO_LOGFILE")
+#    elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
+#      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
+#    elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]]*[0-9A-Za-z]+ ]]; then
+#      line="xmlrpc_port = $((18060 + $odoo_ver))"
+#    elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
+#      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
+#    elif [[ $line =~ .*odoo${odoo_ver}-server.conf.* ]]; then
+#      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
+#    elif [[ $line =~ .*$confn.* ]]; then
+#      line=$(echo "$line" | sed -e "s:$confn:odoo-test:")
+#    elif [[ $line =~ .*odoo${odoo_ver}-server.pid.* ]]; then
+#      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
+#    elif [[ $line =~ .*odoo${odoo_ver}-server.log.* ]]; then
+#      line=$(echo "$line" | sed -e "s:odoo$odoo_ver:odoo-test:")
+#    elif [[ $line =~ ^server_wide_modules[[:space:]]*=[[:space:]] ]]; then
+#      line="server_wide_modules = web"
+#    fi
+#    echo "$line" >>$tgt
+#  done <"$confn"
+#}
+#
+#git_clone_ocb() {
+#  local majver prjhome u
+#  local SRCREPOPATH=
+#  local ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
+#  echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
+#  if [[ ! -L ${ODOO_PATH} && ! "$TRAVIS" == "true" ]]; then
+#    prjhome=$(echo $TRAVIS_SAVED_PKGPATH | grep --color=never -Eo "$TRAVIS_SAVED_HOME/[^/]+")
+#    majver=$(echo $BRANCH | grep --color=never -Eo '[0-9]+' | head -n1)
+#    if [[ -n "$prjhome" ]]; then
+#      if [[ $REMOTE == "oca" && -d $prjhome/oca$majver ]]; then
+#        SRCREPOPATH="$prjhome/oca$majver"
+#      elif [[ ! $REMOTE == "oca" && -d $prjhome/$BRANCH ]]; then
+#        SRCREPOPATH="$prjhome/$BRANCH"
+#      elif [[ ! $REMOTE == "oca" && -d $prjhome/odoo && -f $prjhome/odoo/odoo-bin ]]; then
+#        SRCREPOPATH="$prjhome/odoo"
+#      fi
+#    fi
+#    if [[ -z "$SRCREPOPATH" ]]; then
+#      if [[ $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+#        SRCREPOPATH="$TRAVIS_SAVED_HOME/oca$majver"
+#      elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/$BRANCH ]]; then
+#        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
+#      elif [[ ! $REMOTE == "oca" && -d $TRAVIS_SAVED_HOME/odoo && -f $TRAVIS_SAVED_HOME/odoo/odoo-bin ]]; then
+#        SRCREPOPATH="$TRAVIS_SAVED_HOME/odoo"
+#      fi
+#    fi
+#  fi
+#  if [[ -n "$SRCREPOPATH" ]]; then
+#    run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
+#  else
+#    if [[ $REMOTE == "oca" ]]; then
+#      run_traced "git clone --depth=50 https://github.com/${REMOTE^^}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+#    else
+#      run_traced "git clone --depth=50 https://github.com/${REMOTE}/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+#    fi
+#    run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+#  fi
+#  if [[ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]]; then
+#    for u in $USER odoo openerp postgresql; do
+#      if [[ -n "$u" ]]; then
+#        psql -U$u -l &>/dev/null
+#        [[ $? -eq 0 ]] && psql -U$u -l
+#      fi
+#    done
+#  fi
+#}
 #
 #set_pythonpath() {
 #  # set_pythonpath(toolspath sitecustomize PIP)
@@ -251,59 +251,58 @@ install_n_activate_tools() {
     [[ ! -d $x ]] && echo "Tools environment not found (path $HOME_DEVEL)" && exit 1
 }
 
-check_4_needing_pkgs() {
-  local p x
-  NEEDING_PKGS="future configparser os0 z0lib"
-  for p in $NEEDING_PKGS; do
-    x=${p^^}
-    eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep --color=never -Eo "[0-9.]+")
-    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "Inner package $p=${!x}"
-  done
-}
+#check_4_needing_pkgs() {
+#  local p x
+#  NEEDING_PKGS="future configparser os0 z0lib"
+#  for p in $NEEDING_PKGS; do
+#    x=${p^^}
+#    eval $x=$(pip show $p 2>/dev/null | grep "Version" | grep --color=never -Eo "[0-9.]+")
+#    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "Inner package $p=${!x}"
+#  done
+#}
+#
+#check_installed_pkgs() {
+#  local p x
+#  check_4_needing_pkgs
+#  for p in $NEEDING_PKGS; do
+#    x=${p^^}
+#    [[ -z "${!x}" ]] && run_traced "$PIP install $PIP_OPTS -q $p" "nolocal"
+#  done
+#  check_4_needing_pkgs
+#}
 
-check_installed_pkgs() {
-  local p x
-  check_4_needing_pkgs
-  for p in $NEEDING_PKGS; do
-    x=${p^^}
-    [[ -z "${!x}" ]] && run_traced "$PIP install $PIP_OPTS -q $p" "nolocal"
-  done
-  check_4_needing_pkgs
-}
-
-cp_coveragerc() {
-  run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
-  run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
-  run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
-  [[ $PKGNAME == "mk_test_env" || $REPO_NAME == "zerobug-test" ]] && run_traced "sed -e "/\/tests\//d" -i ./.coveragerc"
-}
-
-coverage_ensure_installed() {
-    local cov p pypath w
-    for p in ${PATH//:/ }; do
-      [[ $p =~ travis ]] && pypath="$p" && continue
-      cov=$(find "$p" -executable -name coverage 2>/dev/null | head -n1)
-      [[ -n $cov ]] && break
-    done
-    if [[ -n $cov ]]; then
-      [[ -e $pypath/coverage ]] && run_traced "rm -f $pypath/coverage"
-      run_traced "ln -s $cov $pypath"
-    else
-      cov=$(which coverage 2>/dev/null)
-      pypath=$(dirname $(which python))
-      if [[ -z $cov || $(dirname $cov) != $pypath ]]; then
-        [[ -x $pypath/coverage ]] && run_traced "cp $pypath/coverage $cov"
-      fi
-      cov=$(which coverage 2>/dev/null)
-      [[ -z $cov ]] && run_traced "pip install \"coverage>=5.0\""
-      cov=$(which coverage 2>/dev/null)
-      if [[ -n $cov ]]; then
-        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-        [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
-      fi
-    fi
-}
-
+#cp_coveragerc() {
+#  run_traced "cp ${HOME}/tools/zerobug/_travis/cfg/coveragerc ./.coveragerc"
+#  run_traced "sed -Ee \"s|^#? *..TRAVIS_BUILD_DIR./|    $TRAVIS_BUILD_DIR/|\" -i ./.coveragerc"
+#  run_traced "sed -e \"s|^ *\*.py\$|#&|\" -i ./.coveragerc"
+#  [[ $PKGNAME == "mk_test_env" || $REPO_NAME == "zerobug-test" ]] && run_traced "sed -e "/\/tests\//d" -i ./.coveragerc"
+#}
+#
+#coverage_ensure_installed() {
+#    local cov p pypath w
+#    for p in ${PATH//:/ }; do
+#      [[ $p =~ travis ]] && pypath="$p" && continue
+#      cov=$(find "$p" -executable -name coverage 2>/dev/null | head -n1)
+#      [[ -n $cov ]] && break
+#    done
+#    if [[ -n $cov ]]; then
+#      [[ -e $pypath/coverage ]] && run_traced "rm -f $pypath/coverage"
+#      run_traced "ln -s $cov $pypath"
+#    else
+#      cov=$(which coverage 2>/dev/null)
+#      pypath=$(dirname $(which python))
+#      if [[ -z $cov || $(dirname $cov) != $pypath ]]; then
+#        [[ -x $pypath/coverage ]] && run_traced "cp $pypath/coverage $cov"
+#      fi
+#      cov=$(which coverage 2>/dev/null)
+#      [[ -z $cov ]] && run_traced "pip install \"coverage>=5.0\""
+#      cov=$(which coverage 2>/dev/null)
+#      if [[ -n $cov ]]; then
+#        v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
+#        [[ $v -lt 5 ]] && run_traced "pip install coverage -U"
+#      fi
+#    fi
+#}
 
 
 OPTOPTS=(h        b          j        K        H           n            q           T       t          V           v)
@@ -361,10 +360,10 @@ LINT_OR_TEST_CHECK="0"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ $MQT_TEST_MODE =~ (oca|zero) ]] || MQT_TEST_MODE=zero
 [[ -z "$mode" ]] && mode=$MQT_TEST_MODE
-if [[ "$MQT_TEST_MODE" == "oca" ]]; then
-  run_traced "$TDIR/travis_install_nightly"
-  exit $?
-fi
+#if [[ "$MQT_TEST_MODE" == "oca" ]]; then
+#  run_traced "$TDIR/travis_install_nightly"
+#  exit $?
+#fi
 
 export MQT_TEST_MODE=$mode
 set_pybin $TRAVIS_PYTHON_VERSION
@@ -393,19 +392,6 @@ if [[ $opt_verbose -gt 1 ]]; then
     echo -e "import sys\nprint('sys.path=%s' % sys.path)\n" | $PYTHON
   fi
 fi
-# Build secure environment (python2)
-#echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
-#for p in build-essential libssl-dev libffi-dev; do
-#  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-#  [[ $? -ne 0 ]] && run_traced "$LISA install $p" "nolocal"
-#done
-#if [[ $TRAVIS != "false" ]]; then
-#  for p in urllib3[secure] cryptography idna certifi; do
-#    run_traced "$VEM update \"$p\"" "nolocal"
-#  done
-#  [[ "$MQT_TEST_MODE" == "tools" ]] && run_traced "$VEM update \"pyOpenSSL\"" "nolocal"
-#fi
-# coverage_ensure_installed
 
 [[ -z "${VERSION}" ]] && VERSION="$opt_branch"
 [[ -z "${ODOO_BRANCH}" ]] && export ODOO_BRANCH=${VERSION}
@@ -422,9 +408,9 @@ export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
 if [[ "$MQT_TEST_MODE" == "tools" ]]; then
   echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
   [[ -z "$PYPI_CACHED" || $TRAVIS != "false" ]] && run_traced "$VEM amend -D"
-  if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
-    git_clone_ocb
-  fi
+#  if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
+#    git_clone_ocb
+#  fi
   if [ $opt_verbose -gt 0 ]; then
     echo "Content of ${HOME}:"
     ls -l ${HOME}
@@ -439,150 +425,152 @@ if [[ "$MQT_TEST_MODE" == "tools" ]]; then
     fi
   fi
   exit $sts
-else
-  # Odoo
-  if [[ "${LINT_CHECK:-1}" != "0" ]]; then
-    NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
-    if [ $NODE_VER -lt 6 -a -f "${HOME}/.nvm/nvm.sh" ]; then
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $NODE_VER"
-      CURRENT_NODE=$(which node)
-      source ${HOME}/.nvm/nvm.sh
-      nvm install 6
-      run_traced "ln -sf $(nvm which 6) $CURRENT_NODE"
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "2> node version: $(node --version)"
-    fi
-    echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
-    run_traced "$PIP install $PIP_OPTS --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git" "nolocal" # To use last version ever
-    if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
-      run_traced "npm -g install eslint"
-    else
-      run_traced "npm install eslint"
-    fi
-  fi
-  if [[ $TESTS == "1" ]]; then
-    echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
-    if [[ $UNIT_TEST != "0" ]]; then
-      NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      if [[ $NODE_VER -lt 6 ]]; then
-        x=$(which nodejs 2>/dev/null)
-        [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-        run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
-        [[ $opt_verbose -gt 0 ]] && echo "3> node version: $(node --version)"
-      fi
-      if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
-        run_traced "npm -g install less@3.0.4 less-plugin-clean-css"
-        x=$(find $(npm -g bin -g 2>/dev/null) -name lessc 2>/dev/null)
-        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
-      else
-        run_traced "npm install less@3.0.4 less-plugin-clean-css"
-        x=$(find $(npm bin) -name lessc 2>/dev/null)
-        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
-      fi
-      lessc --version
-    fi
-    [[ -z "${WKHTMLTOPDF_VERSION}" ]] && export WKHTMLTOPDF_VERSION="0.12.5"
-    [[ -n "$(which example.com 2>/dev/null)" ]] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1) || CUR_WKHTMLTOPDF_VERSION=
-    if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
-      [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
-    else
-      [[ $opt_verbose -gt 0 ]] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
-      vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
-      CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1)
-      [[ $opt_verbose -gt 0 ]] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
-    fi
-    if [[ "${WEBSITE_REPO}" == "1" ]]; then
-      if [ -f $HOME/.rvm/scripts/rvm ]; then
-        source $HOME/.rvm/scripts/rvm
-      elif [ -f /usr/local/rvm/scripts/rvm ]; then
-        source /usr/local/rvm/scripts/rvm
-      else
-        echo "File rvm not found! rvm should be not work!"
-      fi
-      run_traced "rvm install ruby --latest"
-      run_traced "rvm use ruby --latest"
-      # Uninstall current versions to be sure that
-      # the correct version will be installed
-      run_traced "gem uninstall -aIx bootstrap-sass compass sass"
-      run_traced "gem install compass bootstrap-sass"
-    fi
-    if [[ $UNIT_TEST != "0" ]]; then
-      # Update PhantomJS (v10 compat)
-      if [[ "${PHANTOMJS_VERSION}" != "OS" ]]; then
-        run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-        run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/z0bug_odoo/travis/phantomjs\""
-      fi
-      if [ "${CHROME_TEST}" == "1" ]; then
-        run_traced "google-chrome --version"
-      fi
-    fi
-    if [[ $PKGNAME == "OCB" ]]; then
-      echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
-      if [[ $TRAVIS =~ (true|emulate) ]]; then
-        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-      elif [ ! -L ${ODOO_PATH} ]; then
-        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-      fi
-    else
-      git_clone_ocb
-    fi
-  fi
-  if [[ $TESTS != "1" ]]; then
-    cp_coveragerc
-  else
-    mkdir -p ${HOME}/dependencies
-    cp_n_upd_odoo_conf
-    run_traced "clone_oca_dependencies"
-    sts=$?
-    if [[ $sts -ne 0 ]]; then
-      echo "- Error cloning dependencies"
-      exit $sts
-    fi
-    if [[ $PKGNAME == "OCB" ]]; then
-      ocb_dir='.'
-      dependencies_dir=${HOME}/dependencies
-      run_traced "$VEM amend -D -O $ODOO_BRANCH -o $ocb_dir"
-    else
-      ocb_dir=${ODOO_PATH}
-      dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
-      run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -d $dependencies_dir"
-    fi
-    ## run_traced "$VEM uninstall pyOpenSSL -y"  #debug
-    if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
-      if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
-        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
-      elif [[ -f "${ODOO_PATH}/addons/website/tests/test_crawl.py" ]]; then
-        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${ODOO_PATH}/addons/website/tests/test_crawl.py"
-      fi
-    elif [[ $ODOO_TEST_SELECT == "LOCALIZATION" ]]; then
-      if [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py" ]]; then
-        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py"
-      elif [[ -f "${ODOO_PATH}/addons/account/__manifest__.py" ]]; then
-        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__manifest__.py"
-      elif [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py" ]]; then
-        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py"
-      elif [[ -f "${ODOO_PATH}/addons/account/__openerp__.py" ]]; then
-        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__openerp__.py"
-      fi
-    fi
-    if [[ -f "${TRAVIS_BUILD_DIR}/odoo/tests/common.py" ]]; then
-      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
-    elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
-      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
-    fi
-    cp_coveragerc
-    if [[ $opt_verbose -gt 0 ]]; then
-      echo "Content of ${HOME}:"
-      ls -l ${HOME}
-      echo "Content of ${TRAVIS_BUILD_DIR}:"
-      ls -l ${TRAVIS_BUILD_DIR}
-      if [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a -n "${ODOO_PATH}" ]; then
-        echo "Content of ${ODOO_PATH}:"
-        ls -l ${ODOO_PATH}/
-      fi
-      echo "Content of ${HOME}/dependencies:"
-      ls -l ${HOME}/dependencies
-    fi
-  fi
 fi
-echo -e "\e[${PS_TXT_COLOR}m"
-exit $sts
+exit 1
+#else
+#  # Odoo
+#  if [[ "${LINT_CHECK:-1}" != "0" ]]; then
+#    NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
+#    if [ $NODE_VER -lt 6 -a -f "${HOME}/.nvm/nvm.sh" ]; then
+#      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $NODE_VER"
+#      CURRENT_NODE=$(which node)
+#      source ${HOME}/.nvm/nvm.sh
+#      nvm install 6
+#      run_traced "ln -sf $(nvm which 6) $CURRENT_NODE"
+#      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "2> node version: $(node --version)"
+#    fi
+#    echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
+#    run_traced "$PIP install $PIP_OPTS --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git" "nolocal" # To use last version ever
+#    if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+#      run_traced "npm -g install eslint"
+#    else
+#      run_traced "npm install eslint"
+#    fi
+#  fi
+#  if [[ $TESTS == "1" ]]; then
+#    echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
+#    if [[ $UNIT_TEST != "0" ]]; then
+#      NODE_VER=$(node --version | grep --color=never -Eo "[0-9]+" | head -n1)
+#      if [[ $NODE_VER -lt 6 ]]; then
+#        x=$(which nodejs 2>/dev/null)
+#        [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+#        run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/node"
+#        [[ $opt_verbose -gt 0 ]] && echo "3> node version: $(node --version)"
+#      fi
+#      if [[ $TRAVIS =~ (true|emulate) || -n $npm_config_prefix ]]; then
+#        run_traced "npm -g install less@3.0.4 less-plugin-clean-css"
+#        x=$(find $(npm -g bin -g 2>/dev/null) -name lessc 2>/dev/null)
+#        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
+#      else
+#        run_traced "npm install less@3.0.4 less-plugin-clean-css"
+#        x=$(find $(npm bin) -name lessc 2>/dev/null)
+#        [[ -n "$x" ]] && run_traced "ln -s $x $HOME/tools/z0bug_odoo/travis/lessc"
+#      fi
+#      lessc --version
+#    fi
+#    [[ -z "${WKHTMLTOPDF_VERSION}" ]] && export WKHTMLTOPDF_VERSION="0.12.5"
+#    [[ -n "$(which example.com 2>/dev/null)" ]] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1) || CUR_WKHTMLTOPDF_VERSION=
+#    if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
+#      [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
+#    else
+#      [[ $opt_verbose -gt 0 ]] && echo "Installing wkhtmltopdf version $WKHTMLTOPDF_VERSION (current is $CUR_WKHTMLTOPDF_VERSION)"
+#      vem install "wkhtmltopdf==$WKHTMLTOPDF_VERSION"
+#      CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version | grep --color=never -Eo '[0-9.]+' | head -n1)
+#      [[ $opt_verbose -gt 0 ]] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
+#    fi
+#    if [[ "${WEBSITE_REPO}" == "1" ]]; then
+#      if [ -f $HOME/.rvm/scripts/rvm ]; then
+#        source $HOME/.rvm/scripts/rvm
+#      elif [ -f /usr/local/rvm/scripts/rvm ]; then
+#        source /usr/local/rvm/scripts/rvm
+#      else
+#        echo "File rvm not found! rvm should be not work!"
+#      fi
+#      run_traced "rvm install ruby --latest"
+#      run_traced "rvm use ruby --latest"
+#      # Uninstall current versions to be sure that
+#      # the correct version will be installed
+#      run_traced "gem uninstall -aIx bootstrap-sass compass sass"
+#      run_traced "gem install compass bootstrap-sass"
+#    fi
+#    if [[ $UNIT_TEST != "0" ]]; then
+#      # Update PhantomJS (v10 compat)
+#      if [[ "${PHANTOMJS_VERSION}" != "OS" ]]; then
+#        run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
+#        run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/tools/z0bug_odoo/travis/phantomjs\""
+#      fi
+#      if [ "${CHROME_TEST}" == "1" ]; then
+#        run_traced "google-chrome --version"
+#      fi
+#    fi
+#    if [[ $PKGNAME == "OCB" ]]; then
+#      echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
+#      if [[ $TRAVIS =~ (true|emulate) ]]; then
+#        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+#      elif [ ! -L ${ODOO_PATH} ]; then
+#        run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+#      fi
+#    else
+#      git_clone_ocb
+#    fi
+#  fi
+#  if [[ $TESTS != "1" ]]; then
+#    cp_coveragerc
+#  else
+#    mkdir -p ${HOME}/dependencies
+#    cp_n_upd_odoo_conf
+#    run_traced "clone_oca_dependencies"
+#    sts=$?
+#    if [[ $sts -ne 0 ]]; then
+#      echo "- Error cloning dependencies"
+#      exit $sts
+#    fi
+#    if [[ $PKGNAME == "OCB" ]]; then
+#      ocb_dir='.'
+#      dependencies_dir=${HOME}/dependencies
+#      run_traced "$VEM amend -D -O $ODOO_BRANCH -o $ocb_dir"
+#    else
+#      ocb_dir=${ODOO_PATH}
+#      dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
+#      run_traced "$VEM amend -D -O $ODOO_BRANCH -o ${ODOO_PATH} -d $dependencies_dir"
+#    fi
+#    ## run_traced "$VEM uninstall pyOpenSSL -y"  #debug
+#    if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
+#      if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
+#        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
+#      elif [[ -f "${ODOO_PATH}/addons/website/tests/test_crawl.py" ]]; then
+#        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${ODOO_PATH}/addons/website/tests/test_crawl.py"
+#      fi
+#    elif [[ $ODOO_TEST_SELECT == "LOCALIZATION" ]]; then
+#      if [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py" ]]; then
+#        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py"
+#      elif [[ -f "${ODOO_PATH}/addons/account/__manifest__.py" ]]; then
+#        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__manifest__.py"
+#      elif [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py" ]]; then
+#        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py"
+#      elif [[ -f "${ODOO_PATH}/addons/account/__openerp__.py" ]]; then
+#        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__openerp__.py"
+#      fi
+#    fi
+#    if [[ -f "${TRAVIS_BUILD_DIR}/odoo/tests/common.py" ]]; then
+#      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
+#    elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
+#      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
+#    fi
+#    cp_coveragerc
+#    if [[ $opt_verbose -gt 0 ]]; then
+#      echo "Content of ${HOME}:"
+#      ls -l ${HOME}
+#      echo "Content of ${TRAVIS_BUILD_DIR}:"
+#      ls -l ${TRAVIS_BUILD_DIR}
+#      if [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a -n "${ODOO_PATH}" ]; then
+#        echo "Content of ${ODOO_PATH}:"
+#        ls -l ${ODOO_PATH}/
+#      fi
+#      echo "Content of ${HOME}/dependencies:"
+#      ls -l ${HOME}/dependencies
+#    fi
+#  fi
+#fi
+#echo -e "\e[${PS_TXT_COLOR}m"
+#exit $sts

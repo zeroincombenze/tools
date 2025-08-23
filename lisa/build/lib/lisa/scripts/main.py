@@ -32,11 +32,14 @@ PKG_FILES = (
 )
 BIN_FILES = (
     "bck_filestore.sh",
+    "build_cmdd",
     "force_password.sh",
     "odooctl",
     "list_requirements.py",
     "set_workers",
     "travis",
+    "travis_after_tests_success",
+    "travis_run_pypi_tests",
     "xuname",
 )
 

@@ -611,7 +611,6 @@ export -f run_traced
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
     local i2 i3 i4 i5 i6
@@ -1201,7 +1200,6 @@ export -f link_cfg
 parse_URI() {
 #parse_URI(URI default ALL|±USER|±PROT|±DOMAIN|±HOST|±FULLNAME|±DIRNAME|±BASENAME|±NAMEID|±EXT|±PORT)
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local URI_REGEX='^(([^:/?#]+):)?((//)?((([^:/?#]+)@)?([^:/?#]+)))(:([0-9]+))?(/([^?#]*))?(\?([^#]*))?(#(.*))?'
     local IS_URL1='^(([^:/?#]+):)'
     local IS_URL2='^//'
@@ -1370,7 +1368,7 @@ expand_path() {
 
 is_ocb_dir() {
     local x
-    [[ -z $1 ]] && return 1
+    [[ -z $1 && ! -d $1/.git  && ! -d $1/addons ]] && return 1
     for x in $1/odoo-bin $1/odoo/odoo-bin $1/openerp-server $1/odoo/openerp-server $1/server/openerp-server; do
         [[ -x $x ]] && return 0
     done
@@ -1397,9 +1395,6 @@ is_pypi() {
     local x
     [[ -z $1 ]] && return 1
     [[ ( -f $1/setup.py || -f $1/../setup.py ) && -f $1/__init__.py ]] && return 0
-    # x=$(get_cfg_value "" "LOCAL_PKGS")
-    # x="(${x// /|})"
-    # [[ $(basename $1) =~ $x && $(basename $(dirname $1)) == "local" ]] && return 0
     return 1
 }
 
@@ -1425,21 +1420,58 @@ get_value_from_setup() {
   $SETX
 }
 
+
+get_uniqid() {
+#get_uniqid(path, branch, gitorg, repos)
+    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
+    local go m p pkg ro
+    [[ -n $1 ]] && p="$1" || p=$PWD
+    pkg=$(basename $p)
+    m="$2"
+    [[ -n $m ]] && m=${m//./}
+    go="$3"
+    ro="$4"
+    UDI="${pkg}"
+    [[ -n $go && ! $go =~ (oca|odoo|zero|zeroincombenze) ]] && UDI="${UDI}_$go"
+    [[ -n $m ]] && UDI="${UDI}_$m"
+    [[ -n $go && ! $go =~ (oca|odoo|zero|zeroincombenze) ]] && UMLI="${go}" || UMLI=""
+    [[ -n $m && -n $UMLI ]] && UMLI="${UMLI}$m"
+    [[ -n $ro && $ro != "OCB" && -n $UMLI ]] && UMLI="${UMLI}.$ro"
+    [[ -n $ro && $ro != "OCB" && -z $UMLI ]] && UMLI="$ro"
+    [[ -n $UMLI ]] && UMLI="${UMLI}.$pkg" || UMLI="$pkg"
+}
+
+
 repos_tools_params() {
-    if [[ -z "$_SETUP" && -f "$1/setup.py" ]]; then
-      _SETUP="$1/setup.py"
-      _PKGPATH="$1"
-      _PKGNAME=$(basename "$1")
-      _REPOS="tools"
-    elif [[ ! -f $x/setup.py ]]; then
+    if [[ -z "$_SETUP" ]]; then
+      if [[ -f "$1/../setup.py" ]]; then
+        _SETUP="$(readlink -f $1/../setup.py)"
+        _PKGPATH="$(dirname $1)"
+        _PKGNAME=$(basename "$1")
+        _PRJPATH="$1"
+        _REPOS="tools"
+      elif [[ -f "$1/setup.py" ]]; then
+        _SETUP="$1/setup.py"
+        _PKGPATH="$1"
+        [[ -z $PKGNAME ]] && _PKGNAME=$(basename "$1")
+        _REPOS="tools"
+      fi
+    elif [[ ! -f $1/setup.py ]]; then
       _PRJPATH="$1"
-      _PRJNAME=$(basename "$1")
     fi
+    [[ -d $1/tests ]] && _TESTDIR="$(readlink -f $1/tests)" && _RUNDIR="$(readlink -f $1)"
+    [[ -z $PRJNAME && $(basename $(dirname $1)) =~ ^(pypi|tools)$ ]] && _PRJNAME="pypi"
+    [[ -z $PRJNAME && $_REPOS == "tools" ]] && _PRJNAME="pypi"
+    [[ -z $PRJNAME && $_REPOS == "OCB" ]] && _PRJNAME="Odoo"
 }
 
 get_pypi_param() {
   # get_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
   [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
+  local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _RUNDIR _TESTDIR _VERSION ODOO_SETUP INV_MODS
+  local r w x="$PWD" ODOO_ROOT
+  local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   if [[ $1 == "ALL" ]]; then
     REMOTEREPO="local"
     PRJNAME=""
@@ -1448,21 +1480,13 @@ get_pypi_param() {
     PKGPATH=""
     REPOSNAME=""
   fi
-  local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
-  local r w x="$PWD" ODOO_ROOT
-  local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
   [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
-  if [[ -z $HOME_DEVEL ]]; then
-      [[ -d $HOME/odoo ]] && ODOO_ROOT="$HOME/odoo" || ODOO_ROOT="$HOME"
-  else
-      ODOO_ROOT=$(readlink -f $HOME_DEVEL/..)
-  fi
-  x=$PWD
   r=
   for ODOO_SETUP in $ODOO_SETUPS; do
     r="$r -o -name $ODOO_SETUP"
   done
+  [[ -n $TRAVIS_BUILD_DIR ]] && x=$TRAVIS_BUILD_DIR || x=$PWD
   w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
   if [[ -n "$w" ]]; then
     _PRJNAME="Odoo"
@@ -1471,75 +1495,42 @@ get_pypi_param() {
     _REPOS=$(basename $(dirname $x))
     _SETUP=$w
   fi
-  INV_MODS="(conf|cover|.cover|.coverage|egg-info|.git|html|.idea|latex|node_modules|openupgrade|setup|_static|tests|themes|travis|_travis|__to_remove|__unported__)"
-  while [[ (-z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH") && -n "$x" && $x != $ODOO_ROOT && $x != $HOME && $x != "/" ]]; do
+  INV_MODS="(conf|cover|docs|egg-info|examples|html|junk|latex|node_modules|openupgrade|scripts|setup|_static|tests|themes|travis)"
+  while [[ (-z "$_SETUP" || -z "$_PRJNAME" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
     r=$(basename $x)
-    if $(is_pypi "$x"); then
-      repos_tools_params "$x"
-    elif $(is_odoo_module "$x"); then
-      _PRJNAME="Odoo"
-      _PKGNAME=$(basename $x)
-      _REPOS=$(basename $(dirname $x))
-      break
-    elif $(is_ocb_dir "$x"); then
-      _PRJNAME="Odoo"
-      _PKGNAME="OCB"
-      _REPOS="OCB"
-      break
-    elif $(is_repos "$x"); then
-      # [[ -z $_PRJNAME || $_PRJNAME != "Odoo" ]] && _PRJNAME=$(basename $x)
-      _REPOS=$(basename $x)
-      # repos_tools_params "$x"
-      # [[ -z $_PKGNAME ]] && _PKGNAME=$_REPOS
-      break
-#    elif [[ $_REPOS = "tools" ]]; then
-#      repos_tools_params "$x"
-#      [[ -z "$_PKGPATH" && -n "$_PRJPATH" ]] && _PKGPATH=$_PRJPATH
-#      break
-#    elif [[ ! $r =~ $INV_MODS ]]; then
-#      [[ -z "$_PRJPATH" ]] && _PRJPATH=$x
-#      [[ -z "$_PRJNAME" ]] && _PRJNAME=$(basename $x)
-#      if [[ -z "$_SETUP" && -f "$x/setup.py" && (! -f "$x/../setup.py" || $(basename $(dirname $x)) != $(basename $x)) ]]; then
-#        _SETUP="$x/setup.py"
-#        [[ -z "$_PKGPATH" ]] && _PKGPATH=$x
-#        [[ -z "$_PKGNAME" ]] && _PKGNAME=$(basename $x)
-#        if [[ $_PRJNAME != "Odoo" ]]; then
-#          [[ $x != $ODOO_ROOT && $x != "/" ]] && _REPOS=$(basename $(dirname $x)) || _REPOS=
-#        fi
-#        break
-#      elif [[ -z "$_REPOS" ]]; then
-#        _REPOS=$(basename $x)
-#      fi
+    if [[ ! $r =~ $INV_MODS && ! $r =~ ^[._] ]]; then
+      [[ -d $x/$r/tests ]] && _TESTDIR="$(readlink -f $x/$r/tests)" && _RUNDIR="$(readlink -f $x/$r)"
+      if $(is_pypi "$x"); then
+        repos_tools_params "$x"
+      elif $(is_odoo_module "$x"); then
+        _PRJNAME="Odoo"
+        _PKGNAME=$(basename $x)
+        _REPOS=$(basename $(dirname $x))
+        [[ -d $x/tests ]] && _TESTDIR="$(readlink -f $x/tests)" && _RUNDIR="$(readlink -f $x)"
+        break
+      elif $(is_ocb_dir "$x"); then
+        _PRJNAME="Odoo"
+        _PKGNAME="OCB"
+        _REPOS="OCB"
+        break
+      elif $(is_repos "$x"); then
+        _REPOS=$(basename $x)
+        break
+      fi
     fi
-    [[ $x != $ODOO_ROOT && $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
+    [[ $x != $HOME && $x != "/" ]] && x=$(readlink -e $x/..) || x=
   done
-  if [[ -z "$_PRJNAME" && -n "$_SETUP" && -f "$_SETUP" ]]; then
-    r=$(get_value_from_setup "$_SETUP" "name")
-    [[ -n "$r" ]] && _PRJNAME="$r"
-  fi
   [[ $_PRJNAME =~ ^(odoo|openerp)$ ]] && _PRJNAME="Odoo"
-  if [[ $_PRJNAME == "Odoo" ]]; then
-    if [[ "$(type -t build_odoo_param)" == "function" ]]; then
-      _PRJPATH=$(build_odoo_param HOME $PWD)
-      _REPOS=$(build_odoo_param REPOS $PWD)
-    else
-      [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
-      [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
-      [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
-    fi
-  fi
   if [[ $1 == "ALL" ]]; then
     SETUP=$_SETUP
     [[ -n "$SETUP" ]] && MANIFEST=$(basename $SETUP) || MANIFEST=
-    PKGPATH=$_PKGPATH
-    PKGNAME=$_PKGNAME
+    export PKGPATH=$_PKGPATH
+    export PKGNAME=$_PKGNAME
     PRJPATH=$_PRJPATH
-    PRJNAME=$_PRJNAME
-    REPOSNAME=$_REPOS
-    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
-    [[ -n "$LGITPATH" ]] && export LGITPATH=$(expand_path "$LGITPATH")
+    export PRJNAME=$_PRJNAME
+    export REPOSNAME=$_REPOS
+    [[ -n $_TESTDIR ]] && export TESTDIR=$_TESTDIR
+    [[ -n $_RUNDIR ]] && export RUNDIR=$_RUNDIR
     [[ $DEV_ENVIRONMENT == $THIS ]] && test_mode=1
     [[ ${test_mode:-0} -gt 0 ]] && opt_dry_run=1
     PS_TXT_COLOR=$(get_cfg_value "" "PS_TXT_COLOR")
@@ -1619,7 +1610,7 @@ do_chkconfig() {
   echo "Setup file     = \"$SETUP\""
   echo "Project path   = \"$PRJPATH\""
   echo "Package path   = \"$PKGPATH\""
-  echo "Local git path = \"$LGITPATH\""
+  # echo "Local git path = \"$LGITPATH\""
   echo "Config file    = \"$TCONF\""
 }
 export -f do_chkconfig

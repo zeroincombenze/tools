@@ -83,7 +83,6 @@ RFLIST__wok_code=""
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score="odoo_shell.py"
 RFLIST__os0=""
-# MOVED_FILES_RE="(cvt_csv_2_xml.py|cvt_script|dist_pkg|gen_addons_table.py|makepo_it.py|odoo_translation.py|please.man|run_odoo_debug|topep8|topep8.py|transodoo.py|transodoo.xlsx|travis|travisrc)"
 FILES_2_DELETE="addsubm.sh clodoo clodoocore.py clodoolib.py devel_tools export_db_model.py kbase oca-autopep8 odoo_default_tnl.csv please.py prjdiff replica.sh run_odoo_debug.sh set_color.sh set_odoover_confn please_test_install.sh topep8.py to_oia.2p8 transodoo.csv upd_oemod.py venv_mgr venv_mgr.man wok_doc wok_doc.py z0lib z0lib.py z0librun.py"
 
 SRCPATH=
@@ -93,7 +92,7 @@ GREEN="\e[32m"
 CLR="\e[0m"
 
 [[ $opts =~ ^-.*n ]] && PMPT="> " || PMPT="\$ "
-[[ $opts =~ ^-.*t ]] && echo "$PMPT $0"
+[[ $opts =~ ^-.*t ]] && echo "${PMPT} $0 \"$*\""
 [[ -d $TDIR/zerobug && -d $TDIR/wok_code && -d $TDIR/z0lib ]] && SRCPATH=$TDIR
 [[ -z "$SRCPATH" && -d $TDIR/../tools && -d $TDIR/../zerobug && -d $TDIR/../z0lib ]] && SRCPATH=$(readlink -f $TDIR/..)
 [[ -z "$SRCPATH" && -d $HOME/odoo/tools ]] && SRCPATH=$HOME/odoo/tools
@@ -214,7 +213,7 @@ popts="--disable-pip-version-check --no-python-version-warning"
 [[ $PIPVER -eq 21 ]] && popts="$popts --use-feature=in-tree-build"
 [[ $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
 [[ ! $opts =~ ^-.*v ]] && popts="$popts -q"
-[[ ! $opts =~ ^-.*vv ]] && popts="$popts -v"
+[[ $opts =~ ^-.*vv ]] && popts="$popts -v"
 [[ $opts =~ ^-.*v ]] && echo "# $(which pip).$PIPVER $popts ..."
 [[ -d $DSTPATH/tmp ]] && rm -fR $DSTPATH/tmp
 [[ -d $LOCAL_VENV/tmp ]] && rm -fR $LOCAL_VENV/tmp

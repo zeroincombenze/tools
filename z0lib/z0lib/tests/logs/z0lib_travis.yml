@@ -60,8 +60,8 @@ before_install:
   - $HOME/tools/install_tools.sh -qpt
   - source $HOME/devel/activate_tools -t
 
-#install:
-#  - travis_install_env tools
+install:
+  # - travis_install_env
 
 env:
   global:
@@ -69,25 +69,16 @@ env:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
 
   matrix:
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/arcangelo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/wok_code LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/odoo_score LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/python_plus LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/zar LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  - MODULE_PATH=${TRAVIS_BUILD_DIR}/z0bug_odoo LINT_CHECK="1" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH}
-  # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="10.0"
-  # - MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo LINT_CHECK="0" BASH_CHECK="0" TESTS="1" PYTHONPATH=${MODULE_PATH} ODOO_REPO="zeroincombenze/OCB" VERSION="12.0"
+  # - LINT_CHECK="1"
+  - DEV_ENVIRONMENT="z0lib" LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
 
 script:
-  - cd $MODULE_PATH; pwd
-  - travis_run_pypi_tests
+  # - vem $HOME/devel/venv install /home/odoo/devel/pypi/z0lib
+  - cd $TESTDIR && travis_run_pypi_tests
 
 after_success:
-  - cd ${MODULE_PATH}; travis_after_tests_success
+  - cd $TRAVIS_BUILD_DIR; travis_after_tests_success
 
 # after_failure:
 #     - cat $:{HOME}/odoo_10-0.log
+

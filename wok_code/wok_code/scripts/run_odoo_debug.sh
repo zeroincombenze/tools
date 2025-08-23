@@ -1,17 +1,31 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# Based on template 2.10
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+ME=$(readlink -e $0)
+if [[ -d $HOME/devel || -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+PYPATH=""
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" ]] && PYPATH="$(dirname $PWD)"
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" && -d $PWD/../scripts ]] && PYPATH="$PYPATH $(readlink -f $PWD/../scripts)"
+x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $x/pypi ]]; do x=$(dirname $x); done
+[[ -d $x/pypi ]] && PYPATH="$PYPATH $x/pypi"
+[[ -d $x/pypi/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib"
+[[ -d $x/pypi/z0lib/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib/z0lib"
+[[ -d $x/tools ]] && PYPATH="$PYPATH $x/tools"
+[[ -d $x/tools/z0lib ]] && PYPATH="$PYPATH $x/tools/z0lib"
+[[ -d $x/bin ]] && PYPATH="$PYPATH $x/bin"
+[[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
+[[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
+[[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
+# [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
+# [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -22,7 +36,7 @@ for d in $PYPATH /etc; do
 done
 [[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
-ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo" "clodoo")
 [[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
@@ -101,8 +115,8 @@ check_for_modules() {
 coverage_set() {
     local m p coverage_tmpl opts
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      export COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
-      export COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
+      export COVERAGE_DATA_FILE="$LOGDIR/${UDI}_coverage"
+      export COVERAGE_PROCESS_START="$LOGDIR/${UDI}_coveragerc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
       [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -E "/^ *.\/tests\/./d" -i $COVERAGE_PROCESS_START
@@ -125,33 +139,28 @@ coverage_erase() {
 }
 
 coverage_report() {
-    local v
-     if [[ -n $COVERAGE_PROCESS_START ]]; then
-      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
+    if [[ -n $COVERAGE_PROCESS_START ]]; then
+      [[ ! -f $COVERAGE_DATA_FILE ]] && echo "Result coverage file $COVERAGE_DATA_FILE not found!"
+      [[ -f $COVERAGE_DATA_FILE ]] && run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
     fi
 }
 
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
-    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
-    [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
-    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_maj}"
-    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_maj}"
-    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_maj}" || UMLI="${GIT_ORGID}"
-    [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
-    [[ -n $m ]] && UMLI="${UMLI}.$m"
-    if [[ $SCOPE == "marketplace" || $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
-      LOGDIR="$HOME/travis_log/${GIT_ORGID}${odoo_maj}.$m"
-    else
-      LOGDIR="$PKGPATH/tests/logs"
-    fi
-    export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
-    export DAEMON_LOGFILE="$LOGDIR/${PKGNAME}_nohup_$(date +%Y%m%d).txt"
-    [[ -f $LOGFILE && $opt_test -ne 0 ]] && rm -f $LOGFILE
-    [[ -f $DAEMON_LOGFILE && $opt_test -ne 0 ]] && rm -f $DAEMON_LOGFILE
+    local ro
+    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
+    [[ $SCOPE == "marketplace" || $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
+    get_uniqid "$PKGPATH" "${odoo_maj}" "$GIT_ORGID" "$REPOSNAME"
+    [[ $ro -ne 0 ]] && LOGDIR="$HOME/travis_log"
+    [[ $ro -eq 0 ]] && LOGDIR="$TESTDIR/logs"
+    [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
+    LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
+    DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
+    [[ $ro -ne 0 ]] && LOGFILE="$LOGFILE.log"
+    [[ $ro -eq 0 ]] && LOGFILE="$LOGFILE.txt"
+    export LOGFILE
+    export DAEMON_LOGFILE
 }
 
 check_path_n_branch() {

@@ -585,13 +585,15 @@ class Please(object):
         while pkgname in (
             "tests",
             "travis",
-            "_travis",
+            # "_travis",
             "docs",
             "examples",
             "egg-info",
             "junk",
             "scripts",
-        ):
+            "setup",
+            "openupgrade",
+        ) or pkgname.startswith((".", "_")):
             path = pth.dirname(path)
             pkgname = pth.basename(path)
         return path, pkgname

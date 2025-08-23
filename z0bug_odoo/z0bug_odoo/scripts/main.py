@@ -38,11 +38,14 @@ PKG_FILES = (
 )
 BIN_FILES = (
     "bck_filestore.sh",
+    "build_cmdd",
     "force_password.sh",
     "odooctl",
     "list_requirements.py",
     "set_workers",
     "travis",
+    "travis_after_tests_success",
+    "travis_run_pypi_tests",
     "xuname",
 )
 
@@ -53,8 +56,6 @@ def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
         if fn:
             fn = pth.dirname(fn)
         return fn
-    elif base == "travis" and pypi != "travis":
-        return ""
     fn = pth.abspath(pth.join(
         pypi_metadata["libpath"],
         pkg_resources.resource_filename(pypi, base)))
@@ -69,8 +70,6 @@ def get_fn_from_base_3(metadata, pypi, base):
         if fn:
             fn = pth.dirname(fn)
         return fn
-    elif base == "travis" and pypi != "travis":
-        return ""
     fn = ""
     util = [p for p in metadata.files(pypi) if pth.basename(str(p)) == base]
     if util:

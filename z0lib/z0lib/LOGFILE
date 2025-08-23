@@ -1,0 +1,566 @@
+[0;30;107m                                                                                [0m
+[97;42m=== Process YAML file ===                                                       [0m
+[0;30;107m                                                                                [0m
+[97;42m===== [Build python 3.11] =====[0m
+[0;30;107m                                                                                [0m
+[97;42m===== [Build job DEV_ENVIRONMENT="z0lib" LINT_CHECK="0" BASH_CHECK="0" TESTS="1"] =====[0m
+[1;37;44m  $ vem cp -DI -q -f /home/odoo/VME/VME3.11 /home/odoo/VENV_1825068
+[34;107mRequirement already satisfied: pip in /home/odoo/VME/VME3.11/lib/python3.11/site-packages (25.2)
+No broken requirements found.
+[31mVirtual Environment /home/odoo/VENV_1825068 not isolated![0m
+[0m[1;37;44m  $ source /home/odoo/VENV_1825068/bin/activate
+[34;107m[0mDownload testing repository ...
+[1;37;44m  $ cp -R /home/odoo/devel/pypi/z0lib/z0lib/ /home/odoo/VENV_1825068/build/local/
+[34;107m[0m[1;37;44m  $ cp /home/odoo/devel/pypi/z0lib/z0lib/../setup.py /home/odoo/VENV_1825068/build/local/z0lib/
+[34;107m[0m[1;37;44m  $ cd /home/odoo/VENV_1825068/build/local/z0lib
+[34;107m[0m[30;43m===== [System informations] =====[0m
+[34;107m$ TODAY=2025-08-23 21:36:33[0m
+[34;107m$ job-id=1825068[0m
+[34;107m$ opt_dbgmnt=1[0m
+[34;107m$ __version__=2.0.10[0m
+[34;107m$ TCONF=/home/odoo/.z0tools.conf[0m
+[34;107m$ DIST=Linux Ubuntu 20.04(focal 6.6.87.2-microsoft-standard-WSL2 x86_64)[0m
+[34;107m$ HOME=/home/odoo/VENV_1825068[0m
+[34;107m$ HOME_DEVEL=/home/odoo/devel[0m
+[34;107m$ LOGFILE=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/tools.z0lib_20250823.log[0m
+[34;107m$ MQT_TEMPLATE_DB=template_odoo1825068[0m
+[34;107m$ MQT_TEST_DB=test_odoo1825068[0m
+[34;107m$ ODOO_ROOT=/home/odoo[0m
+[34;107m$ PATH=/home/odoo/VENV_1825068/.local/bin:/home/odoo/VENV_1825068/bin:/home/odoo/.local/bin:/home/odoo/bin:/home/odoo/bin:/home/odoo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/java8path:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/AOMEI/AOMEI Backupper/7.4.2:/mnt/c/Program Files/PowerShell/7/:/mnt/c/Users/anton/AppData/Local/Programs/Python/Launcher/:/mnt/c/Users/anton/AppData/Local/Microsoft/WindowsApps:/snap/bin:/home/odoo/devel/venv/bin[0m
+[34;107m$ PKGNAME=z0lib[0m
+[34;107m$ PKGPATH=/home/odoo/VENV_1825068/build/local/z0lib[0m
+[34;107m$ PIP=/home/odoo/VENV_1825068/bin/pip3.11[0m
+[34;107m$ PIPVER=25[0m
+[34;107m$ PRJNAME=pypi[0m
+[34;107m$ PRJPATH=[0m
+[34;107m$ PGUSER=odoo12[0m
+[34;107m$ PYPI_CACHED=/home/odoo/VENV_1825068/lib/python3.11/site-packages/[0m
+[34;107m$ PYTHON=/home/odoo/VENV_1825068/bin/python3.11[0m
+[34;107m$ PYTHONPATH=[0m
+[34;107m$ REPOSNAME=tools[0m
+[34;107m$ TRAVIS=false[0m
+[34;107m$ TRAVIS_BRANCH=devel[0m
+[34;107m$ TRAVIS_BUILD_DIR=/home/odoo/VENV_1825068/build/local/z0lib[0m
+[34;107m$ TRAVIS_DEBUG_MODE=2[0m
+[34;107m$ TRAVIS_HOME=/home/odoo/VENV_1825068[0m
+[34;107m$ TRAVIS_PYTHON_MATRIX= 3.11[0m
+[34;107m$ TRAVIS_PYTHON_VERSION=3.11[0m
+[34;107m$ TRAVIS_REPO_SLUG=local/z0lib[0m
+[34;107m$ TRAVIS_SAVED_HOME=/home/odoo[0m
+[34;107m$ TRAVIS_SAVED_HOME_DEVEL=/home/odoo/devel[0m
+[34;107m$ TRAVIS_SAVED_PKGPATH=/home/odoo/devel/pypi/z0lib/z0lib[0m
+[34;107m$ TRAVIS_YAML_FILE=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_travis.yml[0m
+[34;107m$ TRAVIS_YAML_ORIG=/home/odoo/devel/pypi/travis_emulator/travis_emulator/template_travis.yml[0m
+[34;107m$ SYSTEM_SITE_PACKAGES=false[0m
+[30;43m===== [Initialize] =====[0m
+[30;45m------ [Initialize from .travis.conf] ------[0m
+[1;37;44m$ export GBL_EXCLUDE=test_impex,test_ir_actions,test_lint,test_main_flows,test_search,test_user_has_group,test_mimetypes
+[34;107m[0m[30;45m------ [[env.global] in .travis.yml] ------[0m
+[1;37;44m$ export TRAVIS_DEBUG_MODE="2"
+[34;107m[0m[1;37;44m$ export TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
+[34;107m[0m[30;43m===== [Before install] =====[0m
+[30;45m------ [[addons.apt.packages] in .travis.yml] ------[0m
+[1;37;44m$ 
+[34;107m[0m[30;45m------ [[before_install] in .travis.yml] ------[0m
+[34;107m> git clone https://github.com/zeroincombenze/tools.git $HOME/tools --single-branch --depth=1[0;97;40m
+[1;37;44m  $ git_clone https://github.com/zeroincombenze/tools.git $HOME/tools --single-branch --depth=1
+[34;107m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/arcangelo/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/arcangelo/arcangelo/ /home/odoo/VENV_1825068/tools/arcangelo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/arcangelo/setup.py /home/odoo/VENV_1825068/tools/arcangelo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/arcangelo/README.rst /home/odoo/VENV_1825068/tools/arcangelo/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/clodoo/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/clodoo/clodoo/ /home/odoo/VENV_1825068/tools/clodoo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/clodoo/setup.py /home/odoo/VENV_1825068/tools/clodoo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/clodoo/README.rst /home/odoo/VENV_1825068/tools/clodoo/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/lisa/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/lisa/lisa/ /home/odoo/VENV_1825068/tools/lisa/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/lisa/setup.py /home/odoo/VENV_1825068/tools/lisa/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/lisa/README.rst /home/odoo/VENV_1825068/tools/lisa/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/odoo_score/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/odoo_score/odoo_score/ /home/odoo/VENV_1825068/tools/odoo_score/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/odoo_score/setup.py /home/odoo/VENV_1825068/tools/odoo_score/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/odoo_score/README.rst /home/odoo/VENV_1825068/tools/odoo_score/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/os0/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/os0/os0/ /home/odoo/VENV_1825068/tools/os0/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/os0/setup.py /home/odoo/VENV_1825068/tools/os0/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/os0/README.rst /home/odoo/VENV_1825068/tools/os0/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/oerplib3/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/oerplib3/oerplib3/ /home/odoo/VENV_1825068/tools/oerplib3/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/oerplib3/setup.py /home/odoo/VENV_1825068/tools/oerplib3/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/oerplib3/README.rst /home/odoo/VENV_1825068/tools/oerplib3/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/python_plus/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/python_plus/python_plus/ /home/odoo/VENV_1825068/tools/python_plus/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/python_plus/setup.py /home/odoo/VENV_1825068/tools/python_plus/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/python_plus/README.rst /home/odoo/VENV_1825068/tools/python_plus/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/travis_emulator/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/travis_emulator/travis_emulator/ /home/odoo/VENV_1825068/tools/travis_emulator/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/travis_emulator/setup.py /home/odoo/VENV_1825068/tools/travis_emulator/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/travis_emulator/README.rst /home/odoo/VENV_1825068/tools/travis_emulator/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/wok_code/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/wok_code/wok_code/ /home/odoo/VENV_1825068/tools/wok_code/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/wok_code/setup.py /home/odoo/VENV_1825068/tools/wok_code/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/wok_code/README.rst /home/odoo/VENV_1825068/tools/wok_code/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/z0bug_odoo/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/z0bug_odoo/z0bug_odoo/ /home/odoo/VENV_1825068/tools/z0bug_odoo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/z0bug_odoo/setup.py /home/odoo/VENV_1825068/tools/z0bug_odoo/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/z0bug_odoo/README.rst /home/odoo/VENV_1825068/tools/z0bug_odoo/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/z0lib/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/z0lib/z0lib/ /home/odoo/VENV_1825068/tools/z0lib/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/z0lib/setup.py /home/odoo/VENV_1825068/tools/z0lib/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/z0lib/README.rst /home/odoo/VENV_1825068/tools/z0lib/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/zar/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/zar/zar/ /home/odoo/VENV_1825068/tools/zar/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/zar/setup.py /home/odoo/VENV_1825068/tools/zar/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/zar/README.rst /home/odoo/VENV_1825068/tools/zar/
+[34;107m[0m[1;37;44m    $ mkdir -p /home/odoo/VENV_1825068/tools/zerobug/
+[34;107m[0m[1;37;44m    $ rsync -rlpgoW --delete /home/odoo/devel/pypi/zerobug/zerobug/ /home/odoo/VENV_1825068/tools/zerobug/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/zerobug/setup.py /home/odoo/VENV_1825068/tools/zerobug/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/zerobug/README.rst /home/odoo/VENV_1825068/tools/zerobug/
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/tools/install_tools.sh /home/odoo/VENV_1825068/tools/install_tools.sh
+[34;107m[0m[1;37;44m    $ cp /home/odoo/devel/pypi/tools/odoo_template_tnl.xlsx /home/odoo/VENV_1825068/tools/odoo_template_tnl.xlsx
+[34;107m[0m[1;37;44m    $ cp -r /home/odoo/devel/pypi/tools/templates /home/odoo/VENV_1825068/tools/
+[34;107m[0m[1;37;44m    $ cp -r /home/odoo/devel/pypi/tools/license_text /home/odoo/VENV_1825068/tools/
+[34;107m[0m[1;37;44m    $ cp -r /home/odoo/devel/pypi/tools/tests /home/odoo/VENV_1825068/tools/
+[34;107m[0m[0m[1;37;44m$ $HOME/tools/install_tools.sh -qpt
+[34;107m$  /home/odoo/VENV_1825068/tools/install_tools.sh "-qpt"
+Requirement already satisfied: pip in /home/odoo/VENV_1825068/devel/venv/lib/python3.11/site-packages (23.2.1)
+Collecting pip
+  Obtaining dependency information for pip from https://files.pythonhosted.org/packages/b7/3f/945ef7ab14dc4f9d7f40288d2df998d1837ee0888ec3659c813487572faa/pip-25.2-py3-none-any.whl.metadata
+  Downloading pip-25.2-py3-none-any.whl.metadata (4.7 kB)
+Downloading pip-25.2-py3-none-any.whl (1.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 9.5 MB/s eta 0:00:00
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 23.2.1
+    Uninstalling pip-23.2.1:
+      Successfully uninstalled pip-23.2.1
+Successfully installed pip-25.2
+Collecting wheel
+  Downloading wheel-0.45.1-py3-none-any.whl.metadata (2.3 kB)
+Downloading wheel-0.45.1-py3-none-any.whl (72 kB)
+Installing collected packages: wheel
+Successfully installed wheel-0.45.1
+[?25l|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-[?25hNo broken requirements found.
+.......................................................
+[32mInstalled environment test SUCCESSFULLY completed[0m
+[0m[1;37;44m$ source $HOME/devel/activate_tools -t
+[34;107m[0m[30;43m===== [Install export DEV_ENVIRONMENT="z0lib" LINT_CHECK="0" BASH_CHECK="0" TESTS="1"] =====[0m
+[30;45m------ [[install] in .travis.yml] ------[0m
+[1;37;44m$ export DEV_ENVIRONMENT="z0lib" LINT_CHECK="0" BASH_CHECK="0" TESTS="1"
+[34;107m[0m[30;43m===== [Before script DEV_ENVIRONMENT="z0lib" LINT_CHECK="0" BASH_CHECK="0" TESTS="1"] =====[0m
+[30;43m===== [Script matrix DEV_ENVIRONMENT="z0lib" LINT_CHECK="0" BASH_CHECK="0" TESTS="1"] =====[0m
+[1;37;44m$ cd $TESTDIR && travis_run_pypi_tests
+[34;107m======== Running regression_test ========
+[1;37;44m  $ export COVERAGE_DATA_FILE="/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coverage"
+[34;107m[0m[1;37;44m  $ export COVERAGE_PROCESS_START="/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc"
+[34;107m[0m[1;37;44m  $ cp /home/odoo/VENV_1825068/devel/venv/lib/python3.11/site-packages/zerobug/_travis/cfg/coveragerc /home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc
+[34;107m[0m[1;37;44m  $ coverage erase --rcfile=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc
+[34;107m[0m[1;37;44m  $ DEV_ENVIRONMENT=z0lib cd /home/odoo/VENV_1825068/build/local/z0lib/tests && /home/odoo/VENV_1825068/bin/zerobug -v
+[34;107m    $ coverage erase --rcfile=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc
+Test 1: get_cfg_value '' param1
+Test 2: get_cfg_value '' param2
+Test 3: get_cfg_value '' param3
+Test 4: get_cfg_value '' param4
+Test 5: get_cfg_value '' param1
+Test 6: get_cfg_value '' param2
+Test 7: get_cfg_value '' param3
+Test 8: get_cfg_value '' param4
+Test 9: get_cfg_value '' param4
+Test 10: get_cfg_value '' param1
+Test 11: get_cfg_value '' param2
+Test 12: get_cfg_value '' param3
+Test 13: get_cfg_value '' param4
+Test 14: get_cfg_value '' param1  #upd
+Test 15: get_cfg_value '' param2
+Test 16: get_cfg_value '' param3  #upd
+Test 17: get_cfg_value '' param4
+Test 18: get_cfg_value '' param1  #default
+Test 19: get_cfg_value '' param2
+Test 20: get_cfg_value '' param3
+Test 21: get_cfg_value '' param4
+Test 22: get_cfg_value '' param9
+Test 23: get_cfg_value '' param1 #[Debian]
+Test 1: get_cfg_value 0 param1
+Test 2: ext function called (0)
+Test 3: get_cfg_value 0 param2
+Test 4: get_cfg_value 1 param1
+Test 5: ext function called (1)
+Test 6: get_cfg_value 1 param2
+Test 7: get_cfg_value 2 param1
+Test 8: ext function called (2)
+Test 9: get_cfg_value 2 param2
+Test 10: get_cfg_value 3 param1
+Test 11: ext function called (3)
+Test 12: get_cfg_value 3 param2
+Test 13: get_cfg_value 0 param1 1
+Test 14: get_cfg_value 0 param2 1
+Test 15: ext function called
+Test 16: get_cfg_value 0 param1 -D
+Test 17: get_cfg_value 0 param2 -D
+Test 18: ext function called
+Test 19: get_cfg_value 0 LOCAL_PKGS
+Test 1: get_cfg_value '' param1
+Test 2: get_cfg_value '' param2
+Test 3: get_cfg_value '' param3
+Test 4: get_cfg_value '' param4
+Test 5: get_cfg_value '' param1
+Test 6: get_cfg_value '' param2
+Test 7: get_cfg_value '' param3
+Test 8: get_cfg_value '' param4
+Test 9: get_cfg_value '' param4
+Test 10: get_cfg_value '' param1
+Test 11: get_cfg_value '' param2
+Test 12: get_cfg_value '' param3
+Test 13: get_cfg_value '' param4
+Test 14: get_cfg_value '' param1
+Test 15: get_cfg_value '' param2
+Test 16: get_cfg_value '' param3
+Test 17: get_cfg_value '' param4
+Test 18: get_cfg_value '' param1
+Test 19: get_cfg_value '' param2
+Test 20: get_cfg_value '' param3
+Test 21: get_cfg_value '' param4
+Test 22: get_cfg_value '' param9
+Test 23: get_cfg_value '' param1 OS
+Test 1: get_cfg_value 0 param1 #[Ubuntu20]
+Test 2: ext function called
+Test 3: get_cfg_value 1 param1 #[Ubuntu20]
+Test 4: ext function called
+Test 5: get_cfg_value 2 param1 #[Ubuntu20]
+Test 6: ext function called
+Test 7: get_cfg_value 3 param1 #[Ubuntu20]
+Test 8: ext function called
+Test 1: FH=Debian  #0
+Test 2: DISTO=Ubuntu20  #0
+Test 3: FH=Debian  #1
+Test 4: DISTO=Ubuntu20  #1
+Test 5: FH=Debian  #2
+Test 6: DISTO=Ubuntu20  #2
+Test 7: FH=Debian  #3
+Test 8: DISTO=Ubuntu20  #3
+Test 9: CFG_find 0 k01
+Test 10: CFG_find 0 k02
+Test 11: CFG_find 0 k03
+Test 12: CFG_find 0 k04
+Test 13: CFG_find 0 K-X
+Test 14: CFG_find 1 k11
+Test 15: CFG_find 1 k12
+Test 16: CFG_find 1 k13
+Test 17: CFG_find 1 k14
+Test 18: CFG_find 1 K-X
+Test 19: CFG_find 1 k01
+Test 20: CFG_find 1 k02
+Test 21: CFG_find 1 k03
+Test 22: CFG_find 1 k04
+Test 23: CFG_find 2 k21
+Test 24: CFG_find 2 k22
+Test 25: CFG_find 2 k23
+Test 26: CFG_find 2 k24
+Test 27: CFG_find 2 k01
+Test 28: CFG_find 2 k02
+Test 29: CFG_find 2 k03
+Test 30: CFG_find 2 k04
+Test 31: CFG_find 2 k11
+Test 32: CFG_find 2 k12
+Test 33: CFG_find 2 k13
+Test 34: CFG_find 2 k14
+Test 35: CFG_find 3 k31
+Test 36: CFG_find 3 k32
+Test 37: CFG_find 3 k33
+Test 38: CFG_find 3 k34
+Test 39: CFG_find 3 k01
+Test 40: CFG_find 3 k02
+Test 41: CFG_find 3 k03
+Test 42: CFG_find 3 k04
+Test 43: CFG_find 3 k11
+Test 44: CFG_find 3 k12
+Test 45: CFG_find 3 k13
+Test 46: CFG_find 3 k14
+Test 47: CFG_find 3 k21
+Test 48: CFG_find 3 k22
+Test 49: CFG_find 3 k23
+Test 50: CFG_find 3 k24
+Test 51: CFG_find 0 K9
+Test 52: CFG_find 1 K9
+Test 53: CFG_find 0 k01
+Test 54: CFG_find 0 k01
+Test 55: CFG_find 1 k01
+Test 56: CFG_find 1 k01
+Test 57: CFG_find 2 k01
+Test 58: CFG_find 2 k01
+Test 59: CFG_find 3 k01
+Test 60: CFG_find 3 k01
+Test 61: CFG_find 0 K9
+Test 62: CFG_find 0 K9
+Test 63: CFG_find 1 K9
+Test 64: CFG_find 1 K9
+Test 65: CFG_find 2 K9
+Test 66: CFG_find 2 K9
+Test 67: CFG_find 3 K9
+Test 68: CFG_find 3 K9
+Test 69: CFG_find 0 kx01
+Test 70: CFG_find 0 kx01
+Test 71: CFG_find 1 kx11
+Test 72: CFG_find 1 kx11
+Test 73: CFG_find 2 kx21
+Test 74: CFG_find 2 kx21
+Test 75: CFG_find 3 kx31
+Test 76: CFG_find 3 kx31
+Test 77: CFG_find 0 k01
+Test 78: CFG_find 0 k02
+Test 79: CFG_find 0 k03
+Test 80: CFG_find 0 k04
+Test 81: CFG_find 0 K-X
+Test 82: CFG_find 1 k11
+Test 83: CFG_find 1 k12
+Test 84: CFG_find 1 k13
+Test 85: CFG_find 1 k14
+Test 86: CFG_find 1 K-X
+Test 87: CFG_find 1 k01
+Test 88: CFG_find 1 k02
+Test 89: CFG_find 1 k03
+Test 90: CFG_find 1 k04
+Test 91: CFG_find 2 k21
+Test 92: CFG_find 2 k22
+Test 93: CFG_find 2 k23
+Test 94: CFG_find 2 k24
+Test 95: CFG_find 2 k01
+Test 96: CFG_find 2 k02
+Test 97: CFG_find 2 k03
+Test 98: CFG_find 2 k04
+Test 99: CFG_find 2 k11
+Test 100: CFG_find 2 k12
+Test 101: CFG_find 2 k13
+Test 102: CFG_find 2 k14
+Test 103: CFG_find 3 k31
+Test 104: CFG_find 3 k32
+Test 105: CFG_find 3 k33
+Test 106: CFG_find 3 k34
+Test 1: findpkg myself
+Test 2: findpkg '' /home/odoo/VENV_1825068/build/local/z0lib/tests pgsql
+Test 3: findpkg '' /home/odoo/VENV_1825068/build/local/z0lib/tests postgresql
+Test 4: findpkg '' /home/odoo/VENV_1825068/build/local/z0lib/tests 'postgresql pgsql' 9.1
+Test 5: findpkg psql /home/odoo/VENV_1825068/build/local/z0lib/tests 'postgresql pgsql' 9.1
+Test 6: findpkg psql9 /home/odoo/VENV_1825068/build/local/z0lib/tests 'postgresql pgsql' 9.1
+Test 7: findpkg psql9 /home/odoo/VENV_1825068/build/local/z0lib tests 'postgresql pgsql' 9.1
+Test 8: findpkg psql9 /home/odoo/VENV_1825068/build/local z0lib tests 'postgresql pgsql' 9.1
+Test 9: findpkg '' /home/odoo/VENV_1825068/build/local z0lib tests 'postgresql pgsql' 9.2
+Test 10: findpkg  /etc /usr
+Test 11: findpkg  ./Non_Exists /etc /usr
+Test 12: findpkg bash ./Non_Exists /etc /bin
+Test 13: findpkg mail/ /var  /usr /etc /bin spool mail log lib
+Test 1: parse https://www.zeroincombenze.it
+Test 2: parse https://www.zeroincombenze.it
+Test 3: parse https://www.zeroincombenze.it/main_page/z0
+Test 4: parse https://www.zeroincombenze.it/main_page/z0
+Test 5: parse https://www.zeroincombenze.it/main_page/z0
+Test 6: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 7: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 8: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 9: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 10: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 11: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 12: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 13: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 14: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 15: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 16: parse https://www.zeroincombenze.it:8080/main_page/z0
+Test 17: parse ../example
+Test 18: parse ../example
+Test 19: parse git@github.com:zeroincombenze/tools.git
+Test 20: parse git@github.com:zeroincombenze/tools.git
+Test 21: parse tools
+Test 22: parse tools
+Test 1: cmd -V [-h]
+Test 2: cmd -V
+Test 3: cmd -V [-n]
+Test 4: cmd -V [-v]
+Test 5: print_help
+Test 1: cmd mytarget [-h]
+Test 2: cmd mytarget [-V]
+Test 3: cmd mytarget [-n]
+Test 4: cmd mytarget [-p]
+Test 5: cmd mytarget [-qv]
+Test 6: cmd mytarget [-q]
+Test 7: cmd mytarget [-v]
+Test 8: print_help
+Test 9: cmd -p ./mypath yourtarget [-h]
+Test 10: cmd -p ./mypath yourtarget [-V]
+Test 11: cmd -p ./mypath yourtarget [-n]
+Test 12: cmd -p ./mypath yourtarget [-p]
+Test 13: cmd -p ./mypath yourtarget [$1]
+Test 1: cmd mytarget [-h]
+Test 2: cmd mytarget [-V]
+Test 3: cmd mytarget [-n]
+Test 4: cmd mytarget [-p]
+Test 5: cmd mytarget [-O]
+Test 6: cmd mytarget [$1]
+Test 7: print_help
+Test 8: cmd -x mytarget [-h]
+Test 1: cmd -a -b -c ... [-a]
+Test 2: cmd -a -b -c ... [-b]
+Test 3: cmd -a -b -c ... [-c]
+Test 4: cmd -a -b -c ... [-d]
+Test 5: cmd -a -b -c ... [-e]
+Test 6: cmd -a -b -c ... [-f]
+Test 7: cmd -a -b -c ... [-g]
+Test 8: cmd -a -b -c ... [-h]
+Test 9: cmd -a -b -c ... [-i]
+Test 10: cmd -a -b -c ... [-j]
+Test 11: cmd -a -b -c ... [-k]
+Test 12: cmd -a -b -c ... [-l]
+Test 13: cmd --o-aa --o-bb --o-cc ... [--o-aa]
+Test 14: cmd --o-aa --o-bb --o-cc ... [--o-bb]
+Test 15: cmd --o-aa --o-bb --o-cc ... [--o-cc]
+Test 16: cmd --o-aa --o-bb --o-cc ... [--o-dd]
+Test 17: cmd --o-aa --o-bb --o-cc ... [--o-ee]
+Test 18: cmd --o-aa --o-bb --o-cc ... [--o-ff]
+Test 19: cmd --o-aa --o-bb --o-cc ... [--o-gg]
+Test 20: cmd --o-aa --o-bb --o-cc ... [--help]
+Test 21: cmd --o-aa --o-bb --o-cc ... [--o-ii]
+Test 22: cmd --o-aa --o-bb --o-cc ... [--o-jj]
+Test 23: cmd --o-aa --o-bb --o-cc ... [--o-kk]
+Test 24: cmd --o-aa --o-bb --o-cc ... [--o-ll]
+Test 1: cmd -v [-h]
+Test 2: cmd -v
+Test 3: cmd -vv
+Test 4: cmd -v -v
+Test 5: cmd -v -n -v
+Test 1: cmd -v
+Test 2: cmd -vv
+Test 3: cmd -v -v
+Test 4: cmd -v -n -v
+Test 1: cmd -V [-h]
+Test 2: cmd -V
+Test 3: cmd -V [-n]
+Test 4: cmd -V [-v]
+Test 5: print_help
+Test 6: cmd mytarget [-h]
+Test 7: cmd mytarget [-V]
+Test 8: cmd mytarget [-n]
+Test 9: cmd mytarget [-p]
+Test 10: cmd mytarget [-qv]
+Test 11: cmd mytarget [-q]
+Test 12: cmd mytarget [-v]
+Test 13: print_help
+Test 14: cmd -p ./mypath yourtarget [-h]
+Test 15: cmd -p ./mypath yourtarget [-V]
+Test 16: cmd -p ./mypath yourtarget [-n]
+Test 17: cmd -p ./mypath yourtarget [-p]
+Test 18: cmd -p ./mypath yourtarget [$1]
+Test 19: cmd mytarget [-h]
+Test 20: cmd mytarget [-V]
+Test 21: cmd mytarget [-n]
+Test 22: cmd mytarget [-p]
+Test 23: cmd mytarget [-O]
+Test 24: cmd mytarget [$1]
+Test 25: print_help
+Test 26: cmd -x mytarget [-h]
+Test 27: cmd -a -b -c ... [-a]
+Test 28: cmd -a -b -c ... [-b]
+Test 29: cmd -a -b -c ... [-c]
+Test 30: cmd -a -b -c ... [-d]
+Test 31: cmd -a -b -c ... [-e]
+Test 32: cmd -a -b -c ... [-f]
+Test 33: cmd -a -b -c ... [-g]
+Test 34: cmd -a -b -c ... [-h]
+Test 35: cmd -a -b -c ... [-i]
+Test 36: cmd -a -b -c ... [-j]
+Test 37: cmd -a -b -c ... [-k]
+Test 38: cmd -a -b -c ... [-l]
+Test 39: cmd --o-aa --o-bb --o-cc ... [--o-aa]
+Test 40: cmd --o-aa --o-bb --o-cc ... [--o-bb]
+Test 41: cmd --o-aa --o-bb --o-cc ... [--o-cc]
+Test 42: cmd --o-aa --o-bb --o-cc ... [--o-dd]
+Test 43: cmd --o-aa --o-bb --o-cc ... [--o-ee]
+Test 44: cmd --o-aa --o-bb --o-cc ... [--o-ff]
+Test 45: cmd --o-aa --o-bb --o-cc ... [--o-gg]
+Test 46: cmd --o-aa --o-bb --o-cc ... [--help]
+Test 47: cmd --o-aa --o-bb --o-cc ... [--o-ii]
+Test 48: cmd --o-aa --o-bb --o-cc ... [--o-jj]
+Test 49: cmd --o-aa --o-bb --o-cc ... [--o-kk]
+Test 50: cmd --o-aa --o-bb --o-cc ... [--o-ll]
+Test 51: cmd -v [-h]
+Test 52: cmd -v
+Test 53: cmd -vv
+Test 54: cmd -v -v
+Test 55: cmd -v -n -v
+Test 56: cmd -v
+Test 57: cmd -vv
+Test 58: cmd -v -v
+Test 59: cmd -v -n -v
+[0m[0m[0m[0m[0m[0mTest 1: run_traced true
+[0mTest 2: run_traced false
+[0mTest 3: run_traced touch NOT_EXISTS
+[0mTest 4: run_traced rm -f NOT_EXISTS
+[0mTest 5: run_traced cd NOT_EXISTS
+Test 6: run_traced ls
+Test 7: is_pypi /home/odoo/VENV_1825068/build/local/z0lib
+Test 8: is_pypi /home/odoo/devel/pypi/oerplib3/oerplib3
+Test 9: is_pypi /home/odoo/tools/z0lib
+    $ coverage run --rcfile=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc /home/odoo/VENV_1825068/build/local/z0lib/tests/test_run_traced.py -R -v -r0
+2. true
+3. false
+4. NOT_EXIST
+5. touch /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+7. rm -f /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+9. cd /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+10. ls
+12. mkdir /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+14. rm -fR /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+16. mkdir /home/odoo/VENV_1825068/16.0
+17. mkdir /home/odoo/VENV_1825068/16.0/addons
+18. mkdir /home/odoo/VENV_1825068/16.0/odoo
+19. mkdir /home/odoo/VENV_1825068/16.0/odoo/addons
+20. touch /home/odoo/VENV_1825068/16.0/odoo/release.py
+21. mkdir /home/odoo/VENV_1825068/16.0/.git
+22. mkdir /home/odoo/VENV_1825068/16.0/repo1
+23. mkdir /home/odoo/VENV_1825068/16.0/repo1/.git
+24. mkdir /home/odoo/VENV_1825068/16.0/repo1/module_a
+31. true
+32. false
+/bin/bash: NOT_EXIST: command not found
+33. NOT_EXIST
+34. touch /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+36. rm -f /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+38. cd /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+39. ls
+41. mkdir /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+43. rm -fR /home/odoo/VENV_1825068/build/local/z0lib/tests/NOT_EXIST
+45. ls|grep test
+    $ coverage run -a --rcfile=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc /home/odoo/VENV_1825068/build/local/z0lib/tests/test_z0lib.py -R -v -r0
+2. cmd -v
+3. cmd -v [-n]
+4. cmd mytarget [-qv]
+5. cmd mytarget [-n]
+6. cmd mytarget [-p]
+7. cmd mytarget
+8. cmd mytarget -q
+9. cmd mytarget -v
+[1;32mTest SUCCESSFULLY completed[0m
+    $ coverage report --show-missing --rcfile=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/z0lib_311_coveragerc
+Name                                                        Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------------------------------
+/home/odoo/VENV_1825068/build/local/z0lib/scripts/main.py      55     46    16%   51-61, 65-74, 78-115
+/home/odoo/VENV_1825068/build/local/z0lib/z0librun.py         376    110    71%   90, 97, 99, 122, 135, 141, 190, 195, 252-270, 281-295, 302, 308-310, 340, 345, 351-380, 388, 410-411, 432, 436, 439, 444-446, 460, 466, 469-474, 479-481, 484, 493-495, 506, 509-516, 529, 624-625, 638, 657, 668-677, 701, 712, 718-723
+-----------------------------------------------------------------------------------------
+TOTAL                                                         431    156    64%
+
+[0m[0;97;40m+=======================================
+[0;97;40m|  Tests summary:
+[0;97;40m|---------------------------------------
+[0;97;40m| regression_test             [1;32mSuccess[0;97;40m
+[0;97;40m+=======================================[0m
+[0m[30;43m===== [After success] =====[0m
+[1;37;44m$ cd $TRAVIS_BUILD_DIR; travis_after_tests_success
+[34;107mDEBUG: coverage report
+No data to report.
+[0m[30;43m===== [Ending] =====[0m
+[30;45m------ [[exit.packages] from .travis.conf] ------[0m
+[30;45m------ [[exit] from .travis.conf] ------[0m
+[1;37;44m$ deactivate
+[34;107m[0mHOME=/home/odoo
+HOME_DEVEL=/home/odoo/devel
+ODOO_ROOT=/home/odoo
+PWD=/home/odoo/devel/pypi/z0lib/z0lib
+[0m
