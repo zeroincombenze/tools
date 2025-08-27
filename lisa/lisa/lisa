@@ -241,7 +241,7 @@ store_cfg_param_value() {
       [[ "$2" == "REAL_python3" && "$FH" == "RHEL" ]] && v="python${PY3ID}"
       [[ "$2" == "REAL_python3-dev" && "$FH" == "RHEL" ]] && v="python${PY3ID}-devel"
     fi
-    [[ $opt_dbg -gt 0 ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> CFG_set \"$tid\" \"$p\" \"$v\" \"$4\" \"$5\" $6 <- store_cfg_param_value($1 $2 $v $4 $5 $6);">>~/$THIS.his
+    [[ $opt_debug -gt 0 ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> CFG_set \"$tid\" \"$p\" \"$v\" \"$4\" \"$5\" $6 <- store_cfg_param_value($1 $2 $v $4 $5 $6);">>~/$THIS.his
     CFG_set "$tid" "$p" "$v" "$4" $5
 }
 
@@ -3445,7 +3445,7 @@ please() {
 
 # main
 OPTOPTS=(h        b       c        D       d         E       e         f         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_force opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
+OPTDEST=(opt_help opt_debug opt_conf opt_dev opt_depth opt_osf opt_aae   opt_force opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
 OPTACTI=("+"      1       "="      "*"     "="       "="     "="       1         1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
 OPTDEFL=(1        0       ""       ""      ""        ""      ""        0         0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         0           ""      ""        0         ""      ""          -1          0          0       0)
 OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" ""        "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
@@ -3531,10 +3531,10 @@ prdstk_level=0
 conf_level=0
 declare -a CONF_FNS
 conf_default
-if [ ${opt_dbg:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi
+if [ ${opt_debug:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi
 OPTS="-$opt_dev"
 if [ ${opt_grf:-0} -gt 0 ]; then OPTS="${OPTS}g"; fi
-if [ ${opt_dbg:-0} -gt 0 ]; then OPTS="${OPTS}b"; fi
+if [ ${opt_debug:-0} -gt 0 ]; then OPTS="${OPTS}b"; fi
 if [ ${opt_nopip:-0} -gt 0 ]; then OPTS="${OPTS}p"; fi
 OPTS=${OPTS//--/-}
 set_from_conf_pkg "lisa" "lisa.conf" $OPTS

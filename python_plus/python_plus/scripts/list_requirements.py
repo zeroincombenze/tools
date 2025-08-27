@@ -1324,7 +1324,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "List Odoo requirements", "© 2017-2023 by SHS-AV s.r.l.", version=__version__
+        "List Odoo requirements", "© 2017-2025 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument("-b", "--odoo-branch", action="store", dest="odoo_ver")

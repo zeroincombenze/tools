@@ -148,17 +148,22 @@ coverage_report() {
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    local ro
+    local ro home testdir
+    # [[ ! $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="zero"
     [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
     [[ $SCOPE == "marketplace" || $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
     get_uniqid "$PKGPATH" "${odoo_maj}" "$GIT_ORGID" "$REPOSNAME"
-    [[ $ro -ne 0 ]] && LOGDIR="$HOME/travis_log"
-    [[ $ro -eq 0 ]] && LOGDIR="$TESTDIR/logs"
+    [[ -n $TRAVIS_SAVED_HOME ]] && home="$TRAVIS_SAVED_HOME" || home="$HOME"
+    [[ -n $TRAVIS_SAVED_PKGPATH && -d $TRAVIS_SAVED_PKGPATH/tests ]] && testdir="$TRAVIS_SAVED_PKGPATH/tests" || testdir="$TESTDIR"
+    [[ $ro -ne 0 ]] && LOGDIR="$home/travis_log"
+    [[ $ro -eq 0 ]] && LOGDIR="$testdir/logs"
     [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
     LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
     DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
-    [[ $ro -ne 0 ]] && LOGFILE="$LOGFILE.log"
-    [[ $ro -eq 0 ]] && LOGFILE="$LOGFILE.txt"
+    # [[ $ro -ne 0 ]] && LOGFILE="$LOGFILE.log"
+    # [[ $ro -eq 0 ]] && LOGFILE="$LOGFILE.txt"
+    LOGFILE="$LOGFILE.log"
+    export LOGDIR
     export LOGFILE
     export DAEMON_LOGFILE
 }
@@ -317,7 +322,7 @@ set_confn() {
           run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $TEST_CONFN"
       fi
     fi
-    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
+    if [[ $opt_debug -ne 0 || $opt_test -ne 0 ]]; then
         run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $TEST_CONFN"
         run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $TEST_CONFN"
     fi
@@ -479,12 +484,12 @@ exec_before() {
 }
 
 
-OPTOPTS=(h        A       B       b          c        C           d        D       e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
-OPTLONG=(help     assets  debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_ast opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
-OPTACTI=("+"      1       "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
-OPTDEFL=(1        0       0       ""         ""       0           ""       0       0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
-OPTMETA=("help"   ""      ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
+OPTOPTS=(h        A       B         b          c        C           d        D       e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     assets  debug     branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_ast opt_debug opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      1       "+"       "=>"       "=>"     1           "="      1       1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       0         ""         ""       0           ""       0       0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      ""        "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
   "reset assets if GUI troubles (require -um web)"
   "debug mode (-BB debug via pycharm)"
@@ -652,7 +657,7 @@ set_log_filename
 if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
 elif [[ $opt_test -ne 0 ]]; then
-    [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
+    [[ opt_debug -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -f $opt_conf ]]; then
     RPCPORT=$(grep ^http_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
@@ -672,7 +677,7 @@ else
   if [[ -n $opt_lport ]]; then
       LPPORT=$opt_lport
   elif [[ $opt_test -ne 0 ]]; then
-      [[ opt_dbg -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
+      [[ opt_debug -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
   elif [[ -f $opt_conf ]]; then
       LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
   elif [[ $opt_web -ne 0 ]]; then
@@ -711,7 +716,7 @@ if [[ $opt_test -ne 0 ]]; then
     opt_lang="" opt_lang2="" opt_exp=0 opt_imp=0
     opt_upd=0 opt_stop=1
     opt_xtl=1
-    [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
+    [[ $opt_debug -ne 0 ]] && opt_nocov=1 || opt_nocov=0
     TEMPLATE="template_${UDI}"
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
@@ -959,12 +964,12 @@ fi
 
 [[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
 check_for_modules "$opt_db" "$depmods"
-if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
     coverage_erase
     run_odoo_server
     [[ -n $ext_test ]] && test_with_external_process
-elif [[ opt_dbg -gt 1 ]]; then
+elif [[ opt_debug -gt 1 ]]; then
     echo ""
     echo "Now you can test module $opt_modules on pycharm"
     echo ""
@@ -986,13 +991,13 @@ fi
 
 if [[ -n "$TEST_VDIR" ]]; then
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
+    [[ $opt_verbose -gt 0 && opt_debug -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
     [[ $opt_dry_run -eq 0 ]] && deactivate
 fi
 # [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 
-if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     if [[ $opt_dry_run -eq 0 ]]; then
         log_mesg "\n+===================================================================" | tee -a $LOGFILE
         x="\e[32mSUCCESS!\e[0m"

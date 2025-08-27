@@ -152,6 +152,25 @@ run_traced() {
   return $sts
 }
 
+set_shebang() {
+    local d="$1" f PYTHON x
+    if $(echo $1|grep -Eq "/site-packages/"); then
+      x=$(echo "$1"|awk -F "/site-packages/" '{print $1}')
+      PYTHON=$(readlink -f $x/../../bin/python)
+      if [[ -x $PYTHON ]]; then
+        if [[ -d $1 ]]; then
+          d=$(find $1 \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
+          for f in $d; do
+            grep -Eq "^#\!.*/bin.*python([23][.0-9]*)?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python([23][.0-9]*)?$|#\!$PYTHON|\" -i $f" && chmod +x $f
+          done
+        elif [[ -f $1 ]]; then
+          f="$1"
+          grep -Eq "^#\!.*/bin.*python([23][.0-9]*)?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python([23][.0-9]*)?$|#\!$PYTHON|\" -i $f" && chmod +x $f
+        fi
+      fi
+    fi
+}
+
 get_actual_pkg() {
   local pkg=$1
   [[ $pkg == "pychart" ]] && pkg="python-chart"
@@ -162,7 +181,25 @@ get_actual_pkg() {
 }
 
 get_local_version() {
-  python ./setup.py --version
+    local pkg p x v
+    pkg=$(basename $1)
+    v=""
+    if [[ -d $1 ]]; then
+      if [[ -f $1/setup.py ]]; then
+        pushd $1 >/dev/null
+        x=$(python ./setup.py --version)
+        popd >/dev/null
+      fi
+      if [[ -z $x && $(readlink -f $1) =~ /site-packages/ ]]; then
+        # binary
+        p="$(echo $(readlink -f $1)|awk -F "/site-packages/" '{print $1}')/site-packages/"
+        x=$(readlink -f $(ls -d $p/${pkg}-*))
+        [[ -z $x || ! -d $x || ! -f $x/METADATA ]] && x=""
+        [[ -n $x ]] && x=$(cat $x/METADATA | grep -E "^Version: [0-9.]+" | cut -d: -f2 | tr -d ' ')
+      fi
+    fi
+    [[ -n $x ]] && v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
+    echo $v
 }
 
 get_pkg_wo_version() {
@@ -256,6 +293,70 @@ get_req_list() {
     [[ $wh =~ debug ]] && echo $cmd -qs "" || $cmd -qs" "
 }
 
+bin_install_less() {
+    local x sts
+    x=$(which lessc 2>/dev/null)
+    if [[ -z $x ]]; then
+      x=$(which npm 2>/dev/null)
+      if [[ -z "$x" ]]; then
+        sts=125
+        echo "Package $pkg require npm software but this software is not installed on your system"
+        echo "You should install npm ..."
+        [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
+        [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install npm"
+        [[ $DISTO =~ ^debian ]] && echo "apt install npm"
+      else
+        run_traced "cd $VENV"
+        [[ $opt_gbl -ne 0 ]] && NPM="npm -g" || NPM="npm"
+        [[ $NPM == "npm" && ! -f package-lock.json ]] && run_traced "$NPM init -y"
+        [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
+        pkg=${pkg/==/@}
+        pkg=$(echo $pkg | tr -d "'")
+        run_traced "$NPM install \"$pkg\""
+        sts=$?
+        run_traced "$NPM install less-plugin-clean-css"
+        x=$(find $($NPM bin) -name lessc 2>/dev/null | head -n1)
+      fi
+      [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin"
+    fi
+    retun $sts
+}
+
+
+bin_install_wkhtmltopdf() {
+    mkdir wkhtmltox.rpm_files
+    pushd wkhtmltox.rpm_files >/dev/null
+    wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $DISTO $MACHARCH)
+    pkgext=$(echo wkhtmltopdf_wget | grep --color=never -Eo ".xz$")
+    [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
+    [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
+    if [[ $opt_dry_run -eq 0 ]]; then
+      wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
+    else
+      touch wkhtmltox${pkgext}
+    fi
+    size=$(stat -c %s wkhtmltox${pkgext})
+    if [ $size -eq 0 ]; then
+      echo "File wkhtmltox${pkgext} not found!"
+    elif [ "$pkgext" == ".rpm" ]; then
+      run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+      sts=$?
+      run_traced "cp ./usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
+    elif [ "$pkgext" == ".deb" ]; then
+      run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
+      sts=$?
+      run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
+      run_traced "rm -r wkhtmltox.deb*"
+    else
+      run_traced "tar -xf wkhtmltox${pkgext}"
+      sts=$?
+      run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
+      run_traced "rm -fr ./wkhtmltox"
+    fi
+    popd >/dev/null
+    rm -fR wkhtmltox.rpm_files
+}
+
 bin_install() {
   # bin_install(pkg)
   [[ $opt_verbose -gt 2 ]] && echo ">>> bin_install($*)"
@@ -267,66 +368,12 @@ bin_install() {
   local pkg=$1
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
     if [[ $pkg =~ lessc ]]; then
-      x=$(which lessc 2>/dev/null)
-      if [[ -z $x ]]; then
-        x=$(which npm 2>/dev/null)
-        if [[ -z "$x" ]]; then
-          sts=125
-          echo "Package $pkg require npm software but this software is not installed on your system"
-          echo "You should install npm ..."
-          [[ $DISTO =~ ^fedora ]] && echo "dnf install npm"
-          [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install npm"
-          [[ $DISTO =~ ^debian ]] && echo "apt install npm"
-          ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-        else
-          run_traced "cd $VENV"
-          [[ $opt_gbl -ne 0 ]] && NPM="npm -g" || NPM="npm"
-          [[ $NPM == "npm" && ! -f package-lock.json ]] && run_traced "$NPM init -y"
-          [[ $pkg == "lessc" ]] && pkg="less@3.0.4"
-          pkg=${pkg/==/@}
-          pkg=$(echo $pkg | tr -d "'")
-          run_traced "$NPM install \"$pkg\""
-          sts=$?
-          run_traced "$NPM install less-plugin-clean-css"
-          x=$(find $($NPM bin) -name lessc 2>/dev/null | head -n1)
-        fi
-        [[ -n "$x" ]] && run_traced "ln -s $x $VENV/bin" || ERROR_PKGS="$ERROR_PKGS   '$pkg'"
-      fi
+      bin_install_less
+      sts=$?
     elif [[ $pkg =~ wkhtmltopdf ]]; then
-      mkdir wkhtmltox.rpm_files
-      pushd wkhtmltox.rpm_files >/dev/null
-      wkhtmltopdf_wget=$(get_wkhtmltopdf_dwname $pkg $FH $DISTO $MACHARCH)
-      pkgext=$(echo wkhtmltopdf_wget | grep --color=never -Eo ".xz$")
-      [[ -z "$pkgext" ]] && pkgext=${wkhtmltopdf_wget: -4}
-      [[ $opt_verbose -gt 0 ]] && echo "Download ${wkhtmltopdf_wget}"
-      if [[ $opt_dry_run -eq 0 ]]; then
-        wget -q --timeout=240 ${wkhtmltopdf_wget} -O wkhtmltox${pkgext}
-      else
-        touch wkhtmltox${pkgext}
-      fi
-      size=$(stat -c %s wkhtmltox${pkgext})
-      if [ $size -eq 0 ]; then
-        echo "File wkhtmltox${pkgext} not found!"
-      elif [ "$pkgext" == ".rpm" ]; then
-        run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
-        sts=$?
-        run_traced "cp ./usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
-      elif [ "$pkgext" == ".deb" ]; then
-        run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
-        sts=$?
-        run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
-        run_traced "rm -r wkhtmltox.deb*"
-      else
-        run_traced "tar -xf wkhtmltox${pkgext}"
-        sts=$?
-        run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${VENV}/bin/wkhtmltopdf"
-        run_traced "rm -fr ./wkhtmltox"
-      fi
-      popd >/dev/null
-      rm -fR wkhtmltox.rpm_files
+      bin_install_wkhtmltopdf
+      sts=$?
     fi
-    x="${pkgs//+/.}"
-    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
   fi
   return $sts
 }
@@ -349,83 +396,99 @@ bin_install_1() {
   return $sts
 }
 
+pip_install_bzr() {
+# pip_install_bzr(pkgpath)
+    local pkg x tmpdir
+    pkg="$1"
+    x=$(which bzr 2>/dev/null)
+    if [[ -z "$x" ]]; then
+      echo "Package $pkgp require bazar software but this software is not installed on your system"
+      echo "You should install bazar ..."
+      [[ $DISTO =~ ^fedora ]] && echo "dnf install bzr"
+      [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install bzr"
+      [[ $DISTO =~ ^debian ]] && echo "apt install bzr"
+      [[ $DISTO =~ ^Ubuntu ]] && echo "add-apt-repository ppa:bzr/ppa"
+      [[ $FH == "Debian" ]] && echo "apt update"
+      [[ ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      return 33
+    fi
+    tmpdir=$VIRTUAL_ENV/tmp
+    run_traced "mkdir -p $tmpdir/bazar"
+    run_traced "cd $tmpdir/bazar"
+    run_traced "bzr branch lp:$pkg"
+    d=$(find ./ -name setup.py | head -n1)
+    [[ -n "$d" ]] && d=$(dirname $d) || d=""
+    if [[ -z "$d" || ! -d "$d" ]]; then
+      echo "Invalid bazar package: file setup.py not found!"
+      [[ ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      return 126
+    fi
+    echo $d
+}
+
 pip_install_wget() {
-# pip_install_wget(fn)
-    local d="" pfn="$1" x sts=126
-    pfn="$1"
-    [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
-    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
+# pip_install_wget(pkgpath)
+    local d="" pkgpath="$1" x
+    [[ $pkgpath == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
+    [[ $pkgpath =~ ^https ]] && d="$pkgpath"
+    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pkgpath${CLR}" && return 126
     x=$(basename $d)
-    run_traced "mkdir -p $VIRTUAL_ENV/tmp"
-    run_traced "cd $VIRTUAL_ENV/tmp"
+    run_traced "cd $tmpdir"
     [[ -f $x ]] && run_traced "rm -f $x"
     run_traced "wget $d"
-    run_traced "$PIP install $popts $x"
-    sts=$?
-    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    return $sts
+    d=$(readlink -f ./$d)
+    echo $d
 }
 
 pip_install_git() {
-# pip_install_git(fn)
-    local d="" pfn="$1" x sts=126
-    [[ $pfn =~ "future" ]] && d="git+https://github.com/PythonCharmers/python-future.git"
-    [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
-    [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
-    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
+# pip_install_git(pkgpath)
+    local d="" pkgpath="$1"
+    [[ $pkgpath =~ "future" ]] && d="git+https://github.com/PythonCharmers/python-future.git"
+    [[ $pkgpath =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
+    [[ $pkgpath =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
+    [[ $pkgpath =~ ^git+ ]] && d="$pkgpath"
+    [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pkgpath${CLR}" && return 126
     run_traced "$PIP install $d"
-    sts=$?
-    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    return $sts
-}
-
-pip_install_tools() {
-    # pip_install_tools $srcdir
-    local srcdir pfn tmpdir
-    srcdir="$1"
-    pfn=$(basename $1)
-    tmpdir="$VIRTUAL_ENV/tmp"
-    [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
-    run_traced "mkdir -p $tmpdir/$pfn"
-    run_traced "cp -r $srcdir/ $tmpdir/$pfn/"
-    run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/setup.py"
-    [[ -d $tmpdir/$pfn/scripts ]] && run_traced "mv $tmpdir/$pfn/$pfn/setup.py $tmpdir/$pfn/scripts/setup.info"
-    [[ -f $tmpdir/$pfn/$pfn/README.rst ]] && run_traced "mv $tmpdir/$pfn/$pfn/README.rst $tmpdir/$pfn/README.rst"
-    run_traced "$PIP install $tmpdir/$pfn $popts"
     return $?
 }
 
 pip_install() {
   #pip_install(pkg opts)
-  local d pfn pkg popts pypath srcdir tmpdir v vpkg x DISTO FH sts=126
+  local d p pkgpath pkg popts pypath srcdir tmpdir v verpkg x DISTO FH sts=126
   [[ $1 =~ ^[\'\"] ]] && pkg="${1:1: -1}" || pkg="$1"
-  [[ $opt_verbose -gt 1 ]] && echo -e "  \e[32mpip install \"$1\" $2\e[0m"
+  [[ $opt_verbose -gt 1 ]] && echo -e "  \e[32mpip install \"$pkg\" $2\e[0m"
   [[ -n $opt_FH ]] && FH=$opt_FH || FH=$(xuname -f)
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
   pypath=$(find $VIRTUAL_ENV/lib -type d -name "python$opt_pyver")
   [[ -n "$pypath" && -d $pypath/site-packages ]] && pypath=$pypath/site-packages || pypath=$(find $(readlink -f $(dirname $(which $PYTHON 2>/dev/null))/../lib) -type d -name site-packages)
   tmpdir=$VIRTUAL_ENV/tmp
+  [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
+
   pkg=$(get_actual_pkg "$pkg")
-  pfn=$(get_pkg_wo_version "$pkg")
+  pkgpath=$(get_pkg_wo_version "$pkg")
+  x="-qP"
+  [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
+  [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
+  [[ $pkg =~ '[/<=>]' ]] && verpkg="$pkg" || verpkg=$($LIST_REQ $x -j $pkg)
+  [[ $verpkg =~ ^[\'\"] ]] && verpkg="${verpkg:1: -1}"
+  pkg=$(basename ${pkgpath//-/_})
+
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   if [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]]; then
     echo -e "${RED}Warning! Package $pkg requires 'setuptools<58.0'!${CLR}"
     run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-    [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -U"
+    [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -Uq"
   elif [[ ! $pkg =~ $USE2TO3_PKGS && $PIPVER -lt 23 && $opt_pyver =~ ^3 ]]; then
     run_traced "$PIP install pip -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-    [[ $x -lt 58 ]] && run_traced "$PIP --disable-pip-version-check install setuptools -U"
+    [[ $x -lt 58 ]] && run_traced "$PIP --disable-pip-version-check install setuptools -Uq"
   fi
-  x="-qP"
-  [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
-  [[ -n "$opt_oever" ]] && x="$x -b$opt_oever"
-  [[ $pkg =~ / ]] && vpkg="$pkg" || vpkg=$($LIST_REQ $x -j $pkg)
-  [[ $vpkg =~ ^[\'\"] ]] && vpkg="${vpkg:1: -1}"
-  [[ $pfn =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_}
-  [[ $pkg =~ "-e " ]] && pkg="${pkg//-e /--editable=}"
+
   [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
+  [[ $pkgpath =~ "\-e " ]] && x=$(echo "$pkgpath" | awk -F "-e " '{print $2}') && popts="$popts --editable=$x"
+  [[ $pkgpath =~ "\-e " ]] && x=$(echo "$pkgpath" | awk -F "-e " '{print $1}') && pkgpath="$x"
+  [[ $pkgpath =~ "\-" ]] && pkgpath=${pkgpath//-/_}
   [[ $PIPVER -gt 18 && ! no-warn-conflicts =~ $popts ]] && popts="$popts --no-warn-conflicts"
   [[ $PIPVER -eq 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --use-feature=2020-resolver"
   [[ $PIPVER -gt 19 && ! 2020-resolver =~ $popts ]] && popts="$popts --no-python-version-warning"
@@ -433,133 +496,133 @@ pip_install() {
   [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
   [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
-  if [[ -z "$XPKGS_RE" || ! $pfn =~ ($XPKGS_RE) ]]; then
-    if [[ ! $pfn =~ $BIN_PKGS ]]; then
-      srcdir=""
-      [[ $opt_debug -eq 2 && -d $HOME/tools/$pfn ]] && srcdir=$(readlink -f $HOME/tools/$pfn)
-      [[ -z $srcdir && $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
-      if [[ $opt_debug -ge 3 ]]; then
-        [[ -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn)
-      fi
-      if [[ $pfn =~ ^(odoo|openerp)$ ]]; then
-        [[ -z $opt_oepath ]] && echo -e "${RED}Missed Odoo version to install (please use -o switches)!${CLR}" && exit 1
-        [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
-        [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
-      fi
-      [[ -z $srcdir && $opt_debug -ge 2 && $pfn =~ $LOCAL_PKGS ]] && echo -e "${RED}Invalid or not found source path $srcdir!${CLR}" && exit 1
-      [[ -z $srcdir && $pfn =~ ^(odoo|openerp)$ ]] && echo -e "${RED}Odoo source not found!${CLR}" && exit 1
-    fi
-    if [[ $pfn =~ $BIN_PKGS ]]; then
-      bin_install "$pkg"
+
+  # [[ $pkg =~ $LOCAL_PKGS ]] && read -p "Press RET to install $pkg ..." && set -x  #debug
+  sts=0
+  if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+    srcdir=""
+    if [[ $pkg =~ $BIN_PKGS ]]; then
+      bin_install "$pkgpath"
       sts=$?
-    elif [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
-      [[ -L $pypath/$pfn ]] && run_traced "rm -f $pypath/$pfn"
-      if [[ $opt_debug -eq 2 ]]; then
-        pip_install_tools "$srcdir"
-        sts=$?
-        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-        run_traced "rm -fR $tmpdir/$pfn"
-      elif [[ $opt_debug -eq 3 ]]; then
-        run_traced "$PIP install \"$srcdir\" $popts"
-        sts=$?
-        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-      else
-        pushd $srcdir/.. >/dev/null
-        [[ $pfn =~ ^(odoo|openerp)$ ]] && x="$opt_oever" || x=$(get_local_version $pfn)
-        v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
-        popd >/dev/null
-        x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
-        [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "mv $x $pypath/${pfn}-${v}.dist-info"
-        if [[ ! -d $pypath/${pfn}-${v}.dist-info ]]; then
-          run_traced "mkdir $pypath/${pfn}-${v}.dist-info"
-          for d in INSTALLER METADATA RECORD REQUESTED top_level.txt WHEEL; do
-            run_traced "touch $pypath/${pfn}-${v}.dist-info/$d"
-          done
-        fi
-        run_traced "ln -s $srcdir $pypath/$pfn"
-        sts=$?
-        [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-      fi
-      # TODO> ?
-      # set_hashbang "$pypath/${pfn}"
-      # [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -ne 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info -v --copy-pkg-data"
-      # [[ -x $VIRTUAL_ENV/bin/${pfn}-info && $opt_verbose -eq 0 ]] && run_traced "$VIRTUAL_ENV/bin/${pfn}-info --copy-pkg-data"
-    elif [[ $pfn =~ $EI_PKGS ]]; then
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      return $sts
+    elif [[ $pkg =~ $EI_PKGS ]]; then
       run_traced "easy_install install \"$pkg\""
       run_traced "$PIP install $popts --upgrade \"$pkg\""
       sts=$?
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    elif [[ $pfn =~ $WGET_PKGS ]]; then
-      d=""
-      [[ $pfn == "python-chart" ]] && d="https://files.pythonhosted.org/packages/22/bf/f37ecd52d9f6ce81d4372956dc52c792de527abfadbf8393dd25deb5c90b/Python-Chart-1.39.tar.gz"
-      [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
-      x=$(basename $d)
-      run_traced "mkdir -p $VIRTUAL_ENV/tmp"
-      run_traced "cd $VIRTUAL_ENV/tmp"
-      [[ -f $x ]] && run_traced "rm -f $x"
-      run_traced "wget $d"
-      run_traced "$PIP install $popts $x"
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      return $sts
+    elif [[ $pkg =~ $GIT_PKGS ]]; then
+      pip_install_git $pkgpath
       sts=$?
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    elif [[ $pfn =~ $GIT_PKGS ]]; then
-      d=""
-      [[ $pfn =~ "openupgradelib" ]] && d="git+https://github.com/OCA/openupgradelib.git"
-      [[ $pfn =~ "prestapyt" ]] && d="git+https://github.com/prestapyt/prestapyt.git@master"
-      [[ -z "$d" ]] && echo -e "${RED}Unknown URL for $pfn${CLR}" && return
-      run_traced "$PIP install $d"
-      sts=$?
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    elif [[ $pfn =~ $BZR_PKGS ]]; then
-      x=$(which bzr 2>/dev/null)
-      if [[ -z "$x" ]]; then
-        echo "Package $pfn require bazar software but this software is not installed on your system"
-        echo "You should install bazar ..."
-        [[ $DISTO =~ ^fedora ]] && echo "dnf install bzr"
-        [[ ! $DISTO =~ ^fedora && $FH == "RHEL" ]] && echo "yum install bzr"
-        [[ $DISTO =~ ^debian ]] && echo "apt install bzr"
-        [[ $DISTO =~ ^Ubuntu ]] && echo "add-apt-repository ppa:bzr/ppa"
-        [[ $FH == "Debian" ]] && echo "apt update"
-        ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      return $sts
+    elif [[ $pkg =~ $BZR_PKGS ]]; then
+      srcdir=$(pip_install_bzr $pfn)
+      [[ $srcdir -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+      [[ $srcdir -ne 0 ]] && return $srcdir
+    elif [[ $pkg =~ $WGET_PKGS ]]; then
+      srcdir=$(pip_install_wget $pkgpath)
+    fi
+    [[ -z $srcdir && -d $pkgpath ]] && srcdir="$pkgpath"
+    if [[ -z $srcdir ]]; then
+      if [[ $opt_debug -ne 0 ]]; then
+        [[ $opt_debug -gt 1 && $pkg =~ $LOCAL_PKGS ]] && x=$(echo TDIR|awk -F "/python_plus/" '{print $1}') && srcdir=$(readlink -f $x/$pkg) && [[ ! -d $srcdir ]] && srcdir=""
+        [[ -z $srcdir && $opt_debug -eq 2 && -d $HOME/tools/$pkg ]] && srcdir=$(readlink -f $HOME/tools/$pkg)
+        [[ -z $srcdir && $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pkg ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pkg)
+        [[ -z $srcdir && $opt_debug -ge 3 && -d $SAVED_HOME_DEVEL/pypi/$pkg/$pkg ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pkg)
+      fi
+      if [[ $pkg =~ ^(odoo|openerp)$ ]]; then
+        [[ -z $opt_oepath ]] && echo -e "${RED}Missed Odoo version to install (please use -o switches)!${CLR}" && return 33
+        [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
+        [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
+      fi
+    fi
+    [[ -L $pypath/$pkg ]] && run_traced "rm -f $pypath/$pkg"
+    if [[ -z $srcdir ]]; then
+      # Install from PYPI or test PYPI
+      [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
+      if [[ $opt_debug -eq 1 ]]; then
+        run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$verpkg\" $2" "$x"
+        sts=$?
       else
-        run_traced "mkdir -p $HOME/bazar"
-        run_traced "cd $HOME/bazar"
-        run_traced "bzr branch lp:$pkg"
-        d=$(find $pfn -name setup.py | head -n1)
-        [[ -n "$d" ]] && d=$(dirname $d) || d=""
-        if [[ -n "$d" && -d "$d" ]]; then
-          run_traced "cd $d"
-          run_traced "python ./setup.py install"
+        run_traced "$PIP install $popts \"$verpkg\" $2" "$x"
+        sts=$?
+      fi
+    elif [[ $pkg =~ ^(odoo|openerp)$ ]]; then
+      v="$opt_oever"
+      x=$(get_local_version $pypath/)
+      [[ -n $x && $x != $pypath/${pkg}-${v}.dist-info ]] && run_traced "mv $x $pypath/${pkg}-${v}.dist-info"
+      if [[ ! -d $pypath/${pkg}-${v}.dist-info ]]; then
+        run_traced "mkdir $pypath/${pkg}-${v}.dist-info"
+        for d in INSTALLER RECORD REQUESTED top_level.txt WHEEL; do
+          run_traced "touch $pypath/${pkg}-${v}.dist-info/$d"
+        done
+        echo "Metadata-Version: 2.4" > "$pypath/${pkg}-${v}.dist-info/METADATA"
+        echo "Name: $pkg" >> "$pypath/${pkg}-${v}.dist-info/METADATA"
+        echo "Version: $v" >> "$pypath/${pkg}-${v}.dist-info/METADATA"
+      fi
+      run_traced "ln -s $srcdir $pypath/$pkg"
+      sts=$?
+    else
+      # Install from source
+      # There are 4 kinds of sources:
+      # - devel or local -> /devel/pypi/$pkg with setup.py no __init__.py !! directly from pip
+      # - devel-2-up -> /devel/pypi/$pkg/$pkg with ../setup.py            !! up directly from pip
+      # - tools -> /tools/$pkg                                            !! requires tmp dir
+      # - binary -> /site-package/$pkg
+      sts=126
+      v=$(get_local_version $srcdir)
+      if [[ -n $v ]]; then
+        srcdir=$(readlink -f $srcdir)
+        if [[ $srcdir =~ /site-packages/ && ! -f $srcdir/setup.py ]]; then
+          # binary
+          p="$(echo $srcdir|awk -F "/site-packages/" '{print $1}')/site-packages/${pkg}-${v}.dist-info"
+          [[ -d $tmpdir/$pkg ]] && run_traced "rm -fR $tmpdir/$pkg"
+          run_traced "mkdir $tmpdir/$pkg"
+          run_traced "cp -R $srcdir/ $tmpdir/$pkg/$pkg/"
+          echo "from setuptools import setup" > $tmpdir/$pkg/setup.py
+          echo "setup(" >> $tmpdir/$pkg/setup.py
+          echo "  name=\"$pkg\"," >> $tmpdir/$pkg/setup.py
+          echo "  version=\"$v\"," >> $tmpdir/$pkg/setup.py
+          v=$(cat $p/METADATA | grep -E "^Requires-Dist: .*" | cut -d: -f2 | tr -d ' ' | sed -E "s/^(.*)/'\1/" | sed -E "s/(.*)$/\1'/" | tr "\n" ",")
+          [[ -n $v ]] && echo "  install_requires=[$v]," >> $tmpdir/$pkg/setup.py
+          v=$(cat $x/RECORD | grep -v "__pycache__" | grep -E "^$pkg/" | cut -d, -f1 | grep -vE ".py$" | sed -E "s/^$pkg/./" | grep -vE "^\./(docs|tests|egg-info)/" | sed -E "s/^(.*)/'\1/" | sed -E "s/(.*)$/\1'/" | tr "\n" ",")
+          [[ -n $v ]] && echo "  package_data={'':[$v]}" >> $tmpdir/$pkg/setup.py
+          echo ")" >> $tmpdir/$pkg/setup.py
+          run_traced "$PIP install $tmpdir/$pkg $popts"
           sts=$?
-          [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-        else
-          echo "Invalid bazar package: file setup.py not found!"
-          ERROR_PKGS="$ERROR_PKGS   '$pfn'"
+        elif [[ -f $srcdir/__init__.py && -f $srcdir/../setup.py && ! -f $srcdir/../__init__.py ]]; then
+          # devel-2-up (pip)
+          run_traced "$PIP install $(dirname $srcdir) $popts"
+          sts=$?
+        elif [[ -f $srcdir/setup.py && ! -f $srcdir/__init__.py ]]; then
+          # devel or local (pip)
+          run_traced "$PIP install $srcdir $popts"
+          sts=$?
+        elif [[ -f $srcdir/setup.py && -f $srcdir/__init__.py ]]; then
+          # tools (pip)
+          [[ -d $tmpdir/$pkg ]] && run_traced "rm -fR $tmpdir/$pkg"
+          run_traced "mkdir $tmpdir/$pkg"
+          run_traced "cp -R $srcdir/ $tmpdir/$pkg/$pkg/"
+          for x in "setup.py" "README.rst" "README.md" "LICENSE" "requirements.txt" "MANIFEST.in"; do
+            [[ -f $tmpdir/$pkg/$pkg/$x ]] && run_traced "mv $tmpdir/$pkg/$pkg/$x $tmpdir/$pkg/"
+          done
+          for x in "build" "dist" "$pkg.egg-info" "__pycache__"; do
+            [[ -d $tmpdir/$pkg/$pkg/$x ]] && run_traced "rm -fR $tmpdir/$pkg/$pkg/$x"
+            [[ -d $tmpdir/$pkg/$x ]] && run_traced "rm -fR $tmpdir/$pkg/$x"
+          done
+          run_traced "$PIP install $tmpdir/$pkg $popts"
+          sts=$?
         fi
       fi
-    elif [[ $opt_debug -eq 1 ]]; then
-      [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
-      [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
-      run_traced "$PIP install $popts --extra-index-url https://testpypi.python.org/pypi \"$vpkg\" $2" "$x"
-      sts=$?
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
-    else
-      [[ -L $pypath/$pfn ]] && rm -f $pypath/$pfn
-      if [[ -d $vpkg && $vpkg =~ /tools/ ]]; then
-        pip_install_tools "$vpkg"
-        sts=$?
-        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info -C"
-      else
-        [[ $opt_verbose -lt 2 ]] && x=-1 || x=""
-        run_traced "$PIP install $popts \"$vpkg\" $2" "$x"
-        sts=$?
-        [[ $sts -eq 0 ]] && x=$(which ${vpkg}-info) && [[ -x $x ]] && run_traced "${vpkg}-info -C"
-      fi
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pfn ]] && ERROR_PKGS="$ERROR_PKGS   '$pfn'"
     fi
-    x="${pkgs//+/.}"
-    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
+    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
+    [[ $sts -eq 0 ]] && x=$(which ${pkg}-info) && [[ -x $x ]] && set_shebang "$x" && run_traced "${pkg}-info --copy-pkg-data"
+    [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
   fi
+  # set -x #debug
+  # read -p "Press RET to continue after test on $pkg ..."  #debug
   return $sts
 }
 
@@ -632,39 +695,24 @@ pip_install_req() {
 
 pip_uninstall() {
   #pip_uninstall(pkg opts)
-  local pkg d x srcdir pfn popts v sts=0
+  local pkg d popts v sts=0
   local pypath=$VIRTUAL_ENV/lib/python$opt_pyver/site-packages
-  pkg=$(get_pkg_wo_version $(get_actual_pkg $1))
+  popts=""
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   [[ $opt_yes -ne 0 ]] && popts="$popts -y"
   if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
-    srcdir=""
-    [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg//-/_} || pfn=$pkg
-    [[ $opt_debug -eq 2 && -d $HOME/tools/$pfn ]] && srcdir=$(readlink -f $HOME/tools/$pfn)
-    [[ -z $srcdir && $opt_debug -eq 2 && -d $SAVED_HOME_DEVEL/../tools/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/../tools/$pfn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME_DEVEL/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME_DEVEL/pypi/$pfn/$pfn)
-    [[ $opt_debug -eq 3 && -d $SAVED_HOME/pypi/$pfn/$pfn ]] && srcdir=$(readlink -f $SAVED_HOME/pypi/$pfn/$pfn)
-    [[ -L $pypath/$pkg ]] && srcdir="$pypath/$pkg"
-    if [[ -n "$srcdir" ]]; then
-      [[ -d $pypath/$pfn && ! -L $pypath/$pfn ]] && run_traced "rm -fR $pypath/$pfn"
-      [[ $pkg =~ ^(odoo|openerp)$ ]] && venv_mgr_check_oever $(readlink -f $srcdir) && x="$opt_oever"
-      pushd $srcdir/.. >/dev/null
-      [[ $pkg =~ ^(odoo|openerp)$ ]] || x=$(get_local_version $pfn)
-      v=$([[ $(echo $x|grep "mismatch") ]] && echo $x|awk -F/ '{print $2}' || echo $x)
-      popd >/dev/null
-      x=$(ls -d $pypath/${pfn}-*dist-info 2>/dev/null|grep -E "${pfn}-[0-9.]*dist-info")
-      [[ -n $x && $x != $pypath/${pfn}-${v}.dist-info ]] && run_traced "rm $x"
-      run_traced "rm -fR $pypath/${pfn}-${v}.dist-info"
+    pkg=$(get_pkg_wo_version $(get_actual_pkg "$1"))
+    pkg=$(basename ${pkg//-/_})
+    if [[ -L $pypath/$pkg ]]; then
+      run_traced "rm -f $pypath/$pkg"
       sts=$?
-      run_traced "rm -f $srcdir"
+      x=$(readlink -f $(ls -d $pypath/${pkg}-*))
+      [[ -n $x && -d $x ]] && run_traced "rm -fR $x"
     else
-      [[ -L $pypath/$pkg ]] && rm -f $pypath/$pkg
       run_traced "$PIP uninstall $popts $pkg $2"
       sts=$?
-      [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
     fi
-    x="${pkgs//+/.}"
-    [[ -z $XPKGS_RE ]] && XPKGS_RE="$x" || XPKGS_RE="$XPKGS_RE|$x"
+    [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
   fi
   return $sts
 }
@@ -1143,10 +1191,10 @@ do_venv_mgr() {
     [[ $cmd =~ (amend|check) ]] && bin_check_1 $VENV
     x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
     if [[ $x == "2" ]]; then
-      run_traced "$PIP install \"pip<21.0\" -U"
+      run_traced "$PIP install \"pip<21.0\" -Uq"
     else
       PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-      [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -U"
+      [[ -z $opt_oever && -z $opt_oepath ]] && run_traced "$PIP install pip -Uq"
     fi
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
     [[ ! $cmd =~ (amend|check|cp) ]] && pip_install_1 "--upgrade"
@@ -1293,7 +1341,7 @@ do_venv_create() {
     venvexe=$(which virtualenv 2>/dev/null)
     # --version from virtualenv is: virtualenv xx.y from /usr/local/lib/python3.10
     if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != "python${opt_pyver:0:1}" ]]; then
-      [[ $opt_pyver =~ ^3 ]] && run_traced "$PYTHON -m pip install virtualenv -I --user" || run_traced "$PYTHON -m pip install virtualenv -I"
+      [[ $opt_pyver =~ ^3 ]] && run_traced "$PYTHON -m pip install virtualenv -Iq --user" || run_traced "$PYTHON -m pip install virtualenv -Iq"
       venvexe=$(which virtualenv 2>/dev/null)
     fi
     if [[ -z "$venvexe" ]]; then
@@ -1340,15 +1388,15 @@ do_venv_create() {
   venv_mgr_check_src_path "$VENV" "create"
   x=$($PIP --version|grep --color=never -Eo "python *[23]"|grep --color=never -Eo "[23]"|head -n1)
   if [[ $x == "2" ]]; then
-    run_traced "$PIP install \"pip<21.0\" -U"
+    run_traced "$PIP install \"pip<21.0\" -Uq"
     # bugfix for packages with regexpr like invoice2data
-    run_traced "$PIP install regex==2021.3.17"
+    run_traced "$PIP install regex==2021.3.17 -q"
   else
-    run_traced "$PIP install pip -U"
+    run_traced "$PIP install pip -Uq"
   fi
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
-  run_traced "$PIP install wheel"
+  run_traced "$PIP install wheel -q"
   check_installed_pkgs
   pypi_requirements
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")

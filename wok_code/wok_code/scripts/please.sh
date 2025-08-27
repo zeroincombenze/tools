@@ -107,8 +107,8 @@ set_opts_4_action() {
     fi
     [[ -n $opt_ocfn ]] && svcname=$(basename "$opt_ocfn") || svcname=$(build_odoo_param SVCNAME "$(readlink -f $PWD)")
     opts="-b $odoo_fver"
-    [[ $opt_dbg -eq 1 ]] && opts="${opts} -B"
-    [[ $opt_dbg -gt 1 ]] && opts="${opts} -BB"
+    [[ $opt_debug -eq 1 ]] && opts="${opts} -B"
+    [[ $opt_debug -gt 1 ]] && opts="${opts} -BB"
     [[ -f /etc/odoo/${svcname}.conf ]] && opts="${opts} -c \"/etc/odoo/${svcname}.conf\""
     [[ -n $opt_ocfn && -f "$opt_ocfn" ]] && opts="${opts} -c \"$opt_ocfn\""
     [[ -n $opt_db ]] && opts="${opts} -d \"$opt_db\""
@@ -559,7 +559,7 @@ do_docs() {
   local docs_dir=./docs
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver REPO
-  [[ $opt_dbg -ne 0 || $PWD =~ /devel/pypi/ ]] && opts=-B || opts=
+  [[ $opt_debug -ne 0 || $PWD =~ /devel/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || orgid=$(build_odoo_param GIT_ORGID "$opt_branch")
@@ -1028,7 +1028,7 @@ EOF
 #  confn=$(build_odoo_param CONFN ".")
 #  [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
 #  [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
-#  [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
+#  [[ $opt_debug -ne 0 ]] && opts="${opts}B"
 #  db="$opt_db"
 #  u=$(get_dbuser $m)
 #  if [[ -z "$db" ]]; then
@@ -1430,7 +1430,7 @@ do_config() {
 
 OPTOPTS=(h        B       b          C        c         D         d        f         k        L         m       n           o        O       p         q           r     t         u       V           v)
 OPTLONG=(help     debug   branch     config   odoo-conf from-date database force     keep     log       ""      dry-run     ""       ""      ""        quiet       ""    test      ""      version     verbose)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_ocfn  opt_date  opt_db   opt_force opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r test_mode opt_uop opt_version opt_verbose)
+OPTDEST=(opt_help opt_debug opt_branch opt_conf opt_ocfn  opt_date  opt_db   opt_force opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r test_mode opt_uop opt_version opt_verbose)
 OPTACTI=("+"      "+"     "="        "="      "="       "="       "="      1         1        "="       1       1           "=>"     1       "="       0           1     1         1       "*"         "+")
 OPTDEFL=(1        0       ""         ""       ""        ""        ""       0         0        ""        0       0           ""       0       ""        0           0     0         0       ""          -1)
 OPTMETA=("help"   ""      "branch"   "file"   "file"    "diff"    "name"   ""       "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "test"    "uop"   "version"   "verbose")

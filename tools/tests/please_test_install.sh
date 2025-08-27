@@ -27,7 +27,17 @@ false
 fi
 
 PYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]" | head -n1)
-for pkg in clodoo templates; do
+for pkg in license_text templates tests; do
+    if_inside && echo -n "."
+    if_standalone && echo "Testing directory $pkg .."
+    [[ ! -d $LOCAL_VENV/tools/$pkg ]] && echo -e "\n${RED}Incomplete installation! Directory $pkg non found in $LOCAL_VENV/tools/!!${CLR}" && exit 1
+done
+for pkg in odoo_template_tnl.xlsx; do
+    if_inside && echo -n "."
+    if_standalone && echo "Testing file $pkg .."
+    [[ ! -f $LOCAL_VENV/tools/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/tools/!!${CLR}" && exit 1
+done
+for pkg in clodoo; do
     if_inside && echo -n "."
     if_standalone && echo "Testing directory $pkg .."
     [[ ! -d $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit 1

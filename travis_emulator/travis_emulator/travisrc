@@ -360,7 +360,7 @@ create_virtual_env() {
   run_traced "source $TRAVIS_HOME/bin/activate"
   [[ ${opt_keep:-0} -ne 0 ]] && run_traced "export ODOO_COMMIT_TEST=\"1\""
   set_pybin $TRAVIS_PYTHON_VERSION
-  if [[ $opt_dbgmnt -ne 0 ]]; then
+  if [[ $opt_devpkg -ne 0 ]]; then
     # -Z: Install unstable packages to run them when needed
     for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Use unstable version
@@ -384,7 +384,7 @@ create_virtual_env() {
   run_traced "cp -R $TRAVIS_SAVED_PKGPATH/ $x/"
   # [[ -f $TRAVIS_SAVED_PKGPATH/setup.py ]] && run_traced "cp $TRAVIS_SAVED_PKGPATH/setup.py $x/"
   [[ -f $TRAVIS_SAVED_PKGPATH/../setup.py ]] && run_traced "cp $TRAVIS_SAVED_PKGPATH/../setup.py $TRAVIS_BUILD_DIR/"
-  if [[ ${opt_dbgmnt:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
+  if [[ ${opt_devpkg:-0} -ne 0 && "$TRAVIS_REPO_SLUG" == "local/tools" ]]; then
     git_clone "https://github.com/zeroincombenze/tools.git"
     [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
   fi
@@ -446,7 +446,7 @@ git_clone() {
       d="./"
     fi
     [[ -z $SAVED_ODOO_ROOT ]] && SAVE_ODOO_ROOT=$(readlink -f $TRAVIS_SAVED_HOME_DEVEL/..)
-    if [[ $opt_dbgmnt -ne 0 ]]; then
+    if [[ $opt_devpkg -ne 0 ]]; then
       x=${TRAVIS_REPO_SLUG#*/}
       for p in $(get_cfg_value "" "LOCAL_PKGS"); do
         # Load unstable version
@@ -502,41 +502,10 @@ prepare_env_travis() {
     export ODOO_TNLBOT="1"
   fi
   [[ "$PRJNAME" == "Odoo" ]] && export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
-#  if [[ -n "$opt_dpath" ]]; then
-#    LGITPATH="$opt_dpath"
-#  elif [[ $PRJNAME == "Odoo" ]]; then
-#    if [[ -n "$opt_branch" ]]; then
-#      x=$(build_odoo_param PKGNAME ".")
-#      LGITPATH=$(build_odoo_param HOME "$opt_branch" "$REPOSNAME")
-#      [[ -n "$x" ]] && LGITPATH="$LGITPATH/$x"
-#    fi
-#  else
-#    [[ -n "$REPOSNAME" ]] && LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-#    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-#    [[ -z "$LGITPATH" ]] && LGITPATH=$(get_cfg_value "" "distpath")
-#  fi
-#  if [[ -n "$LGITPATH" ]]; then
-#    if [[ "$PRJNAME" == "Odoo" ]]; then
-#      export LGITPATH=$(expand_path "$LGITPATH")
-#    else
-#      local x="$(readlink -e $PWD/..)"
-#      local y=$(dirname $LGITPATH)
-#      if [[ "$PWD" == "$y" || "$x" == "$y" ]]; then
-#        export LGITPATH=$y
-#      else
-#        export LGITPATH=$(expand_path "$LGITPATH")
-#      fi
-#    fi
-#    if [[ "$LGITPATH" == "$PWD" ]]; then
-#      LGITPATH=
-#    fi
-#  fi
-  # export TOOLS_PATH
   export ODOO_SETUP
   export REPOSNAME
   export PKGPATH
   export PKGNAME
-  # export LGITPATH
 }
 
 

@@ -1102,9 +1102,9 @@ link_cfg_def() {
   CFG_set "PS_HDR2_COLOR" "30;43"
   CFG_set "PS_HDR3_COLOR" "30;45"
   x=$(readlink -f $HOME_DEVEL/../tools)
-  [[ -n $x ]] && LOCAL_PKGS=$(for f in $(find $x -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
-  [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(for f in $(find $HOME_DEVEL/pypi -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
-  [[ -z $LOCAL_PKGS ]] && LOCAL_PKGS="arcangelo clodoo odoo_score python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
+  # [[ -n $x && -d $x ]] && LOCAL_PKGS=$(for f in $(find $x -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
+  # [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(for f in $(find $HOME_DEVEL/pypi -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
+  LOCAL_PKGS="arcangelo clodoo odoo_score python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
   LOCAL_PKGS=$(echo $LOCAL_PKGS)
   CFG_set "LOCAL_PKGS" "$LOCAL_PKGS"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
@@ -1429,6 +1429,8 @@ get_uniqid() {
     [[ -n $1 ]] && p="$1" || p=$PWD
     pkg=$(basename $p)
     m="$2"
+    [[ $m =~ ^3\.[6789] ]] && m=${m//./0}
+    [[ $m =~ ^[6789]$ ]] && m="0$m"
     [[ -n $m ]] && m=${m//./}
     go="$3"
     ro="$4"

@@ -80,10 +80,28 @@ store_cfg_param_value() {
 }
 
 debug_shell() {
-    echo "PS1='ctrl+d to exit> '">/tmp/$$.sh
-    [[ -n "$1" ]] && echo "TODO>$1"
-    echo "To reload package: rsync -avz --delete $TRAVIS_SAVED_PKGPATH/ $TRAVIS_BUILD_DIR/"
-    eval $SHELL --noprofile --rcfile /tmp/$$.sh -s
+#  debug_shell(param, match, todo)
+    local sts
+    sts=0
+    if [[ -n $1 && -n $2 && $2 =~ $1 ]]; then
+      [[ -z "$3" ]] && echo "PATH=$PATH"
+      echo "PS1='(ctrl+d to continue)> '">/tmp/$$.sh
+      echo "alias EXIT='exit 1'">>/tmp/$$.sh
+      [[ -n "$3" ]] && echo "alias TODO='echo \"$3\"'">>/tmp/$$.sh
+      echo -e "${CLR}"
+      echo -e "Break inside execution of ${RED}$(readlink -f $0)${CLR}"
+      echo "Debug commands summary:"
+      if [[ -n $TRAVIS_BUILD_DIR ]]; then
+        echo " * RELOAD     # Reload testing package $(basename $TRAVIS_BUILD_DIR)"
+        echo "alias RELOAD='rsync -avz --delete $TRAVIS_SAVED_PKGPATH/ $TRAVIS_BUILD_DIR/'">>/tmp/$$.sh
+      fi
+      [[ -n "$3" ]] && echo -e " * TODO       # Show next statement to do (${GREEN}$3${CLR})"
+      echo -e " * EXIT       # Exit from debug session and ${RED}quit testing process${CLR}"
+      eval $SHELL --noprofile --rcfile /tmp/$$.sh -s
+      sts=$?
+      rm /tmp/$$.sh
+    fi
+    return $sts
 }
 
 process_yaml_init() {
@@ -111,7 +129,7 @@ process_yaml_init() {
   export MQT_TEST_DB="$(get_cfg_value "" "MQT_TEST_DB")$YML_pid"
   [[ -z $PGUSER ]] && export PGUSER=$(get_dbuser)
   python_ver_yaml=""
-  [[ $opt_dbgmnt -ne 0 && $opt_debug -ne 0 ]] && export TRAVIS_PDB="true"
+  [[ $opt_devpkg -ne 0 && $opt_debug -ne 0 ]] && export TRAVIS_PDB="true"
   [[ $TRAVIS_DEBUG_MODE -gt 1 ]] && export VERBOSE_MODE=$TRAVIS_DEBUG_MODE
   # [[ $osx_d -ne 0 ]] && export TRAVIS_EMULATE_OSX="true"
   ODOO_TNLBOT="${opt_tnl:-0}"
@@ -371,7 +389,8 @@ process_yaml_defaults() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [Initialize from .travis.conf] ------\e[0m"
   fi
-  [[ -n $opt_trace && ::travis.conf =~ $opt_trace ]] && debug_shell "::travis.conf"
+  debug_shell "$opt_trace" "::travis.conf" "[travis.conf]"
+  [[ $? -ne 0 ]] && exit 1
   line=$(get_cfg_value "" "GBL_EXCLUDE")
   [[ -n "$line" ]] && run_traced "export GBL_EXCLUDE=$line"
   for i in {1..9}; do
@@ -392,7 +411,8 @@ process_yaml_defaults() {
       fi
     done
   fi
-  [[ -n $opt_tafter && ::travis.conf =~ $opt_tafter ]] && debug_shell
+  debug_shell "$opt_tafter" "::travis.conf" ""
+  [[ $? -ne 0 ]] && exit 1
   return $sts
 }
 
@@ -430,26 +450,30 @@ process_yaml_global() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[0m"
   fi
-  [[ -n $opt_trace && ::env.global =~ $opt_trace ]] && debug_shell "::env.global"
+  debug_shell "$opt_trace" "::env.global" "[env.global]"
+  [[ $? -ne 0 ]] && exit 1
   for lne in $YML_global; do
     line="export $(process_yaml_quote_xtl $lne)"
     run_traced "$line"
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
   done
-  [[ -n $opt_tafter && ::env.global =~ $opt_tafter ]] && debug_shell
+  debug_shell "$opt_tafter" "::env.global" ""
+  [[ $? -ne 0 ]] && exit 1
   return $sts
 }
 
 process_yaml_before_install() {
   wlog "\e[${PS_HDR2_COLOR}m===== [Before install] =====\e[0m"
-  [[ -n $opt_trace && ::before_install =~ $opt_trace ]] && debug_shell "::before_install"
+  debug_shell "$opt_trace" "::before_install" "[before_install]"
+  [[ $? -ne 0 ]] && exit 1
   local sts=$STS_SUCCESS
   local i s line lne X CURPYVER
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[addons.apt.packages] in .travis.yml] ------\e[0m"
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
-    [[ -n $opt_trace && ::addons.apt.package =~ $opt_trace ]] && debug_shell "::addons.apt.package"
+    debug_shell "$opt_trace" "::addons.apt.package" "[addons.apt.package]"
+    [[ $? -ne 0 ]] && exit 1
     CURPYVER=$(echo $TRAVIS_PYTHON_VERSION | grep --color=never -Eo '[0-9]' | head -n1)
     for lne in $YML_packages; do
       if [[ "$lne" == "python-dev" && $CURPYVER == "3" ]]; then
@@ -482,7 +506,8 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
       [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement <<$(process_yaml_quote_xtl \"$line\")>>failed!\e[${PS_TXT_COLOR}m"
     done
-    [[ -n $opt_tafter && ::addons.apt.package =~ $opt_tafter ]] && debug_shell
+    debug_shell "$opt_tafter" "::addons.apt.package" ""
+    [[ $? -ne 0 ]] && exit 1
   fi
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[0m"
@@ -502,7 +527,8 @@ process_yaml_before_install() {
       s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     done
   fi
-  [[ -n $opt_tafter && ::before_install =~ $opt_tafter ]] && debug_shell
+  debug_shell "$opt_tafter" "::before_install" ""
+  [[ $? -ne 0 ]] && exit 1
   return $sts
 }
 
@@ -565,7 +591,8 @@ process_yaml_run_cmd() {
   else
     local line1
   fi
-  [[ -n $opt_trace && $xcmd =~ $opt_trace ]] && debug_shell "$xcmd"
+  debug_shell "$opt_trace" "$xcmd" "$xcmd"
+  [[ $? -ne 0 ]] && exit 1
   c=$xcmd
   if [ "$FH" == "RHEL" ]; then
     if [[ $xcmd =~ which[[:space:]]nodejs ]]; then
@@ -762,8 +789,8 @@ process_yaml_run_cmd() {
     s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
     [[ $c != $xcmd && ! $xcmd =~ ^# ]] && ((Z0_STACK=Z0_STACK-2))
   fi
-  [[ $TRAVIS_DEBUG_MODE -gt 2 ]] && echo "<<<PATH=$PATH>>>"
-  [[ -n $opt_tafter && $xcmd =~ $opt_tafter ]] && debug_shell
+  debug_shell "$opt_tafter" "$xcmd" ""
+  [[ $? -ne 0 ]] && exit 1
   return $sts
 }
 
@@ -822,7 +849,8 @@ process_yaml() {
   unset PYTHONPATH
   sts=$STS_SUCCESS
   if [[ $sts -eq $STS_SUCCESS ]]; then
-    [[ -n $opt_trace && ::matrix =~ $opt_trace ]] && debug_shell "::matrix"
+    debug_shell "$opt_trace" "::matrix" "[matrix]"
+    [[ $? -ne 0 ]] && exit 1
     if [[ $PRJNAME == "Odoo" ]]; then
       TRAVIS_PYTHON_MATRIX=$(get_pyver_4_odoo $BRANCH)
     else
@@ -867,7 +895,8 @@ process_yaml() {
           line1="$lne"
           lne1=$(process_yaml_quote "$lne")
         fi
-        [[ -n $opt_tafter && ::matrix =~ $opt_tafter ]] && debug_shell
+        debug_shell "$opt_tafter" "::matrix" ""
+        [[ $? -ne 0 ]] && exit 1
         if [[ $lne1 =~ ODOO_REPO=.[A-Za-z]+ && ! $lne1 =~ ODOO_REPO=.$YML_repo. ]]; then
           wlog "\e[${PS_HDR3_COLOR}mMatrix [$lne1] skipped due invalid repo\e[${PS_TXT_COLOR}m"
           continue
@@ -887,12 +916,13 @@ process_yaml() {
         fi
         echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
         wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
-        [[ -n $opt_trace && ::build =~ $opt_trace ]] && debug_shell "::build"
+        debug_shell "$opt_trace" "::build" "[build]"
+        [[ $? -ne 0 ]] && exit 1
         create_virtual_env
 
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
         TODAY=$(date "+%Y-%m-%d %H:%M:%S")
-        for p in TODAY job-id opt_dbgmnt __version__ TCONF YML_repo\
+        for p in TODAY job-id opt_devpkg __version__ TCONF YML_repo\
          BRANCH DIST HOME HOME_BRANCH HOME_DEVEL LOGFILE MQT_TEMPLATE_DB MQT_TEST_DB\
           ODOO_ROOT PATH PKGNAME PKGPATH PIP PIPVER PRJNAME PRJPATH PGUSER PYPI_CACHED\
            PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR TRAVIS_DEBUG_MODE\
@@ -915,7 +945,8 @@ process_yaml() {
           process_yaml_defaults
           s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
         fi
-        [[ -n $opt_tafter && ::build =~ $opt_tafter ]] && debug_shell
+        debug_shell "$opt_tafter" "::build" ""
+        [[ $? -ne 0 ]] && exit 1
         process_yaml_global
         if [[ $sts -eq $STS_SUCCESS ]]; then
           process_yaml_before_install
@@ -931,7 +962,8 @@ process_yaml() {
         fi
         if [[ $sts -eq $STS_SUCCESS ]]; then
           wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[0m"
-          [[ -n $opt_trace && ::script =~ $opt_trace ]] && debug_shell "::script"
+          debug_shell "$opt_trace" "::script" "[script]"
+          [[ $? -ne 0 ]] && exit 1
           for lne in $YML_script; do
             process_yaml_run_cmd "$lne"
             s=$?; [ ${s-1} -eq 0 -o $sts -ne 0 ] || sts=$s
@@ -994,18 +1026,20 @@ travis_status() {
 set_log_filename() {
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    local ro
+    local ro home testdir
     [[ ! $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="zero"
     [[ $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
     [[ $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
     get_uniqid "$PKGPATH" "$BRANCH" "$GIT_ORGID" "$REPOSNAME"
     if [[ -n $opt_flog ]]; then
-      LOGDIR="$(dirname $opt_flog)"
-      LOGFILE="$opt_flog"
-      DAEMON_LOGFILE=${opt_flog/.log/__noup.log}
+      LOGFILE="$(readlink -f $opt_flog)"
+      LOGDIR="$(dirname $LOGFILE)"
+      DAEMON_LOGFILE=${LOGFILE/.log/__noup.log}
     else
-      [[ $ro -ne 0 ]] && LOGDIR="$HOME/travis_log"
-      [[ $ro -eq 0 ]] && LOGDIR="$TESTDIR/logs"
+      [[ -n $TRAVIS_SAVED_HOME ]] && home="$TRAVIS_SAVED_HOME" || home="$HOME"
+      [[ -n $TRAVIS_SAVED_PKGPATH && -d $TRAVIS_SAVED_PKGPATH/tests ]] && testdir="$TRAVIS_SAVED_PKGPATH/tests" || testdir="$TESTDIR"
+      [[ $ro -ne 0 ]] && LOGDIR="$home/travis_log"
+      [[ $ro -eq 0 ]] && LOGDIR="$testdir/logs"
       [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
       LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
       DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
@@ -1021,7 +1055,7 @@ set_log_filename() {
 
 OPTOPTS=(h        A           B         C         D           E         e       F        f         k        j       L          l        m       n            O         P           p         Q        q           r     S            T         V           v           X           Y         Z)
 OPTLONG=(help     trace-after debug     no-cache  debug-level no-savenv locale  full     force     keep     python  lint-level logdir   missing dry-run      org       python-brk  pattern   config   quiet       ''    syspkg       trace     version     verbose     translation yaml-file zero)
-OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_mis opt_dry_run  opt_org   opt_pybrk   opt_patrn opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_dbgmnt)
+OPTDEST=(opt_help opt_tafter  opt_debug opt_cache opt_dlvl    opt_keepE opt_loc opt_full opt_force opt_keep opt_pyv opt_llvl   opt_flog opt_mis opt_dry_run  opt_org   opt_pybrk   opt_patrn opt_tcfg opt_verbose opt_r  opt_syspkg  opt_trace opt_version opt_verbose opt_tnl     opt_fyaml opt_devpkg)
 OPTACTI=('+'      "="         1         0         "="         0         "="     1        1         1        "="     "="        "="      1       "1>"         "="       "="         "="       "="      0           1     "="          "="       "*>"        "+"         "="         "="       1)
 OPTDEFL=(0        ""          0         1         ""          1         ""      0        0         0        ""      ""         ""       0       0            "local"   ""          ""        ""       0           0     ""           ""        ""          -1          ""          ""        0)
 OPTMETA=("help"   "regex"     "version" ""        "number"    ""        "iso"   ""       ""        ""       "pyver" "number"   "dir"    ""      "do nothing" "git-org" "file:line" "pattern" "file"   "verbose"   "res" "false|true" "regex"   "version"   "verbose"   "0|1"       "file"    "")
@@ -1268,7 +1302,7 @@ if [[ $sts -eq $STS_SUCCESS ]]; then
         else
             clear
             echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
-            process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a LOGFILE
+            process_yaml 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE
             sts=$?
             [[ $sts -eq 0 ]] && $0 wep-db &>/dev/null
             travis_status "$LOGFILE"
