@@ -1438,10 +1438,10 @@ get_uniqid() {
     [[ -n $go && ! $go =~ (oca|odoo|zero|zeroincombenze) ]] && UDI="${UDI}_$go"
     [[ -n $m ]] && UDI="${UDI}_$m"
     [[ -n $go && ! $go =~ (oca|odoo|zero|zeroincombenze) ]] && UMLI="${go}" || UMLI=""
-    [[ -n $m && -n $UMLI ]] && UMLI="${UMLI}$m"
     [[ -n $ro && $ro != "OCB" && -n $UMLI ]] && UMLI="${UMLI}.$ro"
     [[ -n $ro && $ro != "OCB" && -z $UMLI ]] && UMLI="$ro"
     [[ -n $UMLI ]] && UMLI="${UMLI}.$pkg" || UMLI="$pkg"
+    [[ -n $m && -n $UMLI ]] && UMLI="${UMLI}-$m"
 }
 
 
