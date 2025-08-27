@@ -91,7 +91,7 @@ if [[ $dummy =~ ^[Yy] ]]; then
     echo . $VENV/bin/activate
     . $VENV/bin/activate
     # pip install pip -Uq
-    for p in wheel z0lib python_plus; do
+    for p in wheel setuptools z0lib python_plus; do
         echo pip install /home/odoo/devel/pypi/$p -q
         pip install /home/odoo/devel/pypi/$p -q
     done

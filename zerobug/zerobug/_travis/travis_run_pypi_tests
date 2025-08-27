@@ -249,7 +249,7 @@ _please_test_pylint() {
 coverage_set() {
     [[ -z $GIT_ORGID ]] && GIT_ORGID="zero"
     get_uniqid "$PKGPATH" "$TRAVIS_PYTHON_VERSION" "$GIT_ORGID" "$REPOSNAME"
-    run_traced "export COVERAGE_DATA_FILE=\"$LOGDIR/${UDI}_coverage\""
+    run_traced "export COVERAGE_DATA_FILE=\"$LOGDIR/.${UDI}_coverage\""
     run_traced "export COVERAGE_PROCESS_START=\"$LOGDIR/${UDI}_coveragerc\""
     coverage_tmpl=$(readlink -f $TDIR/cfg/coveragerc)
     [[ -z $coverage_tmpl || ! -f "$coverage_tmpl" ]] && echo "No configuration file found ($TDIR/cfg/coveragerc)!" && exit 1

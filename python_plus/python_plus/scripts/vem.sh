@@ -1397,6 +1397,7 @@ do_venv_create() {
   PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
   [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER ..." && PRINTED_PIPVER=1
   run_traced "$PIP install wheel -q"
+  run_traced "$PIP install setuptools -q"
   check_installed_pkgs
   pypi_requirements
   pypath=$(find $VENV/lib -type d -name "python$opt_pyver")

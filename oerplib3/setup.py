@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os.path as pth
-import sys
 
 from setuptools import find_packages, setup
 
@@ -29,6 +28,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",

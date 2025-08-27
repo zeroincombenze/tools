@@ -1423,6 +1423,7 @@ get_value_from_setup() {
 
 get_uniqid() {
 #get_uniqid(path, branch, gitorg, repos)
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
     # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
     # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
     local go m p pkg ro
@@ -1442,6 +1443,7 @@ get_uniqid() {
     [[ -n $ro && $ro != "OCB" && -z $UMLI ]] && UMLI="$ro"
     [[ -n $UMLI ]] && UMLI="${UMLI}.$pkg" || UMLI="$pkg"
     [[ -n $m && -n $UMLI ]] && UMLI="${UMLI}-$m"
+    $SETX
 }
 
 
@@ -1449,12 +1451,14 @@ repos_tools_params() {
     if [[ -z "$_SETUP" ]]; then
       if [[ -f "$1/../setup.py" ]]; then
         _SETUP="$(readlink -f $1/../setup.py)"
+        _VERSION=$(get_value_from_file "$_SETUP" "version")
         _PKGPATH="$(dirname $1)"
         _PKGNAME=$(basename "$1")
         _PRJPATH="$1"
         _REPOS="tools"
       elif [[ -f "$1/setup.py" ]]; then
         _SETUP="$1/setup.py"
+        [[ -f $_SETUP ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
         _PKGPATH="$1"
         [[ -z $PKGNAME ]] && _PKGNAME=$(basename "$1")
         _REPOS="tools"
@@ -1466,6 +1470,19 @@ repos_tools_params() {
     [[ -z $PRJNAME && $(basename $(dirname $1)) =~ ^(pypi|tools)$ ]] && _PRJNAME="pypi"
     [[ -z $PRJNAME && $_REPOS == "tools" ]] && _PRJNAME="pypi"
     [[ -z $PRJNAME && $_REPOS == "OCB" ]] && _PRJNAME="Odoo"
+}
+
+get_value_from_file() {
+  # get_value_from_file(file value [sep])
+  local x=$(basename $1)
+  local s=$3 v
+  [[ -z "$s" ]] && s="="
+  [[ -z "$s" && $x == "__manifest__.py" || $x == "__openerp__.py" ]] && s=":"
+  [[ -z "$s" ]] && s="="
+  if [[ -f "$1" ]]; then
+    v=$(grep -E "^ *[\"']*$2[\"']*" $1 2>/dev/null | cut -d$s -f2- | sed -E "s/^[[:space:]\"']*(.*)/\1/" | sed -E "s/(.*)\b[[:space:]\"',]*/\1/" | head -n1)
+  fi
+  echo $v
 }
 
 get_pypi_param() {
@@ -1481,6 +1498,7 @@ get_pypi_param() {
     PKGNAME=""
     PKGPATH=""
     REPOSNAME=""
+    _VERSION=""
   fi
   ODOO_SETUPS=${ODOO_SETUPS//,/ }
   [[ -z $ODOO_SETUPS ]] && ODOO_SETUPS="__manifest__.py"
@@ -1489,13 +1507,14 @@ get_pypi_param() {
     r="$r -o -name $ODOO_SETUP"
   done
   [[ -n $TRAVIS_BUILD_DIR ]] && x=$TRAVIS_BUILD_DIR || x=$PWD
-  w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3} | head -n1)
+  w=$(find $x -maxdepth 2 -not -path "*/.*/*" -not -path "*/venv_odoo/*" -not -path "*/venv/*" -not -path "*/setup/*" -not -path "*/__pycache__/*" -not -path "*/egg-info/*" -not -path "*/build/*" -not -path "*/_build/*" -not -path "*/dist/*" -not -path "*tests*" ${r:3} | head -n1)
   if [[ -n "$w" ]]; then
     _PRJNAME="Odoo"
     _PKGNAME=$(basename $x)
     _PKGPATH=$x
     _REPOS=$(basename $(dirname $x))
     _SETUP=$w
+    [[ -f $_SETUP ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
   fi
   INV_MODS="(conf|cover|docs|egg-info|examples|html|junk|latex|node_modules|openupgrade|scripts|setup|_static|tests|themes|travis)"
   while [[ (-z "$_SETUP" || -z "$_PRJNAME" || -z "$_PKGPATH") && -n "$x" && $x != $HOME && $x != "/" ]]; do
@@ -1543,7 +1562,6 @@ get_pypi_param() {
     PS_HDR3_COLOR=$(get_cfg_value "" "PS_HDR3_COLOR")
     export PS_TXT_COLOR PS_RUN_COLOR PS_NOP_COLOR PS_HDR1_COLOR PS_HDR2_COLOR PS_HDR3_COLOR
   else
-    [[ $1 == "VERSION" ]] && _VERSION=$(get_value_from_file "$_SETUP" "version")
     x="_$1"
     echo "${!x}"
   fi

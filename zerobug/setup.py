@@ -87,7 +87,7 @@ setup(
             # "travis_install_env = zerobug.scripts.travis_install_env:main",
             # "travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main",
             # "zerobug = zerobug.scripts:main",
-            "zerobug = zerobug.zerobug:main",
+            "zerobug = z0testlib.Z0test():main",
         ]
     },
     zip_safe=False,

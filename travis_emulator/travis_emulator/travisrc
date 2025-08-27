@@ -188,21 +188,10 @@ init_travis() {
     export FLOG_ECHO=
   fi
   if [[ "$PRJNAME" == "Odoo" ]]; then
-#    local npm_curpfx=$(npm config get prefix)
-#    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-#    if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
-#      mkdir -p $NPM_CONFIG_PREFIX
-#      npm config set prefix $NPM_CONFIG_PREFIX
-#    fi
     [[ -z $REPOSNAME ]] && REPOSNAME=$(build_odoo_param REPOS ".")
     BRANCH=$(build_odoo_param FULLVER ".")
     SETUP=$MANIFEST
   fi
-  # TODO>Deprecated
-#  if [[ -z "$TOOLS_PATH" ]]; then
-#    TOOLS_PATH=$(readlink -f $ODOO_ROOT/tools/zerobug/_travis)
-#    [[ ! -d $TOOLS_PATH ]] && TOOLS_PATH=$(find $HOME_DEVEL -type d -name _travis | head -n1)
-#  fi
 }
 
 
@@ -302,8 +291,10 @@ create_virtual_env() {
   [[ ! -d $TRAVIS_SRC_VME || $opt_force -ne 0 ]] && xp=1
   [[ $xp -eq 0 && -d $TRAVIS_SRC_VME ]] && vem $TRAVIS_SRC_VME exec "flake8 --version &>/dev/null" || xp=1
   [[ $xp -eq 0 && -d $TRAVIS_SRC_VME ]] && vem $TRAVIS_SRC_VME exec "pylint --version &>/dev/null" || xp=1
-  [[ $xp -eq 0 && opt_keep -eq 0 ]] && xp=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > 10454400))
-  [[ $TRAVIS_DEBUG_MODE -ge 2  && $xp -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > 10454400"
+  x=$((($(echo "$TRAVIS_PYTHON_VERSION" | sed -E "s/\./*/"))))
+  x=$((750000/x))
+  [[ $xp -eq 0 && opt_keep -eq 0 ]] && xp=$(($(date "+%s") - $(stat -c%Y $TRAVIS_SRC_VME) > $x))
+  [[ $TRAVIS_DEBUG_MODE -ge 2 && $xp -ne 0 && -d $TRAVIS_SRC_VME ]] && echo "(\$(date '+%s'=$(date "+%s")) - \$(stat -c%Y $TRAVIS_SRC_VME)=$(stat -c%Y $TRAVIS_SRC_VME))) > $x"
   if [[ $xp -ne 0 ]]; then
     echo -e "\n\n${RED}Cached virtual environment $TRAVIS_SRC_VME not found or expired!${CLR}"
     echo -e "Now virtual environment $TRAVIS_SRC_VME will be (re)created."

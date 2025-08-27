@@ -918,6 +918,7 @@ process_yaml() {
         wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[0m"
         debug_shell "$opt_trace" "::build" "[build]"
         [[ $? -ne 0 ]] && exit 1
+        set_log_filename
         create_virtual_env
 
         wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
@@ -1030,7 +1031,7 @@ set_log_filename() {
     [[ ! $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="zero"
     [[ $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
     [[ $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
-    get_uniqid "$PKGPATH" "$BRANCH" "$GIT_ORGID" "$REPOSNAME"
+    get_uniqid "$PKGPATH" "$TRAVIS_PYTHON_VERSION" "$GIT_ORGID" "$REPOSNAME"
     if [[ -n $opt_flog ]]; then
       LOGFILE="$(readlink -f $opt_flog)"
       LOGDIR="$(dirname $LOGFILE)"
@@ -1043,8 +1044,6 @@ set_log_filename() {
       [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
       LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
       DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
-      # [[ $ro -ne 0 ]] && LOGFILE="$LOGFILE.log"
-      # [[ $ro -eq 0 ]] && LOGFILE="$LOGFILE.txt"
       LOGFILE="$LOGFILE.log"
     fi
     export LOGDIR

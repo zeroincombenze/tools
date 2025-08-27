@@ -13,7 +13,6 @@ import glob
 import shutil
 import stat
 import subprocess
-# from subprocess import PIPE, Popen
 import re
 
 from string import Template
@@ -27,6 +26,7 @@ import magic
 
 from z0lib import z0lib
 from python_plus import _c, str2bool
+from .scripts.main import main as internal_main
 
 __version__ = "2.0.19"
 
@@ -1285,7 +1285,7 @@ class Z0test(object):
         )
         return self._exec_all_tests(test_list, ctx, Cls2Test)
 
-    def main(self, ctx={}, Cls2Test=None, unittest_list=None):
+    def main(self, cli_args=None, ctx={}, Cls2Test=None, unittest_list=None):
         """Default main program for test execution
 
         Args:
@@ -1293,6 +1293,13 @@ class Z0test(object):
             Cls2Test (class): test class for internal tests
             unittest_list (list): Unit Test list (if None, search for files)
         """
+        if all([
+            arg in (
+                    "-h", "-H", "--help", "-v", "-V", "--version", "-C", "--copy-pkg-data")
+            for arg in cli_args
+        ]):
+            return sys.exit(internal_main(cli_args))
+
         sts = check_for_requirements()
         if sts:
             return sts

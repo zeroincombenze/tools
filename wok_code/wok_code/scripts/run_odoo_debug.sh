@@ -115,7 +115,7 @@ check_for_modules() {
 coverage_set() {
     local m p coverage_tmpl opts
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      export COVERAGE_DATA_FILE="$LOGDIR/${UDI}_coverage"
+      export COVERAGE_DATA_FILE="$LOGDIR/.${UDI}_coverage"
       export COVERAGE_PROCESS_START="$LOGDIR/${UDI}_coveragerc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
@@ -160,8 +160,6 @@ set_log_filename() {
     [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
     LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
     DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
-    # [[ $ro -ne 0 ]] && LOGFILE="$LOGFILE.log"
-    # [[ $ro -eq 0 ]] && LOGFILE="$LOGFILE.txt"
     LOGFILE="$LOGFILE.log"
     export LOGDIR
     export LOGFILE
