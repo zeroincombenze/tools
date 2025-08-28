@@ -59,10 +59,9 @@ class PleaseCwd(object):
 
         please commit -m "COMMIT_MESSAGE"
             This action, runs just on PYPI sub-package, does:
-            1. Prepare setup.info file (in future will be removed)
-            2. Execute <git add>
-            3. Execute <git commit -M "COMMIT_MESSAGE">
-            4. Replace source code into master directory
+            1. Execute <git add>
+            2. Execute <git commit -M "COMMIT_MESSAGE">
+            3. Replace source code into master directory
 
         please defcon FILE_NAME
             Create or update some configuration file with appropriate values for current
@@ -239,7 +238,8 @@ class PleaseCwd(object):
         ):
             args = self.build_gen_readme_base_args(branch=branch)
             args.append("-RW")
-            return please.chain_python_cmd("gen_readme.py", args)
+            # return please.chain_python_cmd("gen_readme.py", args)
+            return please.os_system(["gen_readme.py", *args])
         return 0
 
     def assure_doc_dirs_pypi(self):
@@ -462,13 +462,13 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
-            if pkgname != "tools":
-                fn = pth.join(pth.dirname(srcdir), "setup.py")
-                if pth.isfile(fn):
-                    sts = please.os_system(
-                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-                        rtime=True,
-                    )
+            # if pkgname != "tools":
+            #     fn = pth.join(pth.dirname(srcdir), "setup.py")
+            #     if pth.isfile(fn):
+            #         sts = please.os_system(
+            #             "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+            #             rtime=True,
+            #         )
             if not please.opt_args.no_verify:
                 sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -671,16 +671,20 @@ class PleaseCwd(object):
                     if repo_name == "marketplace":
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts=please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     if sts == 0:
                         args.append("-I")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts=please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     if sts == 0 and odoo_major_version <= 7:
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts=please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                 if sts == 0:
                     self.do_clean()
                 return sts
@@ -693,7 +697,8 @@ class PleaseCwd(object):
                     return sts
                 if not please.opt_args.oca:
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
@@ -707,10 +712,12 @@ class PleaseCwd(object):
                 )
                 return 33 if not self.please.opt_args.dry_run else 0
             args = self.build_gen_readme_base_args(branch=self.branch)
-            sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
+            # sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
+            sts = self.please.os_system(["gen_readme.py", *args], rtime=True)
             if sts == 0:
                 args.append("-I")
-                sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                sts = please.os_system(["gen_readme.py", *args], rtime=True)
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
@@ -718,6 +725,7 @@ class PleaseCwd(object):
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
+            sts = 0             # TODO> Remoe ?
             return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 
@@ -787,12 +795,14 @@ class PleaseCwd(object):
                         shutil.rmtree(target_dir)
                     args = self.build_gen_readme_base_args(branch=branch)
                     args.append("-O")
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    # sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.os_system(["gen_readme.py", *args])
                 if sts == 0:
                     args = self.build_gen_readme_base_args(branch=branch)
                     args.append("-O")
                     args.append("-R")
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    #  sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.os_system(["gen_readme.py", *args])
                 if sts == 0:
                     sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -1067,12 +1077,12 @@ class PleaseCwd(object):
             pkgname = pth.basename(srcdir)
             sts = 0
             if pkgname != "tools":
-                fn = pth.join(pth.dirname(srcdir), "setup.py")
-                if pth.isfile(fn):
-                    sts = please.os_system(
-                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-                        rtime=True,
-                    )
+                # fn = pth.join(pth.dirname(srcdir), "setup.py")
+                # if pth.isfile(fn):
+                #     sts = please.os_system(
+                #         "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+                #         rtime=True,
+                #     )
                 if sts == 0:
                     sts = please.os_system(
                         "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True
@@ -1102,6 +1112,18 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 rex = re.compile(r"[a-z0-9][a-z0-9_.]+$")
                 for root, dirs, files in os.walk(pth.expanduser("~/")):
+                    dirs[:] = [
+                        d
+                        for d in dirs
+                        if (
+                            not d.startswith(".")
+                            and not d.startswith("_")
+                            and not d.endswith("~")
+                            and d
+                            not in ("setup", "venv_odoo", "tests", "addons")
+                            and not os.path.islink(pth.join(root, d))
+                        )
+                    ]
                     for fn in sorted(dirs):
                         if not rex.match(fn):
                             continue
@@ -1190,6 +1212,9 @@ class PleaseCwd(object):
                     do_rewrite = False
                     please.log_error("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
+                    while target.endswith("\n\n"):
+                        target = target[:-2]
+                    target += "\n"
                     if please.opt_args.verbose:
                         print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:

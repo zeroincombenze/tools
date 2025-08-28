@@ -29,6 +29,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -50,7 +52,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             "data/*",
             "testenv/*",
             "travis/cfg/*",
@@ -68,19 +70,9 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "z0bug-odoo-info = z0bug_odoo.scripts.main:main",
+            "z0bug-odoo-info = z0bug_odoo.scripts.main:internal_main",
             # "travis_run_tests = z0bug_odoo.travis.travis_run_tests:main",
         ]
     },
     zip_safe=False,
 )
-
-
-
-
-
-
-
-
-
-

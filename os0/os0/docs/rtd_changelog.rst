@@ -15,11 +15,6 @@ ChangeLog History
 
 * [FIX] python compatibility
 
-1.0.3 (2021-12-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
 |
 |
 

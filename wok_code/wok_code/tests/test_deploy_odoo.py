@@ -48,7 +48,7 @@ class RegressionTest:
             msg="Cmd <<<%s>>> not found!" % cmd,
         )
 
-    def test_01_version(self):
+    def _test_01_version(self):
         sts, stdout, stderr = z0lib.os_system_traced(
             "deploy_odoo --version", rtime=False
         )

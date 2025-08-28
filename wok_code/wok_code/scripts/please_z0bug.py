@@ -9,6 +9,7 @@ import re
 
 __version__ = "2.0.22"
 
+
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 RED = "\033[1;31m"
 CLEAR = "\033[0;m"
@@ -121,6 +122,11 @@ class PleaseZ0bug(object):
         if not for_help:
             self.please.add_argument(parser, "-q")
         parser.add_argument(
+            "-R",
+            "--read-only",
+            action="store_true",
+        )
+        parser.add_argument(
             "-S",
             "--syspkg",
             metavar="true|false",
@@ -207,7 +213,7 @@ class PleaseZ0bug(object):
 
         sts = 0
         if not please.opt_args.no_verify:
-            please.os_system("git add ./", rtime=True)
+            # please.os_system("git add ./", rtime=True)
             sts = please.os_system("pre-commit run", rtime=True)
         if sts == 0:
             if "lint" in please.cli_args:
@@ -272,14 +278,27 @@ class PleaseZ0bug(object):
 
     def do_show(self):
         please = self.please
-        if please.is_odoo_pkg():
-            cmd = please.get_fqn_log(what="cmd")
-            return please.os_system(cmd)
-        elif please.is_repo_odoo() or please.is_repo_ocb() or please.is_pypi_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
-            cmd = please.build_sh_me_cmd(cmd="travis")
-            sts = please.os_system(cmd, with_shell=True, rtime=True)
-            return 0 if please.opt_args.ignore_status else sts
+        if please.is_repo_odoo() or please.is_repo_ocb():
+            sts = 0
+            for path in please.get_next_module_path():
+                sts = please.os_system("cd " + path, verbose=False)
+                if sts == 0:
+                    sts = self._do_show()
+                if please.is_fatal_sts(sts):
+                    break
+            return sts
+        elif please.is_odoo_pkg or please.is_pypi_pkg():
+            sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
+            if sts:
+                return sts
+            git_org, read_only = please.data_from_url(url)
+            read_only = read_only or please.opt_args.read_only
+            log_fqn = self.please.get_fqn_log(
+                what="fqn", git_org=git_org, read_only=read_only)
+            if log_fqn:
+                please.os_system("less -R %s" % log_fqn, rtime=True)
+                return 0
+            return 126
         return please.do_iter_action("do_show", act_all_pypi=True, act_tools=False)
 
     def do_show_docs(self):
@@ -328,26 +347,38 @@ class PleaseZ0bug(object):
 
     def do_summary(self):
         please = self.please
-        if please.is_odoo_pkg():
-            return self._do_show_summary_odoo()
-        elif please.is_repo_odoo() or please.is_repo_ocb():
+        if please.is_repo_odoo() or please.is_repo_ocb():
             sts = 0
             for path in please.get_next_module_path():
                 sts = please.os_system("cd " + path, verbose=False)
                 if sts == 0:
-                    sts = self._do_show_summary_odoo()
+                    sts = self.do_summary()
                 if please.is_fatal_sts(sts):
                     break
             return sts
-        elif please.is_pypi_pkg():
-            please.sh_subcmd = please.pickle_params(rm_obj=True)
-            cmd = please.build_sh_me_cmd(cmd="travis")
-            sts = please.os_system(cmd, with_shell=True, rtime=True)
-            return 0 if please.opt_args.ignore_status else sts
+        elif please.is_odoo_pkg or please.is_pypi_pkg():
+            sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
+            if sts:
+                return sts
+            git_org, read_only = please.data_from_url(url)
+            read_only = read_only or please.opt_args.read_only
+            log_fqn = self.please.get_fqn_log(
+                what="fqn", git_org=git_org, read_only=read_only)
+            if log_fqn:
+                please.os_system(
+                    "grep --color=never -E '^[^[:space:]/\\|]*[/\\|][[:space:]=\-]' %s"
+                    % log_fqn, rtime=True)
+                return 0
+            return 126
         return please.do_iter_action("do_summary", act_all_pypi=True, act_tools=False)
 
     def _do_test_odoo_pkg(self):
         please = self.please
+        sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
+        if sts:
+            return sts
+        git_org, read_only = please.data_from_url(url)
+        read_only = read_only or please.opt_args.read_only
         branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
         manifest_path = (
             "__openerp__.py"
@@ -358,7 +389,7 @@ class PleaseZ0bug(object):
         if not manifest["installable"]:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
-        sts = self.please.get_fqn_log(what="sts")
+        sts = self.please.get_fqn_log(what="sts", git_org=git_org, read_only=read_only)
         if sts:
             return sts
         if pth.isdir("tests") and pth.isfile(pth.join("tests", "testenv.py")):
@@ -471,8 +502,6 @@ class PleaseZ0bug(object):
         if not please.opt_args.no_verify:
             print("## Git sync ... ##")
             sts = please.os_system("git add ./", rtime=True)
-        # if sts:
-        #     return sts
         return sts
 
     def do_test(self):
@@ -507,5 +536,16 @@ class PleaseZ0bug(object):
                 slist=[("--no-verify", ""), ("--no-translate", "")],
             )
             cmd = please.build_sh_me_cmd(cmd="travis")
-            return please.os_system(cmd, rtime=True)
+            sts = please.os_system(cmd, rtime=True)
+            if please.is_fatal_sts(sts) or please.opt_args.debug:
+                return sts
+            if not please.opt_args.no_verify:
+                print("## Update documentation ... ##")
+                sts = please.do_docs()
+            if please.is_fatal_sts(sts):
+                return sts
+            if not please.opt_args.no_verify:
+                print("## Git sync ... ##")
+                sts = please.os_system("git add ./", rtime=True)
+            return sts
         return please.do_iter_action("do_zerobug", act_all_pypi=True, act_tools=False)

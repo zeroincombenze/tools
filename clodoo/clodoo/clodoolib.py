@@ -475,6 +475,8 @@ def create_def_params_dict(ctx):
                 tmp = getattr(opt_obj, p)
                 if p not in ctx or tmp:
                     ctx[p] = tmp
+                    if p == "dbfilter" and re.match(r"\w+$", tmp):
+                        ctx["db_name"] = tmp
         for p in LX_OPT_B:
             if hasattr(opt_obj, p):
                 ctx[p] = str2bool(getattr(opt_obj, p), None)
@@ -635,7 +637,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2021 by SHS-AV s.r.l." " - http://www.zeroincombenze.org",
+        epilog="© 2015-2025 by SHS-AV s.r.l." " - http://www.zeroincombenze.org",
     )
     parser.add_argument(
         "-A",

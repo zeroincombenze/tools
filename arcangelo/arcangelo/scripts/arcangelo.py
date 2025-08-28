@@ -984,7 +984,7 @@ class MigrateFile(MigrateMeta):
             if not args:
                 self.raise_error("Invalid expression mv")
                 return False, 0
-            new_lineno =  self.assing_lineno(lineno, args[0])
+            new_lineno = self.assing_lineno(lineno, args[0])
             if new_lineno != lineno:
                 line = self.lines[lineno]
                 del self.lines[lineno]
@@ -1079,7 +1079,8 @@ class MigrateFile(MigrateMeta):
                                 or re.match("^ *import ", self.lines[lineno])
                         ):
                             self.transition_stage = (
-                                "import" if self.transition_stage == "import" else self.stage)
+                                "import" if self.transition_stage == "import"
+                                else self.stage)
                             self.stage = "import"
                             pkgs = re.split("import", self.lines[lineno])[1]
                             pkgs = pkgs.split("#")[0]

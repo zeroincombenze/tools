@@ -13,7 +13,6 @@ import glob
 import shutil
 import stat
 import subprocess
-# from subprocess import PIPE, Popen
 import re
 
 from string import Template
@@ -27,6 +26,7 @@ import magic
 
 from z0lib import z0lib
 from python_plus import _c, str2bool
+# from .scripts.main import main as internal_main
 
 __version__ = "2.0.19"
 
@@ -1905,4 +1905,3 @@ series = serie = major_version = '.'.join(map(str, version_info[:2]))"""
                     symlinks=True,
                     ignore=shutil.ignore_patterns('*.pyc', '.idea/', 'setup/'),
                 )
-

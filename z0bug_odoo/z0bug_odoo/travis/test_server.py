@@ -555,11 +555,11 @@ def set_coveragerc():
 def get_log_level(odoo_version, test_enable, travis_debug_mode, tnlbot=False):
     test_loghandler = None
     options = []
-    if tnlbot:
-        if odoo_version == "6.1" and not test_enable:
-            options = ["--test-disable"]
-        test_loglevel = 'info'
-    elif odoo_version == "6.1":
+    # if tnlbot:
+    #     if odoo_version == "6.1" and not test_enable:
+    #         options = ["--test-disable"]
+    #     test_loglevel = 'info'
+    if odoo_version == "6.1":
         if not test_enable:
             options = ["--test-disable"]
         test_loglevel = 'test'

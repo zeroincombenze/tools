@@ -7,17 +7,31 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# Based on template 2.1.0
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+ME=$(readlink -e $0)
+if [[ -d $HOME/devel || -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+PYPATH=""
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" ]] && PYPATH="$(dirname $PWD)"
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" && -d $PWD/../scripts ]] && PYPATH="$PYPATH $(readlink -f $PWD/../scripts)"
+x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $x/pypi ]]; do x=$(dirname $x); done
+[[ -d $x/pypi ]] && PYPATH="$PYPATH $x/pypi"
+[[ -d $x/pypi/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib"
+[[ -d $x/pypi/z0lib/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib/z0lib"
+[[ -d $x/tools ]] && PYPATH="$PYPATH $x/tools"
+[[ -d $x/tools/z0lib ]] && PYPATH="$PYPATH $x/tools/z0lib"
+[[ -d $x/bin ]] && PYPATH="$PYPATH $x/bin"
+[[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
+[[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
+[[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
+# [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
+# [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -28,11 +42,11 @@ for d in $PYPATH /etc; do
 done
 [[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
-ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo" "clodoo")
 [[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
-TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$PYPATH" "travis_emulator" "travis_emulator")
 [[ -z "$TRAVISLIBDIR" ]] && echo "Library file travisrc not found!" && exit 72
 . $TRAVISLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "TRAVISLIBDIR=$TRAVISLIBDIR"
@@ -93,8 +107,8 @@ set_opts_4_action() {
     fi
     [[ -n $opt_ocfn ]] && svcname=$(basename "$opt_ocfn") || svcname=$(build_odoo_param SVCNAME "$(readlink -f $PWD)")
     opts="-b $odoo_fver"
-    [[ $opt_dbg -eq 1 ]] && opts="${opts} -B"
-    [[ $opt_dbg -gt 1 ]] && opts="${opts} -BB"
+    [[ $opt_debug -eq 1 ]] && opts="${opts} -B"
+    [[ $opt_debug -gt 1 ]] && opts="${opts} -BB"
     [[ -f /etc/odoo/${svcname}.conf ]] && opts="${opts} -c \"/etc/odoo/${svcname}.conf\""
     [[ -n $opt_ocfn && -f "$opt_ocfn" ]] && opts="${opts} -c \"$opt_ocfn\""
     [[ -n $opt_db ]] && opts="${opts} -d \"$opt_db\""
@@ -149,7 +163,7 @@ mvfiles() {
     local l="$3"
   fi
   local CWD=$PWD
-  local sts=$STS_SUCCESS
+  local sts=0
   local f
   if [ -d $1 -a -n "$2" ]; then
     if [ -d $2 ]; then
@@ -162,16 +176,16 @@ mvfiles() {
           fi
         else
           elog "! File $1/$f not found!!"
-          sts=$STS_FAILED
+          sts=1
         fi
       done
     else
       elog "! Directory $2 not found!!"
-      sts=$STS_FAILED
+      sts=1
     fi
   else
     elog "! Directory $1 not found!!"
-    sts=$STS_FAILED
+    sts=1
   fi
   cd $CWD
   return $sts
@@ -235,30 +249,30 @@ get_pyver_from_oe() {
 
 do_publish() {
   #do_publish (docs|download|pypi|svg|testpypi)
-  wlog "do_publish $1 $2"
+  # wlog "do_publish $1 $2"
   local cmd="do_publish_$1"
-  sts=$STS_SUCCESS
+  sts=0
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
   else
     echo "Missing object! Use:"
-    echo "> please publish (docs|download|pypi|svg|testpypi)"
-    echo "publish docs     -> publish generate docs to website (require system privileges)"
+    echo "> please publish (pypi|testpypi)"
+    e# cho "publish docs     -> publish generate docs to website (require system privileges)"
     echo "   type 'please docs' to generate docs files"
-    echo "publish download -> publish tarball to download (require system privileges)"
+    # echo "publish download -> publish tarball to download (require system privileges)"
     echo "   type 'please build' to generate tarball file"
     echo "publish pypi     -> publish package to pypi website (from odoo user)"
-    echo "publish svg      -> publish test result svg file (require system privileges)"
+    # echo "publish svg      -> publish test result svg file (require system privileges)"
     echo "publish tar      -> write a tarball with package files"
     echo "publish testpypi -> publish package to testpypi website (from odoo user)"
-    sts=$STS_FAILED
+    sts=1
   fi
   return $sts
 }
 
 do_publish_svg() {
   #do_publish_svg svg (prd|dev)
-  local sts=$STS_FAILED
+  local sts=1
   local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
   local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
   if [ $EUID -ne 0 ]; then
@@ -285,14 +299,14 @@ do_publish_svg() {
   if [ "$HOSTNAME" == "$DEV_HOST" ]; then
     scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
     local s=$?
-    [ $sts -eq $STS_SUCCESS ] && sts=$s
+    [ $sts -eq 0 ] && sts=$s
   fi
   return $sts
 }
 
 do_publish_docs() {
   #do_publish_svg docs
-  local sts=$STS_FAILED
+  local sts=1
   if [ $EUID -ne 0 ]; then
     echo "!!Error: no privilege to publish documentation!!"
     return $sts
@@ -321,7 +335,7 @@ do_publish_docs() {
 do_publish_download() {
   #do_publish_download
   local f n s v
-  local sts=$STS_FAILED
+  local sts=1
   if [ $EUID -ne 0 ]; then
     echo "!!Error: no privilege to publish download!!"
     return $sts
@@ -341,7 +355,7 @@ do_publish_download() {
     if [ -n "$f" -a -f "$f" ]; then
       mvfiles "$PKGPATH" "$HTML_DOWNLOAD_DIR" "$f" "apache:apache"
       sts=$?
-      if [ $sts -eq $STS_SUCCESS ]; then
+      if [ $sts -eq 0 ]; then
         run_traced "cp $HTML_DOWNLOAD_DIR/$f $HTML_DOWNLOAD_DIR/$n.tar.gz"
         run_traced "chown apache:apache $HTML_DOWNLOAD_DIR/$n.tar.gz"
         create_pubblished_index "$HTML_DOWNLOAD_DIR"
@@ -364,7 +378,7 @@ do_publish_testpypi() {
 
 do_publish_pypi() {
   #do_publish_pypi repos
-  local sts=$STS_SUCCESS
+  local sts=0
   local rpt=$1
   local n p s v
   [[ -z $rpt || ! $rpt =~ (pypi|testpypi) ]] && rpt=pypi
@@ -372,7 +386,7 @@ do_publish_pypi() {
     if twine --version &>/dev/null; then
       run_traced "cd $PKGPATH"
       s=$?; [[ ${s-0} -ne 0 ]] && sts=$s
-      [[ -f $PRJPATH/README.rst ]] && run_traced "mv $PRJPATH/README.rst ./"
+      # [[ -f $PRJPATH/README.rst ]] && run_traced "mv $PRJPATH/README.rst ./"
       v=$(python setup.py --version)
       n=$(python setup.py --name)
       p=$(find dist -name "${n}-${v}.tar.gz")
@@ -396,7 +410,7 @@ do_publish_pypi() {
 
 do_register_pypi() {
   #do_register_pypi
-  local sts=$STS_SUCCESS
+  local sts=0
   local rpt=testpypi
   local n p s v
   if [ "$PRJNAME" != "Odoo" ]; then
@@ -418,7 +432,7 @@ do_register_pypi() {
 
 do_register_testpypi() {
   #do_register_testpypi
-  local sts=$STS_SUCCESS
+  local sts=0
   local rpt=testpypi
   local n p s v
   if [ "$PRJNAME" != "Odoo" ]; then
@@ -443,13 +457,13 @@ do_edit() {
   local cmd
   wlog "do_edit $1 $2"
   cmd="do_edit_$1"
-  sts=$STS_SUCCESS
+  sts=0
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
   else
     echo "Missing object! Use:"
     echo "> please edit (pofile|translation|translation_from_pofile|untranslated)"
-    sts=$STS_FAILED
+    sts=1
   fi
   return $sts
 }
@@ -545,7 +559,7 @@ do_docs() {
   local docs_dir=./docs
   local author version theme SETUP b f l t x
   local opts src_png odoo_fver REPO
-  [[ $opt_dbg -ne 0 || $PWD =~ /devel/pypi/ ]] && opts=-B || opts=
+  [[ $opt_debug -ne 0 || $PWD =~ /devel/pypi/ ]] && opts=-B || opts=
   if [ "$PRJNAME" == "Odoo" ]; then
     [[ -z "$opt_branch" ]] && odoo_fver=$(build_odoo_param FULLVER ".") || odoo_fver=$(build_odoo_param FULLVER "$opt_branch")
     [[ -z "$opt_branch" ]] && orgid=$(build_odoo_param GIT_ORGID ".") || orgid=$(build_odoo_param GIT_ORGID "$opt_branch")
@@ -880,7 +894,7 @@ do_duplicate() {
 
 do_export() {
   wlog "do_export '$1' '$2' '$3'"
-  local db dbdt dummy DBs m module odoo_fver path pofile sts=$STS_FAILED u
+  local db dbdt dummy DBs m module odoo_fver path pofile sts=1 u
   if [[ $PRJNAME != "Odoo" ]]; then
     echo "This action can be issued only on Odoo projects"
     return $sts
@@ -920,7 +934,7 @@ do_export() {
   if [[ -z "$db" ]]; then
     echo "No DB matched! use:"
     echo "$0 export -d DB"
-    return $STS_FAILED
+    return 1
   fi
   stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
   [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
@@ -933,7 +947,7 @@ do_export() {
 
 do_import() {
   wlog "do_import '$1' '$2' '$3'"
-  local db dbdt dummy DBs m module odoo_fver path pofile sts=$STS_FAILED u
+  local db dbdt dummy DBs m module odoo_fver path pofile sts=1 u
   if [[ $PRJNAME != "Odoo" ]]; then
     echo "This action can be issued only on Odoo projects"
     return $sts
@@ -968,7 +982,7 @@ do_import() {
   if [[ -z "$db" ]]; then
     echo "No DB matched! use:"
     echo "$0 import 'DB'"
-    return $STS_FAILED
+    return 1
   fi
   stat=$(psql -U$u -Atc "select state from ir_module_module where name = '$module'" $db)
   [[ -z "$stat" || $stat == "uninstalled" ]] && echo "Module $module not installed in $db!" && exit $sts
@@ -991,7 +1005,7 @@ do_list() {
 
 do_translate() {
   wlog "do_translate '$1' '$2' '$3'"
-  local db dbdt dummy DBs m module odoo_fver path sts=$STS_FAILED u x
+  local db dbdt dummy DBs m module odoo_fver path sts=1 u x
   local opt_multi confn opts pofile
   if [[ $PRJNAME != "Odoo" ]]; then
     echo "This action can be issued only on Odoo projects"
@@ -1014,7 +1028,7 @@ do_translate() {
   confn=$(build_odoo_param CONFN ".")
   [[ ! -f $confn ]] && echo "Configuration file $confn not found!" && return $sts
   [[ $opt_verbose -ne 0 ]] && opts="-v" || opts="-q"
-  [[ $opt_dbg -ne 0 ]] && opts="${opts}B"
+  [[ $opt_debug -ne 0 ]] && opts="${opts}B"
   db="$opt_db"
   u=$(get_dbuser $m)
   if [[ -z "$db" ]]; then
@@ -1029,7 +1043,7 @@ do_translate() {
   if [[ -z "$db" ]]; then
     echo "No DB matched! use:"
     echo "$0 translate -d DB"
-    return $STS_FAILED
+    return 1
   fi
   run_traced "odoo_translation.py $opts -b$odoo_fver -m $module -c $confn -d$db"
   do_export
@@ -1040,7 +1054,11 @@ do_translate() {
 
 do_lint() {
     wlog "do_lint '$1' '$2' '$3'"
-    local sts=$STS_FAILED opts p s x VDIR
+    local sts=1 opts p s x VDIR
+    set_log_dir
+    # set_log_filename
+    [[ ! -f $LOGDIR/.run.log ]] && touch "$LOGDIR/.run.log"
+    echo "======== Testing test_flake8 ========"
     [[ $PRJNAME == "Odoo" && $(basename $(dirname $PWD)) == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && VDIR="$(dirname $p)/oca$x/venv_odoo"
     [[ $PRJNAME == "Odoo" && -z $VDIR ]] && VDIR=$(build_odoo_param VDIR ./)
     [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
@@ -1063,6 +1081,8 @@ do_lint() {
       run_traced "flake8 --config=$FLAKE8_CONFIG $opts ./"
     fi
     sts=$?
+    echo "test_flake8|$sts|$(date '+%F %T')" >> "$LOGDIR/.run.log"
+    echo "======== Testing test_pylint ========"
     [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
     if [[ -z $PYLINT_CONFIG_DIR ]]; then
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
@@ -1074,7 +1094,9 @@ do_lint() {
     else
       run_traced "pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./"
     fi
-    s=$?; [[ $s -ne 0 ]] && sts=$s
+    s=$?
+    echo "test_pylint|$s|$(date '+%F %T')" >> "$LOGDIR/.run.log"
+    [[ $s -ne 0 ]] && sts=$s
     return $sts
 }
 
@@ -1127,7 +1149,7 @@ do_test() {
 do_lsearch() {
   # search n log ([date] db token)
   wlog "do_lsearch '$1' '$2' '$3'"
-  local CM cmd db f LOGDIRS odoo_fver odoo_ver PM sts=$STS_FAILED tok_dt token
+  local CM cmd db f LOGDIRS odoo_fver odoo_ver PM sts=1 tok_dt token
   [ -n "$opt_branch" ] && odoo_fver=$opt_branch || odoo_fver=10.0
   odoo_ver=$(echo $odoo_fver | grep --color=never -Eo '[0-9]+' | head -n1)
   tok_dt=$opt_date
@@ -1172,11 +1194,11 @@ do_push() {
 
 do_pythonhosted() {
   wlog "do_pythonhosted $1 $2 $3"
-  sts=$STS_SUCCESS
+  sts=0
   if [ -z "$2" ]; then
     echo "Missing URL! use:"
     echo "> please pythonhosted URL"
-    return $STS_FAILED
+    return 1
   fi
   local URL=$2
   if [ "${URL: -1}" != "/" ]; then
@@ -1214,13 +1236,13 @@ do_register() {
   #do_register PKGNAME (pypi|testpypi)
   wlog "do_register $1 $2"
   local cmd="do_register_$1"
-  sts=$STS_SUCCESS
+  sts=0
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
   else
     echo "Missing object! Use:"
     echo "> please register (pypi|testpypi)"
-    sts=$STS_FAILED
+    sts=1
   fi
   return $sts
 }
@@ -1311,7 +1333,7 @@ do_show() {
   #do_show (docs|license|status)
   wlog "do_show $1"
   local cmd="do_show_$1"
-  sts=$STS_SUCCESS
+  sts=0
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$@"
   else
@@ -1320,7 +1342,7 @@ do_show() {
     echo "show docs        -> show docs using local browser"
     echo "show license     -> show licenses of modules of current Odoo repository"
     # echo "show status      -> show component status"
-    sts=$STS_FAILED
+    sts=1
   fi
   return $sts
 }
@@ -1355,7 +1377,7 @@ do_show_license() {
 }
 
 do_config() {
-  sts=$STS_SUCCESS
+  sts=0
   if [ "$sub1" == "global" ]; then
     cfgfn=$TCONF
   elif [ "$sub1" == "repository" ]; then
@@ -1369,9 +1391,9 @@ do_config() {
   else
     echo "Missed parameter! use:"
     echo "\$ please config global|repository|local|current|zero|powerp [def|del]"
-    sts=$STS_FAILED
+    sts=1
   fi
-  if [ $sts -eq $STS_SUCCESS ]; then
+  if [ $sts -eq 0 ]; then
     if [ -n "$cfgfn" ]; then
       cfgdir=$(dirname $cfgfn)
       if [ "$sub2" == "del" ]; then
@@ -1414,12 +1436,12 @@ do_wep() {
     return 0
 }
 
-OPTOPTS=(h        B       b          C        c         D         d        f         k        L         m       n           o        O       p         q           r     t         u       V           v)
-OPTLONG=(help     debug   branch     config   odoo-conf from-date database force     keep     log       ""      dry-run     ""       ""      ""        quiet       ""    test      ""      version     verbose)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_ocfn  opt_date  opt_db   opt_force opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r test_mode opt_uop opt_version opt_verbose)
-OPTACTI=("+"      "+"     "="        "="      "="       "="       "="      1         1        "="       1       1           "=>"     1       "="       0           1     1         1       "*"         "+")
-OPTDEFL=(1        0       ""         ""       ""        ""        ""       0         0        ""        0       0           ""       0       ""        0           0     0         0       ""          -1)
-OPTMETA=("help"   ""      "branch"   "file"   "file"    "diff"    "name"   ""       "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        B         b          C        c         D         d        f         k        L         m       n           o        O       p         q           r     t         u       V           v)
+OPTLONG=(help     debug     branch     config   odoo-conf from-date database force     keep     log       ""      dry-run     ""       ""      ""        quiet       ""    test      ""      version     verbose)
+OPTDEST=(opt_help opt_debug opt_branch opt_conf opt_ocfn  opt_date  opt_db   opt_force opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_oca opt_dpath opt_verbose opt_r test_mode opt_uop opt_version opt_verbose)
+OPTACTI=("+"      "+"       "="        "="      "="       "="       "="      1         1        "="       1       1           "=>"     1       "="       0           1     1         1       "*"         "+")
+OPTDEFL=(1        0         ""         ""       ""        ""        ""       0         0        ""        0       0           ""       0       ""        0           0     0         0       ""          -1)
+OPTMETA=("help"   ""        "branch"   "file"   "file"    "diff"    "name"   ""       "keep"   "logfile" ""      "noop"       "prj_id" ""      "path"    "quiet"     "rxt" "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"
   "debug mode"
   "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 13.0 14.0 15.0 or 16.0"
@@ -1467,7 +1489,7 @@ LOCAL_PKGS_RE=${LOCAL_PKGS_RE//-/.}
 conf_default
 [[ $opt_verbose -gt 2 ]] && set -x
 
-sts=$STS_SUCCESS
+sts=0
 sts_bash=127
 sts_flake8=127
 sts_pylint=127
@@ -1500,7 +1522,7 @@ else
           eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
           sts=$?
           run_traced "popd >/dev/null"
-          [[ $sts -ne $STS_SUCCESS ]] && break
+          [[ $sts -ne 0 ]] && break
         done
       else
         eval $cmd "'$sub1'" "'$sub2'" "'$sub3'"
@@ -1509,9 +1531,9 @@ else
     else
       echo "Invalid action!"
       echo "Use $THIS $HLPCMDLIST"
-      sts=$STS_FAILED
+      sts=1
     fi
-    [[ $sts -ne $STS_SUCCESS ]] && break
+    [[ $sts -ne 0 ]] && break
   done
 fi
 exit $sts

@@ -86,7 +86,7 @@ def git_checkout(repo_dir, repo, git_org=None):
     sts = 127
     command = []
     if os.environ.get('TRAVIS', '') != 'true':
-        dep_root = os.environ.get('TRAVIS_HOME_BRANCH')
+        dep_root = os.environ.get('TRAVIS_SAVED_PKGPATH')
         travis_home = os.environ.get('TRAVIS_SAVED_HOME', osp.expanduser('~'))
         if dep_root:
             while not srcdir:
@@ -201,14 +201,3 @@ if __name__ == '__main__':
                 sys.argv[2] if len(sys.argv) > 2 else None,
             )
         )
-
-
-
-
-
-
-
-
-
-
-

@@ -62,6 +62,8 @@ def expand_macro(line, section, ctx):
                 "14": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
                 "15": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
                 "16": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
+                "17": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
+                "18": "  - WKHTMLTOPDF_VERSION=\"0.12.6\"",
             }.get(branch, line)
     elif section == "env.matrix":
         if (
@@ -72,7 +74,7 @@ def expand_macro(line, section, ctx):
         ):
             line = comment_line(line)
     elif section == "script":
-        if re.match(r"^ *\- travis_run", line):
+        if re.match(r"^ *\- .*travis_run_.*tests", line):
             if ctx["PRJNAME"] == "Odoo":
                 line = "  - travis_run_tests"
             elif ctx["REPOSNAME"] == "tools" and ctx["PRJNAME"] == "tools":
@@ -97,6 +99,7 @@ def make_travis_conf(cli_args=None):
     tgt = cli_args[1]
     ctx = {
         "PKGNAME": os_env("PKGNAME", os.path.basename(os.getcwd())),
+        "PKGPATH": os_env("PKGPATH"),
         "PRJNAME": os_env("PRJNAME"),
         "REPOSNAME": os_env("REPOSNAME"),
         "TRAVIS_BRANCH": os_env("TRAVIS_BRANCH", os_env("BRANCH")),

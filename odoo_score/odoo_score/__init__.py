@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 from . import scripts
+from .scripts.main import internal_main
 try:
     _o = "odoo."
     _release = __import__(_o + "release", fromlist=[None])

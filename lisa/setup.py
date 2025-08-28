@@ -31,7 +31,7 @@ over every Linux distribution.
     license="GPL-3.0-or-later",
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
     package_data={'': [
-        'scripts/setup.info',
+        # 'scripts/setup.info',
         'scripts/lisa_bld_ods.sh',
         'scripts/odoo-server_Debian',
         'scripts/odoo-server_RHEL',
@@ -43,7 +43,7 @@ over every Linux distribution.
     ]},
     entry_points={
         'console_scripts': [
-            'lisa-info = lisa.scripts.main:main',
+            'lisa-info = lisa.scripts.main:internal_main',
             'lisa_bld_ods = lisa.scripts.lisa_bld_ods:main',
         ]
     },

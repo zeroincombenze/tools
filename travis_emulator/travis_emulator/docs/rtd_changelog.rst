@@ -5,6 +5,16 @@ ChangeLog History
 =================
 
 
+2.0.11 (2025-08-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.12 is certificated programming language
+
+2.0.10 (2025-03-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.11 is certificated programming language
+
 2.0.10 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -86,18 +96,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] travis: python2 tests
-
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: new improvements (-f -k switches)
-
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
 
 |
 |

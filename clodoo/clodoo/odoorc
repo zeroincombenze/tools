@@ -205,6 +205,67 @@ traverse() {
     echo "$PKGNAME|$PKGPATH|$PARENTDIR|$REPOS|$PRJPATH"
 }
 
+findpkg() {
+    [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
+    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+    local p2 p3 p4 p5 p6
+    local r2 r3 r4 r5 r6
+    local i2 i3 i4 i5 i6
+    local result
+    [[ -n "$3" ]] && i3="$3" || i3="."
+    [[ -n "$4" ]] && i4="$4" || i4="."
+    [[ -n "$5" ]] && i5="$5" || i5="."
+    [[ -n "$6" ]] && i6="$6" || i6="."
+    for p2 in $2; do
+      r2=$p2
+      if [[ -n "$1" && -e $r2/$1 ]]; then
+        result=$(readlink -e $r2/$1)
+        break
+      fi
+      for p3 in $i3; do
+        [[ -n "$p3" ]] && r3=/$p3 || r3=""
+        if [[ -n "$1" && -e $r2$r3/$1 ]]; then
+          result=$(readlink -e $r2$r3/$1)
+          break
+        fi
+        for p4 in $i4; do
+          [[ -n "$p4" ]] && r4=/$p4 || r4=""
+          if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
+            result=$(readlink -e $r2$r3$r4/$1)
+            break
+          fi
+          for p5 in $i5; do
+            [[ -n "$p5" ]] && r5=/$p5 || r5=""
+            if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
+              result=$(readlink -e $r2$r3$r4$r5/$1)
+              break
+            fi
+            for p6 in $i6; do
+              [[ -n "$p6" ]] && r6=/$p6 || r6=""
+              if [[ -z "$1" ]]; then
+                if [[ -d $r2$r3$r4$r5$r6 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6)
+                  break
+                fi
+              else
+                if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                  break
+                fi
+              fi
+            done
+            [[ -n "$result" ]] && break
+          done
+          [[ -n "$result" ]] && break
+        done
+        [[ -n "$result" ]] && break
+      done
+      [[ -n "$result" ]] && break
+    done
+    echo "$result"
+    $SETX
+}
+
 build_odoo_param() {
     # build_odoo_param(ALL|BIN|CONFN|DB_USER|DDIR|DIRLEVEL|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|IS_MULTI|LICENSE|LCONFN|LPPORT|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SESS_PATH|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV
     #                  vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER|MULTI|NOLINK)])
@@ -729,15 +790,28 @@ module_list() {
 
 
 if [ "${BASH_SOURCE-}" == "$0" ]; then
+    [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+    READLINK=$(which readlink 2>/dev/null)
+    export READLINK
     THIS=$(basename "$0")
     TDIR=$(readlink -f $(dirname $0))
-    [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-    if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+    ME=$(readlink -e $0)
+    if [[ -d $HOME/devel || -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
       [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
     fi
-    [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-    [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
-    [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
+    PYPATH=""
+    [[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" ]] && PYPATH="$(dirname $PWD)"
+    [[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" && -d $PWD/../scripts ]] && PYPATH="$PYPATH $(readlink -f $PWD/../scripts)"
+    x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $x/pypi ]]; do x=$(dirname $x); done
+    [[ -d $x/pypi ]] && PYPATH="$PYPATH $x/pypi"
+    [[ -d $x/pypi/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib"
+    [[ -d $x/pypi/z0lib/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib/z0lib"
+    [[ -d $x/tools ]] && PYPATH="$PYPATH $x/tools"
+    [[ -d $x/tools/z0lib ]] && PYPATH="$PYPATH $x/tools/z0lib"
+    [[ -d $x/bin ]] && PYPATH="$PYPATH $x/bin"
+    [[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
+    [[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
+    [[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
     for d in $PYPATH /etc; do
       if [[ -e $d/z0librc ]]; then
         . $d/z0librc
@@ -745,5 +819,6 @@ if [ "${BASH_SOURCE-}" == "$0" ]; then
         break
       fi
     done
+    [[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
     build_odoo_param "$@"
 fi

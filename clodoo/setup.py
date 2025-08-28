@@ -24,7 +24,6 @@ if sys.version_info >= (3, 0):
         "odoorpc<0.10.0",
         "oerplib3",
         "odoo-client-lib",
-        # "os0",
         "psycopg2-binary",
         "python-plus",
         "unidecode",
@@ -37,7 +36,6 @@ else:
         "openpyxl<=3.0",
         "odoorpc<0.10.0",
         "oerplib",
-        # "os0",
         "psycopg2-binary",
         "python-plus",
         "unidecode==1.2.0",
@@ -57,7 +55,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -76,11 +75,6 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
-            # "./manage_db",
-            # "./manage_odoo",
-            # "./manage_odoo.man",
-            # "./odoo_install_repository",
             "./odoorc",
             "./transodoo.xlsx",
             "./bck_filestore.sh",
@@ -88,11 +82,10 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "clodoo-info = clodoo.scripts.main:main",
-            # "clodoo.py = clodoo.clodoo_main:main",
+            "clodoo-info = clodoo.scripts.main:internal_main",
             "transodoo.py = clodoo.transodoo:main",
+            "clodoo = clodoo.__main__:main",
         ]
     },
     zip_safe=False,
 )
-

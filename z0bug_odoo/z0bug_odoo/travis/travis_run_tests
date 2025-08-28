@@ -48,13 +48,13 @@ def main(test_list):
         results.append(res)
 
     print()
-    print("+" + "="*39)
+    print("+" + "="*78)
     print("|  Tests summary:")
-    print("|" + "-"*39)
+    print("|" + "-"*78)
     for test, error in zip(test_list, results):
         outcome = fail_msg if error else success_msg
-        print("| {0:<28}{1}".format(test[0], outcome))
-    print("+" + "="*39)
+        print("| {0:<16}{1}{2}".format("regression_test", test[0], outcome))
+    print("\\" + "="*78)
     return max(results)
 
 
@@ -84,11 +84,11 @@ if __name__ == '__main__':
         os.environ.get('GITHUB_EMAIL') and
         os.environ.get('GITHUB_TOKEN')
     )
-    must_run_tnlbot = (
-        os.environ.get('ODOO_TNLBOT') == '1' and
-        tests_enabled and
-        not is_pull_request
-    )
+    # must_run_tnlbot = (
+    #     os.environ.get('ODOO_TNLBOT') == '1' and
+    #     tests_enabled and
+    #     not is_pull_request
+    # )
     must_run_testdeps = (
         os.environ.get('TEST_DEPENDENCIES') == '1'
     )
@@ -116,14 +116,3 @@ if __name__ == '__main__':
 
     if tests:
         exit(main(tests))
-
-
-
-
-
-
-
-
-
-
-

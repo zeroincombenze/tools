@@ -203,7 +203,7 @@ set_hashbang() {
 }
 
 clear
-[[ ! $1 =~ ^(2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11) ]] && echo "$0 2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11" && exit 1
+[[ ! $1 =~ ^(2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12) ]] && echo "$0 2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12" && exit 1
 echo ""
 DISTID=$(xuname -d)$(xuname -v|grep -Eo "[0-9]+"|head -n1)
 echo "Install python $1 on $(xuname -a) (brief $DISTID)"
@@ -212,10 +212,11 @@ echo "Install python $1 on $(xuname -a) (brief $DISTID)"
 DEFPYVER=$(python3 --version 2>&1 | grep "Python" | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ $1 == $DEFPYVER ]] && echo "You are trying to install default python version" && exit 1
 pyver="$1"
-[[ $1 == "3.11" ]] && pyver="$1.6"
-[[ $1 == "3.10" ]] && pyver="$1.13"
-[[ $1 == "3.9" ]] && pyver="$1.18"
-[[ $1 == "3.8" ]] && pyver="$1.18"
+[[ $1 == "3.12" ]] && pyver="$1.11"
+[[ $1 == "3.11" ]] && pyver="$1.13"
+[[ $1 == "3.10" ]] && pyver="$1.18"
+[[ $1 == "3.9" ]] && pyver="$1.23"
+[[ $1 == "3.8" ]] && pyver="$1.20"
 [[ $1 == "3.7" ]] && pyver="$1.17"
 [[ $1 == "3.6" ]] && pyver="$1.15"
 [[ $1 == "3.5" ]] && pyver="$1.10"
@@ -287,8 +288,8 @@ if [[ $py != $DEFPYVER ]]; then
     apt install -y python$py-setuptools
     echo "\$ " apt install -y python$py-dev
     apt install -y python$py-dev
-    echo "\$ " apt install -y python$1-venv
-    apt install -y python$1-venv
+    echo "\$ " apt install -y python$py-venv
+    apt install -y python$py-venv
     echo "\$ " cd /tmp
     cd /tmp
     echo "\$ " wget $WGET_OPTS https://bootstrap.pypa.io/pip/$py/get-pip.py
@@ -301,11 +302,20 @@ if [[ $py != $DEFPYVER ]]; then
     if [[ ! -f get-pip.py ]]; then
         echo "Warning! pip no installed!"
     else
-        echo "\$ " python$py get-pip.py
-        python$py get-pip.py
-        rm -f get-pip.py
-        echo "\$ " python$py -m pip install pip
-        python$py -m pip install pip
+        if [[ $py =~ ^(3.9|3.10|3.11|3.12) ]]; then
+            echo "\$ python$py -m ensurepip --upgrade"
+            python$py -m ensurepip --upgrade
+            if [[ $py == "3.12" ]]; then
+                echo "\$ python$py -m pip install --upgrade \"setuptools>=75.0.1\""
+                python$py -m pip install --upgrade "setuptools>=75.0.1"
+            fi
+        else
+            echo "\$ " python$py get-pip.py
+            python$py get-pip.py
+            rm -f get-pip.py
+            echo "\$ " python$py -m pip install pip
+            python$py -m pip install pip
+        fi
     fi
 else
     echo "\$ " python$py -m pip install pip -U

@@ -5,6 +5,13 @@ ChangeLog History
 =================
 
 
+2.0.15 (2025-08-28)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: integrated findpkg
+* [FIX] clodoo.py
+* [FIX] python 3.11
+
 2.0.14 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -12,7 +19,6 @@ ChangeLog History
 * [IMP] odoorc: Odoo 17.0 and 18.0
 * [IMP] powerp is not more a default gitorg
 * [FIX] License declaration compatible with pypi
-* [IMP+ python 3.11
 
 2.0.13 (2024-08-22)
 ~~~~~~~~~~~~~~~~~~~
@@ -103,16 +109,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] list_requirements.py: get data from setup.py od Odoo
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: new option -S for secure packages
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
 
 |
 |

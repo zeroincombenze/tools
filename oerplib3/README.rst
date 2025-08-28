@@ -152,7 +152,7 @@ ChangeLog History
 1.0.0 (2025-01-04)
 ~~~~~~~~~~~~~~~~~~
 
-* [FIX] Python 3.12 porting
+* [FIX] Python 3.9+ porting
 
 0.8.5 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~

@@ -21,7 +21,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = "tools"
-copyright = "2015-24, SHS-AV s.r.l."
+copyright = "2015-25, SHS-AV s.r.l."
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version

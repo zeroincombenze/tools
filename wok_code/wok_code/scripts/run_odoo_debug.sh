@@ -1,17 +1,31 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 
-READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
+# Based on template 2.1.0
+[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
+READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-[ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
-if [[ -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
+ME=$(readlink -e $0)
+if [[ -d $HOME/devel || -z $HOME_DEVEL || ! -d $HOME_DEVEL ]]; then
   [[ -d $HOME/odoo/devel ]] && HOME_DEVEL="$HOME/odoo/devel" || HOME_DEVEL="$HOME/devel"
 fi
-[[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-[[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
+PYPATH=""
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" ]] && PYPATH="$(dirname $PWD)"
+[[ $(basename $PWD) == "tests" && $(basename $PWD/../..) == "build" && -d $PWD/../scripts ]] && PYPATH="$PYPATH $(readlink -f $PWD/../scripts)"
+x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $x/pypi ]]; do x=$(dirname $x); done
+[[ -d $x/pypi ]] && PYPATH="$PYPATH $x/pypi"
+[[ -d $x/pypi/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib"
+[[ -d $x/pypi/z0lib/z0lib ]] && PYPATH="$PYPATH $x/pypi/z0lib/z0lib"
+[[ -d $x/tools ]] && PYPATH="$PYPATH $x/tools"
+[[ -d $x/tools/z0lib ]] && PYPATH="$PYPATH $x/tools/z0lib"
+[[ -d $x/bin ]] && PYPATH="$PYPATH $x/bin"
+[[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
+[[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
+[[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
+# [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
+# [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
 for d in $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
@@ -22,7 +36,7 @@ for d in $PYPATH /etc; do
 done
 [[ -z "$Z0LIBDIR" ]] && echo "Library file z0librc not found in <$PYPATH>!" && exit 72
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "Z0LIBDIR=$Z0LIBDIR"
-ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$PYPATH" "clodoo" "clodoo")
 [[ -z "$ODOOLIBDIR" ]] && echo "Library file odoorc not found!" && exit 72
 . $ODOOLIBDIR
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "ODOOLIBDIR=$ODOOLIBDIR"
@@ -55,31 +69,41 @@ log_mesg() {
 
 
 check_for_modules() {
-    local mods r xi xu XXX opts
+    local mods r xi xu XXX opts db mods
     OPTI=
     xi=-i
     OPTU=
     xu=-u
     XXX=
-    if [[ $opt_modules == "all" ]]; then
+    [[ -n "$1" ]] && db="$1" || db="$opt_db"
+    [[ -n "$2" ]] && mods="$2" || mods="$opt_modules"
+    if [[ $mods == "all" ]]; then
         OPTU="-uall"
     else
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-        mods=${opt_modules//,/ }
+        mods=${mods//,/ }
         for m in $mods; do
-            r=$(psql $opts $opt_db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
+            r=$(psql $opts $db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
             if [[ $r =~ uninstallable ]]; then
                 XXX="$XXX $m"
             elif [[ $r =~ (uninstalled|to install) ]]; then
-                OPTI="$OPTI$xi$m"
-                xi=,
+                if [[ -n "$1" ]]; then
+                    XXX="$XXX $m"
+                else
+                    OPTI="$OPTI$xi$m"
+                    xi=,
+                fi
             elif [[ $r =~ (installed|to upgrade) ]]; then
-                OPTU="$OPTU$xu$m"
-                xu=,
+                if [[ -z "$1" ]]; then
+                    OPTU="$OPTU$xu$m"
+                    xu=,
+                fi
             elif [[ $opt_force -ne 0 ]]; then
-                OPTI="$OPTI$xi$m"
-                OPTU="$OPTU$xu$m"
-                xu=,
+                if [[ -z "$1" ]]; then
+                    OPTI="$OPTI$xi$m"
+                    OPTU="$OPTU$xu$m"
+                    xu=,
+                fi
             else
                 XXX="$XXX $m"
             fi
@@ -91,8 +115,8 @@ check_for_modules() {
 coverage_set() {
     local m p coverage_tmpl opts
     if [[ $opt_test -ne 0 && $opt_nocov -eq 0 ]]; then
-      export COVERAGE_DATA_FILE="$LOGDIR/coverage_${UDI}"
-      export COVERAGE_PROCESS_START="$LOGDIR/coverage_${UDI}rc"
+      export COVERAGE_DATA_FILE="$LOGDIR/.${UDI}_coverage"
+      export COVERAGE_PROCESS_START="$LOGDIR/${UDI}_coveragerc"
       coverage_tmpl=$(find $PYPATH -name coveragerc|head -n 1)
       run_traced "cp $coverage_tmpl $COVERAGE_PROCESS_START"
       [[ $PKGNAME != "midea" && $REPOSNAME == "zerobug-test" ]] && sed -E "/^ *.\/tests\/./d" -i $COVERAGE_PROCESS_START
@@ -115,34 +139,32 @@ coverage_erase() {
 }
 
 coverage_report() {
-    local v
-     if [[ -n $COVERAGE_PROCESS_START ]]; then
-      v=$(coverage --version|grep --color=never -Eo "[0-9]+"|head -n1)
-      run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
+    if [[ -n $COVERAGE_PROCESS_START ]]; then
+      [[ ! -f $COVERAGE_DATA_FILE ]] && echo "Result coverage file $COVERAGE_DATA_FILE not found!"
+      [[ -f $COVERAGE_DATA_FILE ]] && run_traced "coverage report --rcfile=$COVERAGE_PROCESS_START -m"
     fi
 }
 
-set_log_filename() {
-    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
-    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-    [[ -n $opt_modules ]] && m="${opt_modules//,/+}" || m="$PKGNAME"
-    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID '.')"
-    [[ -n $ODOO_GIT_ORGID && $GIT_ORGID =~ $ODOO_GIT_ORGID ]] && UDI="$m" || UDI="$m_${GIT_ORGID}"
-    [[ $PRJNAME == "Odoo" && -n $UDI ]] && UDI="${UDI}_${odoo_maj}"
-    [[ $PRJNAME == "Odoo" && -z $UDI ]] && UDI="${odoo_maj}"
-    [[ $PRJNAME == "Odoo" ]] && UMLI="${GIT_ORGID}${odoo_maj}" || UMLI="${GIT_ORGID}"
-    [[ -n "$REPOSNAME" && $REPOSNAME != "OCB" ]] && UMLI="${UMLI}.${REPOSNAME//,/+}"
-    [[ -n $m ]] && UMLI="${UMLI}.$m"
-    if [[ $SCOPE == "marketplace" || $GIT_ORGID == "oca" || $REPOSNAME == "OCB" ]]; then
-      LOGDIR="$HOME/travis_log/${GIT_ORGID}${odoo_maj}.$m"
-    else
-      LOGDIR="$PKGPATH/tests/logs"
-    fi
-    export LOGFILE="$LOGDIR/${PKGNAME}_$(date +%Y%m%d).txt"
-    export DAEMON_LOGFILE="$LOGDIR/${PKGNAME}_nohup_$(date +%Y%m%d).txt"
-    [[ -f $LOGFILE && $opt_test -ne 0 ]] && rm -f $LOGFILE
-    [[ -f $DAEMON_LOGFILE && $opt_test -ne 0 ]] && rm -f $DAEMON_LOGFILE
-}
+#set_log_filename() {
+#    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+#    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
+#    local ro home testdir
+#    # [[ ! $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="zero"
+#    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
+#    [[ $SCOPE == "marketplace" || $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
+#    get_uniqid "$PKGPATH" "${odoo_maj}" "$GIT_ORGID" "$REPOSNAME"
+#    [[ -n $TRAVIS_SAVED_HOME ]] && home="$TRAVIS_SAVED_HOME" || home="$HOME"
+#    [[ -n $TRAVIS_SAVED_PKGPATH && -d $TRAVIS_SAVED_PKGPATH/tests ]] && testdir="$TRAVIS_SAVED_PKGPATH/tests" || testdir="$TESTDIR"
+#    [[ $ro -ne 0 ]] && LOGDIR="$home/travis_log"
+#    [[ $ro -eq 0 ]] && LOGDIR="$testdir/logs"
+#    [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
+#    LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
+#    DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
+#    LOGFILE="$LOGFILE.log"
+#    export LOGDIR
+#    export LOGFILE
+#    export DAEMON_LOGFILE
+#}
 
 check_path_n_branch() {
     # check_path_n_branch(path branch)
@@ -298,7 +320,7 @@ set_confn() {
           run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $TEST_CONFN"
       fi
     fi
-    if [[ $opt_dbg -ne 0 || $opt_test -ne 0 ]]; then
+    if [[ $opt_debug -ne 0 || $opt_test -ne 0 ]]; then
         run_traced_debug "sed -e \"s|^limit_time_cpu *=.*|limit_time_cpu = 0|\" -i $TEST_CONFN"
         run_traced_debug "sed -e \"s|^limit_time_real *=.*|limit_time_real = 0|\" -i $TEST_CONFN"
     fi
@@ -385,7 +407,6 @@ test_with_external_process() {
     log_mesg "$x $$ DAEMON $opt_db $p: \e[37;43mRestarting Odoo for concurrent test\e[0m" >> $LOGFILE
     export TEST_DB="$opt_db"
     export ODOO_VERSION="$odoo_fver"
-    # export DAEMON_LOGFILE="$LOGDIR/nohup_$(date +%Y%m%d).txt"
     log_mesg "\$ export LOGFILE=$LOGFILE"
     log_mesg "\$ export DAEMON_LOGFILE=$DAEMON_LOGFILE"
     log_mesg "\$ export ODOO_RUNDIR=$ODOO_RUNDIR"
@@ -632,12 +653,14 @@ else
 fi
 [[ ! -d $TEST_VDIR ]] && export TEST_VDIR=""
 [[ $opt_verbose -gt 1 && -n "$TEST_VDIR" ]] && log_mesg "# Found $TEST_VDIR virtual directory"
+
+set_log_dir
 set_log_filename
 
 if [[ -n $opt_rport ]]; then
     RPCPORT=$opt_rport
 elif [[ $opt_test -ne 0 ]]; then
-    [[ opt_dbg -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
+    [[ opt_debug -gt 1 ]] && RPCPORT=$(build_odoo_param RPCPORT $odoo_fver DEBUG) || RPCPORT=$((($(date +%s) % 46000) + 19000))
 elif [[ -f $opt_conf ]]; then
     RPCPORT=$(grep ^http_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ -z "$RPCPORT" ]] && RPCPORT=$(grep ^xmlrpc_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
@@ -657,7 +680,7 @@ else
   if [[ -n $opt_lport ]]; then
       LPPORT=$opt_lport
   elif [[ $opt_test -ne 0 ]]; then
-      [[ opt_dbg -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
+      [[ opt_debug -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
   elif [[ -f $opt_conf ]]; then
       LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
   elif [[ $opt_web -ne 0 ]]; then
@@ -696,16 +719,12 @@ if [[ $opt_test -ne 0 ]]; then
     opt_lang="" opt_lang2="" opt_exp=0 opt_imp=0
     opt_upd=0 opt_stop=1
     opt_xtl=1
-    [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
+    [[ $opt_debug -ne 0 ]] && opt_nocov=1 || opt_nocov=0
     TEMPLATE="template_${UDI}"
     [[ -z $opt_db && $opt_keep -eq 0 ]] && opt_db="test_${UDI}" && drop_db=1
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
-#elif [[ $opt_lang != "" ]]; then
-#    opt_keep=1
-#    opt_stop=1
-#    [[ -n "$opt_modules" ]] && opt_modules=""
 elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
@@ -729,7 +748,7 @@ fi
 [[ -f $PKGPATH/readme/__manifest__.rst ]] && mod_test_cfg="$PKGPATH/readme/__manifest__.rst" || mod_test_cfg=""
 if [[ -n "$opt_modules" ]]; then
     if [[ $create_db -ne 0 ]]; then
-        if [[ -z "$($which odoo_dependencies.py 2>/dev/null)" ]]; then
+        if [[ -z $(which odoo_dependencies.py 2>/dev/null) ]]; then
             log_mesg "Test incomplete!"
             log_mesg "File odoo_dependencies.py not found!"
         else
@@ -742,8 +761,11 @@ if [[ -n "$opt_modules" ]]; then
                 depmods=$(odoo_dependencies.py -RA mod "$opaths" -PM $opt_modules)
             fi
             [[ -z "$depmods" ]] && log_mesg "Modules $opt_modules not found!" && exit 1
+            [[ $opt_verbose -gt 1 ]] && log_mesg "# Searching for module dependencies ..."
             if [[ "$opt_modules" != "all" ]]; then
                 depmods=$(odoo_dependencies.py -RA dep $opaths -PM $opt_modules)
+            else
+                depmods=""
             fi
             [[ -n "$depmods" && $opt_test -eq 0 ]] && opt_modules="$opt_modules,$depmods"
         fi
@@ -766,7 +788,6 @@ if [[ -n "$opt_modules" ]]; then
             fi
             src=$(readlink -f $src)
             [[ ! -d $src/i18n ]] && log_mesg "No directory $src/i18n found!!" && exit 1
-            set -x  #debug
             saved="$src/i18n/saved.po"
             [[ -f $src/i18n/$opt_lang2.po ]] && src="$src/i18n/$opt_lang2.po"
             [[ -f $src/i18n/$opt_lang.po ]] && src="$src/i18n/$opt_lang.po"
@@ -779,7 +800,6 @@ if [[ -n "$opt_modules" ]]; then
                 OPTS="--modules=$opt_modules --i18n-export=$src -l$opt_lang"
             fi
             [[ -n $opt_lang ]] && OPTS="--load-language=$opt_lang $OPTS"
-            set +x  #debug
         elif [[ $opt_upd -ne 0 && $opt_xtl -ne 0 ]]; then
             OPTS="$OPTSIU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
@@ -841,7 +861,6 @@ fi
 sts=0
 [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
 OPT_LLEV=
-[[ $opt_test -ne 0 && ! -d $LOGDIR ]] && mkdir -p $LOGDIR
 [[ $opt_test -ne 0 ]] && export TEST_CONFN="$LOGDIR/${UMLI}.conf" || export TEST_CONFN="$ve_root/$LCONFN"
 [[ $opt_test -gt 1 ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
 OPT_CONF="--config=$TEST_CONFN"
@@ -923,7 +942,11 @@ if [[ $create_db -gt 0 ]]; then
                 [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
                 [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
                 run_traced "$cmd"
-                [[ -f $LOGFILE ]] && rm -f $LOGFILE
+                if [[ -f $LOGFILE ]]; then
+                    grep -q " ERROR " $LOGFILE && cat $LOGFILE && exit 1
+                    tail $LOGFILE
+                    rm -f $LOGFILE
+                fi
             fi
         fi
         if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
@@ -942,12 +965,13 @@ if [[ $create_db -gt 0 ]]; then
 fi
 
 [[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
-if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+check_for_modules "$opt_db" "$depmods"
+if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
     coverage_erase
     run_odoo_server
     [[ -n $ext_test ]] && test_with_external_process
-elif [[ opt_dbg -gt 1 ]]; then
+elif [[ opt_debug -gt 1 ]]; then
     echo ""
     echo "Now you can test module $opt_modules on pycharm"
     echo ""
@@ -969,23 +993,28 @@ fi
 
 if [[ -n "$TEST_VDIR" ]]; then
     x=$(date +"%Y-%m-%d %H:%M:%S,000")
-    [[ $opt_verbose -gt 0 && opt_dbg -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
+    [[ $opt_verbose -gt 0 && opt_debug -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
     [[ $opt_dry_run -eq 0 ]] && deactivate
 fi
 # [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 
-if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
+if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     if [[ $opt_dry_run -eq 0 ]]; then
-        log_mesg "\n+===================================================================" | tee -a $LOGFILE
-        x="\e[32mSUCCESS!\e[0m"
-        grep -Eq "[0-9]+ (ERROR|CRITICAL) $opt_db" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
-        grep -Eq "[0-9]+ (ERROR|CRITICAL|WARNING) .*invalid module names.*$opt_modules" $LOGFILE && x="\e[31mFAILED!\e[0m" && sts=11
-        log_mesg "| please test \e[36m${opt_modules}\e[0m (${odoo_fver}): $x" | tee -a $LOGFILE
-        log_mesg "+===================================================================\n"  | tee -a $LOGFILE
+        get_log_status
+        sts=$?
         [[ $sts -eq 0 ]] && coverage_report | tee -a $LOGFILE
-        echo "less -R \$(readlink -f \$(dirname \$0))/$(basename $LOGFILE)" > $LOGDIR/show-log.sh
-        chmod +x $LOGDIR/show-log.sh
+        [[ $sts -eq 0 ]] && do_clean_log
+        echo "please test|$sts|$(date '+%F %T')" >> "$LOGDIR/.run.log"
+        do_summary_header | tee -a $LOGFILE
+        while IFS="#" read -r lne r || [[ -n "$lne" ]]; do
+            k=$(echo $lne | cut -d"|" -f1)
+            s=$(echo $lne | cut -d"|" -f2)
+            d=$(echo $lne | cut -d"|" -f3)
+            do_summary_line "$k" "${opt_modules}" "${odoo_fver}" "$s" "$d" | tee -a $LOGFILE
+        done < "$LOGDIR/.run.log"
+        do_summary_footer | tee -a $LOGFILE
+        rm -f $LOGDIR/.run.log
     else
         run_traced "coverage_report | tee -a $LOGFILE"
     fi

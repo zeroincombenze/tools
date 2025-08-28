@@ -12,7 +12,7 @@ Usage
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                         [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [--add-rule-group ADD_RULE_GROUP]
+                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -40,7 +40,7 @@ Usage
       --ignore-pragma       ignore coding utf-8 declaration
       -i, --in-place
       -j PYTHON, --python PYTHON
-                            python version, format #.##, 2-3 use future
+                            python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
       -n, --dry-run         do nothing (dry-run)
@@ -56,6 +56,7 @@ Usage
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
+      -y, --assume-yes      force target path creation with different base name
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     
@@ -195,51 +196,55 @@ Replacing macros in actions and args
 
 The regular expression EREGEX may contains macro names enclose by "%(name)s".
 
-+--------------------+---------------------------------------------------------------------------+--------------+
-| Name               | Description                                                               | usage        |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| backport_multi     | Processing a backported version (multiple version path)                   | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| classname          | Name of current class                                                     | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| dedent             | Dedent statement level                                                    | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| final              | Processing final version when multiple version path                       | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| first_line         | True if current line is the 1st of source (see header too)                | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| from_major_version | Major version of project by -F switch                                     | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| header             | Current line is in the file header (comments and empty lines)             | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| imported           | Imported packages list                                                    | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| indent             | Space indentation of current line                                         | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| line               | current line                                                              | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| migration_multi    | Processing a migrate version with multiple version path                   | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| mime               | Current file mime                                                         | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| open_stmt          | # of open parens; if > 0, current line is a continuation line             | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| python_future      | True if source is python 2 and 3 with future                              | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| python_version     | python version to run source.CTX + PYEXPR                                 | None         |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| stage              | Parsing stage: pre,header,import,class_body,function_body,comment         | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| stmt_indent        | Space indentation of current statement                                    | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| to_major_version   | Major version of project by -b switch                                     | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| transition_stage   | Prior parsing stage                                                       | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| try_indent         | try statement indentation: if >=0 current line is inside try/except block | PYEXPR       |
-+--------------------+---------------------------------------------------------------------------+--------------+
-| py23               | Value 2 if python2 else 3 (int)                                           | CTX + PYEXPR |
-+--------------------+---------------------------------------------------------------------------+--------------+
++--------------------+-------------------------------------------------------------------------------+--------------+
+| Name               | Description                                                                   | usage        |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| backport_multi     | Processing a backported version (multiple version path)                       | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| classname          | Name of current class                                                         | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| dedent             | Dedent statement level                                                        | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| final              | Processing final version when multiple version path                           | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| first_line         | True if current line is the 1st of source (see header too)                    | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| from_major_version | Major version of project by -F switch                                         | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| fctname            | Current function name                                                         | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| header             | Current line is in the file header (comments and empty lines)                 | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| imported           | Imported packages list                                                        | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| indent             | Space indentation of current line                                             | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| line               | Current line                                                                  | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| migration_multi    | Processing a migrate version with multiple version path                       | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| mime               | Current file mime                                                             | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| open_stmt          | # of open parens; if > 0, current line is a continuation line                 | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| python_future      | True if source is python 2 or 3 with future                                   | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| python_version     | Python version to run source                                                  | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| singleton          | Singleton rule: may be applied just once                                      | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| stage              | Parsing stage: header,import,class_body,function_body                         | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| stmt_indent        | Space indentation of current statement                                        | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| to_major_version   | Major version of project by -b switch                                         | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| transition_stage   | Prior parsing stage                                                           | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| try_indent         | The try statement indentation: if >=0 current line is inside try/except block | PYEXPR       |
++--------------------+-------------------------------------------------------------------------------+--------------+
+| py23               | Value 2 if python2 else 3 (int)                                               | CTX + PYEXPR |
++--------------------+-------------------------------------------------------------------------------+--------------+
 
 
 

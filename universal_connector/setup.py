@@ -46,7 +46,7 @@ setup(
     license="GPL-3.0-or-later",
     install_requires=["configparser", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
-    package_data={"": ["scripts/setup.info"]},
+    # package_data={"": ["scripts/setup.info"]},
     entry_points={},
     zip_safe=False,
 )
