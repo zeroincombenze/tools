@@ -88,11 +88,6 @@ ChangeLog History
 
 * [IMP] stable version
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Refactoring
-
 |
 |
 

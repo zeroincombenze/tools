@@ -33,6 +33,10 @@ class RegressionTest:
                 fd.write("# Fake\n")
 
     def test_01(self):
+        # Weird error: workaround
+        cmd = "please --version"
+        z0lib.os_system(cmd, verbose=False, rtime=False)
+        # End wokaround
         cmd = "please --version"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)

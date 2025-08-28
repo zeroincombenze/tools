@@ -48,13 +48,13 @@ def main(test_list):
         results.append(res)
 
     print()
-    print("+" + "="*39)
+    print("+" + "="*78)
     print("|  Tests summary:")
-    print("|" + "-"*39)
+    print("|" + "-"*78)
     for test, error in zip(test_list, results):
         outcome = fail_msg if error else success_msg
-        print("| {0:<28}{1}".format(test[0], outcome))
-    print("+" + "="*39)
+        print("| {0:<16}{1}{2}".format("regression_test", test[0], outcome))
+    print("\\" + "="*78)
     return max(results)
 
 

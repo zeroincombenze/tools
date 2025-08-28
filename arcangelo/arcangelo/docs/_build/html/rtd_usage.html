@@ -49,7 +49,7 @@
                     [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                     [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                     [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                    [-w] [--add-rule-group ADD_RULE_GROUP]
+                    [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
                     [path ...]
 
 Beautiful source file
@@ -77,7 +77,7 @@ options:
   --ignore-pragma       ignore coding utf-8 declaration
   -i, --in-place
   -j PYTHON, --python PYTHON
-                        python version, format #.##, 2-3 use future
+                        python version, format #.##, 2+3 use future
   -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                         list)
   -n, --dry-run         do nothing (dry-run)
@@ -93,6 +93,7 @@ options:
   -V, --version         show program&#39;s version number and exit
   -w, --no-parse-with-formatter
                         do nor execute black or prettier on modified files
+  -y, --assume-yes      force target path creation with different base name
   --add-rule-group ADD_RULE_GROUP
                         Add rule group form file, default is .arcangelo.yml
 
@@ -262,44 +263,52 @@ if it starts with ! (exclamation mark).</p>
 <td><p>Major version of project by -F switch</p></td>
 <td><p>CTX + PYEXPR</p></td>
 </tr>
-<tr class="row-even"><td><p>header</p></td>
+<tr class="row-even"><td><p>fctname</p></td>
+<td><p>Current function name</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>header</p></td>
 <td><p>Current line is in the file header (comments and empty lines)</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
-<tr class="row-odd"><td><p>imported</p></td>
+<tr class="row-even"><td><p>imported</p></td>
 <td><p>Imported packages list</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
-<tr class="row-even"><td><p>indent</p></td>
+<tr class="row-odd"><td><p>indent</p></td>
 <td><p>Space indentation of current line</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
-<tr class="row-odd"><td><p>line</p></td>
-<td><p>current line</p></td>
+<tr class="row-even"><td><p>line</p></td>
+<td><p>Current line</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
-<tr class="row-even"><td><p>migration_multi</p></td>
+<tr class="row-odd"><td><p>migration_multi</p></td>
 <td><p>Processing a migrate version with multiple version path</p></td>
 <td><p>CTX + PYEXPR</p></td>
 </tr>
-<tr class="row-odd"><td><p>mime</p></td>
+<tr class="row-even"><td><p>mime</p></td>
 <td><p>Current file mime</p></td>
 <td><p>CTX + PYEXPR</p></td>
 </tr>
-<tr class="row-even"><td><p>open_stmt</p></td>
+<tr class="row-odd"><td><p>open_stmt</p></td>
 <td><p># of open parens; if &gt; 0, current line is a continuation line</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
-<tr class="row-odd"><td><p>python_future</p></td>
-<td><p>True if source is python 2 and 3 with future</p></td>
+<tr class="row-even"><td><p>python_future</p></td>
+<td><p>True if source is python 2 or 3 with future</p></td>
 <td><p>CTX + PYEXPR</p></td>
 </tr>
-<tr class="row-even"><td><p>python_version</p></td>
-<td><p>python version to run source.CTX + PYEXPR</p></td>
-<td><p>None</p></td>
+<tr class="row-odd"><td><p>python_version</p></td>
+<td><p>Python version to run source</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>singleton</p></td>
+<td><p>Singleton rule: may be applied just once</p></td>
+<td><p>PYEXPR</p></td>
 </tr>
 <tr class="row-odd"><td><p>stage</p></td>
-<td><p>Parsing stage: pre,header,import,class_body,function_body,comment</p></td>
+<td><p>Parsing stage: header,import,class_body,function_body</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
 <tr class="row-even"><td><p>stmt_indent</p></td>
@@ -315,7 +324,7 @@ if it starts with ! (exclamation mark).</p>
 <td><p>PYEXPR</p></td>
 </tr>
 <tr class="row-odd"><td><p>try_indent</p></td>
-<td><p>try statement indentation: if &gt;=0 current line is inside try/except block</p></td>
+<td><p>The try statement indentation: if &gt;=0 current line is inside try/except block</p></td>
 <td><p>PYEXPR</p></td>
 </tr>
 <tr class="row-even"><td><p>py23</p></td>

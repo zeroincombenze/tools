@@ -12,7 +12,7 @@ Digest of arcangelo
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                         [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [--add-rule-group ADD_RULE_GROUP]
+                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -40,7 +40,7 @@ Digest of arcangelo
       --ignore-pragma       ignore coding utf-8 declaration
       -i, --in-place
       -j PYTHON, --python PYTHON
-                            python version, format #.##, 2-3 use future
+                            python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
       -n, --dry-run         do nothing (dry-run)
@@ -56,6 +56,7 @@ Digest of arcangelo
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
+      -y, --assume-yes      force target path creation with different base name
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     

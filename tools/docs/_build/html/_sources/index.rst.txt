@@ -1,5 +1,5 @@
 .. tools documentation master file, created by
-   gen_readme.py on 2025-07-01 20:26:09
+   gen_readme.py on 2025-08-30 15:22:56
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

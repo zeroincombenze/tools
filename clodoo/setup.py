@@ -57,7 +57,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.11",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -76,7 +76,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             # "./manage_db",
             # "./manage_odoo",
             # "./manage_odoo.man",

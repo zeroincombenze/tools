@@ -32,8 +32,7 @@ Some values may depends by environment:
 Usage:
 
     . odoorc
-    RES=
-
+    RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|<rptname>|<modname>)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])
 
 where:
 

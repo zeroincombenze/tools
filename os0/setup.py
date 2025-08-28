@@ -60,7 +60,7 @@ ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
     license="GPL-3.0-or-later",
     install_requires=['z0lib', 'future'],
     packages=find_packages(exclude=['docs', 'examples', 'tests', 'egg-info', 'junk']),
-    package_data={'': ['scripts/setup.info']},
+    # package_data={'': ['scripts/setup.info']},
     entry_points={'console_scripts': ['os0-info = os0.scripts.main:main']},
     zip_safe=False,
 )

@@ -50,7 +50,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             "data/*",
             "testenv/*",
             "travis/cfg/*",

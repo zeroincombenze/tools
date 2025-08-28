@@ -10,18 +10,20 @@ import os
 import os.path as pth
 import sys
 
-# allow using isolated test environment
-here = pth.dirname(pth.abspath(__file__))
-while pth.basename(here) in ("tests", "scripts"):
-    here = pth.dirname(here)
-if here not in sys.path:
-    sys.path.insert(0, here)
-here = pth.dirname(pth.abspath(os.getcwd()))
-while pth.basename(here) in ("tests", "scripts"):
-    here = pth.dirname(here)
-if here not in sys.path:
-    sys.path.insert(0, here)
 
+# allow using isolated test environment
+def pkg_here(here):
+    while (
+        pth.basename(here) in ("tests", "scripts")
+        or pth.basename(pth.dirname(here)) == "local"
+    ):
+        here = pth.dirname(here)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+
+
+pkg_here(pth.dirname(pth.abspath(__file__)))  # noqa: E402
+pkg_here(pth.abspath(os.getcwd()))  # noqa: E402
 from z0lib import z0lib  # noqa: E402
 # from z0lib.scripts.main import get_metadata  # noqa: E402
 from zerobug import z0test  # noqa: E402
@@ -39,11 +41,15 @@ def version():
 
 class RegressionTest:
 
-    def run_test_cmd(self, cmd, test_sts, with_log=True):
+    def run_test_cmd(self, cmd, test_sts):
         sts, stdout, stderr = z0lib.run_traced(cmd, verbose=False)
         self.assertEqual(test_sts, sts, msg_info=cmd)
         if sts == 0 and cmd.startswith('ls ') or cmd == "ls":
             self.assertTrue(len(stdout) > 0)
+
+    def run_os_system(self, cmd, test_sts):
+        sts = z0lib.os_system(cmd, verbose=False)
+        self.assertEqual(test_sts, sts, msg_info=cmd)
 
     def test_01(self):
         # self.assertEqual(__version__, get_metadata()["version"])
@@ -100,21 +106,21 @@ class RegressionTest:
         self.assertFalse(os.path.isdir(fn), msg="dir %s not created" % fn)
 
     def test_03(self):
-        self.run_test_cmd("true", 0, with_log=False)
-        self.run_test_cmd("false", 1, with_log=False)
-        self.run_test_cmd("NOT_EXIST", 127, with_log=False)
+        self.run_os_system("true", 0)
+        self.run_os_system("false", 1)
+        self.run_os_system("NOT_EXIST", 127)
         fn = os.path.join(self.Z.testdir, "NOT_EXIST")
         if os.path.isfile(fn):
             os.unlink(fn)
-        self.run_test_cmd("touch %s" % fn, 0, with_log=False)
+        self.run_os_system("touch %s" % fn, 0)
         self.assertTrue(os.path.isfile(fn), msg="touched %s" % fn)
-        self.run_test_cmd("rm -f %s" % fn, 0, with_log=False)
+        self.run_os_system("rm -f %s" % fn, 0)
         self.assertFalse(os.path.isfile(fn), msg="removed %s" % fn)
-        self.run_test_cmd("cd %s" % fn, 1, with_log=False)
-        self.run_test_cmd("ls", 0, with_log=False)
-        self.run_test_cmd("mkdir %s" % fn, 0, with_log=False)
+        self.run_test_cmd("cd %s" % fn, 1)
+        self.run_test_cmd("ls", 0)
+        self.run_os_system("mkdir %s" % fn, 0)
         self.assertTrue(os.path.isdir(fn), msg="dir %s created" % fn)
-        self.run_test_cmd("rm -fR %s" % fn, 0, with_log=False)
+        self.run_os_system("rm -fR %s" % fn, 0)
         self.assertFalse(os.path.isdir(fn), msg="dir %s removed" % fn)
 
     def test_04(self):

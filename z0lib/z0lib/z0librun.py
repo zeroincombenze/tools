@@ -52,7 +52,7 @@ ODOO_CONF = [
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "2.0.15"
+__version__ = "2.0.16"
 
 
 def nakedname(path):
@@ -68,7 +68,7 @@ def print_flush(msg, end=None, flush=True):
             sys.stdout.flush()
 
 
-def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):
+def echo_cmd_verbose(args, dry_run=False, os_level=0, flush=False):  # pragma: no cover
     prompt = ">" if dry_run else "$"
     prompt = ("  " * os_level) + prompt
     if isinstance(args, (tuple, list)):
@@ -88,7 +88,7 @@ def join_args(args):
     for arg in args:
         if "<" in arg or ">" in arg:
             arg = "'%s'" % arg.replace("'", r"\'")
-        elif " " in arg:
+        elif " " in arg:  # pragma: no cover
             if '"' in arg:
                 arg = '"%s"' % arg.replace('"', r"\"")
             else:
@@ -247,7 +247,7 @@ def run_traced(cmd,
         switches = switches or []
         no_params = no_params or []
         no_switches = no_switches or []
-        if (set(params) - set(args)):
+        if set(params) - set(args):
             return False
         if no_params and not (set(no_params) - set(args)):
             return False

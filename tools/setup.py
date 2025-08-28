@@ -13,6 +13,3 @@ setup(
     ],
     author_email='antoniomaria.vigliotti@gmail.com',
 )
-
-
-

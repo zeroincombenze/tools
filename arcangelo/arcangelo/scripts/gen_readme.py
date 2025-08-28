@@ -779,9 +779,13 @@ def iter_template_path(ctx, debug_mode=None, body=None):
         "./readme",
         "./docs",
         "%s/pypi/tools/templates/${p}" % ctx["home_devel"],
+        "%s/tools/templates/${p}" % ctx["home_devel"],
         "%s/templates/${p}" % ctx["home_devel"],
         "%s/pypi/tools/templates" % ctx["home_devel"],
+        "%s/tools/templates" % ctx["home_devel"],
         "%s/templates" % ctx["home_devel"],
+        "%s/venv/tools/templates/${p}" % ctx["home_devel"],
+        "%s/venv/tools/templates" % ctx["home_devel"],
         "%s/venv/bin/templates/${p}" % ctx["home_devel"],
         "%s/venv/bin/templates" % ctx["home_devel"],
     ):
@@ -874,8 +878,8 @@ def get_default_available_addons(ctx):
     if "addons_info" not in ctx:
         return ""
     text = ""
-    text += "Avaiable Addons / Moduli disponibili\n"
-    text += "------------------------------------\n"
+    text += "Available Addons / Moduli disponibili\n"
+    text += "-------------------------------------\n"
     text += "\n"
     lol = 0
     for pkg in list(ctx["addons_info"].keys()):
@@ -1587,7 +1591,7 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
             return value
         return expand_macro_in_line(ctx, line, out_fmt=out_fmt)
 
-    # Parse capture command outpur: <$(>CMD<)>
+    # Parse capture command output: <$(>CMD<)>
     while True:
         x = re.search(r"\$\([^)]+\)", line)
         if not x:
@@ -1600,13 +1604,13 @@ def expand_macro_in_line(ctx, line, out_fmt=None):
         sts, stdout, stderr = z0lib.os_system_traced(
             cmdline, verbose=False, rtime=False
         )
-        if sts == 0:
-            # Keep lef margin for multiline output
-            left_margin = line[: x.start()]
-            line = ""
-            for ln in stdout.split("\n"):
-                line += left_margin + ln + "\n"
-
+        if sts:
+            break
+        # Keep lef margin for multiline output
+        left_margin = line[: x.start()]
+        line = ""
+        for ln in stdout.split("\n"):
+            line += left_margin + ln + "\n"
     return line
 
 
