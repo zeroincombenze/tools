@@ -55,7 +55,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "2.0.13"
+__version__ = "2.0.14"
 VERSIONS = [
     "6.1",
     "7.0",
@@ -68,13 +68,13 @@ VERSIONS = [
     "14.0",
     "15.0",
     "16.0",
+    "17.0",
+    "18.0",
 ]
 ALL_VERSIONS = [x for x in VERSIONS]
-for org in ("zero", "powerp", "librerp"):
+for org in ("zero", "librerp"):
     for ver in VERSIONS:
         if org == "librerp" and ver not in ("6.1", "12.0"):
-            continue
-        elif org == "powerp" and int(ver.split(".")[0]) < 12:
             continue
         ALL_VERSIONS.append("%s%s" % (org, ver.split(".")[0]))
 CVT_ACC_TYPE_OLD_NEW = {
@@ -206,7 +206,6 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     elif name == "${coa}":
         if tgt_ver.split(".")[0].isdigit() and (
             src_ver.startswith("librerp")
-            or src_ver.startswith("powerp")
             or src_ver.startswith("zero")
         ):
             name = {
@@ -275,7 +274,6 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
             }.get(src_name, src_name)
         elif src_ver.split(".")[0].isdigit() and (
             tgt_ver.startswith("librerp")
-            or tgt_ver.startswith("powerp")
             or tgt_ver.startswith("zero")
         ):
             name = {
@@ -347,13 +345,11 @@ def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
     elif name == "${tax}":
         if tgt_ver.split(".")[0].isdigit() and (
             src_ver.startswith("librerp")
-            or src_ver.startswith("powerp")
             or src_ver.startswith("zero")
         ):
             name = {"a15a": "00art15a", "a15v": "00art15v"}.get(src_name, src_name)
         elif src_ver.split(".")[0].isdigit() and (
             tgt_ver.startswith("librerp")
-            or tgt_ver.startswith("powerp")
             or tgt_ver.startswith("zero")
         ):
             name = {"00art15a": "a15a", "00art15v": "a15v"}.get(src_name, src_name)
@@ -584,7 +580,6 @@ def read_stored_dict(ctx):
         for ver in ALL_VERSIONS:
             if (
                 (ver.startswith("zero") and not last_ver.startswith("zero"))
-                or (ver.startswith("powerp") and not last_ver.startswith("powerp"))
                 or (ver.startswith("librerp") and not last_ver.startswith("librerp"))
             ):
                 last_ver_value = ""
@@ -825,7 +820,7 @@ def main(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Transodoo", "© 2017-2019 by SHS-AV s.r.l.", version=__version__
+        "Transodoo", "© 2017-2025 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument("-b", "--branch", action="store", dest="odoo_ver", default="")

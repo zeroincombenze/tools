@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.21",
+    version="2.0.22",
     description="Python developers tools",
     long_description_content_type="text/x-rst",
     long_description=long_description,
@@ -42,7 +42,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.11",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -63,7 +63,7 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={
         "": [
-            "scripts/setup.info",
+            # "scripts/setup.info",
             "scripts/dist_pkg.sh",
             "scripts/please.sh",
             "scripts/config/*",
@@ -71,13 +71,7 @@ setup(
             "scripts/cvt_script.sh",
             "./cvt_script.man",
             "./please.man",
-            # "./topep8",
-            # "./to_oca.2p8",
-            # "./to_zero.2p8",
-            # "./to_pep8.2p8",
-            # "./pypi.sh",
             "./install_python_3_from_source.sh",
-            # "./cvt_csv_2_xml.py",
         ]
     },
     entry_points={
@@ -86,24 +80,21 @@ setup(
             "cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main",
             "cvt_csv_2_xml.py = wok_code.scripts.cvt_csv_2_xml:main",
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
-            "cvt_script = wok_code.scripts.cvt_script:main",
+            # "cvt_script = wok_code.scripts.cvt_script:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
             "dist_pkg = wok_code.scripts.dist_pkg:main",
             "do_gitignore = wok_code.do_gitignore:main",
-            # "do_git_checkout_new_branch = wok_code.do_git_checkout_new_branch:main",
-            "arcangelo = wok_code.scripts.arcangelo:main",
-            # "do_odoo_site.py = wok_code.scripts.do_odoo_site:main",
-            "gen_readme.py = wok_code.scripts.gen_readme:main",
+            # "arcangelo = wok_code.scripts.arcangelo:main",
+            # "gen_readme.py = wok_code.scripts.gen_readme:main",
             "lint_2_compare = wok_code.scripts.lint_2_compare:main",
             "makepo_it.py = wok_code.scripts.makepo_it:main",
             "odoo_dependencies.py = wok_code.scripts.odoo_dependencies:main",
             "odoo_translation.py = wok_code.scripts.odoo_translation:main",
-            # "pg_requirements.py = wok_code.scripts.pg_requirements:main",
             "please = wok_code.scripts.please:main",
-            # "to_pep8.py = wok_code.scripts.to_pep8:main",
             "wget_odoo_repositories.py = wok_code.scripts.wget_odoo_repositories:main",
             "run_odoo_debug = wok_code.scripts.run_odoo_debug:main",
         ]
     },
     zip_safe=False,
 )
+

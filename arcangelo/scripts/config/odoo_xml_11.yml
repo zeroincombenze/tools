@@ -1,0 +1,11 @@
+include_odoo_xml_new_api:
+  ctx: 'final'
+  include: 'odoo_xml_new_api'
+oerplib3:
+  match: '.*["''>]oerplib[<"'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'oerplib'
+      - 'oerplib3'

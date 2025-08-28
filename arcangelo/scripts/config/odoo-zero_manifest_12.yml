@@ -1,0 +1,27 @@
+# This configuration is loaded for manifest files in Odoo product
+# when organization is "zero" and Odoo version is 12.0
+#
+module_l10n_it_fatturapa_out:
+  match: '.*["'']l10n_it_einvoice_out["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_out'
+      - 'l10n_it_fatturapa_out'
+module_l10n_it_account_stamp:
+  match: '.*["'']l10n_it_einvoice_stamp["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_stamp'
+      - 'l10n_it_account_stamp'
+module_l10n_it_fatturapa:
+  match: '.*["'']l10n_it_einvoice_base["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_base'
+      - 'l10n_it_fatturapa'

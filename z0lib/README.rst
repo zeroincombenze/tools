@@ -107,6 +107,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.16 (2025-08-28)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Local package automatic recognition
+* [FIX] License declaration compatible with pypi
+* [IMP] python 3.11 is certificated programming language
+* [FIX] print_flush
+
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -212,11 +220,6 @@ ChangeLog History
 
 * [IMP] set_pybin accept filename
 * [IMP] check_pythonpath removed
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
 
 
 

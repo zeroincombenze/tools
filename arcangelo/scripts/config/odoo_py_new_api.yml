@@ -1,0 +1,32 @@
+# This configuration file is include in Odoo product when Odoo version requires some old-api deprecated
+# statement but still recognized py Odoo new version
+# i.e: "from openerp" -> "from odoo"
+# So it is applied to all python3 based Odoo versions
+#
+from_openerp:
+  match: '^from openerp([a-z_.]*) import'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'from openerp([a-z_.]*) import'
+      - 'from odoo\1 import'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'sort_from_odoo_import'
+index:
+  match: 'select=(0|1|True|False)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'select=(0|False)'
+        - 'index=False'
+    - action: 's'
+      args:
+        - 'select=(1|True)'
+        - 'index=True'

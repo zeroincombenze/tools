@@ -3,7 +3,7 @@
 
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.21
+# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -38,7 +38,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.21
+__version__=2.0.22
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -363,7 +363,7 @@ stop_bg_process() {
 clean_old_templates() {
     local c d m x opts
     [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-    m=$(odoo_dependencies.py -RA rev $opaths -PB $opt_modules)
+    m=$(odoo_dependencies.py -RA rev $opaths -PB "$opt_modules")
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
         d="template_${x}_${odoo_maj}"
@@ -461,46 +461,47 @@ exec_before() {
 }
 
 
-OPTOPTS=(h        B       b          c        C           d        D       e      f         K       k        i       I       l        L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
-OPTLONG=(help     debug   branch     config   no-coverage database daemon  export force     no-ext  keep     import  install lang     lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_ex opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
-OPTACTI=("+"      "+"     "=>"       "=>"     1           "="      1       1      1         1       1        1       1       1        "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
-OPTDEFL=(1        0       ""         ""       0           ""       0       0      0         0       0        0       0       0        ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
-OPTMETA=("help"   ""      "version"  "fname"  ""          "name"   ""      ""     ""        ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
+OPTOPTS=(h        A       B       b          c        C           d        D       e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     assets  debug   branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_ast opt_dbg opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      1       "+"     "=>"       "=>"     1           "="      1       1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       0       ""         ""       0           ""       0       0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      ""      "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
-    "debug mode (-BB debug via pycharm)"
-    "odoo branch"
-    "odoo configuration file"
-    "no use coverage to run test"
-    "db name to test,translate o upgrade (require -m switch)"
-    "run odoo as daemon"
-    "export translation (conflict with -i -u -I -T)"
-    "force update or install modules or default parameters or create db template"
-    "do not run external test (tests/concurrent_test/test_*.py)"
-    "do not create new DB and keep it after run"
-    "import translation (conflict with -e -u -I -T)"
-    "install module (conflict with -e -i -u -T)"
-    "load language"
-    "set log level: may be info or debug"
-    "modules to test, translate or upgrade"
-    "multi-version odoo environment"
-    "do nothing (dry-run)"
-    "output file (if export multiple modules)"
-    "odoo root path"
-    "psql port"
-    "silent mode"
-    "show coverage stats (do not run odoo)"
-    "stop after init"
-    "execute odoo test on module (conflict with -e -i -I -u)"
-    "db username"
-    "upgrade module (conflict with -e -i -I -T)"
-    "show version"
-    "verbose mode"
-    "virtual environment path"
-    "run as web server"
-    "set odoo long-polling port"
-    "set odoo http/xmlrpc port"
-    "clear all module replacements")
+  "reset assets if GUI troubles (require -um web)"
+  "debug mode (-BB debug via pycharm)"
+  "odoo branch"
+  "odoo configuration file"
+  "no use coverage to run test"
+  "db name to test,translate o upgrade (require -m switch)"
+  "run odoo as daemon"
+  "export translation (conflict with -i -u -I -T)"
+  "force update or install modules or default parameters or create db template"
+  "do not run external test (tests/concurrent_test/test_*.py)"
+  "do not create new DB and keep it after run"
+  "import translation (conflict with -e -u -I -T)"
+  "install module (conflict with -e -i -u -T)"
+  "load language (default='it_IT')"
+  "set log level: may be info or debug"
+  "modules to test, translate or upgrade"f
+  "multi-version odoo environment"
+  "do nothing (dry-run)"
+  "output file (if export multiple modules)"
+  "odoo root path"
+  "psql port"
+  "silent mode"
+  "show coverage stats (do not run odoo)"
+  "stop after init"
+  "execute odoo test on module (conflict with -e -i -I -u)"
+  "db username"
+  "upgrade module (conflict with -e -i -I -T)"
+  "show version"
+  "verbose mode"
+  "virtual environment path"
+  "run as web server"
+  "set odoo long-polling port"
+  "set odoo http/xmlrpc port"
+  "clear all module replacements")
 OPTARGS=()
 
 parseoptargs "$@"
@@ -689,9 +690,10 @@ drop_db=0
 depmods=""
 TEMPLATE=""
 
+opt_lang2=$(echo $opt_lang|cut -d_ -f1)
 if [[ $opt_test -ne 0 ]]; then
     opt_web=0
-    opt_lang=0 opt_exp=0 opt_imp=0
+    opt_lang="" opt_lang2="" opt_exp=0 opt_imp=0
     opt_upd=0 opt_stop=1
     opt_xtl=1
     [[ $opt_dbg -ne 0 ]] && opt_nocov=1 || opt_nocov=0
@@ -700,22 +702,28 @@ if [[ $opt_test -ne 0 ]]; then
     [[ -z $opt_db && $opt_keep -ne 0 ]] && opt_db="${MQT_TEST_DB}_${odoo_maj}" && drop_db=0
     create_db=1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
-elif [[ $opt_lang -ne 0 ]]; then
-    opt_keep=1
-    opt_stop=1
-    [[ -n "$opt_modules" ]] && opt_modules=""
+#elif [[ $opt_lang != "" ]]; then
+#    opt_keep=1
+#    opt_stop=1
+#    [[ -n "$opt_modules" ]] && opt_modules=""
 elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
     opt_keep=1
     opt_stop=1
+    [[ -z $opt_lang ]] && log_mesg "Missing -l switch!!" && exit 1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
 elif [[ $opt_upd -ne 0 ]]; then
     opt_keep=1
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
+    [[ $opt_ast -ne 0 && ! $opt_modules =~ web ]] && log_mesg "Switch -A requires web module update (-um web)!!" && exit 1
+    [[ $opt_ast -ne 0 ]] && opt_stop=1
 elif [[ $opt_xtl -ne 0 ]]; then
     [[ -z "$opt_modules" ]] && log_mesg "Missing -m switch!!" && exit 1
     [[ -z "$opt_db" ]] && log_mesg "Missing -d switch !!" && exit 1
+elif [[ $opt_ast -ne 0 ]]; then
+    [[ $opt_upd -eq 0 || ! $opt_modules =~ web ]] && log_mesg "Switch -A requires web module update (-um web)!!" && exit 1
+    opt_stop=1
 fi
 
 [[ -f $PKGPATH/readme/__manifest__.rst ]] && mod_test_cfg="$PKGPATH/readme/__manifest__.rst" || mod_test_cfg=""
@@ -748,7 +756,8 @@ if [[ -n "$opt_modules" ]]; then
         OPTSIU="$OPTI $OPTU"
         if [[ $opt_exp -ne 0 && -n "$opt_ofile" ]]; then
             src=$(readlink -f $opt_ofile)
-            OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
+            OPTS="--modules=$opt_modules --i18n-export=$src -l$opt_lang"
+            [[ -n $opt_lang ]] && OPTS="--load-language=$opt_lang $OPTS"
         elif [[ $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
             src=$(find ${opaths//,/ } -maxdepth 1 -type d -name $opt_modules 2>/dev/null|head -n1)
             if [[ -z $src ]]; then
@@ -757,19 +766,27 @@ if [[ -n "$opt_modules" ]]; then
             fi
             src=$(readlink -f $src)
             [[ ! -d $src/i18n ]] && log_mesg "No directory $src/i18n found!!" && exit 1
-            src="$src/i18n/it.po"
-            makepo_it.py -f -b$odoo_fver -m$opt_modules $src
+            set -x  #debug
+            saved="$src/i18n/saved.po"
+            [[ -f $src/i18n/$opt_lang2.po ]] && src="$src/i18n/$opt_lang2.po"
+            [[ -f $src/i18n/$opt_lang.po ]] && src="$src/i18n/$opt_lang.po"
+            [[ ! -f $src ]] && src="$src/i18n/$opt_lang2.po"
+            [[ -f $src && ! -f $saved ]] && run_traced "cp $src $saved"
+            # makepo_it.py -f -b$odoo_fver -m$opt_modules $src
             if [[ $opt_imp -ne 0 ]]; then
-                OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
+                OPTS="--modules=$opt_modules --i18n-import=$src -l$opt_lang"
             else
-                OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
+                OPTS="--modules=$opt_modules --i18n-export=$src -l$opt_lang"
             fi
+            [[ -n $opt_lang ]] && OPTS="--load-language=$opt_lang $OPTS"
+            set +x  #debug
         elif [[ $opt_upd -ne 0 && $opt_xtl -ne 0 ]]; then
             OPTS="$OPTSIU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
         elif [[ $opt_upd -ne 0 ]]; then
             OPTS="$OPTU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
+            [[ $opt_ast -ne 0 ]] && OPTS="$OPTS --load=web --dev=all"
             [[ -n $OPTI && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be installed before\n$OPTI"
             [[ -z $OPTU ]] && log_mesg "No module found to update" && exit 1
         elif [[ $opt_xtl -ne 0 ]]; then
@@ -781,15 +798,13 @@ if [[ -n "$opt_modules" ]]; then
             OPTS="$OPTSIU"
         fi
     fi
-elif [[ $opt_lang -ne 0 ]]; then
-    OPTS=--load-language=it_IT
 else
     OPTS=""
     OPTDB=""
     replace_restore_modules $z0_repl
 fi
 
-if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || $opt_lang -ne 0 ]]; then
+if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || -n $opt_lang ]]; then
     if [[ -z "$opt_db" ]]; then
         opt_db="$MQT_TEST_DB"
         [[ $opt_stop -gt 0 && $opt_keep -eq 0 ]] && drop_db=1
@@ -805,7 +820,7 @@ fi
 
 if [[ $opt_stop -gt 0 ]]; then
     [[ $opt_dae -ne 0 ]] && OPTS="$OPTS --pidfile=$LOGDIR/odoo.pid" || OPTS="$OPTS --stop-after-init"
-    if [[ $opt_exp -eq 0 && $opt_imp -eq 0 && $opt_lang -eq 0 ]]; then
+    if [[ $opt_exp -eq 0 && $opt_imp -eq 0 && -z $opt_lang  ]]; then
         [[ $opt_keep -ne 0 && $opt_test -ne 0 && $odoo_maj -lt 12 ]] && OPTS="$OPTS --test-commit"
     fi
 fi
@@ -975,7 +990,8 @@ if [[ $opt_test -ne 0 && $opt_dbg -eq 0 ]]; then
         run_traced "coverage_report | tee -a $LOGFILE"
     fi
 fi
-if [[ $opt_exp -ne 0 ]]; then
+
+if [[ $opt_exp -ne 0 && -f $src ]]; then
     makepo_it.py -b$odoo_fver -m$opt_modules $src
     log_mesg "# Translation exported to '$src' file"
 elif [[ $opt_imp -ne 0 ]]; then

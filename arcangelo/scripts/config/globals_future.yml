@@ -1,0 +1,80 @@
+# This configuration is always loaded when source code contains "from _future_ import"
+# or when future is required by optional line switch
+#
+found_coding_utf8:
+  match: '# -\*- coding[:=] utf-8 -\*-'
+  ctx: 'pass1'
+  do:
+    - action: '+'
+      args:
+      - 'found_coding_utf8'
+      - '%(lineno)s'
+
+match_coding_utf8:
+  match: '# -\*- coding[:=] utf-8 -\*-'
+  prio: '9'
+  do:
+    - action: 'mv'
+      args:
+      - '1.3'
+insert_coding_utf8:
+  expr: 'singleton and transition_stage in ("import", "header") and transition_stage!=stage and not found_coding_utf8'
+  prio: '1'
+  do:
+    - action: 'i'
+      args:
+        - '# -*- coding: utf-8 -*-'
+        - '1.3'
+import_future:
+  expr: 'singleton and transition_stage=="import" and transition_stage!=stage and set_python_future and not python_future'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+        - 'python_future'
+    - action: 'i'
+      args:
+        - 'from __future__ import print_function, unicode_literals'
+        - '1.4'
+import_basestr:
+  expr: 'singleton and transition_stage=="import" and transition_stage!=stage and set_python_future and found_instance_str'
+  prio: '1'
+  do:
+    - action: 'i'
+      args:
+        - 'from past.builtins import basestring'
+        - '1.5'
+import_long:
+  expr: 'singleton and transition_stage=="import" and transition_stage!=stage and set_python_future and found_instance_long'
+  prio: '2'
+  do:
+    - action: 'i'
+      args:
+        - 'from past.builtins import long'
+        - '1.5'
+
+super:
+  search: 'super\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\(\)'
+      - 'super(%(classname)s, self)'
+basestr:
+  search: '\bstr[^(]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bstr\b'
+      - 'basestring'
+      -
+int_long:
+  search: '\bint[^(]'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bint\b'
+      - 'int, long'

@@ -10,48 +10,7 @@ odoo_dependecies.py usage
 
 ::
 
-    usage: odoo_dependencies.py [-h] [-A {dep,help,jrq,mod,rev,tree}] [-a]
-                                [-b version] [-B DEPENDS_BY] [-c file] [-D file]
-                                [-E] [-e] [-H] [-M MODULES_TO_MATCH] [-m] [-N]
-                                [-n] [-o] [-P] [-q] [-R] [-S SEP_LIST] [-V] [-v]
-                                [-x] [-1]
-                                [path_list ...]
-    
-    Odoo dependencies management
-    
-    positional arguments:
-      path_list
-    
-    options:
-      -h, --help            show this help message and exit
-      -A {dep,help,jrq,mod,rev,tree}, --action {dep,help,jrq,mod,rev,tree}
-      -a, --and-list
-      -b version, --branch version
-                            Odoo branch
-      -B DEPENDS_BY, --depends-by DEPENDS_BY
-      -c file, --config file
-                            configuration command file
-      -D file, --dbname file
-                            DB name
-      -E, --only-missed
-      -e, --external-dependencies
-      -H, --action-help
-      -M MODULES_TO_MATCH, --modules-to-match MODULES_TO_MATCH
-      -m, --action-modules
-      -N, --only-count
-      -n, --dry-run         do nothing (dry-run)
-      -o, --or-list
-      -P, --pure-list
-      -q, --quiet           silent mode
-      -R, --recurse
-      -S SEP_LIST, --sep-list SEP_LIST
-      -V, --version         show program's version number and exit
-      -v, --verbose         verbose mode
-      -x, --external-bin-dependencies
-      -1, --no-depth
-    
-    © 2020-25 by SHS-AV s.r.l.
-    
+    $(odoo_dependencies -h)
 
 |
 |
@@ -66,10 +25,10 @@ odoo_dependecies.py usage
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.21/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.21/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

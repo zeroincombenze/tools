@@ -1,0 +1,94 @@
+# This configuration file is include in Odoo product when Odoo version requires then old-api to new-api
+# conversion. So it is included in Odoo 8.0, 9.0 and 10.0 version
+#
+openerp_import_osv:
+  match: '^from openerp\.osv import'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+      - 'from openerp\.osv import'
+      - 'from openerp import'
+    - action: 's'
+      args:
+      - '(osv|orm)'
+      - 'models'
+except_usererror:
+  match: 'from openerp\.osv\.(osv|orm) import except_(osv|orm)'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+      - 'from openerp\.osv\.(osv|orm) import except_(osv|orm)'
+      - 'from openerp.exceptions import UserError'
+raise_user_error:
+  match: '^.*raise *[a-z_.]*except_(osv|orm)\('
+  do:
+    - action: 's'
+      args:
+      - 'raise *[a-z_.]*except_(osv|orm)\('
+      - 'raise UserError('
+    - action: 's'
+      args:
+      - "(\\([\"'][^\"']*[\"'], *)(.*)"
+      - '(\2'
+class_model:
+  match: '^ *class [^(]+\([^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '(osv|orm).Model'
+      - 'models.Model'
+    - action: 's'
+      args:
+      - 'osv.osv_memory'
+      - 'models.TransientModel'
+def_cr_uid:
+  search: '\(self, *cr, *uid, [^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(self, *cr, *uid,'
+      -  '(self,'
+    - action: 's'
+      args:
+      - ', *context=[^)]+'
+      - ''
+call_cr_uid:
+  search: '\(cr, *uid, [^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(cr, *uid, *'
+      -  '('
+    - action: 's'
+      args:
+      - ', *context=[^)]+'
+      - ''
+from_openerp:
+  match: '^from openerp'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'openerp'
+      - 'odoo'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - sort_from_odoo_import
+index:
+  match: 'select=(0|1|True|False)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'select=(0|False)'
+        - 'index=False'
+    - action: 's'
+      args:
+        - 'select=(1|True)'
+        - 'index=True'

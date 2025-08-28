@@ -1,0 +1,14 @@
+include_odoo_xml_new_api:
+  ctx: 'final'
+  include: 'odoo_xml_new_api'
+no_view_type:
+  match: '^ *<field name="view_type">form</field>'
+  do:
+    - action: 'd'
+binding_model:
+  match: '.*src_model="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'src_model="([^"]*)"'
+      - 'binding_model="\1"'

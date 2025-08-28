@@ -1,0 +1,101 @@
+# This configuration is always loaded for all .py files
+# Some rules may be processed just in pass1 (before file update)
+#
+found_shebang:
+  match: '#!'
+  ctx: 'pass1 and first_line'
+  do:
+    - action: '+'
+      args:
+      - 'found_shebang'
+      - '%(lineno)s'
+found_no_action:
+  search: '# (flake8: noqa|pylint: skip-file)'
+  ctx: 'pass1'
+  do:
+    - action: '+'
+      args:
+      - 'found_no_action'
+      - '%(lineno)s'
+found_no_action2:
+  search: '# (flake8: noqa|pylint: skip-file)'
+  ctx: 'pass1 and not force'
+  do:
+    - action: '+'
+      args:
+      - 'file_action'
+      - 'no'
+found_import_future:
+  match: 'from __future__ import '
+  ctx: 'pass1'
+  do:
+    - action: '+'
+      args:
+      - python_future
+found_import_past:
+  match: 'from past.builtins import '
+  ctx: 'pass1'
+  prio: '1'
+  do:
+    - action: '+'
+      args:
+      - python_future
+found_instance_str:
+  ctx: 'pass1'
+  search: 'isinstance\(.*\b(base)?str\b.*\)'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+      - 'found_instance_str'
+found_instance_long:
+  ctx: 'pass1'
+  search: 'isinstance\(.*\blong\b.*\)'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+        - 'found_instance_long'
+
+match_shebang:
+  match: '#!'
+  expr: 'first_line'
+  do:
+    - action: '$'
+      args:
+      - match_ignore_line
+match_no_action:
+  search: '# (flake8: noqa|pylint: skip-file)'
+  prio: '9'
+  do:
+    - action: 'mv'
+      args:
+      - '1.2'
+update_coding_utf8:
+  ctx: 'pass1'
+  match: '# -\*- *encoding[:=] utf-8 -\*-'
+  prio: '1'
+  do:
+    - action: 's'
+      args:
+        - '^# -\*- encoding[:=] utf-8 -\*-'
+        - '# -*- coding: utf-8 -*-'
+    - action: '+'
+      args:
+      - 'found_coding_utf8'
+      - '%(lineno)s'
+
+match_class:
+  match: ' *class *([^(]+)\('
+  prio: '9'
+  do:
+    - action: '+'
+      args:
+      - classname
+match_def:
+  match: ' *def *([^(]+)\('
+  prio: '9'
+  do:
+    - action: '+'
+      args:
+      - fctname

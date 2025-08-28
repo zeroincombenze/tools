@@ -1,0 +1,11 @@
+# This configuration is always loaded for manifest files
+# In Odoo project, manifest is __manifest__.py, in pypi projects manifest is setup.py
+#
+include_global_py:
+  include: 'globals_py'
+include_global_py2:
+  ctx: 'py23==2'
+  include: 'globals_py2'
+include_global_py3:
+  ctx: 'py23==3'
+  include: 'globals_py3'

@@ -1,0 +1,126 @@
+# This configuration file is include in Odoo product for backport migration to old-api version
+# So it is applied to OpenERP/Odoo 6.1 7.0
+#
+raise_osv:
+  match: '^ .*raise osv\.except_osv'
+  ctx: 'pass1'
+  do:
+    - action: '+'
+      args:
+        - 'found_raise_osv'
+openerp_import:
+  match: '^from (odoo|openerp) import'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+      - 'from (odoo|openerp) import'
+      - 'from openerp.osv import'
+    - action: 's'
+      args:
+      - 'models'
+      - 'osv'
+except_usererror:
+  match: '^from (openerp|odoo)\.exceptions import UserError'
+  prio: '3'
+  do:
+    - action: 's'
+      args:
+        - 'from (openerp|odoo)\.exceptions import UserError'
+        - 'from openerp.osv.orm import except_orm'
+raise_user_error:
+  match: '^ *raise UserError'
+  do:
+    - action: 's'
+      args:
+      - 'UserError\('
+      - 'except_orm("Error", '
+class_model:
+  match: '^ *class [^(]+\([^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - 'models.Model'
+      - 'osv.Model'
+    - action: 's'
+      args:
+      - 'models.TransientModel'
+      - 'osv.osv_memory'
+def_cr_uid:
+  search: '\(self, *(?!cr)[^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\(self,'
+      - '(self, cr, uid,'
+    - action: 's'
+      args:
+      - '\)'
+      - ', context=None)'
+    - action: 's'
+      args:
+      - 'cr, *uid, *cr, *uid'
+      - 'cr, uid'
+    - action: 's'
+      args:
+      - ', context=None, context=None\)'
+      - ', context=None)'
+call_cr_uid:
+  expr: 'not "class " in line and not "def " in line and not "raise" in line and not "fields" in line'
+  search: '[\w]+(?!super)\((?!cr)[^)]*\)'
+  do:
+    - action: 's'
+      args:
+      - '\('
+      - '(cr, uid, '
+    - action: 's'
+      args:
+      - '\)'
+      - ', context=context)'
+    - action: 's'
+      args:
+      - 'cr, *uid, *cr, *uid'
+      - 'cr, uid'
+    - action: 's'
+      args:
+      - ', context=context, context=context\)'
+      - ', context=context)'
+    - action: 's'
+      args:
+      - 'super\(cr, uid, '
+      - 'super('
+    - action: 's'
+      args:
+      - '(super\(.*)context=context\)'
+      - '\1)'
+    - action: 's'
+      args:
+      - '(super\(.*), *\)'
+      - '\1)'
+from_openerp:
+  match: '^from odoo'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'odoo'
+      - 'openerp'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - sort_from_odoo_import
+index:
+  match: 'select=(0|1|True|False)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'index=(0|False)'
+        - 'select=False'
+    - action: 's'
+      args:
+        - 'index=(1!True)'
+        - 'select=True'

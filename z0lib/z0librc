@@ -929,7 +929,7 @@ get_cfg_value() {
       [[ -n "$p" && $p != "False" ]] && break
     done
     # Workaround
-    [[ $2 =~ (LOCAL_PKGS|PKGS_LIST) ]] && p="clodoo lisa odoo_score os0 oerplib3 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
+    [[ $2 =~ (LOCAL_PKGS|PKGS_LIST) ]] && p="arcangelo clodoo lisa odoo_score os0 oerplib3 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
     [[ $p == "None" ]] && p=""
     echo "$p"
     $SETX
@@ -1074,7 +1074,7 @@ _read_cfg_file() {
 
 link_cfg_def() {
   [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-  local fn_bckdel fn_backup fn_meta fn_vcs fn_bins
+  local fn_bckdel fn_backup fn_meta fn_vcs fn_bins x
   local fn_media fn_bindata LOCAL_PKGS
   [[ -n "$HOSTNAME_DEV" ]] && set_cfg_def "DEV_HOST" "$HOSTNAME_DEV" || set_cfg_def "DEV_HOST" "(pc[0-9]+)?shsde([a-z][0-9]+)?"
   [[ -n "$HOSTNAME_PRD" ]] && set_cfg_def "PRD_HOST" "$HOSTNAME_PRD" || set_cfg_def "PRD_HOST" "(shsp([a-z][0-9]+)?"
@@ -1102,9 +1102,10 @@ link_cfg_def() {
   CFG_set "PS_HDR1_COLOR" "97;42"
   CFG_set "PS_HDR2_COLOR" "30;43"
   CFG_set "PS_HDR3_COLOR" "30;45"
-  LOCAL_PKGS="clodoo lisa odoo_score os0 python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
-  [[ -d $HOME_DEVEL/../tools ]] && LOCAL_PKGS=$(find $HOME_DEVEL/../tools -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f7|tr "\n" " ")
-  [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(find $HOME_DEVEL/pypi -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f6|tr "\n" " ")
+  x=$(readlink -f $HOME_DEVEL/../tools)
+  [[ -n $x ]] && LOCAL_PKGS=$(for f in $(find $x -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
+  [[ -d $HOME_DEVEL/pypi ]] && LOCAL_PKGS=$(for f in $(find $HOME_DEVEL/pypi -maxdepth 2 -type f -name setup.py|sort); do echo $f|xargs dirname|xargs basename; done)
+  [[ -z $LOCAL_LOCAL_PKGS ]] && LOCAL_PKGS="arcangelo clodoo odoo_score python_plus travis_emulator wok_code z0bug_odoo z0lib zar zerobug"
   LOCAL_PKGS=$(echo $LOCAL_PKGS)
   CFG_set "LOCAL_PKGS" "$LOCAL_PKGS"
   CFG_set "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
@@ -1631,5 +1632,3 @@ clean_dirs() {
   $SETX
 }
 export -f clean_dirs
-
-

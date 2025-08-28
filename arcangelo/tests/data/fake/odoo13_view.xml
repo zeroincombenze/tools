@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="example" model="ir.actions.act_window" binding_model="res.partner">
+        <field name="name">Example</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+    </record>
+</odoo>

@@ -46,19 +46,18 @@ else:
 
 setup(
     name=name,
-    version="2.0.13",
+    version="2.0.14",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.11",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -72,7 +71,7 @@ setup(
     },
     author=author,
     author_email=author_email,
-    license="Affero GPL",
+    license="GPL-3.0-or-later",
     install_requires=install_requires,
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
@@ -96,3 +95,4 @@ setup(
     },
     zip_safe=False,
 )
+

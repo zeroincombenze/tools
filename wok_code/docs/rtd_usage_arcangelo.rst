@@ -12,7 +12,7 @@ Digest of arcangelo
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
                         [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [--add-rule-group ADD_RULE_GROUP]
+                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -40,7 +40,7 @@ Digest of arcangelo
       --ignore-pragma       ignore coding utf-8 declaration
       -i, --in-place
       -j PYTHON, --python PYTHON
-                            python version, format #.##, 2-3 use future
+                            python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
       -n, --dry-run         do nothing (dry-run)
@@ -56,6 +56,7 @@ Digest of arcangelo
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
                             do nor execute black or prettier on modified files
+      -y, --assume-yes      force target path creation with different base name
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     
@@ -259,10 +260,10 @@ Follow rule replace "@api.one" with "# @api.one" and adds comment line:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.21/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.21/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

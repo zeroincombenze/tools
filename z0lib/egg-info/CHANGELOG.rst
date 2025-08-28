@@ -1,3 +1,11 @@
+2.0.16 (2025-08-28)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Local package automatic recognition
+* [FIX] License declaration compatible with pypi
+* [IMP] python 3.11 is certificated programming language
+* [FIX] print_flush
+
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 

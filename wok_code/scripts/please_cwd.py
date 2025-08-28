@@ -21,7 +21,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.21"
+__version__ = "2.0.22"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -59,10 +59,9 @@ class PleaseCwd(object):
 
         please commit -m "COMMIT_MESSAGE"
             This action, runs just on PYPI sub-package, does:
-            1. Prepare setup.info file (in future will be removed)
-            2. Execute <git add>
-            3. Execute <git commit -M "COMMIT_MESSAGE">
-            4. Replace source code into master directory
+            1. Execute <git add>
+            2. Execute <git commit -M "COMMIT_MESSAGE">
+            3. Replace source code into master directory
 
         please defcon FILE_NAME
             Create or update some configuration file with appropriate values for current
@@ -96,6 +95,7 @@ class PleaseCwd(object):
         parser.add_argument("-F", "--from-version")
         self.please.add_argument(parser, "-f")
         self.please.add_argument(parser, "-G")
+        self.please.add_argument(parser, "-L")
         parser.add_argument("-m", "--message", help="Commit message")
         parser.add_argument(
             "--odoo-venv", action="store_true", help="Update Odoo virtual environments"
@@ -238,7 +238,8 @@ class PleaseCwd(object):
         ):
             args = self.build_gen_readme_base_args(branch=branch)
             args.append("-RW")
-            return please.chain_python_cmd("gen_readme.py", args)
+            # return please.chain_python_cmd("gen_readme.py", args)
+            return please.os_system(["gen_readme.py", *args])
         return 0
 
     def assure_doc_dirs_pypi(self):
@@ -461,13 +462,13 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
-            if pkgname != "tools":
-                fn = pth.join(pth.dirname(srcdir), "setup.py")
-                if pth.isfile(fn):
-                    sts = please.os_system(
-                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-                        rtime=True,
-                    )
+            # if pkgname != "tools":
+            #     fn = pth.join(pth.dirname(srcdir), "setup.py")
+            #     if pth.isfile(fn):
+            #         sts = please.os_system(
+            #             "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+            #             rtime=True,
+            #         )
             if not please.opt_args.no_verify:
                 sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -670,16 +671,20 @@ class PleaseCwd(object):
                     if repo_name == "marketplace":
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     if sts == 0:
                         args.append("-I")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                     if sts == 0 and odoo_major_version <= 7:
                         args = self.build_gen_readme_base_args(branch=branch)
                         args.append("-R")
-                        sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
                 if sts == 0:
                     self.do_clean()
                 return sts
@@ -692,7 +697,8 @@ class PleaseCwd(object):
                     return sts
                 if not please.opt_args.oca:
                     args = self.build_gen_readme_base_args(branch=branch)
-                    sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
@@ -706,10 +712,12 @@ class PleaseCwd(object):
                 )
                 return 33 if not self.please.opt_args.dry_run else 0
             args = self.build_gen_readme_base_args(branch=self.branch)
-            sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
+            # sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
+            sts = self.please.os_system(["gen_readme.py", *args], rtime=True)
             if sts == 0:
                 args.append("-I")
-                sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
+                sts = please.os_system(["gen_readme.py", *args], rtime=True)
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
@@ -786,12 +794,14 @@ class PleaseCwd(object):
                         shutil.rmtree(target_dir)
                     args = self.build_gen_readme_base_args(branch=branch)
                     args.append("-O")
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    # sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.os_system(["gen_readme.py", *args])
                 if sts == 0:
                     args = self.build_gen_readme_base_args(branch=branch)
                     args.append("-O")
                     args.append("-R")
-                    sts = please.chain_python_cmd("gen_readme.py", args)
+                    #  sts = please.chain_python_cmd("gen_readme.py", args)
+                    sts = please.os_system(["gen_readme.py", *args])
                 if sts == 0:
                     sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -891,21 +901,26 @@ class PleaseCwd(object):
         return 126
 
     def _do_translate_export(self, action="all"):
-        def get_po_revision_date(pofile):
-            po_revision_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(pofile, "r") as fd:
-                for ln in fd.read().split("\n"):
-                    if "PO-Revision-Date:" in ln:
-                        x = re.search(
-                            "[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}", ln
-                        )
-                        if ln:
-                            po_revision_date = ln[x.start(): x.end()]
-                            break
-            return po_revision_date
+        # def get_po_revision_date(pofile):
+        #     po_revision_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #     with open(pofile, "r") as fd:
+        #         for ln in fd.read().split("\n"):
+        #             if "PO-Revision-Date:" in ln:
+        #                 x = re.search(
+        #                     "[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}", ln
+        #                 )
+        #                 if ln:
+        #                     po_revision_date = ln[x.start(): x.end()]
+        #                     break
+        #     return po_revision_date
 
-        REF_REPO = ("l10n-italy-supplemental", "l10n-italy")
         please = self.please
+        if action not in ("all", "translate"):
+            please.log_error(
+                "Invalid action translate %s" % action,
+            )
+            return 3
+        REF_REPO = ("l10n-italy-supplemental", "l10n-italy")
         if please.is_odoo_pkg():
             sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if sts == 0:
@@ -919,38 +934,28 @@ class PleaseCwd(object):
                 self.branch = branch
                 self.odoo_major_version = int(branch.split(".")[0])
                 module_name = build_odoo_param("PKGNAME", odoo_vid=".", multi=True)
-                pofile = "./i18n/it.po"
-                if not pth.isfile(pofile):
-                    if not please.opt_args.force:
-                        please.log_warning(
-                            "No file %s found! Use -f switch to create it" % pofile
-                        )
-                        return 3
-                    args = [
-                        "-f",
-                        "-m",
-                        module_name,
-                    ]
-                    if branch:
-                        args.append("-b")
-                        args.append(branch)
-                    if please.opt_args.dry_run:
-                        args.append("-n")
-                    args.append(pofile)
-                    please.chain_python_cmd("makepo_it.py", args)
+                pofile = pth.abspath("./i18n/it.po")
+                if not pth.isfile(pofile) and not please.opt_args.force:
+                    please.log_warning(
+                        "No file %s found! Use -f switch to create it" % pofile
+                    )
+                    return 3
                 sts = self.get_config()
                 if sts:
                     return sts
-                self.connect_db(db_name="template1")
-                response = self.exec_sql(
-                    "SELECT datname FROM pg_catalog.pg_database", response=True
-                )
                 self.db_name = please.opt_args.database or (
                     "test_%s_%s" % (module_name, self.odoo_major_version)
                 )
-                if self.db_name not in [x[0] for x in response]:
+                self.connect_db(db_name="template1")
+                response = self.exec_sql("""
+                    SELECT datname,
+                    (pg_stat_file('base/'||oid ||'/PG_VERSION')).modification as creats
+                    FROM pg_catalog.pg_database
+                    WHERE datname='%s'""" % self.db_name,  response=True)
+                if self.db_name != response[0][0]:
                     please.log_warning("Database %s does not exist!" % self.db_name)
                     return 3
+                # db_create_ts = response[0][1].replace(tzinfo=None)
                 self.connect_db()
                 query = (
                     "select state from ir_module_module where name = '%s'" % module_name
@@ -960,45 +965,43 @@ class PleaseCwd(object):
                 if state != "installed":
                     please.log_error("Module %s not installed!" % module_name)
                     return 33
-                query = (
-                    "select value from ir_config_parameter"
-                    " where key='database.create_date'"
-                )
-                response = self.exec_sql(query, response=True)
-                db_create_date = response[0][0]
-                po_revision_date = get_po_revision_date(pofile)
+                if please.opt_args.force or not pth.isfile(pofile):
+                    args = [
+                        "-e",
+                        "-s",
+                        "-m",
+                        module_name,
+                    ]
+                    if branch:
+                        args.append("-b")
+                        args.append(branch)
+                    if self.config:
+                        args.append("-c")
+                        args.append(self.config)
+                    if self.db_name:
+                        args.append("-d")
+                        args.append(self.db_name)
+                    if please.opt_args.lang:
+                        args.append("-l")
+                        args.append(please.opt_args.lang)
+                    if please.opt_args.verbose > 1:
+                        args.append("-" + ("v" * (please.opt_args.verbose - 1)))
+                    else:
+                        args.append("-q")
+                    if please.opt_args.dry_run:
+                        args.append("-n")
+                    sts = please.chain_python_cmd("run_odoo_debug.py", args)
+                    if sts:
+                        return sts
+                po_revision_ts = datetime.fromtimestamp(os.path.getmtime(pofile))
+                retain_ts = datetime.now() - timedelta(1)
                 action_done = False
                 if (
-                    sts == 0
-                    and action in ("all", "translate")
-                    and (please.opt_args.force or db_create_date > po_revision_date)
+                    not please.opt_args.force
+                    and po_revision_ts > retain_ts
                 ):
-                    #             args = [
-                    #                 "-m", module_name,
-                    #             ]
-                    #             if branch:
-                    #                 args.append("-b")
-                    #                 args.append(branch)
-                    #             if please.opt_args.debug:
-                    #                 args.append("-" + ("B" * please.opt_args.debug))
-                    #             if (
-                    #                     hasattr(please.opt_args, "ignore_cache")
-                    #                     and please.opt_args.ignore_cache
-                    #             ):
-                    #                 args.append("-C")
-                    #             if self.config:
-                    #                 args.append("-c")
-                    #                 args.append(self.config)
-                    #             if self.db_name:
-                    #                 args.append("-d")
-                    #                 args.append(self.db_name)
-                    #             if please.opt_args.verbose:
-                    #                 args.append("-" + ("v" * please.opt_args.verbose))
-                    #             if please.opt_args.dry_run:
-                    #                 args.append("-n")
-                    #             sts = please.chain_python_cmd(
-                    #              "odoo_translation.py", args)
-                    #             action_done = True
+                    please.log_warning("PO file %s recently updated" % pofile)
+                else:
                     ocb_path = os.getcwd()
                     found_ocb = True
                     cur_repo = ""
@@ -1019,6 +1022,9 @@ class PleaseCwd(object):
                             po_list += self.build_po_list(
                                 ocb_path, cur_repo, excl=os.getcwd()
                             )
+                    saved_pofile = pth.join(pth.dirname(pofile), "saved.po")
+                    if pth.isfile(saved_pofile):
+                        po_list.insert(0, saved_pofile)
                     if po_list:
                         compendium_fqn = pth.join(
                             ocb_path, "venv_odoo", "compendium.po"
@@ -1028,46 +1034,29 @@ class PleaseCwd(object):
                         sts, stdout, stderr = z0lib.os_system_traced(
                             cmd,
                             verbose=False,
-                            dry_run=False,
+                            dry_run=please.opt_args.dry_run,
                             rtime=True,
                             with_shell=True,
                         )
                         if sts == 0:
-                            cmd = "msgmerge --compendium %s /dev/null %s" % (
+                            cmd = "msgmerge --compendium %s /dev/null %s -o %s" % (
                                 compendium_fqn,
+                                pofile,
                                 pofile,
                             )
                             sts = z0lib.os_system(
-                                cmd, verbose=False, dry_run=False, rtime=True
+                                cmd,
+                                verbose=please.opt_args.verbose,
+                                dry_run=please.opt_args.dry_run,
+                                rtime=True,
+                                with_shell=True,
                             )
                             action_done = True
-                if (
-                    sts == 0
-                    and action in ("all", "export")
-                    and (please.opt_args.force or db_create_date > po_revision_date)
-                ):
-                    args = [
-                        "-e",
-                        "-m",
-                        module_name,
-                    ]
-                    if branch:
-                        args.append("-b")
-                        args.append(branch)
-                    if self.config:
-                        args.append("-c")
-                        args.append(self.config)
-                    if self.db_name:
-                        args.append("-d")
-                        args.append(self.db_name)
-                    if please.opt_args.verbose > 1:
-                        args.append("-" + ("v" * (please.opt_args.verbose - 1)))
-                    else:
-                        args.append("-q")
-                    if please.opt_args.dry_run:
-                        args.append("-n")
-                    sts = please.chain_python_cmd("run_odoo_debug.py", args)
-                    action_done = True
+                            if sts == 0:
+                                if pth.isfile(saved_pofile):
+                                    os.unlink(saved_pofile)
+                                if pth.isfile(compendium_fqn):
+                                    os.unlink(compendium_fqn)
                 if not action_done:
                     self.please.log_warning("No transaction done")
                 return sts
@@ -1087,12 +1076,12 @@ class PleaseCwd(object):
             pkgname = pth.basename(srcdir)
             sts = 0
             if pkgname != "tools":
-                fn = pth.join(pth.dirname(srcdir), "setup.py")
-                if pth.isfile(fn):
-                    sts = please.os_system(
-                        "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-                        rtime=True,
-                    )
+                # fn = pth.join(pth.dirname(srcdir), "setup.py")
+                # if pth.isfile(fn):
+                #     sts = please.os_system(
+                #         "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
+                #         rtime=True,
+                #     )
                 if sts == 0:
                     sts = please.os_system(
                         "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True
@@ -1179,7 +1168,7 @@ class PleaseCwd(object):
             with open(fqn) as fd:
                 try:
                     for ln in fd.read().split("\n"):
-                        x = regex.cp2tmp(ln)
+                        x = regex.match(ln)
                         if x:
                             ver_text = x.groups()[1]
                             cmp_text = re.match(r"[\d]+\.[\d]+", ver_text).string

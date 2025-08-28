@@ -1,0 +1,16 @@
+include_openerp_py_new_api:
+  ctx: 'final or migrate_multi'
+  include: 'openerp_py_new_api'
+# Odoo still use from openerp
+from_openerp:
+  ctx: 'final'
+  match: '^from odoo'
+  prio: '8'
+  do:
+    - action: 's'
+      args:
+      - 'odoo'
+      - 'openerp'
+include_odoo_api_multi:
+  ctx: 'final or migrate_multi'
+  include: 'odoo_py_api_multi'

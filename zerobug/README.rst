@@ -1,5 +1,5 @@
 ==============
-zerobug 2.0.18
+zerobug 2.0.19
 ==============
 
 
@@ -153,6 +153,17 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.20 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+2.0.19 (2025-03-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] create_repo, parameter ctx deprecated
+* [IMP] create_module, parameter ctx deprecated
+
 2.0.18 (2025-03-14)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -289,12 +300,6 @@ ChangeLog History
 * [IMP] z0testlib: show coverage result
 
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring for shell scripts
-
-
 
 Credits
 =======
@@ -332,10 +337,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

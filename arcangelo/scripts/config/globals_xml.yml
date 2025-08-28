@@ -1,0 +1,3 @@
+# This configuration is always loaded for all .xml files
+# Some rules may be processed just in pass1 (before file update)
+#

@@ -1,0 +1,97 @@
+# This configuration is always loaded for all python2 .py files
+# Some rules may be processed just in pass1 (before file update)
+#
+found_coding_utf8:
+  match: '# -\*- coding[:=] utf-8 -\*-'
+  ctx: 'pass1'
+  do:
+    - action: '+'
+      args:
+      - 'found_coding_utf8'
+      - '%(lineno)s'
+
+match_coding_utf8:
+  match: '# -\*- coding[:=] utf-8 -\*-'
+  prio: '9'
+  do:
+    - action: 'mv'
+      args:
+      - '1.3'
+insert_coding_utf8:
+  expr: 'singleton and transition_stage in ("import", "header") and transition_stage!=stage and not found_coding_utf8'
+  prio: '1'
+  do:
+    - action: 'i'
+      args:
+        - '# -*- coding: utf-8 -*-'
+        - '1.3'
+
+super:
+  search: 'super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super(%(classname)s, self)'
+basestr:
+  search: '\bstr[^("'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bstr\b'
+      - 'basestring'
+basestr_str:
+  search: '["'']str["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bstr\b'
+      - 'basestring'
+int_long:
+  search: '\bint[^("'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bint\b'
+      - 'int, long'
+    - action: 's'
+      args:
+      - '\bint\)'
+      - '(int, long)'
+
+base64_encode:
+  match: '.*base64\.encodebytes'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.encodebytes'
+      - 'base64.encodestring'
+base64_decode:
+  match: '.*base64\.decodebytes'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.decodebytes'
+      - 'base64.decodestring'
+urlparse:
+  match: 'import urllib.parse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urllib.parse .*'
+      - 'urlparse'
+from urlparse:
+  match: 'from urllib.parse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urllib.parse'
+      - 'urlparse'

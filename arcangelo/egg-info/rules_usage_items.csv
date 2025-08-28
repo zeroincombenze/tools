@@ -1,0 +1,24 @@
+Name,Description,usage
+backport_multi,Processing a backported version (multiple version path),CTX + PYEXPR
+classname,Name of current class,PYEXPR
+dedent,Dedent statement level,PYEXPR
+final,Processing final version when multiple version path,CTX + PYEXPR
+first_line,True if current line is the 1st of source (see header too),PYEXPR
+from_major_version,Major version of project by -F switch,CTX + PYEXPR
+fctname,Current function name,PYEXPR
+header,Current line is in the file header (comments and empty lines),PYEXPR
+imported,Imported packages list,PYEXPR
+indent,Space indentation of current line,PYEXPR
+line,Current line,PYEXPR
+migration_multi,Processing a migrate version with multiple version path,CTX + PYEXPR
+mime,Current file mime,CTX + PYEXPR
+open_stmt,"# of open parens; if > 0, current line is a continuation line",PYEXPR
+python_future,True if source is python 2 or 3 with future,CTX + PYEXPR
+python_version,Python version to run source,CTX + PYEXPR
+singleton,Singleton rule: may be applied just once,PYEXPR
+stage,"Parsing stage: header,import,class_body,function_body",PYEXPR
+stmt_indent,Space indentation of current statement,PYEXPR
+to_major_version,Major version of project by -b switch,CTX + PYEXPR
+transition_stage,"Prior parsing stage",PYEXPR
+try_indent,The try statement indentation: if >=0 current line is inside try/except block,PYEXPR
+py23,Value 2 if python2 else 3 (int),CTX + PYEXPR

@@ -1,0 +1,19 @@
+# This configuration is always used to apply an action on searched files
+#
+graphic_file:
+  match: '.*/.*\.(jpg|jpeg|gif|png)$'
+  prio: '0'
+  do:
+    - action: '+'
+      args:
+      - 'file_action'
+      - 'new'
+testenv_file:
+  search: '/(testenv.py|conf.py|_check4deps_.py)'
+  ctx: 'pass1 and first_line'
+  prio: '1'
+  do:
+    - action: '+'
+      args:
+        - 'file_action'
+        - 'no'

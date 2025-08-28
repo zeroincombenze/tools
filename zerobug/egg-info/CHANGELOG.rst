@@ -1,3 +1,14 @@
+2.0.20 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+2.0.19 (2025-03-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] create_repo, parameter ctx deprecated
+* [IMP] create_module, parameter ctx deprecated
+
 2.0.18 (2025-03-14)
 ~~~~~~~~~~~~~~~~~~~
 

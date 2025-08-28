@@ -1,0 +1,87 @@
+# This configuration is always loaded for all python3 .py files
+# Some rules may be processed just in pass1 (before file update)
+#
+match_coding_utf8:
+  match: '# -\*- coding[:=] utf-8 -\*-'
+  prio: '9'
+  do:
+    - action: 'd'
+
+super:
+  search: 'super\([^)]*\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'super\([^)]*\)'
+      - 'super()'
+basestr:
+  search: '\bbasestring\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bbasestring\b'
+      - 'str'
+basestr_str:
+  search: '["'']basestring["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bbasestring\b'
+      - 'str'
+int_long:
+  search: '\blong\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\blong\b'
+      - ''
+    - action: 's'
+      args:
+      - ', *,'
+      - ','
+    - action: 's'
+      args:
+        - ', *\)'
+        - ')'
+    - action: 's'
+      args:
+        - '\(int\)\)'
+        - 'int)'
+
+base64_encode:
+  match: '.*base64\.encodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.encodestring'
+      - 'base64.encodebytes'
+base64_decode:
+  match: '.*base64\.decodestring'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'base64\.decodestring'
+      - 'base64.decodebytes'
+
+urlparse:
+  match: 'import urlparse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urlparse'
+      - 'urllib.parse as urlparse'
+from urlparse:
+  match: 'from urlparse'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'urlparse'
+      - 'urllib.parse'

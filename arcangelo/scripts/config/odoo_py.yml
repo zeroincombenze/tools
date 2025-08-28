@@ -1,0 +1,10 @@
+# This configuration is always loaded for all .py files
+# when product is Oddo
+#
+found_api:
+  match: '.*'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'match_found_api'

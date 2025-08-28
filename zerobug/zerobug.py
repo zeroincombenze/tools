@@ -15,7 +15,7 @@ except ValueError:
     import z0testlib
     z0test = z0testlib.Z0test()
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 
 
 def version():

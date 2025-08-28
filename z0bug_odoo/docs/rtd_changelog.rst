@@ -5,6 +5,11 @@ ChangeLog History
 =================
 
 
+2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
 2.0.22 (2025-03-21)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -180,11 +185,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] Crash in travis
-
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
 
 |
 |

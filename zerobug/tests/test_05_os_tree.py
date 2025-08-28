@@ -38,29 +38,26 @@ def version():
 
 
 class RegressionTest:
-    # def __init__(self, z0bug):
-    #     # self.Z = z0bug
-    #     z0bug.inherit_cls(self)
 
     def test_01(self):
         res = False
-        if not self.Z.dry_run:
-            self.root = self.Z.build_os_tree(self.os_tree)
+        # if not self.Z.dry_run:
+        self.root = self.build_os_tree(self.os_tree)
         for path in self.os_tree:
-            if not self.Z.dry_run:
-                path = os.path.join(self.root, path)
-                res = os.path.isdir(path)
-            self.assertTrue(res, msg_info='mkdir %s')
+            # if not self.Z.dry_run:
+            path = os.path.join(self.root, path)
+            res = os.path.isdir(path)
+            self.assertTrue(res, msg_info='mkdir %s' % path)
 
     def test_09(self):
         res = False
-        if not self.Z.dry_run:
-            self.Z.remove_os_tree(self.os_tree)
+        # if not self.Z.dry_run:
+        self.remove_os_tree(self.os_tree)
         for path in self.os_tree:
-            if not self.Z.dry_run:
-                path = os.path.join(self.root, path)
-                res = os.path.isdir(path)
-            self.assertFalse(res, msg_info='rmdir %s')
+            # if not self.Z.dry_run:
+            path = os.path.join(self.root, path)
+            res = os.path.isdir(path)
+            self.assertFalse(res, msg_info='rmdir %s' % path)
 
     def setup(self):
         self.os_tree = [

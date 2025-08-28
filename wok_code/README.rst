@@ -1,5 +1,5 @@
 ===============
-wok_code 2.0.21
+wok_code 2.0.22
 ===============
 
 
@@ -32,7 +32,7 @@ Usage
 
 ::
 
-    usage: please.py [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
+    usage: please [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
     
     Zeroincombenze® developer shell.
     obj after action may be on of apache, cwd, python, z0bug, zerobug, travis
@@ -185,14 +185,23 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.21 (2025-05-03)
+2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] arcangelo became a pypi package
+* [FIX] No crash if invalid modules declaration
+* [FIX] License declaration compatible with pypi
+
+2.0.22 (2025-05-31)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] arcangelo: sometimes wrong format .rst files
+* [FIX] please translate: new algorithm
 * [FIX] lint_2_compare: minor bug fixing
 * [IMP] lint_2_compare: automatic detecting version from source path
+* [IMP] run_odoo_debug: new -A switch
 * [IMP] deploy_odoo: minor improvements
-* [UPD] Esteem qualty rate: new algorithm
+* [UPD] Esteem quality rate: new algorithm
 
 2.0.21 (2025-04-26)
 ~~~~~~~~~~~~~~~~~~~
@@ -427,12 +436,6 @@ ChangeLog History
 
 * [IMP] stable version
 
-2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New lint_2_compare command
-* [IMP] odoo_dependecies.py: minor upgrade
-
 
 
 Credits
@@ -470,10 +473,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.21/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.21/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -11,7 +11,7 @@
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
-# Based on template 2.0.21
+# Based on template 2.0.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -50,7 +50,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.21
+__version__=2.0.22
 
 # main
 OPTOPTS=(h        C         c        D        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
@@ -372,14 +372,14 @@ fi
 [[ ! -d $LGITPATH ]] && echo "Destination path $LGITPATH not found!" && exit $STS_FAILED
 robocopy_init "$PRJNAME" "$PKGNAME"
 if [[ $opt_fetch -eq 0 ]]; then
-  [[ $PKGNAME != "tools" ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
-  [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
+  # [[ $PKGNAME != "tools" ]] && run_traced "cp $PKGPATH/setup.py $PRJPATH/scripts/setup.info"
+  # [[ -f $PRJPATH/setup.py && -f $PRJPATH/scripts/setup.info ]] &&  run_traced "rm -f $PRJPATH/setup.py"
   [[ -x $PRJPATH/replace.sh ]] && run_traced "$PRJPATH/replace.sh"
   [[ ! -x $PRJPATH/replace.sh ]] && robocopy "$PRJPATH" "$LGITPATH"
   if [[ $PKGNAME != "tools" ]]; then
     [[ -f $PKGPATH/setup.py ]] &&  run_traced "cp $PKGPATH/setup.py $LGITPATH/setup.py"
     [[ -f $PKGPATH/README.rst ]] &&  run_traced "cp $PKGPATH/README.rst $LGITPATH/README.rst"
-    [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
+    # [[ -f "$PRJPATH/scripts/setup.info" ]] &&  run_traced "cp $PRJPATH/scripts/setup.info $LGITPATH/scripts/setup.info"
   fi
 fi
 exit $STS_SUCCESS

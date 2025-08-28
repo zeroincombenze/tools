@@ -3,22 +3,24 @@ from setuptools import find_packages, setup
 
 setup(
     name="odoo_score",
-    version="2.0.10",
+    version="2.0.11",
     description="Odoo super core",
-    long_description='''
+    long_description="""
 Odoo supercore
 
 odoo_score is a library that extends the odoo orm functionality
 and makes available a simple odoo shell.
-''',
+""",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -32,11 +34,11 @@ and makes available a simple odoo shell.
     },
     author="Antonio Maria Vigliotti",
     author_email="antoniomaria.vigliotti@gmail.com",
-    license="Affero GPL",
+    license="GPL-3.0-or-later",
     install_requires=["z0lib>=2.0.11", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={"": [
-        "scripts/setup.info",
+        # "scripts/setup.info",
         "./set_workers",
         "./odooctl",
     ]},
@@ -49,4 +51,3 @@ and makes available a simple odoo shell.
     },
     zip_safe=False,
 )
-

@@ -5,12 +5,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Code documentation &#8212; zerobug 2.0.18 documentation</title>
+    <title>Code documentation &#8212; zerobug 2.0.19 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/jquery.js?v=5d32c60e"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="_static/documentation_options.js?v=6e5bfe50"></script>
+    <script src="_static/documentation_options.js?v=ca237a49"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="rtd_usage_code_reference.html" title="Digest of code_reference"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.19 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Code documentation</a></li> 
       </ul>
     </div>  
@@ -240,22 +240,39 @@ FILE: pathfile to execute to match version (macro expanded)</p>
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.build_odoo_env">
 <span class="sig-name descname"><span class="pre">build_odoo_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.build_odoo_env" title="Link to this definition"></a></dt>
 <dd><p>Build a simplified Odoo directory tree
-version: 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1
+version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1
 name: name of odoo dir (default equal to version)
 hierarchy: flat,tree,server (def=flat)</p>
-<p># Old version had the following signature: build_odoo_env(self, ctx, version)
-# Now param ctx is deprecated, so we have to analyze parameters</p>
+<p>Old version had the following signature: build_odoo_env(self, ctx, version)
+Now param ctx is deprecated, so we have to analyze parameters</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.create_module">
-<span class="sig-name descname"><span class="pre">create_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moduletype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependencies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_module" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">create_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_module" title="Link to this definition"></a></dt>
+<dd><p>Build a simplified Odoo module
+version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1</p>
+<dl class="simple">
+<dt>Old version had the following signature:</dt><dd><dl class="simple">
+<dt>create_module(self, ctx, repo_root, name, version,</dt><dd><p>moduletype=None, dependencies=None)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Now param ctx is deprecated, so we have to analyze parameters</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.create_repo">
-<span class="sig-name descname"><span class="pre">create_repo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reponame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repotype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_repo" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">create_repo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#zerobug.z0testlib.Z0testOdoo.create_repo" title="Link to this definition"></a></dt>
+<dd><p>Build a simplified Odoo repository
+version: 18.0, 17.0, 16.0, 15.0, 14.0, 13.0, …, 7.0, 6.1</p>
+<dl class="simple">
+<dt>Old version had the following signature:</dt><dd><p>create_repo(self, ctx, root, reponame, version, name=None, repotype=None)</p>
+</dd>
+</dl>
+<p>Now param ctx is deprecated, so we have to analyze parameters</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="zerobug.z0testlib.Z0testOdoo.get_local_odoo_path">
@@ -408,7 +425,7 @@ git clone or wget from web.</p>
         <li class="right" >
           <a href="rtd_usage_code_reference.html" title="Digest of code_reference"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">zerobug 2.0.19 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Code documentation</a></li> 
       </ul>
     </div>

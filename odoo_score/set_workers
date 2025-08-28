@@ -2,7 +2,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2018-2024 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2018-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -39,7 +39,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.10
+__version__=2.0.11
 
 OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          t         V           v)
 OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_ltime opt_version opt_verbose)
@@ -73,7 +73,7 @@ fi
 [[ $opt_verbose -eq -1 ]] && opt_verbose=1
 if [[ $opt_help -gt 0 ]]; then
   print_help "Update Odoo configuration file to best performance"\
-  "(C) 2018-2024 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2018-2025 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 # discover_multi
@@ -136,23 +136,23 @@ odoo_majver=$(echo $opt_branch|grep -Eo "[0-9]+"|head -n1)
 if [[ $odoo_majver -gt 14 ]]; then
   MEM4HWRKS=2560
   MEM4SWRKS=2048
+elif [[ $odoo_majver -gt 12 ]]; then
+  MEM4HWRKS=2176
+  MEM4SWRKS=1860
 elif [[ $odoo_majver -gt 10 ]]; then
   MEM4HWRKS=1792
   MEM4SWRKS=1240
 elif [[ $odoo_majver -ge 6 ]]; then
   MEM4HWRKS=768
   MEM4SWRKS=640
-else
-  MEM4HWRKS=2560
-  MEM4SWRKS=2048
 fi
-if [[ $opt_sparse -ne 0 ]]; then
-  ((MEM4HWRKS=MEM4HWRKS*8/10))
-  ((MEM4SWRKS=MEM4SWRKS*7/10))
-elif [[ $opt_huge -eq 0 ]]; then
-  ((MEM4HWRKS=MEM4HWRKS*13/10))
-  ((MEM4SWRKS=MEM4SWRKS*12/10))
-fi
+#if [[ $opt_sparse -ne 0 ]]; then
+#  ((MEM4HWRKS=MEM4HWRKS*8/10))
+#  ((MEM4SWRKS=MEM4SWRKS*7/10))
+#elif [[ $opt_huge -eq 0 ]]; then
+#  ((MEM4HWRKS=MEM4HWRKS*13/10))
+#  ((MEM4SWRKS=MEM4SWRKS*12/10))
+#fi
 
 # -------------------------------------------------------------------------------
 # Read current values
@@ -182,7 +182,7 @@ MAX_MEM=$CUR_MEM
 PSQL_MEM=0
 [[ $opt_nopsql -eq 0 ]] && ((PSQL_MEM=(CUR_MEM*3)/4)) && ((CUR_MEM=CUR_MEM/2))
 # Developer host, multiprocess running, cut available memory size
-[[ $opt_sparse -ne 0 || $opt_multi -ne 0 ]] && ((CUR_MEM=CUR_MEM*2/3)) && STS_MEM="$STS_MEM Odoo multi-instance"
+[[ $opt_sparse -ne 0 || $opt_multi -ne 0 ]] && ((CUR_MEM=CUR_MEM*3/4)) && STS_MEM="$STS_MEM Odoo multi-instance"
 
 # Get # of workers
 [[ $no_workers -ne 0 ]] && STS_WRKS="No workers configuration" || STS_WRKS=""
@@ -282,7 +282,6 @@ WK_VWRKS=$WK_WRKS
 
 ((WK_HLIMIT=WK_VWRKS*MEM4HWRKS))
 ((WK_SLIMIT=WK_VWRKS*MEM4SWRKS))
-echo "$WK_HLIMIT > $CUR_MEM"   #debug
 if [[ $WK_HLIMIT -gt $CUR_MEM ]]; then
   WK_HLIMIT=$MEM4HWRKS
   WK_SLIMIT=$MEM4SWRKS

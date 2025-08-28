@@ -1,3 +1,10 @@
+2.0.11 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+* [IMP] Python 3.10
+* [IMP] Odoo 18.0
+
 2.0.10 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~
 
