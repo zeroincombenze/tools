@@ -32,7 +32,7 @@ else:
         [
             "future",
             "coverage",
-            "pylint-odoo<=3.5.0",
+            "pylint-odoo<=3.10.0",
             "python-magic",
             "python-plus",
             "z0lib>=2.0.14",
@@ -41,7 +41,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.19",
+    version="2.0.20",
     description="Zeroincombenze continuous testing framework"
     " and tools for python and bash programs",
     long_description=long_description,
@@ -53,6 +53,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -72,7 +74,6 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={
         "": [
-            # "scripts/setup.info",
             "./z0testrc",
             "_travis/*",
             "_travis/cfg/*",
@@ -80,14 +81,14 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "zerobug-info = zerobug.scripts.main:main",
-            # "travis_after_tests_success = zerobug._travis.travis_after_tests_success:main",
+            "zerobug-info = zerobug.scripts.main:internal_main",
+            # "travis_after_tests_success
+            # = zerobug._travis.travis_after_tests_success:main",
             # "travis_install_env = zerobug.scripts.travis_install_env:main",
             # "travis_run_pypi_tests = zerobug.scripts.travis_run_pypi_tests:main",
             # "zerobug = zerobug.scripts:main",
-            "zerobug = zerobug.zerobug:main",
+            "zerobug = zerobug.__main__:main",
         ]
     },
     zip_safe=False,
 )
-

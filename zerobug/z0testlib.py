@@ -13,7 +13,6 @@ import glob
 import shutil
 import stat
 import subprocess
-# from subprocess import PIPE, Popen
 import re
 
 from string import Template
@@ -27,8 +26,9 @@ import magic
 
 from z0lib import z0lib
 from python_plus import _c, str2bool
+# from .scripts.main import main as internal_main
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 # return code
 TEST_FAILED = 1
