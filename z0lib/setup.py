@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.15",
+    version="2.0.17",
     description="Bash zeroincombenze lib",
     long_description=long_description,
     classifiers=[
@@ -28,7 +28,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -47,9 +48,6 @@ setup(
     install_requires=["configparser", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={"": ["./xuname", "./z0librc"]},
-    entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:main"]},
+    entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:internal_main"]},
     zip_safe=False,
 )
-
-
-

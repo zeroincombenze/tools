@@ -1,3 +1,8 @@
+2.0.17 (2025-08-29)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime is_pypi fails inside travis emulator
+
 2.0.16 (2025-08-28)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -5,6 +10,7 @@
 * [FIX] License declaration compatible with pypi
 * [IMP] python 3.11 is certificated programming language
 * [FIX] print_flush
+* [QUA] Test coverage 71% (380: 110+270) [0 TestPoints] - quality rating 41 (target 100)
 
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~

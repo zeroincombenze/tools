@@ -1,0 +1,54 @@
+# Config file .coveragerc 2022-04-07
+[run]
+
+data_file=/home/odoo/devel/pypi/z0lib/z0lib/tests/logs/.z0lib_310_coverage
+
+# to avoid being overridden by server tests
+omit = *system_site_packages*, *site-packages*, *virtualenv*, *venv_odoo*
+
+[report]
+include =
+#    ${TRAVIS_BUILD_DIR}/*
+#    *.py
+    /home/odoo/VENV_677000/build/local/z0lib/*
+
+omit =
+    */scenario/*
+    */scenarios/*
+    */test/*
+    */tests/*
+    *_example/*
+    __main__.py
+    setup.py
+    */site-packages/*
+    */lib/python*/*
+    */lib64/python*/*
+    */venv_odoo/*
+    */__init__.py
+    */__openerp__.py
+    */__manifest__.py
+    */_check4deps_.py
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about null context checking
+    if context is None:
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+    # We don't really care what happens if fail
+    except ImportError:
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == .__main__.:
+    if 0:
+    if False:
+
+    # Ignore unit test failure
+    return TEST_FAILED
