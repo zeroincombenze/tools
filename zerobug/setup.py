@@ -41,7 +41,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.19",
+    version="2.0.20",
     description="Zeroincombenze continuous testing framework"
     " and tools for python and bash programs",
     long_description=long_description,

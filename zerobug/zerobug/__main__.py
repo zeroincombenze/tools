@@ -8,7 +8,7 @@
 import sys
 from zerobug import z0test, internal_main
 
-__version__ = "2.0.19"
+__version__ = "2.0.20"
 
 
 def version():
