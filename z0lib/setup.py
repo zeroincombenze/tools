@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.16",
+    version="2.0.17",
     description="Bash zeroincombenze lib",
     long_description=long_description,
     classifiers=[
