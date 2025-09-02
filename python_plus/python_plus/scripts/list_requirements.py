@@ -473,6 +473,7 @@ PIP2_TEST_PACKAGES = [
     "PyWebDAV",
     "PyYAML",
     "QUnitSuite",
+    "requests",
     "restructuredtext_lint",
     "rfc3986",
     "setuptools",

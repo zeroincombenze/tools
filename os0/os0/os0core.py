@@ -254,14 +254,14 @@ class Os0:
             i = fn.rfind('.')
             if i >= 0:
                 left = fn[0:i].replace('.', "^.")
-                right = fn[i + 1 :]
+                right = fn[i + 1:]
                 fn = left + '.' + right
             filename = p + fn
         else:
             i = filename.rfind('.')
             if i >= 0:
                 left = filename[0:i].replace('.', "^.")
-                right = filename[i + 1 :]
+                right = filename[i + 1:]
                 filename = left + '.' + right
         if cnv_type == self.LFN_EXE:
             if filename[0:-4] != ".exe" and filename[0:-4] != ".EXE":
@@ -319,19 +319,17 @@ class Os0:
         @new:             if True, create a new empty tracelog file
         @echo:            echo message onto console
         """
-        # import pdb
-        # pdb.set_trace()
         if self.fh:
             self.fh.flush()
             self.fh.close()
             if hasattr(self, '_logger'):
-                self._logger.removeHandler(self.fh)
+                self._logger.removeHandler(self.fh)  # pylint: disable=E0203
             self.fh = None
         if self.ch:
             self.ch.flush()
             self.ch.close()
             if hasattr(self, '_logger'):
-                self._logger.removeHandler(self.ch)
+                self._logger.removeHandler(self.ch)  # pylint: disable=E0203
             self.ch = None
         self.tlog_fn = file_log
         self._logger = logging.getLogger(__name__)

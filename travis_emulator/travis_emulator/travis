@@ -843,7 +843,8 @@ process_yaml() {
       if [[ ! -f $TRAVIS_YAML_FILE ]]; then
           # [[ ! -d $HOME/tmp ]] && mkdir $HOME/tmp
           export TRAVIS_YAML_FILE=$LOGDIR/${UDI}_travis.yml
-          mk_travis_conf=$(readlink -e $TDIR/make_travis_conf.py)
+          # mk_travis_conf=$(readlink -e $TDIR/make_travis_conf.py)
+          mk_travis_conf=$(readlink -e $(dirname $ME)/make_travis_conf.py)
           # [[ -z $mk_travis_conf ]] && mk_travis_conf=$(find $PYPATH -name make_travis_conf.py|head -n1)
           export TRAVIS_YAML_ORIG=$(find $PYPATH -name template_travis.yml|head -n1)
           python $mk_travis_conf "$TRAVIS_YAML_ORIG" "$TRAVIS_YAML_FILE"

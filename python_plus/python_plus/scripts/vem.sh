@@ -190,6 +190,10 @@ get_local_version() {
         pushd $1 >/dev/null
         x=$(python ./setup.py --version)
         popd >/dev/null
+      elif [[ -f $1/../setup.py ]]; then
+        pushd $(dirname $1) >/dev/null
+        x=$(python ./setup.py --version)
+        popd >/dev/null
       fi
       if [[ -z $x && $(readlink -f $1) =~ /site-packages/ ]]; then
         # binary
@@ -544,7 +548,6 @@ pip_install() {
         [[ $opt_verbose -ge 2 ]] && x="-v"
         srcdir=$(pip_install_wget $pkgpath $x)
       fi
-      # set -x  #debug
       [[ -z $srcdir && -d $pkgpath ]] && srcdir="$pkgpath"
       if [[ -z $srcdir ]]; then
         if [[ $opt_debug -ne 0 ]]; then
@@ -644,8 +647,6 @@ pip_install() {
       [[ $sts -eq 0 ]] && x=$(which ${pkg}-info) && [[ -x $x ]] && run_traced "${pkg}-info --copy-pkg-data"
       [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
     fi
-    # set +x  #debug
-    # read -p "Press RET ..."   #debug
     return $sts
 }
 

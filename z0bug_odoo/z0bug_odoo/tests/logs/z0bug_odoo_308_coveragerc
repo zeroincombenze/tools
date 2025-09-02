@@ -1,7 +1,7 @@
 # Config file .coveragerc 2022-04-07
 [run]
 
-data_file=/home/odoo/devel/pypi/python_plus/python_plus/tests/logs/.python_plus_307_coverage
+data_file=/home/odoo/devel/pypi/z0bug_odoo/z0bug_odoo/tests/logs/.z0bug_odoo_308_coverage
 
 # to avoid being overridden by server tests
 omit = *system_site_packages*, *site-packages*, *virtualenv*, *venv_odoo*
@@ -10,7 +10,7 @@ omit = *system_site_packages*, *site-packages*, *virtualenv*, *venv_odoo*
 include =
 #    ${TRAVIS_BUILD_DIR}/*
 #    *.py
-    /home/odoo/VENV_2699159/build/local/python_plus/*
+    /home/odoo/VENV_3649866/build/local/z0bug_odoo/*
 
 omit =
     */scenario/*
