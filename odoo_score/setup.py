@@ -44,9 +44,10 @@ and makes available a simple odoo shell.
     ]},
     entry_points={
         "console_scripts": [
-            "odoo_score-info = odoo_score.scripts.main:main",
+            "odoo_score-info = odoo_score.scripts.main:internal_main",
             "odoo_shell.py = odoo_score.odoo_shell:main",
             "rename_odoo_module = odoo_score.scripts.rename_odoo_module:main",
+            "odoo_score = odoo_score.__main__:main",
         ]
     },
     zip_safe=False,

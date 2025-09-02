@@ -124,7 +124,7 @@ SUPPL_PARAMS = [
     "user"
 ]
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 
 class Clodoo(object):
@@ -137,6 +137,9 @@ class Clodoo(object):
         ctr = 0
         matched = False
         for ix in range(15):
+            if ix >= len(stack):
+                ix = len(stack) - 1
+                break
             if os.path.basename(stack[ix][1]).startswith("clodoo"):
                 matched = True
                 continue

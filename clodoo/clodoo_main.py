@@ -183,8 +183,6 @@ from past.builtins import basestring
 #     except ImportError:
 #         raise ImportError("Package oerplib3 not found!")
 
-# from passlib.context import CryptContext
-# from os0 import os0
 from python_plus import _c, _u, str2bool
 
 try:
@@ -294,7 +292,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -339,7 +337,7 @@ def print_hdr_msg(ctx):
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
     msg = "Configuration from"
-    for f in ctx.get('confns'):
+    for f in ctx.get('conf_fns'):
         msg = msg + ' ' + f
     msg_log(ctx, ctx['level'], msg)
 
@@ -409,7 +407,7 @@ def oerp_set_env(
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
-    if ctx["user"] and hasattr(ctx["user"], "id"):
+    if ctx.get("user") and hasattr(ctx["user"], "id"):
         lgiuser = ctx["user"]
     else:
         lgiuser = do_login(ctx)
@@ -2310,7 +2308,7 @@ def check_4_actions(ctx):
     return valid_actions
 
 
-def main(cli_args=[]):
+def clodoo_main(cli_args=[]):
     if not cli_args:
         cli_args = sys.argv[1:]
     sts = STS_SUCCESS
@@ -2375,7 +2373,3 @@ def main(cli_args=[]):
         msg = "###??? Last operation FAILED!!! ###???"
     msg_log(ctx, ctx['level'], msg)
     return sts
-
-
-if __name__ == "__main__":
-    exit(main())

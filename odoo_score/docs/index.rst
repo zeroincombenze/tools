@@ -1,5 +1,5 @@
 .. odoo_score documentation master file, created by
-   gen_readme.py on 2025-08-28 15:58:12
+   gen_readme.py on 2025-09-01 08:23:44
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
