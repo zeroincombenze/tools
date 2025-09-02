@@ -12,15 +12,12 @@
 import os
 import sys
 
-# import time
 from configparser import ConfigParser
-
-# from datetime import datetime
 
 from zerobug import z0test
 import oerplib3
 
-__version__ = "0.8.4"
+__version__ = "1.0.0"
 
 ODOO_VERSION_TO_TEST = ("7.0", "8.0")
 
@@ -40,10 +37,8 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
 
-    def setup(self, z0ctx):
+    def setup(self):
         print("Connection test: it works only if odoo instances are running!")
         self.test_data_dir = os.path.join(self.Z.testdir, 'res')
         if not os.path.isdir(self.test_data_dir):
@@ -53,6 +48,8 @@ class RegressionTest:
             os.path.join(os.path.dirname(__file__), 'default-odoo.conf')
         )
         config.read(default_confn)
+        if not config.has_section("options"):
+            config.add_section("options")
         self.version_ctx = {}
         self.version_default = {}
         for odoo_version in ODOO_VERSION_TO_TEST:
@@ -101,11 +98,11 @@ class RegressionTest:
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             confn = os.path.join(self.test_data_dir, 'odoo%s.conf' % odoo_major)
-            if not z0ctx.get('dry_run', False):
-                config = ConfigParser()
-                config["options"] = {}
-                config["options"].update(self.version_default[odoo_version])
-                config.write(open(confn, "w"))
+
+            config = ConfigParser()
+            config["options"] = {}
+            config["options"].update(self.version_default[odoo_version])
+            config.write(open(confn, "w"))
             self.odoo_cnx = oerplib3.OERP(
                 server=self.version_default[odoo_version]["db_host"],
                 protocol=self.version_default[odoo_version]["svc_protocol"],

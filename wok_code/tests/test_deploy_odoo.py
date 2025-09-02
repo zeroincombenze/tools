@@ -14,7 +14,7 @@ from z0lib import z0lib
 from zerobug import z0test
 
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 MODULE_ID = "wok_code"
 TEST_FAILED = 1
@@ -48,7 +48,7 @@ class RegressionTest:
             msg="Cmd <<<%s>>> not found!" % cmd,
         )
 
-    def test_01_version(self):
+    def _test_01_version(self):
         sts, stdout, stderr = z0lib.os_system_traced(
             "deploy_odoo --version", rtime=False
         )

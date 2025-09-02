@@ -63,7 +63,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 KNOWN_ACTIONS = [
     "help",
@@ -355,6 +355,12 @@ class Please(object):
                 dest="verbose",
                 help="silent mode",
             )
+        elif arg in ("-R", "--read-only"):
+            parser.add_argument(
+                "-R",
+                "--read-only",
+                action="store_true",
+            )
         elif arg in ("-v", "--verbose"):
             parser.add_argument(
                 "-v", "--verbose", help="verbose mode", action="count", default=1
@@ -573,21 +579,27 @@ class Please(object):
             tools_path = self.get_home_tools()
         return tools_path
 
-    def is_pypi_pkg(self, path=None):
+    def get_pkgname(self, path=None):
         path = path or os.getcwd()
         pkgname = pth.basename(path)
         while pkgname in (
             "tests",
             "travis",
-            "_travis",
+            # "_travis",
             "docs",
             "examples",
             "egg-info",
             "junk",
             "scripts",
-        ):
+            "setup",
+            "openupgrade",
+        ) or pkgname.startswith((".", "_")):
             path = pth.dirname(path)
             pkgname = pth.basename(path)
+        return path, pkgname
+
+    def is_pypi_pkg(self, path=None):
+        path, pkgname = self.get_pkgname(path=path)
         pkgpath = self.get_home_pypi_pkg(pkgname)
         root = pkgpath if pkgname == "tools" else pth.dirname(pkgpath)
         pkgpath2 = self.get_home_tools_pkg(pkgname)
@@ -773,9 +785,14 @@ class Please(object):
             )
             stash_list = stdout
         else:
-            if self.path_is_ocb(os.getcwd()):
+            if self.is_repo_ocb(os.getcwd()):
                 url = "https://github.com/odoo/odoo.git"
+                sts = 0
             else:
+                pkg = os.path.basename(os.getcwd())
+                if sts == 128 and pkg == "test_module":
+                    # Regression test
+                    sts = 0
                 url = "https://github.com/OCA/%s.git" % os.path.basename(os.getcwd())
         return sts, url, upstream, stash_list
 
@@ -814,9 +831,17 @@ class Please(object):
             return "2.0.0"
         return stdout.split("\n")[0].strip()
 
-    def get_logdir(self, path=None):
-        path = path or os.getcwd()
-        return pth.join(path, "tests", "logs")
+    def get_pypi_valid(self, fqn):
+        info_path = pth.join(fqn, pth.basename(fqn), "egg-info")
+        if not pth.isdir(info_path):
+            return False
+        manifest_path = pth.join(info_path, "__manifest__.rst")
+        try:
+            with open(manifest_path, RMODE) as fd:
+                contents = fd.read()
+        except (ImportError, IOError, SyntaxError):
+            contents = ""
+        return ".. $set no_pypi 1" not in contents
 
     def get_pypi_list(self, path=None, act_tools=True):
         path = path or (
@@ -832,7 +857,7 @@ class Please(object):
                     continue
                 if not pth.isdir(fqn):
                     continue
-                if self.is_pypi_pkg(path=fqn):
+                if self.is_pypi_pkg(path=fqn) and self.get_pypi_valid(fqn):
                     pypi_list.append(fn)
         return sorted(pypi_list)
 
@@ -862,7 +887,26 @@ class Please(object):
         cmd += " " + (params or self.sh_subcmd)
         return cmd
 
-    def get_fqn_log(self, what=None, path=None):
+    def get_uniqid(self, path=None, git_org=None, read_only=False):
+        # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
+        # UMLI (Unique Module Log Identifier):
+        #     format "{git_org}{major_version}.{repos}.{pkgname}"
+        path, pkgname = self.get_pkgname(path=path)
+        git_org = git_org or "zero"
+        repos = "tools"
+        # TODO>
+        udi = pkgname
+        umli = git_org + "." + repos + "." + pkgname + ".log"
+        return udi, umli
+
+    def get_logdir(self, path=None, git_org=None, read_only=False):
+        if read_only:
+            return pth.abspath(pth.join(pth.expanduser("~/travis_log")))
+        path = path or os.getcwd()
+        return pth.abspath(pth.join(path, "tests", "logs"))
+
+    def get_fqn_log(
+            self, what=None, path=None, git_org=None, version=None, read_only=False):
         """Get fqn of logfile
         @what:  "sts" for log directories (0=exist, 3=missing)
                 "cmd" for fqn show command
@@ -870,7 +914,9 @@ class Please(object):
                 "contents" for log filename content
         """
         what = what or "fqn"
-        fqn_logdir = self.get_logdir(path=path)
+        fqn_logdir = self.get_logdir(path=path, git_org=git_org, read_only=read_only)
+        if read_only and not pth.isdir(fqn_logdir):
+            os.mkdir(fqn_logdir)
         if not pth.isdir(pth.dirname(fqn_logdir)):
             self.log_warning(
                 "Module %s w/o regression test!"
@@ -885,20 +931,16 @@ class Please(object):
             return 3 if what == "sts" else ""
         if what == "sts":
             return 0
-        fqn = pth.join(fqn_logdir, "show-log.sh")
-        if not pth.isfile(fqn):
-            self.log_error("Command %s not found!" % fqn)
-            return ""
-        if what == "cmd":
-            return fqn
-        contents = ""
-        with open(fqn, RMODE) as fd:
-            contents = fd.read()
         log_fqn = ""
-        for ln in contents.split("\n"):
-            if ln.startswith("less"):
-                log_fqn = pth.join(fqn_logdir, ln.split("/")[-1])
+        rex = (
+            r"[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log" if not version
+            else r"_%s-[0-9]{4}-[0-9]{2}-[0-9]{2}.log" % version)
+        for fn in sorted(os.listdir(fqn_logdir), reverse=True):
+            if re.search(rex, fn):
+                log_fqn = pth.join(fqn_logdir, fn)
                 break
+        if what == "cmd":
+            return ""
         if not log_fqn or not pth.isfile(log_fqn):
             self.log_warning("Test log file %s not found!" % log_fqn)
             return ""
@@ -967,7 +1009,8 @@ class Please(object):
             self.log_warning("Changelog history file not found!")
             return 3
         sts = self.chain_python_cmd(
-            "arcangelo.py", [changelog_fqn, "-i", '--test-res-msg="%s"' % test_cov_msg]
+            "arcangelo.py", [pth.abspath(changelog_fqn),
+                             "-i", '--test-res-msg="%s"' % test_cov_msg]
         )
         return sts
 

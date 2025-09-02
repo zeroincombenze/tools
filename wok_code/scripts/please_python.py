@@ -16,7 +16,7 @@ else:
         os.system("python -m pip install distro")
 
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 
 class PleasePython(object):
@@ -103,7 +103,8 @@ BUGS
         if not pth.isfile(cmd):
             print("Internal package error: file %s not found!" % cmd)
             return 127
-        valid_odoo_vers = ("2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11")
+        valid_odoo_vers = (
+            "2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12")
         if please.opt_args.python not in valid_odoo_vers:
             print("You must specify the python version: %s" % ",".join(valid_odoo_vers))
             return 1

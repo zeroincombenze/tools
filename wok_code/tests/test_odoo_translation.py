@@ -11,7 +11,7 @@ import sys
 from z0lib import z0lib
 from zerobug import z0test, z0testodoo
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 TEST_FAILED = 1
 TEST_SUCCESS = 0

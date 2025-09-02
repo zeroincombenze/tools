@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# template 25
+# template 26
 """
 Travis emulator can emulate TravisCi parsing the **.travis.yml** file in
 local Linux machine and it is osx/darwin compatible.
@@ -43,11 +43,11 @@ import os.path as pth
 import sys
 
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 
 PKG_FILES = (
     "bck_filestore.sh",
-    "clodoo",
+    # "clodoo",
     "force_password.sh",
     "odooctl",
     "odoorc",
@@ -74,11 +74,11 @@ BIN_FILES = (
 
 
 def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
-    if base == "clodoo":
-        fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, "odoorc")
-        if fn:
-            fn = pth.dirname(fn)
-        return fn
+    # if base == "clodoo":
+    #     fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, "odoorc")
+    #     if fn:
+    #         fn = pth.dirname(fn)
+    #     return fn
     fn = pth.abspath(pth.join(
         pypi_metadata["libpath"],
         pkg_resources.resource_filename(pypi, base)))
@@ -88,11 +88,11 @@ def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
 
 
 def get_fn_from_base_3(metadata, pypi, base):
-    if base == "clodoo":
-        fn = get_fn_from_base_3(metadata, pypi, "odoorc")
-        if fn:
-            fn = pth.dirname(fn)
-        return fn
+    # if base == "clodoo":
+    #     fn = get_fn_from_base_3(metadata, pypi, "odoorc")
+    #     if fn:
+    #         fn = pth.dirname(fn)
+    #     return fn
     fn = ""
     util = [p for p in metadata.files(pypi) if pth.basename(str(p)) == base]
     if util:
@@ -180,7 +180,7 @@ def copy_pkg_data(pypi_metadata, verbose):  # pragma: no cover
         os.system("chmod +x %s" % fqn)
 
 
-def main(cli_args=None):  # pragma: no cover
+def internal_main(cli_args=None):  # pragma: no cover
     if not cli_args:
         cli_args = sys.argv[1:]
     action = "-H"
@@ -190,11 +190,12 @@ def main(cli_args=None):  # pragma: no cover
             action = arg
         elif arg == "-v":
             verbose = True
+        elif arg == "-q":
+            verbose = False
     pypi_metadata = get_metadata()
     if action == "-h":
         print(
             "%s [-h][-H][--help][-V][--version][-C][--copy-pkg-data]"
-            # % setup_args["name"]
             % pypi_metadata["name"]
         )
     elif action in ("-V", "--version"):

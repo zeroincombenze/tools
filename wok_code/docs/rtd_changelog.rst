@@ -9,6 +9,10 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] arcangelo became a pypi package
+* [IMP] please install python: now can install python 3.12
+* [FIX] please version does not add line at the end of file
+* [FIX] please: best recognition of read-only repositories
+* [FIX] please test: check on templates to use
 * [FIX] No crash if invalid modules declaration
 * [FIX] License declaration compatible with pypi
 

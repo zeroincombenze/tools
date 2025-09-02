@@ -18,7 +18,7 @@ if sys.version_info[0] == 2:
 else:
     from urllib.request import urlopen as urlopen
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 
 ODOO_BRANCHES = (

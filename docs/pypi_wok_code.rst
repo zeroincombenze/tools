@@ -311,7 +311,7 @@ Currently, follows symbols are recognized:
 
 ::
 
-    usage: please.py [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
+    usage: please [-h] [-H PATH] [-n] [-Q FILE] [-q] [-v] [-V] [action]
     
     Zeroincombenze® developer shell.
     obj after action may be on of apache, cwd, python, z0bug, zerobug, travis

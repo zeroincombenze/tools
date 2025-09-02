@@ -1,8 +1,12 @@
 RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
-[[ -z $HOME_DEVEL ]] && HOME_DEVEL=~/devel
+ME=$(readlink -e $0)
+x=$(echo $ME | awk -F "/venv/" '{ print $1}')
+[[ -n $x ]] && HOME_DEVEL="$x"
+[[ -z $HOME_DEVEL ]] && HOME_DEVEL=$HOME/devel
 LOCAL_VENV="$HOME_DEVEL/venv"
+[[ ! -d $LOCAL_VENV ]] && echo -e "${RED}Path $LOCAL_VENV not found!${CLR}" && exit 1
 BINPATH="$LOCAL_VENV/bin"
 if [[ -n "$2" && -x "$2" ]]; then
     # Execution inside install_tools.sh
@@ -47,7 +51,7 @@ for pkg in odoorc odoo_dependencies.py zerobug; do
     if_standalone && echo "Testing file $pkg .."
     [[ ! -f $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit 1
 done
-for pkg in cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
+for pkg in cvt_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
     [[ ( $1 =~ ^-.*t || $PYVER -eq 2 ) && $pkg =~ ^(black|odooctl|pre-commit)$ ]] && continue
     if_inside && echo -n "."
     if_standalone && echo "Testing $pkg --version .."

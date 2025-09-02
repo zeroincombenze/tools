@@ -191,7 +191,7 @@ Travis emulator usage
                           file yaml to process (def .travis.yml)
      -Z --zero            use local zero-tools
     
-    © 2015-2022 by zeroincombenze®
+    © 2015-2025 by zeroincombenze®
     https://zeroincombenze-tools.readthedocs.io/
     Author: antoniomaria.vigliotti@gmail.com
     
@@ -313,6 +313,11 @@ Troubleshooting
 ChangeLog History
 -----------------
 
+2.0.11 (2025-08-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.12 is certificated programming language
+
 2.0.10 (2025-03-22)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -399,12 +404,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] travis: python2 tests
-
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: new improvements (-f -k switches)
 
 
 

@@ -21,7 +21,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -236,10 +236,7 @@ class PleaseCwd(object):
                 or not pth.isfile(pth.join(docdir, "AUTHORS.rst"))
             )
         ):
-            args = self.build_gen_readme_base_args(branch=branch)
-            args.append("-RW")
-            # return please.chain_python_cmd("gen_readme.py", args)
-            return please.os_system(["gen_readme.py", *args])
+            return self.run_gen_readme("-RW", branch=branch)
         return 0
 
     def assure_doc_dirs_pypi(self):
@@ -334,6 +331,16 @@ class PleaseCwd(object):
                     if fn == "it.po":
                         po_list.append(pth.join(root, fn))
         return po_list
+
+    def run_gen_readme(self, args, branch=None):
+        argv = self.build_gen_readme_base_args(branch=branch)
+        argv.insert(0, "gen_readme")
+        if isinstance(args, (list, tuple)):
+            for arg in args:
+                argv.append(arg)
+        else:
+            argv.append(args)
+        return self.please.os_system(argv, rtime=True)
 
     def do_clean(self):
         please = self.please
@@ -669,22 +676,12 @@ class PleaseCwd(object):
                     )
                 else:
                     if repo_name == "marketplace":
-                        args = self.build_gen_readme_base_args(branch=branch)
-                        args.append("-R")
-                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
-                    args = self.build_gen_readme_base_args(branch=branch)
-                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
+                        sts = self.run_gen_readme("-R", branch=branch)
+                    sts = self.run_gen_readme([], branch=branch)
                     if sts == 0:
-                        args.append("-I")
-                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
+                        sts = self.run_gen_readme("-I", branch=branch)
                     if sts == 0 and odoo_major_version <= 7:
-                        args = self.build_gen_readme_base_args(branch=branch)
-                        args.append("-R")
-                        # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                        sts = please.os_system(["gen_readme.py", *args], rtime=True)
+                        sts = self.run_gen_readme("-R", branch=branch)
                 if sts == 0:
                     self.do_clean()
                 return sts
@@ -696,9 +693,7 @@ class PleaseCwd(object):
                 if sts:
                     return sts
                 if not please.opt_args.oca:
-                    args = self.build_gen_readme_base_args(branch=branch)
-                    # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                    sts = please.os_system(["gen_readme.py", *args], rtime=True)
+                    sts = self.run_gen_readme([], branch=branch)
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
@@ -711,13 +706,9 @@ class PleaseCwd(object):
                     "Document template directory %s not found!" % self.docs_dir
                 )
                 return 33 if not self.please.opt_args.dry_run else 0
-            args = self.build_gen_readme_base_args(branch=self.branch)
-            # sts = self.please.chain_python_cmd("gen_readme.py", args, rtime=True)
-            sts = self.please.os_system(["gen_readme.py", *args], rtime=True)
+            sts = self.run_gen_readme([])
             if sts == 0:
-                args.append("-I")
-                # sts = please.chain_python_cmd("gen_readme.py", args, rtime=True)
-                sts = please.os_system(["gen_readme.py", *args], rtime=True)
+                sts = self.run_gen_readme("-I")
             if sts == 0:
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
@@ -725,6 +716,7 @@ class PleaseCwd(object):
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
+            sts = 0             # TODO> Remoe ?
             return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 
@@ -792,16 +784,9 @@ class PleaseCwd(object):
                     target_dir = please.get_logdir(path=target_dir)
                     if pth.isdir(target_dir):
                         shutil.rmtree(target_dir)
-                    args = self.build_gen_readme_base_args(branch=branch)
-                    args.append("-O")
-                    # sts = please.chain_python_cmd("gen_readme.py", args)
-                    sts = please.os_system(["gen_readme.py", *args])
+                    sts = self.run_gen_readme("-O", branch=branch)
                 if sts == 0:
-                    args = self.build_gen_readme_base_args(branch=branch)
-                    args.append("-O")
-                    args.append("-R")
-                    #  sts = please.chain_python_cmd("gen_readme.py", args)
-                    sts = please.os_system(["gen_readme.py", *args])
+                    self.run_gen_readme(["-O", "-R"], branch=branch)
                 if sts == 0:
                     sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -1111,6 +1096,18 @@ class PleaseCwd(object):
             if pkgname != "tools":
                 rex = re.compile(r"[a-z0-9][a-z0-9_.]+$")
                 for root, dirs, files in os.walk(pth.expanduser("~/")):
+                    dirs[:] = [
+                        d
+                        for d in dirs
+                        if (
+                            not d.startswith(".")
+                            and not d.startswith("_")
+                            and not d.endswith("~")
+                            and d
+                            not in ("setup", "venv_odoo", "tests", "addons")
+                            and not os.path.islink(pth.join(root, d))
+                        )
+                    ]
                     for fn in sorted(dirs):
                         if not rex.match(fn):
                             continue
@@ -1199,6 +1196,9 @@ class PleaseCwd(object):
                     do_rewrite = False
                     please.log_error("Error %s reading %s" % (e, fqn))
                 if do_rewrite:
+                    while target.endswith("\n\n"):
+                        target = target[:-2]
+                    target += "\n"
                     if please.opt_args.verbose:
                         print(fqn, "=>", please.opt_args.branch)
                     if not please.opt_args.dry_run:

@@ -3,11 +3,11 @@ from setuptools import find_packages, setup
 
 setup(
     name="travis_emulator",
-    version="2.0.10",
+    version="2.0.11",
     description="Travis CI emulator for local develop environment",
     long_description='''
-Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux machine.
-You can test your application before pushing code to github.com web site.
+Travis emulator can emulate TravisCi parsing the **.travis.yml** file in local Linux
+machine. You can test your application before pushing code to github.com web site.
 
 Travis emulator can creates all the build declared in **.travis.yml**;
 all the builds are executed in sequential way.
@@ -50,6 +50,7 @@ Read furthermore info read `travis-ci phase
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Build Tools",
@@ -77,7 +78,7 @@ Read furthermore info read `travis-ci phase
     entry_points={
         "console_scripts": [
             # "travis = travis_emulator.scripts.travis:main",
-            "travis_emulator-info = travis_emulator.scripts.main:main",
+            "travis_emulator-info = travis_emulator.scripts.main:internal_main",
             "make_travis_conf = travis_emulator.make_travis_conf:make_travis_conf",
         ]
     },

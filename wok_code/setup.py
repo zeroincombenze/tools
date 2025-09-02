@@ -18,7 +18,7 @@ except IOError:
 
 install_requires = [
     "clodoo", "z0lib>=2.0.13", "python_plus",
-    "future", "Babel", "lxml", "openpyxl", "pyyaml"
+    "future", "Babel", "lxml", "openpyxl", "pyyaml", "six",
 ]
 if sys.version_info >= (3, 0):
     install_requires.append("translators")
@@ -30,7 +30,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.22",
+    version="2.0.23",
     description="Python developers tools",
     long_description_content_type="text/x-rst",
     long_description=long_description,
@@ -43,6 +43,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -64,25 +65,25 @@ setup(
     package_data={
         "": [
             # "scripts/setup.info",
-            "scripts/dist_pkg.sh",
+            # "scripts/dist_pkg.sh",
             "scripts/please.sh",
             "scripts/config/*",
             "scripts/run_odoo_debug.sh",
-            "scripts/cvt_script.sh",
-            "./cvt_script.man",
+            # "scripts/cvt_script.sh",
+            # "./cvt_script.man",
             "./please.man",
             "./install_python_3_from_source.sh",
         ]
     },
     entry_points={
         "console_scripts": [
-            "wok_code-info = wok_code.scripts.main:main",
-            "cvt_csv_2_rst.py = wok_code.scripts.cvt_csv_2_rst:main",
+            "wok_code-info = wok_code.scripts.main:internal_main",
+            # "cvt_2_rst.py = wok_code.scripts.cvt_2_rst:main",
             "cvt_csv_2_xml.py = wok_code.scripts.cvt_csv_2_xml:main",
             "cvt_csv_coa = wok_code.scripts.cvt_csv_coa:main",
             # "cvt_script = wok_code.scripts.cvt_script:main",
             "deploy_odoo = wok_code.scripts.deploy_odoo:main",
-            "dist_pkg = wok_code.scripts.dist_pkg:main",
+            # "dist_pkg = wok_code.scripts.dist_pkg:main",
             "do_gitignore = wok_code.do_gitignore:main",
             # "arcangelo = wok_code.scripts.arcangelo:main",
             # "gen_readme.py = wok_code.scripts.gen_readme:main",
@@ -97,4 +98,3 @@ setup(
     },
     zip_safe=False,
 )
-

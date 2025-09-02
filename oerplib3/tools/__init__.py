@@ -122,7 +122,7 @@ def detect_version(server, protocol, port, timeout=120):
             # use of the last API supported
             version = '42'
     finally:
-        return clean_version(version)
+        return clean_version(version)  #  # pylint: disable=E0601
 
 
 def v(version):
