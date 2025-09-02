@@ -64,14 +64,3 @@ for addon in folders:
     status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
 
 sys.exit(0 if status == 0 else 1)
-
-
-
-
-
-
-
-
-
-
-

@@ -175,5 +175,3 @@ autodoc_default_options = {
     "member-order": "bysource",
     # "exclude-members": "z0bug_odoo.test_common"
 }
-
-

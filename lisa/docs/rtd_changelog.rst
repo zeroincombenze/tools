@@ -56,11 +56,6 @@ ChangeLog History
 
 * [IMP] wsl2-systemd: experimental systemd for wsl2
 
-2.0.0 (2022-08-10)
-~~~~~~~~~~~~~~~~~~
-
-* [REF] Stable version
-
 |
 |
 

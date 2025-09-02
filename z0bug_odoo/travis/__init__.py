@@ -7,4 +7,4 @@ from . import odoo_connection
 # from . import run_pylint
 from . import test_server
 from . import travis_helpers
-from . import travis_tnlbot
+# from . import travis_tnlbot

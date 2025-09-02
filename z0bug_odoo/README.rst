@@ -2150,6 +2150,8 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi
+* [FIX] testenv.py with Odoo 16.0+
+* [IMP] python 3.11
 
 2.0.22 (2025-03-21)
 ~~~~~~~~~~~~~~~~~~~

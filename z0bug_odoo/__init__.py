@@ -28,14 +28,3 @@ if eval(os.environ.get('TRAVIS_DEBUG_MODE', '0')) > 2:
         print('DEBUG: Odoo version detected: %s' % release.version)
     else:
         print('DEBUG: No Odoo environment found!')
-
-
-
-
-
-
-
-
-
-
-

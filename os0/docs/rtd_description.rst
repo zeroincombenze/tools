@@ -1,27 +1,47 @@
-.. lisa documentation master file, created by
-   gen_readme.py on 2025-09-01 08:23:42
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-====================================
-Welcome to lisa 2.0.8 documentation!
-====================================
-
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Overview
+========
 
 
-   rtd_description
-   rtd_getting_started
-   rtd_changelog
-   rtd_credits
+This module is deprecated. It was born to extend python os module.
 
+It recognizes file name structure and manages both URI standard name
+both local name, as UNC and ODS5.
+
+- URI (Uniform Resource Identifier) is standard posix filename.
+- UNC (Uniform Naming Convention) is windows standard
+- ODS5 is used for define OpenVMS standard filenames
+
+An example of URI filename is '/home/myfile'.
+
+UNC example for the same of previous URI name is '\\home\\myfile'
+(with single backslash).
+
+ODS5 (OpenVMS) for the same of previous URI name is '[home]myfile'
+
+See https://en.wikipedia.org/wiki/Path_(computing)
+
+Migration path
+~~~~~~~~~~~~~~
+
+* isunicode -> python_plus.isunicode
+* isbytestr -> python_plus.isbytestr
+* b -> python_plus._b
+* u -> python_plus._u
+* nakedname -> z0lib.nakedname
+* muteshell -> z0lib.run_traced
+
+No yet migration path
+~~~~~~~~~~~~~~~~~~~~~
+
+* str2bool
 
 |
 |
 
-.. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-black.png
+.. |Maturity| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: 
 .. |license gpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
@@ -31,10 +51,10 @@ Welcome to lisa 2.0.8 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
@@ -64,12 +84,3 @@ Welcome to lisa 2.0.8 documentation!
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
