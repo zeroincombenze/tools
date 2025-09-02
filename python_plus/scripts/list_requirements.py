@@ -62,7 +62,8 @@ REQVERSION = {
         "16.0": "PYVER",
         "2.7": ">=2.2.2,<3.4",
         "3.7": ">=2.6.1,<38.0",
-        "3.9": ">38.0.2"
+        "3.9": ">38.0.2",
+        "3.12": ">41.0.7",
     },
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10", "11.0": ">=4.0.10"},
     # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
@@ -90,11 +91,15 @@ REQVERSION = {
         "3.7": ">=1.5.0,<=22.10.99",
         "3.8": ">=20.9.0,<=22.10.99",
         "3.10": ">=21.8.0,<=22.10.99",
+        "3.12": ">=24.2.1,>=24.2.99",
+        "3.13": ">=24.11.1,>=24.11.99",
     },
     "greenlet": {
         "6.1": "==0.4.2",
-        "7.0": ">=0.4.7,<=0.4.10",       # by odoo documentation + test
+        "7.0": ">=0.4.7,<=0.4.10",
         "3.7": ">=0.4.13",
+        "3.12": ">=3.0.3",
+        "3.13": ">=3.1.1",
     },
     "holidays": {
         "2.7": "<0.10",
@@ -129,6 +134,7 @@ REQVERSION = {
         "3.7": ">=4.2.3,<=4.6.5",
         "3.8": ">=4.6.1,<=4.6.5",
         "3.10": "==4.9.2",
+        "3.12": "==5.2.1"
     },
     "mccabe": {"0": "<0.7.0,>=0.6.0", "3.8": "<0.8.0,>=0.7.0"},
     "Mako": {
@@ -146,7 +152,6 @@ REQVERSION = {
     "matplotlib": {
         "10.0": "==3.0.3",
         "11.0": "PYVER",
-        # "13.0": "==3.4.1",
         "3.6": "==3.0.3",
         "3.7": "<3.3.0"     # Experimental!
     },
@@ -200,9 +205,7 @@ REQVERSION = {
         "12.0": ">=2.8.3",
         "0": ">=2.7.4",
     },
-    # "pycodestyle": {"0": "==2.3.1"},
     "pydot": {"6.1": "==1.0.2", "8.0": "==1.2.3", "11.0": ">=1.2.3"},
-    # "pyflakes": {"0": "pyflakes<1.6.0,>=1.5.0"},
     "Pygments": {
         "10.0": "==2.2.0",
         "3.5": ">=2.7.0"
@@ -217,12 +220,9 @@ REQVERSION = {
     },
     "pylint-odoo": {
         "6.1": "<3.0.0",        # to match lxml
-        "10.0": "<=4.0.0",
-        "11.0": "PYVER",
+        "7.0": "PYVER",
         "13.0": ">=3.3.1",      # from pypi documentation
         "14.0": "PYVER",
-        # "15.0": ">=5.0.1",      # from pypi documentation
-        # "16.0": ">=7.0.0",      # from pypi documentation
         "2.7": "<=4.0.0",
         "3.5": "<=5.0.0",
         "3.7": ">5.0.0,<=8.0.0",
@@ -268,7 +268,13 @@ REQVERSION = {
     "pyusb": {"6.1": ">=1.0.0b1", "10.0": "==1.0.0", "14.0": ">=1.0.0b1"},
     "pyxb": {"6.1": "==1.2.4", "8.0": "==1.2.5", "10.0": ">=1.2.5", "12.0": "==1.2.6"},
     "PyWebDAV": {"6.1": "<0.9.8"},
-    "PyYAML": {"6.1": "==3.11", "8.0": "==3.12", "3.7": "==3.13", "3.9": "==6.0"},
+    "PyYAML": {
+        "6.1": "==3.11",
+        "8.0": "==3.12",
+        "3.7": "==3.13",
+        "3.9": "==6.0",
+        "3.12": ">=6.0.2"
+    },
     "qrcode": {
         "6.1": "==5.0.1", "7.0": "==5.1", "10.0": "==5.3", "15.0": ">=5.3"
     },
@@ -312,7 +318,9 @@ REQVERSION = {
         "12.0": "==0.14.1",
         "14.0": "==0.16.1",
         "15.0": "PYVER",
-        "3.9": "==2.0.2",
+        "3.7": ">=2.0.0,<2.3.0",
+        "3.8": ">=2.0.0,<3.1.0",
+        "3.9": ">=2.0.0",  # Odoo ==2.0.2
     },
     "wkhtmltopdf": {"6.1": "==0.12.1", "10.0": "==0.12.4", "12.0": "==0.12.5"},
     "wok_code": {"6.1": "<2.0.6", "10.0": ">=2.0.0"},
@@ -540,7 +548,7 @@ PIP_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    "feedparser",
+    # "feedparser",
     "future",
     "gdata",
     "gevent",
@@ -572,7 +580,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    "feedparser",
+    "feedparser odoo_major<8",
     "future",
     "gdata",
     "gevent",
@@ -607,7 +615,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "simplejson",
     "six",
     "python-stdnum",
-    "vatnumber",
+    "vatnumber; odoo_major<14",
     "Werkzeug",
     "zeep; odoo_major>=16"
 ]
@@ -624,6 +632,16 @@ BIN_PACKAGES = [
     "cups",
 ]
 PIP_WITH_DOT = ["py3o.", "anybox."]
+ODOO_PYTHON_VERSION = {
+    "11.0": "==3.7",            # Default 3.7
+    "12.0": "==3.7",            # Default 3.7
+    "13.0": ">=3.7,<=3.8",      # Default 3.8
+    "14.0": ">=3.8,<=3.9",      # Default 3.8
+    "15.0": ">=3.8,<=3.9",      # Default 3.9
+    "16.0": ">=3.8,<=3.10",     # Default 3.9
+    "17.0": "==3.10",           # Default 3.10
+    "18.0": ">=3.10,<=3.12",    # Default 3.10
+}
 BUILTIN = ["csv"]
 MANIFEST_NAMES = {
     "accept_language": "parse-accept-language",
@@ -1306,7 +1324,7 @@ def main(cli_args=None):
     # if not cli_args:
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "List Odoo requirements", "© 2017-2023 by SHS-AV s.r.l.", version=__version__
+        "List Odoo requirements", "© 2017-2025 by SHS-AV s.r.l.", version=__version__
     )
     parser.add_argument("-h")
     parser.add_argument("-b", "--odoo-branch", action="store", dest="odoo_ver")

@@ -2,8 +2,9 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] bstring and unicode now work deeply
-* [FIX] list_requirements: twine version
 * [FIX] License declaration compatible with pypi
+* [FIX] list_requirements: twine version
+* [IMP] list_requirements.py: package versions improvements
 * [IMP] New function cstrings
 
 2.0.17 (2025-01-16)

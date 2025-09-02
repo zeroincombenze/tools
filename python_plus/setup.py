@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import os.path as pth
-import sys
-
 from setuptools import find_packages, setup
 
 name = "python_plus"
@@ -29,6 +27,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        # "Programming Language :: Python :: 3.11",
+        # "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -49,13 +49,10 @@ setup(
     package_data={"": ["scripts/vem.sh", "./vem.man"]},
     entry_points={
         "console_scripts": [
-            "python-plus-info = python_plus.scripts.main:main",
+            "python-plus-info = python_plus.scripts.main:internal_main",
             "vem = python_plus.scripts.vem:main",
             'list_requirements.py = python_plus.scripts.list_requirements:main',
         ]
     },
     zip_safe=False,
 )
-
-
-

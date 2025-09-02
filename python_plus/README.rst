@@ -310,8 +310,9 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] bstring and unicode now work deeply
-* [FIX] list_requirements: twine version
 * [FIX] License declaration compatible with pypi
+* [FIX] list_requirements: twine version
+* [IMP] list_requirements.py: package versions improvements
 * [IMP] New function cstrings
 
 2.0.17 (2025-01-16)
@@ -434,13 +435,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [FIX] vem: no input inquire
-
-2.0.0.1 (2022-09-06)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] vem: new switch -d for Odoo dependencies path
-* [FIX] vem: create with best package list
-* [FIX] vem: install odoo/openerp
 
 
 
