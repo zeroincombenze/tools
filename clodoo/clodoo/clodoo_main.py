@@ -292,7 +292,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.14"
+__version__ = "2.0.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -407,7 +407,7 @@ def oerp_set_env(
     open_connection(ctx)
     if ctx['no_login']:
         return False, ctx
-    if ctx["user"] and hasattr(ctx["user"], "id"):
+    if ctx.get("user") and hasattr(ctx["user"], "id"):
         lgiuser = ctx["user"]
     else:
         lgiuser = do_login(ctx)

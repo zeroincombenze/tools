@@ -89,7 +89,6 @@ from .clodoo_main import (
     extend_actions_list,
     extend_actions_1_list,
     check_4_actions,
-    clodoo_main
 )
 from .scripts.main import internal_main
 

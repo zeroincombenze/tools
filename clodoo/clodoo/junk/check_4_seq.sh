@@ -1,4 +1,4 @@
-# __version__=2.0.14
+# __version__=2.0.15
 # Based on template 2.1.0
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 READLINK=$(which readlink 2>/dev/null)

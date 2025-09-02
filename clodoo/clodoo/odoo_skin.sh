@@ -83,7 +83,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.14
+__version__=2.0.15
 
 
 get_odoo_service_name() {

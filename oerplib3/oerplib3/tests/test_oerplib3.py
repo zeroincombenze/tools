@@ -12,10 +12,7 @@
 import os
 import sys
 
-# import time
 from configparser import ConfigParser
-
-# from datetime import datetime
 
 from zerobug import z0test
 import oerplib3
@@ -40,10 +37,8 @@ def version():
 
 
 class RegressionTest:
-    def __init__(self, zarlib):
-        self.Z = zarlib
 
-    def setup(self, z0ctx):
+    def setup(self):
         print("Connection test: it works only if odoo instances are running!")
         self.test_data_dir = os.path.join(self.Z.testdir, 'res')
         if not os.path.isdir(self.test_data_dir):
@@ -103,11 +98,11 @@ class RegressionTest:
         for odoo_version in ODOO_VERSION_TO_TEST:
             odoo_major = int(odoo_version.split(".")[0])
             confn = os.path.join(self.test_data_dir, 'odoo%s.conf' % odoo_major)
-            if not z0ctx.get('dry_run', False):
-                config = ConfigParser()
-                config["options"] = {}
-                config["options"].update(self.version_default[odoo_version])
-                config.write(open(confn, "w"))
+
+            config = ConfigParser()
+            config["options"] = {}
+            config["options"].update(self.version_default[odoo_version])
+            config.write(open(confn, "w"))
             self.odoo_cnx = oerplib3.OERP(
                 server=self.version_default[odoo_version]["db_host"],
                 protocol=self.version_default[odoo_version]["svc_protocol"],
