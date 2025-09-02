@@ -41,12 +41,12 @@ for pkg in odoo_template_tnl.xlsx; do
     if_standalone && echo "Testing file $pkg .."
     [[ ! -f $LOCAL_VENV/tools/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $LOCAL_VENV/tools/!!${CLR}" && exit 1
 done
-for pkg in clodoo; do
-    if_inside && echo -n "."
-    if_standalone && echo "Testing directory $pkg .."
-    [[ ! -d $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit 1
-done
-for pkg in odoorc odoo_dependencies.py zerobug; do
+#for pkg in clodoo; do
+#    if_inside && echo -n "."
+#    if_standalone && echo "Testing directory $pkg .."
+#    [[ ! -d $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! Directory $pkg non found in $BINPATH!!${CLR}" && exit 1
+#done
+for pkg in odoorc odoo_dependencies.py zerobug clodoo odoo_score; do
     if_inside && echo -n "."
     if_standalone && echo "Testing file $pkg .."
     [[ ! -f $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit 1
