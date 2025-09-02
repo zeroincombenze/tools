@@ -63,7 +63,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 KNOWN_ACTIONS = [
     "help",
@@ -905,7 +905,8 @@ class Please(object):
         path = path or os.getcwd()
         return pth.abspath(pth.join(path, "tests", "logs"))
 
-    def get_fqn_log(self, what=None, path=None, git_org=None, read_only=False):
+    def get_fqn_log(
+            self, what=None, path=None, git_org=None, version=None, read_only=False):
         """Get fqn of logfile
         @what:  "sts" for log directories (0=exist, 3=missing)
                 "cmd" for fqn show command
@@ -931,8 +932,11 @@ class Please(object):
         if what == "sts":
             return 0
         log_fqn = ""
+        rex = (
+            r"[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log" if not version
+            else r"_%s-[0-9]{4}-[0-9]{2}-[0-9]{2}.log" % version)
         for fn in sorted(os.listdir(fqn_logdir), reverse=True):
-            if re.search(r"[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log", fn):
+            if re.search(rex, fn):
                 log_fqn = pth.join(fqn_logdir, fn)
                 break
         if what == "cmd":

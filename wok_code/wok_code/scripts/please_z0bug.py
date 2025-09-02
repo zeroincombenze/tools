@@ -7,7 +7,7 @@ import sys
 import re
 
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
@@ -366,7 +366,7 @@ class PleaseZ0bug(object):
                 what="fqn", git_org=git_org, read_only=read_only)
             if log_fqn:
                 please.os_system(
-                    "grep --color=never -E '^[^[:space:]/\\|]*[/\\|][[:space:]=\-]' %s"
+                    r"grep --color=never -E '^[^[:space:]/\\|]*[/\\|][[:space:]=\-]' %s"
                     % log_fqn, rtime=True)
                 return 0
             return 126

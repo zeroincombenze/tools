@@ -18,7 +18,7 @@ except ImportError:
 
 from zerobug import z0test, z0testodoo                                     # noqa: E402
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1

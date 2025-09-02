@@ -18,7 +18,7 @@ except ImportError:
 from z0lib import z0lib
 import psycopg2
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 

@@ -16,7 +16,7 @@ else:
         os.system("python -m pip install distro")
 
 
-__version__ = "2.0.22"
+__version__ = "2.0.23"
 
 
 class PleasePython(object):

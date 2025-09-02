@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=2.0.11
+# __version__=2.0.10
 # Can be used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macros are substituted in 2 steps:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -60,7 +60,7 @@ before_install:
   # make_travis_conf.py adds 2 to switches if tests run on python2
   - $HOME/tools/install_tools.sh -qpt
   - source $HOME/devel/activate_tools -t
-  # - vem $HOME/devel/venv install $HOME/tools/${PKGNAME}
+  # - vem $HOME/devel/venv install $HOME/tools/wok_code
   # Sometimes complicated website repos need Compass & SaSS:
   #  - rvm install ruby --latest
   #  - gem install bootstrap-sass
@@ -80,7 +80,7 @@ install:
 env:
   global:
   - TRAVIS_DEBUG_MODE="2"
-  - VERSION="${TRAVIS_BRANCH}" TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
+  - VERSION="devel" TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
   # Set this variable to some version existing as linux-generic build on
   # https://github.com/wkhtmltopdf/wkhtmltopdf/releases
   # if you need to install wkhtmltopdf
@@ -97,13 +97,13 @@ env:
   # * Compass
 
   matrix:
-  - LINT_CHECK="1"
+  # - LINT_CHECK="1"
   # make_travis_conf.py comment follow line if Odoo test
-  - DEV_ENVIRONMENT="${PKGNAME}" LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
+  - DEV_ENVIRONMENT="wok_code" LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
   # make_travis_conf.py comment follow lines if PYPI package test
   # - TESTS="1" ODOO_REPO="odoo/odoo"
   # - TESTS="1" ODOO_REPO="OCA/OCB"
-  # - TESTS="1" ODOO_REPO="${GIT_ORG}/OCB"
+  # - TESTS="1" ODOO_REPO="zeroincombenze/OCB"
   # either use the two lines above or the two below. Don't change the default if
   # it's not necessary (it is only necessary if modules in your repository can't
   # be installed in the same database. And you get a huge speed penalty in your
@@ -114,7 +114,8 @@ env:
 
 script:
   # make_travis_conf.py replaces follow line with "travis_run_pypi_tests" if PYPI test
-  - travis_run_tests
+  - travis_run_pypi_tests
 
 after_success:
   - travis_after_tests_success
+
