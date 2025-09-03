@@ -537,7 +537,7 @@ class PleaseCwd(object):
 
     def do_defcon(self):
         self.please.log_error(
-            "Missed sepcification:\nplease defcon precommit|gitignore"
+            "Missed specification:\nplease defcon precommit|gitignore"
         )
         return 126
 

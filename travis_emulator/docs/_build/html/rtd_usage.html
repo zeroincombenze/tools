@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; travis_emulator 2.0.10 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=4dc8cd5f"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="rtd_getting_started.html" />
+    <link rel="prev" title="Features" href="rtd_features.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="travis-emulator-usage">
+<h2>Travis emulator usage<a class="headerlink" href="#travis-emulator-usage" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Usage: travis [-h][-A regex][-BC][-D number][-E][-e iso][-Ffk][-j pyver][-L number][-l dir][-mn][-O git-org][-P file:line][-p pattern][-Q file][-qr][-S false|true][-T regex][-Vv][-X 0|1][-Y file][-Z] action sub sub2
+Travis-ci emulator for local developer environment
+Action may be: (help,emulate,force-lint,lint,force-test,test,force-test-multi,test-multi,force-testdeps,testdeps,force-translate,translate,chkconfig,parseyaml,show,show-log,show-color,summary,wep-db)
+ -h --help            this help
+ -A --trace-after regex
+                      travis stops after executed yaml statement
+ -B --debug           debug mode: do not create log
+ -C --no-cache        do not use stored PYPI
+ -D --debug-level number
+                      travis_debug_mode: may be 0,1,2,3,8 or 9 (def yaml dependents)
+ -E --no-savenv       do not save virtual environment into ~/VME/... if does not exist
+ -e --locale iso
+                      use locale
+ -F --full            run final travis with full features
+ -f --force           force to create stored VME or remove recent log (wep-db)
+ -k --keep            keep DB and virtual environment before and after tests
+ -j --python pyver
+                      test with specific python versions (comma separated)
+ -L --lint-level number
+                      lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml
+ -l --logdir dir
+                      log directory (def=/home/odoo/travis_log)
+ -m --missing         show missing line in report coverage
+ -n --dry-run         do nothing (dry-run)
+ -O --org git-org
+                      git organization to test, i.e. oca or zeroincombenze
+ -P --python-brk file:line
+                      set python breakpoint at file:linenumber
+ -p --pattern pattern
+                      pattern to apply for test files (comma separated)
+ -Q --config file
+                      configuration file (def .z0tools.conf)
+ -q --quiet           silent mode
+ -r                   run restricted mode (deprecated)
+ -S --syspkg false|true
+                      use python system packages (def yaml dependents)
+ -T --trace regex
+                      trace stops before executing yaml statement
+ -V --version         show version
+ -v --verbose         verbose mode
+ -X --translation 0|1
+                      enable translation test (def yaml dependents)
+ -Y --yaml-file file
+                      file yaml to process (def .travis.yml)
+ -Z --zero            use local zero-tools
+
+© 2015-2025 by zeroincombenze®
+https://zeroincombenze-tools.readthedocs.io/
+Author: antoniomaria.vigliotti@gmail.com
+</pre></div>
+</div>
+<section id="configuration-file">
+<h3>Configuration file<a class="headerlink" href="#configuration-file" title="Link to this heading"></a></h3>
+<p>Values in configuration file are:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Parameter</p></td>
+<td><p>Descriptio</p></td>
+<td><p>Default value</p></td>
+</tr>
+<tr class="row-even"><td><p>CHAT_HOME</p></td>
+<td><p>URL to web chat to insert in documentation</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ODOO_SETUPS</p></td>
+<td><p>Names of Odoo manifest files</p></td>
+<td><p>__manifest__.py __openerp__.py __odoo__.py __terp__.py</p></td>
+</tr>
+<tr class="row-even"><td><p>dbtemplate</p></td>
+<td><p>Default value for MQT_TEMPLATE_DB</p></td>
+<td><p>template_odoo</p></td>
+</tr>
+<tr class="row-odd"><td><p>dbname</p></td>
+<td><p>Default value for MQT_TEST_DB</p></td>
+<td><p>test_odoo</p></td>
+</tr>
+<tr class="row-even"><td><p>dbuser</p></td>
+<td><p>Postgresql user: default value for MQT_DBUSER</p></td>
+<td><p>$USER</p></td>
+</tr>
+<tr class="row-odd"><td><p>UNBUFFER</p></td>
+<td><p>Use unbuffer</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>virtualenv_opts</p></td>
+<td><p>Default option to create virtual environment</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>NPM_CONFIG_PREFIX</p></td>
+<td><p>N/D</p></td>
+<td><p>$HOME/.npm-global</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_TXT_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>0;97;40</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_RUN_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>1;37;44</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_NOP_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>31;100</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_HDR1_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>97;42</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_HDR2_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>30;43</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_HDR3_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>30;45</p></td>
+</tr>
+<tr class="row-even"><td><p>LOCAL_PKGS</p></td>
+<td><p>N/D</p></td>
+<td><p>clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug</p></td>
+</tr>
+<tr class="row-odd"><td><p>PYTHON_MATRIX</p></td>
+<td><p>Python version available to test (space separated)</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of travis_emulator"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#travis-emulator-usage">Travis emulator usage</a><ul>
+<li><a class="reference internal" href="#configuration-file">Configuration file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_features.html"
+                          title="previous chapter">Features</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_getting_started.html"
+                          title="next chapter">Getting started</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_features.html" title="Features"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.0.10 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2016-24, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

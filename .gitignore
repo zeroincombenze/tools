@@ -1,26 +1,38 @@
-# sphinx build directories
-/_build/
+# [antoniov: 2025-09-02]
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.a
+*.obj
+*.exe
+/.venv
+/.pytest_cache
 
-# dotfiles
-.*
-!.gitignore
-!.github
-!.mailmap
-# compiled python files__pycache__/
-*.py[co]
-/__pycache__/
+# C extensions
+*.o
+*.so
 
-# emacs backup files & Temporay files
-*~
-*.log
-*.bak
-*.out
-*.conf
-# hg stuff
-*.orig
-status
-# odoo filestore
-odoo/filestore
+# Distribution / packaging
+.Python
+env/
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+*.eggs
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
 # generated for windows installer?
 install/win32/*.bat
@@ -29,68 +41,82 @@ setup/win32/static/less/
 setup/win32/static/wkhtmltopdf/
 setup/win32/static/postgresql*.exe
 
-# various virtualenv
-venv_odoo/
-/bin/
-/build/
-/dist/
-/include/
-/lib/
-/man/
-/share/
-/src/
-OCB/
-conf/
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.*coverage
+*coveragerc
+.cache
+nosetests.xml
+coverage.xml
 cover/
-**/.coverage
-latex/
-html/
+logs/
+
+# Node + Javascripts packages
+*.json
+
+# Translations
+*.mo
+
+# Pycharm
+.idea/
+
+# Eclipse
+.settings
+
+# Visual Studio cache/options directory
+.vs/
+.vscode
+
+# OSX Files
+.DS_Store
+
+# Django stuff:
+*.log
+
+# Komodo
+*.komodoproject
+.komodotools
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Rope
+.ropeproject
+
+# Sphinx documentation
+docs/_build/
+
+# Bazaar
+.bzr/
+
+# hg stuff
+*.orig
+
+# Backup files
+*~
+*.swp
+
+# Junks
+*.bak
+*.out
+*.conf
+.tmp
+.tracehis
+.tracehistory
+test*.pdf
+tmp.*
+example_*
+/.settings/
+/share/
 stdout.log
-oca__*
-z0i__*
 *.oca
 *.z0i
-.gitrepname
-example_*
-import_partner*
-*_doc.txt
-/clodoo/build/
-/clodoo/dist/
-/lisa/build/
-/lisa/dist/
-/odoo_score/build/
-/odoo_score/dist/
-/python_plus/build/
-/python_plus/dist/
-/travis_emulator/build/
-/travis_emulator/dist/
-/wok_code/build/
-/wok_code/dist/
+#
+# tools building path
 /z0bug_odoo/build/
 /z0bug_odoo/dist/
-/z0lib/build/
-/z0lib/dist/
-/zar/build/
-/zar/dist/
-/zerobug/build/
-/zerobug/dist/
-/clodoo/docs/_build/
-/lisa/docs/_build/
-/odoo_score/docs/_build/
-/python_plus/docs/_build/
-/travis_emulator/docs/_build/
-/wok_code/docs/_build/
-/z0bug_odoo/docs/_build/
-/z0lib/docs/_build/
-/zar/docs/_build/
-/zerobug/docs/_build/
-/clodoo.egg-info/PKG-INFO
-/lisa.egg-info/PKG-INFO
-/odoo_score.egg-info/PKG-INFO
-/python_plus.egg-info/PKG-INFO
-/travis_emulator.egg-info/PKG-INFO
-/wok_code.egg-info/PKG-INFO
-/z0bug_odoo.egg-info/PKG-INFO
-/z0lib.egg-info/PKG-INFO
-/zar.egg-info/PKG-INFO
-/zerobug.egg-info/PKG-INFO
+!static/lib/

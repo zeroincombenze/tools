@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; arcangelo 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=20623aea"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="rtd_getting_started.html" />
+    <link rel="prev" title="Overview" href="rtd_description.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">arcangelo 2.1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
+                    [-F FROM_VERSION] [-f] [-G GIT_ORGID]
+                    [--git-merge-conflict left|right] [--ignore-pragma] [-i]
+                    [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
+                    [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
+                    [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
+                    [path ...]
+
+Beautiful source file
+
+positional arguments:
+  path
+
+options:
+  -h, --help            show this help message and exit
+  -a, --lint-anyway     set to True when migrate software
+  -B, --debug           add comment with applied rule: do not use in
+                        production
+  -b TO_VERSION, --to-version TO_VERSION
+  -C RULE_GROUPS, --rule-groups RULE_GROUPS
+                        Rule groups (comma separated) to parse (use + for
+                        adding, - for removing) use switch -l to see default
+                        groups list
+  -c, --copyright-check
+  -F FROM_VERSION, --from-version FROM_VERSION
+  -f, --force           Parse file even containing &#39;# flake8: noqa&#39; or &#39;#
+                        pylint: skip-file&#39;
+  -G GIT_ORGID, --git-org GIT_ORGID
+  --git-merge-conflict left|right
+                        Keep left or right side code after git merge conflict
+  --ignore-pragma       ignore coding utf-8 declaration
+  -i, --in-place
+  -j PYTHON, --python PYTHON
+                        python version, format #.##, 2+3 use future
+  -l, --list-rules      list rule groups (-ll list with rules too, -lll full
+                        list)
+  -n, --dry-run         do nothing (dry-run)
+  -o OUTPUT, --output OUTPUT
+  -P PACKAGE_NAME, --package-name PACKAGE_NAME
+  -R RULES, --rules RULES
+                        Rules (comma separated) to parse (use - for removing)
+                        use switch -ll to see default rules list
+  -S, --string-normalization
+                        force double quote enclosing strings
+  --test-res-msg TEST_RES_MSG
+  -v, --verbose
+  -V, --version         show program&#39;s version number and exit
+  -w, --no-parse-with-formatter
+                        do nor execute black or prettier on modified files
+  -y, --assume-yes      force target path creation with different base name
+  --add-rule-group ADD_RULE_GROUP
+                        Add rule group form file, default is .arcangelo.yml
+
+© 2021-2025 by SHS-AV s.r.l.
+</pre></div>
+</div>
+<p><strong>arcangelo</strong> is based on rules files located in config directory where arcangelo
+is running. Configuration files are yaml formatted.</p>
+<section id="python-stages">
+<h2>Python stages<a class="headerlink" href="#python-stages" title="Link to this heading"></a></h2>
+<p>Source process analysis is split in stages which would enable or disable rules. Process stages are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>“header” -&gt; Initial source stage, include comment lines</p></li>
+<li><p>“import” -&gt; Import statements</p></li>
+<li><p>“class_body” -&gt; Inside class, from class to last line (not function)</p></li>
+<li><p>“function_body” -&gt; Inside function, from def to last line</p></li>
+</ol>
+</div></blockquote>
+<p>When stage transition is detected, the transition_stage macro contains the previous value and
+stage macro contains new value.
+If no import stage was found, on the first class transition transition_stage is set to “import”,
+so it is possible adding import statements.</p>
+</section>
+<section id="rules">
+<h2>Rules<a class="headerlink" href="#rules" title="Link to this heading"></a></h2>
+<p>Every rule is list of following format:</p>
+<blockquote>
+<div><p>CTX, PYEXPR, EREGEX, (ACTION, PARAMETERS), …</p>
+<p>where</p>
+<ul class="simple">
+<li><p>CTX: would be a python context to load rule</p></li>
+<li><p>PYEXPR: would be a python expression for applying the rule</p></li>
+<li><p>EREGEX is  enhanced regular expression for applying the rule</p></li>
+<li><p>ACTION is the action to apply on current item (if PYEXPR and EREGEX are both matched)</p></li>
+<li><p>PARAMETERS are the values supplying to action</p></li>
+</ul>
+</div></blockquote>
+<p>The list/tuple (ACTION, PARAMETERS) can be repeated more than once inside rule.</p>
+<section id="ctx-and-pyexpr">
+<h3>CTX and PYEXPR<a class="headerlink" href="#ctx-and-pyexpr" title="Link to this heading"></a></h3>
+<p>CTX and PYEXPR are python expression for applying the rule.
+CTX is matched when file is loaded while PYEXPR is matched on every file line.
+Valid macros to validate expression are:</p>
+</section>
+<section id="eregex">
+<h3>EREGEX<a class="headerlink" href="#eregex" title="Link to this heading"></a></h3>
+<p>EREGEX is enhanced regular expression (python re) that may be negative
+if it starts with ! (exclamation mark).</p>
+</section>
+<section id="action-and-args">
+<h3>ACTION and ARGS<a class="headerlink" href="#action-and-args" title="Link to this heading"></a></h3>
+<p>ACTION is applied on current item (file or line) if CTX and PYEXPR and EREGEX are True.</p>
+<blockquote>
+<div><p>ACTION values for lines:</p>
+<ul class="simple">
+<li><p><strong>s</strong>: substitute REGEX REPLACE_TEXT</p></li>
+<li><p><strong>d</strong>: delete line; stop immediately rule processing and re-read the line</p></li>
+<li><p><strong>i</strong>: insert line before current line</p></li>
+<li><p><strong>a</strong>: append line after current line</p></li>
+<li><p><strong>$</strong>: execute FUNCTION</p></li>
+<li><p><strong>+</strong>: set trigger TRIGGER_NAME (from 1st group of matching regex)</p></li>
+<li><p><strong>-</strong>: reset trigger TRIGGER_NAME</p></li>
+<li><p><strong>=</strong>: execute python code</p></li>
+</ul>
+<p>ACTION values for files:</p>
+<ul class="simple">
+<li><p><strong>mv</strong>: mv current file to new fqn</p></li>
+<li><p><strong>rm</strong>: remove file</p></li>
+<li><p><strong>no</strong>: no action done</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>substitute</strong>: “s REGEX REPLACE_TEXT”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The 1.st item is the EREGEX to search for replace (negate is not applied)</p></li>
+<li><p>The 2.nd item is the text to replace which can contain macros like %(classname)s</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>delete</strong>: “d”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Delete current line</p></li>
+<li><p>Break rules analyzing</p></li>
+<li><p>Must be the last action of the rule</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>insert</strong>: “i text”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Insert text before current line</p></li>
+<li><p>Must be the last action of the rule</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>append</strong>: “a text”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Append text after current line</p></li>
+<li><p>Must be the last action of the rule</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>execute</strong>: “$ FUNCTION”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Function must return requires break and line offset</p></li>
+<li><p>If function requires break, no other rules will be processed</p></li>
+<li><p>The value 0 for offset means read next line, the value -1 re-read the current line, +1 skip next line, and so on</p></li>
+</ul>
+<p>Function example:</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">FUNCTION</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nro</span><span class="p">):</span>
+    <span class="n">do_break</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">nro</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&lt;odoo&gt;&quot;</span><span class="p">:</span>
+        <span class="n">do_break</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">do_break</span><span class="p">,</span> <span class="n">offset</span>
+</pre></div>
+</div>
+<p>Action <strong>set trigger</strong>: “+ TRIGGER name [value]”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Set a trigger value to match next line contexts</p></li>
+<li><p>Value of trigger is the 1st match group, enclose by parens</p></li>
+<li><p>If there are no parens in match text, trigger is set to value if supplied</p></li>
+<li><p>If there are no parens in match text and no value is supplied, trigger is set to True</p></li>
+<li><p>If value matches “[+-][0-9]+” value is added or subtracted</p></li>
+</ul>
+</div></blockquote>
+<p>Action <strong>reset trigger</strong>: “- TRIGGER name”</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Reset a boolean trigger value to match next line contexts</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="replacing-macros-in-actions-and-args">
+<h3>Replacing macros in actions and args<a class="headerlink" href="#replacing-macros-in-actions-and-args" title="Link to this heading"></a></h3>
+<p>The regular expression EREGEX may contains macro names enclose by “%(name)s”.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>Description</p></td>
+<td><p>usage</p></td>
+</tr>
+<tr class="row-even"><td><p>backport_multi</p></td>
+<td><p>Processing a backported version (multiple version path)</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>classname</p></td>
+<td><p>Name of current class</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>dedent</p></td>
+<td><p>Dedent statement level</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>final</p></td>
+<td><p>Processing final version when multiple version path</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>first_line</p></td>
+<td><p>True if current line is the 1st of source (see header too)</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>from_major_version</p></td>
+<td><p>Major version of project by -F switch</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>fctname</p></td>
+<td><p>Current function name</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>header</p></td>
+<td><p>Current line is in the file header (comments and empty lines)</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>imported</p></td>
+<td><p>Imported packages list</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>indent</p></td>
+<td><p>Space indentation of current line</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>line</p></td>
+<td><p>Current line</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>migration_multi</p></td>
+<td><p>Processing a migrate version with multiple version path</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>mime</p></td>
+<td><p>Current file mime</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>open_stmt</p></td>
+<td><p># of open parens; if &gt; 0, current line is a continuation line</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>python_future</p></td>
+<td><p>True if source is python 2 or 3 with future</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>python_version</p></td>
+<td><p>Python version to run source</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>singleton</p></td>
+<td><p>Singleton rule: may be applied just once</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>stage</p></td>
+<td><p>Parsing stage: header,import,class_body,function_body</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>stmt_indent</p></td>
+<td><p>Space indentation of current statement</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>to_major_version</p></td>
+<td><p>Major version of project by -b switch</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>transition_stage</p></td>
+<td><p>Prior parsing stage</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-odd"><td><p>try_indent</p></td>
+<td><p>The try statement indentation: if &gt;=0 current line is inside try/except block</p></td>
+<td><p>PYEXPR</p></td>
+</tr>
+<tr class="row-even"><td><p>py23</p></td>
+<td><p>Value 2 if python2 else 3 (int)</p></td>
+<td><p>CTX + PYEXPR</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="rules-examples">
+<h2>Rules examples<a class="headerlink" href="#rules-examples" title="Link to this heading"></a></h2>
+<p>Replace statement “(int, long)” with “int”</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mig_int_long_2_python3</span><span class="p">:</span>
+  <span class="n">ctx</span><span class="p">:</span> <span class="s1">&#39;py23 == 3&#39;</span>
+  <span class="n">search</span><span class="p">:</span> <span class="s1">&#39;\(int, *long\)&#39;</span>
+  <span class="n">do</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">action</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span>
+      <span class="n">args</span><span class="p">:</span>
+      <span class="o">-</span> <span class="s1">&#39;\(int, *long\)&#39;</span>
+      <span class="o">-</span> <span class="s1">&#39;int&#39;</span>
+</pre></div>
+</div>
+<p>Replace statement “int” with “int, long” for python 2 form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mig_int_2_python2</span><span class="p">:</span>
+  <span class="n">ctx</span><span class="p">:</span> <span class="s1">&#39;py23 == 2&#39;</span>
+  <span class="n">expr</span><span class="p">:</span> <span class="s1">&#39;&quot;int(&quot; not in line&#39;</span>
+  <span class="n">search</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span>
+  <span class="n">do</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">action</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span>
+      <span class="n">args</span><span class="p">:</span>
+      <span class="o">-</span> <span class="s1">&#39;int&#39;</span>
+      <span class="o">-</span> <span class="s1">&#39;int, long&#39;</span>
+</pre></div>
+</div>
+<p>Replace statement “super()” with python 2 form, including current class name “super(classname, self)”</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">super</span><span class="p">:</span>
+  <span class="n">ctx</span><span class="p">:</span> <span class="s1">&#39;py23 == 2&#39;</span>
+  <span class="n">search</span><span class="p">:</span> <span class="s1">&#39;super\([^)]*\)&#39;</span>
+  <span class="n">do</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">action</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span>
+      <span class="n">args</span><span class="p">:</span>
+      <span class="o">-</span> <span class="s1">&#39;super\(\)&#39;</span>
+      <span class="o">-</span> <span class="s1">&#39;super(</span><span class="si">%(classname)s</span><span class="s1">, self)&#39;</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of arcangelo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#python-stages">Python stages</a></li>
+<li><a class="reference internal" href="#rules">Rules</a><ul>
+<li><a class="reference internal" href="#ctx-and-pyexpr">CTX and PYEXPR</a></li>
+<li><a class="reference internal" href="#eregex">EREGEX</a></li>
+<li><a class="reference internal" href="#action-and-args">ACTION and ARGS</a></li>
+<li><a class="reference internal" href="#replacing-macros-in-actions-and-args">Replacing macros in actions and args</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rules-examples">Rules examples</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description.html"
+                          title="previous chapter">Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_getting_started.html"
+                          title="next chapter">Getting started</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">arcangelo 2.1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2019-25, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

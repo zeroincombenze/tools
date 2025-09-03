@@ -95,6 +95,9 @@ def get_pyver_4_odoo(odoo_major):
 def make_travis_conf(cli_args=None):
     if not cli_args:
         cli_args = sys.argv[1:]
+    if not cli_args or cli_args[0] == "-h" or cli_args[0] == "--help":
+        print("make_travis_conf.py: SRCPATH TGTPATH")
+        return 126
     src = cli_args[0]
     tgt = cli_args[1]
     ctx = {

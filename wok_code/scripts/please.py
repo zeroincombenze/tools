@@ -909,7 +909,7 @@ class Please(object):
             self, what=None, path=None, git_org=None, version=None, read_only=False):
         """Get fqn of logfile
         @what:  "sts" for log directories (0=exist, 3=missing)
-                "cmd" for fqn show command
+                "cmd" for fqn show command (deprecated)
                 "fqn" for fqn log filename
                 "contents" for log filename content
         """
@@ -933,8 +933,8 @@ class Please(object):
             return 0
         log_fqn = ""
         rex = (
-            r"[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log" if not version
-            else r"_%s-[0-9]{4}-[0-9]{2}-[0-9]{2}.log" % version)
+            r"[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" if not version
+            else r"_%s-[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" % version)
         for fn in sorted(os.listdir(fqn_logdir), reverse=True):
             if re.search(rex, fn):
                 log_fqn = pth.join(fqn_logdir, fn)

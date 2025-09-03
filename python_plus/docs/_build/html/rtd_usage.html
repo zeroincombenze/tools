@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; python_plus 2.0.18 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=6e5bfe50"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="rtd_getting_started.html" />
+    <link rel="prev" title="Overview" href="rtd_description.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="code-example">
+<h2>Code example<a class="headerlink" href="#code-example" title="Link to this heading"></a></h2>
+<p>Simple examples of code</p>
+<section id="class-type-test">
+<h3>class / type test<a class="headerlink" href="#class-type-test" title="Link to this heading"></a></h3>
+<p>Test if a string is unicode.</p>
+<p>On Py2, this gives us:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;Hello World&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>On Py3, this gives us:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;Hello World&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Then, for example, the following code has the same effect on Py2 as on Py3:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">isbytestr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;Hello World&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">isbytestr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</section>
+<section id="quoted-string">
+<h3>quoted string<a class="headerlink" href="#quoted-string" title="Link to this heading"></a></h3>
+<p>Using class __:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">__</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="n">__</span><span class="p">(</span><span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_list</span> <span class="o">=</span> <span class="n">my_str_list</span><span class="o">.</span><span class="n">qsplit</span><span class="p">(</span><span class="n">my_str_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">my_list</span>
+<span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>General function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">python_plus</span><span class="w"> </span><span class="kn">import</span> <span class="n">qsplit</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_list</span> <span class="o">=</span> <span class="n">qsplit</span><span class="p">(</span><span class="n">my_str_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">my_list</span>
+<span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
+</pre></div>
+</div>
+</section>
+<section id="code-reference">
+<h3>Code reference<a class="headerlink" href="#code-reference" title="Link to this heading"></a></h3>
+<p>`` str.qslit(sep=None, maxsplit=-1, quotes=[‘”’, ‘”’], escape=None, enquote=None, strip=None)``</p>
+<p>Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).</p>
+<p>If sep is given, consecutive delimiters are not grouped together and are deemed to delimit empty strings (for example, ‘1,,2’.split(‘,’) returns [‘1’, ‘’, ‘2’]). The sep argument may consist of multiple characters (for example, ‘1&lt;&gt;2&lt;&gt;3’.split(‘&lt;&gt;’) returns [‘1’, ‘2’, ‘3’]). Splitting an empty string with a specified separator returns [‘’].</p>
+<p>If quotes is given, it is used to recognize quoted string: the sep tokens inside quoted string are ignored. The paramters quotes may be a string or a list. If it is a string trailing and ending delimiters are the same, like usual python string; if list is given, the first element is initial delimiter and the second element is the final delimiter like in html tag.</p>
+<p>If escape is given, it is used to escape delimiters.</p>
+<p>If enquote is True, returned list elements are enquoted by delimiters.</p>
+<p>If strip is Tru, trailing and tailing spaces in returned list elements are removed.</p>
+<p>For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="n">__</span><span class="p">(</span><span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">my_str_list</span><span class="o">.</span><span class="n">qsplit</span><span class="p">(</span><span class="n">my_str_list</span><span class="p">)</span>
+<span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
+</pre></div>
+</div>
+</section>
+<section id="vem-virtual-environment-manager">
+<h3>vem: virtual environment manager<a class="headerlink" href="#vem-virtual-environment-manager" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">vem</span><span class="o">.</span><span class="n">sh</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">][</span><span class="o">-</span><span class="n">a</span> <span class="nb">list</span><span class="p">][</span><span class="o">-</span><span class="n">BCD</span><span class="p">][</span><span class="o">-</span><span class="n">d</span> <span class="n">paths</span><span class="p">][</span><span class="o">-</span><span class="n">E</span> <span class="n">distro</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">name</span><span class="p">][</span><span class="o">-</span><span class="n">gkIi</span><span class="p">][</span><span class="o">-</span><span class="n">l</span> <span class="n">iso</span><span class="p">][</span><span class="o">-</span><span class="n">n</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="nb">dir</span><span class="p">][</span><span class="o">-</span><span class="n">p</span> <span class="n">pyver</span><span class="p">][</span><span class="o">-</span><span class="n">q</span><span class="p">][</span><span class="o">-</span><span class="n">r</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">stVvy</span><span class="p">]</span> <span class="n">p3</span> <span class="n">p4</span> <span class="n">p5</span> <span class="n">p6</span> <span class="n">p7</span> <span class="n">p8</span> <span class="n">p9</span>
+<span class="n">Manage</span> <span class="n">virtual</span> <span class="n">environment</span>
+<span class="n">action</span> <span class="n">may</span> <span class="n">be</span><span class="p">:</span> <span class="n">help</span> <span class="n">amend</span> <span class="n">cp</span> <span class="n">check</span> <span class="n">create</span> <span class="n">exec</span> <span class="n">info</span> <span class="n">inspect</span> <span class="n">install</span> <span class="n">merge</span> <span class="n">mv</span> <span class="n">python</span> <span class="n">shell</span> <span class="n">rm</span> <span class="n">show</span> <span class="n">uninstall</span> <span class="n">update</span> <span class="n">test</span>
+ <span class="o">-</span><span class="n">h</span> <span class="o">--</span><span class="n">help</span>            <span class="n">this</span> <span class="n">help</span>
+ <span class="o">-</span><span class="n">a</span> <span class="nb">list</span>              <span class="nb">bin</span> <span class="n">packages</span> <span class="n">to</span> <span class="n">install</span> <span class="p">(</span><span class="o">*</span> <span class="n">means</span> <span class="n">wkhtmltopdf</span><span class="p">,</span><span class="n">lessc</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">B</span>                   <span class="n">use</span> <span class="n">unstable</span> <span class="n">packages</span><span class="p">:</span> <span class="o">-</span><span class="n">B</span> <span class="n">testpypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BB</span> <span class="kn">from</span><span class="w"> </span><span class="o">~/</span><span class="n">tools</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBB</span> <span class="kn">from</span><span class="w"> </span><span class="o">~/</span><span class="n">pypi</span> <span class="o">/</span> <span class="o">-</span><span class="n">BBBB</span> <span class="n">link</span> <span class="n">to</span> <span class="n">local</span> <span class="o">~/</span><span class="n">pypi</span>
+ <span class="o">-</span><span class="n">C</span>                   <span class="n">clear</span> <span class="n">cache</span> <span class="n">before</span> <span class="n">executing</span> <span class="n">pip</span> <span class="n">command</span>
+ <span class="o">-</span><span class="n">D</span> <span class="o">--</span><span class="n">devel</span>           <span class="n">create</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="k">with</span> <span class="n">development</span> <span class="n">packages</span>
+ <span class="o">-</span><span class="n">d</span> <span class="o">--</span><span class="n">dep</span><span class="o">-</span><span class="n">path</span> <span class="n">paths</span>
+                      <span class="n">odoo</span> <span class="n">dependencies</span> <span class="n">paths</span> <span class="p">(</span><span class="n">comma</span> <span class="n">separated</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">E</span> <span class="o">--</span><span class="n">distro</span> <span class="n">distro</span>
+                      <span class="n">simulate</span> <span class="n">Linux</span> <span class="n">distro</span><span class="p">:</span> <span class="n">like</span> <span class="n">Ubuntu20</span> <span class="n">Centos7</span> <span class="n">etc</span> <span class="p">(</span><span class="n">requires</span> <span class="o">-</span><span class="n">n</span> <span class="n">switch</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">f</span> <span class="o">--</span><span class="n">force</span>           <span class="n">force</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="n">create</span><span class="p">,</span> <span class="n">even</span> <span class="k">if</span> <span class="n">exists</span> <span class="ow">or</span> <span class="n">inside</span> <span class="n">another</span> <span class="n">virtual</span> <span class="n">env</span>
+ <span class="o">-</span><span class="n">F</span> <span class="n">name</span>              <span class="n">simulate</span> <span class="n">Linux</span> <span class="n">family</span><span class="p">:</span> <span class="n">may</span> <span class="n">be</span> <span class="n">RHEL</span> <span class="ow">or</span> <span class="n">Debian</span> <span class="p">(</span><span class="n">requires</span> <span class="o">-</span><span class="n">n</span> <span class="n">switch</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">g</span> <span class="o">--</span><span class="k">global</span>          <span class="n">install</span> <span class="n">npm</span> <span class="n">packages</span> <span class="n">globally</span>
+ <span class="o">-</span><span class="n">k</span> <span class="o">--</span><span class="n">keep</span>            <span class="n">keep</span> <span class="n">python2</span> <span class="n">executable</span> <span class="k">as</span> <span class="n">python</span> <span class="p">(</span><span class="n">deprecated</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">I</span> <span class="o">--</span><span class="n">indipendent</span>     <span class="n">run</span> <span class="n">pip</span> <span class="ow">in</span> <span class="n">an</span> <span class="n">isolated</span> <span class="n">mode</span> <span class="ow">and</span> <span class="nb">set</span> <span class="n">home</span> <span class="n">virtual</span> <span class="n">directory</span>
+ <span class="o">-</span><span class="n">i</span> <span class="o">--</span><span class="n">isolated</span>        <span class="n">run</span> <span class="n">pip</span> <span class="ow">in</span> <span class="n">an</span> <span class="n">isolated</span> <span class="n">mode</span><span class="p">,</span> <span class="n">ignoring</span> <span class="n">environment</span> <span class="n">variables</span> <span class="ow">and</span> <span class="n">user</span> <span class="n">configuration</span>
+ <span class="o">-</span><span class="n">l</span> <span class="o">--</span><span class="n">lang</span> <span class="n">iso</span>
+                      <span class="nb">set</span> <span class="n">default</span> <span class="n">language</span>
+ <span class="o">-</span><span class="n">n</span> <span class="o">--</span><span class="n">dry_run</span>         <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">O</span> <span class="o">--</span><span class="n">odoo</span><span class="o">-</span><span class="n">ver</span> <span class="n">version</span>
+                      <span class="n">install</span> <span class="n">pypi</span> <span class="n">required</span> <span class="n">by</span> <span class="n">odoo</span> <span class="n">version</span> <span class="p">(</span><span class="n">amend</span> <span class="ow">or</span> <span class="n">create</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">o</span> <span class="o">--</span><span class="n">odoo</span><span class="o">-</span><span class="n">path</span> <span class="nb">dir</span>
+                      <span class="n">odoo</span> <span class="n">path</span> <span class="n">used</span> <span class="n">to</span> <span class="n">search</span> <span class="n">odoo</span> <span class="n">requirements</span>
+ <span class="o">-</span><span class="n">p</span> <span class="o">--</span><span class="n">python</span> <span class="n">pyver</span>
+                      <span class="n">python</span> <span class="n">version</span>
+ <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">silent</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">r</span> <span class="o">--</span><span class="n">requirement</span> <span class="n">file</span>
+                      <span class="n">after</span> <span class="n">created</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="n">install</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">given</span> <span class="n">requirements</span> <span class="n">file</span>
+ <span class="o">-</span><span class="n">s</span> <span class="o">--</span><span class="n">system</span><span class="o">-</span><span class="n">site</span><span class="o">-</span><span class="n">pack</span>
+                      <span class="n">create</span> <span class="n">v</span><span class="o">.</span><span class="n">environment</span> <span class="k">with</span> <span class="n">access</span> <span class="n">to</span> <span class="n">the</span> <span class="k">global</span> <span class="n">site</span><span class="o">-</span><span class="n">packages</span>
+ <span class="o">-</span><span class="n">t</span> <span class="o">--</span><span class="n">travis</span>          <span class="n">activate</span> <span class="n">environment</span> <span class="k">for</span> <span class="n">travis</span> <span class="n">test</span>
+ <span class="o">-</span><span class="n">V</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">version</span>
+ <span class="o">-</span><span class="n">v</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">verbose</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">y</span> <span class="o">--</span><span class="n">yes</span>             <span class="n">assume</span> <span class="n">yes</span>
+</pre></div>
+</div>
+<p>vem is an interactive tool with some nice features to manage standard virtual environment.</p>
+<p>Action is one of:</p>
+<ul class="simple">
+<li><p>help</p></li>
+<li><p>amend [OPTIONS] [VENV]</p></li>
+<li><p>check [OPTIONS] [VENV]</p></li>
+<li><p>cp [OPTIONS] SRC_VENV TGT_ENV</p></li>
+<li><p>create -p PYVER [OPTIONS] [VENV]</p></li>
+<li><p>exec [OPTIONS] [VENV] CMD</p></li>
+<li><p>info [OPTIONS] [VENV] PKG</p></li>
+<li><p>inspect [OPTIONS] [VENV]</p></li>
+<li><p>install [OPTIONS] [VENV] PKG</p></li>
+<li><p>merge [OPTIONS] SRC_VENV TGT_ENV</p></li>
+<li><p>mv [OPTIONS] SRC_VENV TGT_ENV</p></li>
+<li><p>python VENV</p></li>
+<li><p>shell VENV</p></li>
+<li><p>show [OPTIONS] [VENV] PKG</p></li>
+<li><p>uninstall [OPTIONS] [VENV] PKG</p></li>
+<li><p>update [OPTIONS] [VENV] PKG</p></li>
+<li><p>test VENV</p></li>
+</ul>
+<dl class="simple">
+<dt>amend [OPTIONS] [VENV]</dt><dd><p>Amend package versions against requirements.  May used after ‘create’ when requirements are changed.</p>
+</dd>
+<dt>check [OPTIONS] [VENV]</dt><dd><p>Compare package versions against requirements.  May be used after ‘create’ to check virtual environment
+consistency.</p>
+</dd>
+<dt>cp [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Copy SOURCE environment directory to TGT_ENV, like the bash command ‘cp’ and  set  relative  path  inside  virtual
+environment to aim the new directory name.
+Copying virtual environments is not well supported.
+Each virtualenv has path information hard-coded into it, and there may be cases where the copy code does not know it needs to update a particular file.
+Use with caution.</p>
+</dd>
+<dt>create -p PYVER [OPTIONS] VENV</dt><dd><p>Create  a  new  virtual environment directory VENV like virtualenv command but with some nice features.  Switch -p
+declare which python version will be used to create new environment.
+This action can install various python packages to create a ready to use environment directory.
+See -I -D -O -o -r switches to furthermore information.</p>
+</dd>
+<dt>exec [OPTIONS] [SRC_VENV] CMD …</dt><dd><p>Execute a command in virtual environment. Enclose command by quotes.</p>
+</dd>
+<dt>info [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of show).</p>
+</dd>
+<dt>inspect [OPTIONS] [VENV]</dt><dd><p>Show internal configuration.</p>
+</dd>
+<dt>install [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Install pypi package or bin package into virtual environment.
+Warning! currently just 2 bin packages can be installed: wkhtmltopdf and lessc.</p>
+</dd>
+<dt>merge [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Merge 2 virtual environments.</p>
+</dd>
+<dt>mv [OPTIONS] SRC_VENV TGT_ENV</dt><dd><p>Move a virtual environment.</p>
+</dd>
+<dt>python VENV</dt><dd><p>Execute python interpreter of virtual environment with packages.</p>
+</dd>
+<dt>shell VENV</dt><dd><p>Execute bash inside virtual environment, with packages commands.</p>
+</dd>
+<dt>show [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Show information about pypi package if installed in virtual environment (alias of info).</p>
+</dd>
+<dt>uninstall [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Uninstall pypi package from virtual environment.</p>
+</dd>
+<dt>update [OPTIONS] [SRC_VENV] PKG</dt><dd><p>Upgrade pypi package in virtual environment.</p>
+</dd>
+<dt>test VENV</dt><dd><p>Execute pip check inside vritual environment.</p>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of python_plus"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#code-example">Code example</a><ul>
+<li><a class="reference internal" href="#class-type-test">class / type test</a></li>
+<li><a class="reference internal" href="#quoted-string">quoted string</a></li>
+<li><a class="reference internal" href="#code-reference">Code reference</a></li>
+<li><a class="reference internal" href="#vem-virtual-environment-manager">vem: virtual environment manager</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description.html"
+                          title="previous chapter">Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_getting_started.html"
+                          title="next chapter">Getting started</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_getting_started.html" title="Getting started"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2019-25, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

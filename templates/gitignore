@@ -1,4 +1,4 @@
-# [antoniov: 2022-11-09]
+# [antoniov: 2025-09-02]
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -45,10 +45,13 @@ setup/win32/static/postgresql*.exe
 htmlcov/
 .tox/
 .coverage
+.*coverage
+*coveragerc
 .cache
 nosetests.xml
 coverage.xml
 cover/
+logs/
 
 # Node + Javascripts packages
 *.json
@@ -115,6 +118,10 @@ stdout.log
 #
 # tools building path
 #
+/arcangelo/build/
+/arcangelo/dist/
+/arcangelo/arcangelo/docs/_build/
+/arcangelo/arcangelo.egg-info/
 /clodoo/build/
 /clodoo/dist/
 /clodoo/clodoo/docs/_build/
@@ -245,6 +252,7 @@ stdout.log
 /mis-builder
 /mis-builder-contrib
 /multi-company
+/mymodules
 /nardo_modules
 /oca-custom
 /oca-decorators

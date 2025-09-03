@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>travis_emulator 1.0.2.1 &#8212; travis_emulator 2.0.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=8fc2db88" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=505e95f4"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">travis_emulator 1.0.2.1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="travis-emulator-1-0-2-1">
+<h1>travis_emulator 1.0.2.1<a class="headerlink" href="#travis-emulator-1-0-2-1" title="Permalink to this heading"></a></h1>
+<p><a class="reference external" href="https://odoo-community.org/page/development-status"><img alt="" src="https://img.shields.io/badge/maturity-Mature-green.png" /></a> <a class="reference external" href="https://travis-ci.com/zeroincombenze/tools"><img alt="github.com" src="https://travis-ci.org/zeroincombenze/tools.svg?branch=master" /></a> <a class="reference external" href="https://coveralls.io/github/zeroincombenze/tools?branch=1.0.2.1"><img alt="Coverage" src="https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master" /></a> <a class="reference external" href="http://www.gnu.org/licenses/agpl-3.0-standalone.html"><img alt="License: AGPL-3" src="https://img.shields.io/badge/licence-AGPL--3-blue.svg" /></a></p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<section id="emulate-travis-to-test-application-before-pushing-to-git">
+<h3>Emulate travis to test application before pushing to git<a class="headerlink" href="#emulate-travis-to-test-application-before-pushing-to-git" title="Permalink to this heading"></a></h3>
+<p>Travis emulator can emulate TravisCi parsing the <strong>.travis.yml</strong> file in local Linux machine and it is osx/darwin compatible.
+You can test your application before pushing code to github.com web site.</p>
+<p>Travis emulator can creates all the build declared in <strong>.travis.yml</strong>; all the builds are executed in sequential way.
+The directory ~/travis_log (see -l switch) keeps the logs of all builds created.
+Please note that log file is a binary file with escape ANSI screen code.
+If you want to see the log use one of following command:</p>
+<blockquote>
+<div><p><cite>travis show</cite></p>
+<p><cite>less -R ~/travis_log/&lt;build_name&gt;.log</cite></p>
+</div></blockquote>
+<p>A travis build executes the following steps:</p>
+<ul class="simple">
+<li><p>Initialize from local .travis.conf (not in travis-ci.org)</p></li>
+<li><p>Optional install packages <cite>apt addons</cite> (emulatore makes just the check)</p></li>
+<li><p>Optional install packages <cite>cache</cite></p></li>
+<li><p>Set global values <cite>env global</cite></p></li>
+<li><p>Execute code <cite>before_install</cite></p></li>
+<li><p>Execute matrix initialization, included python version</p></li>
+<li><p>Execute build code <cite>install</cite></p></li>
+<li><p>Execute build code <cite>before_script</cite></p></li>
+<li><p>Execute build code <cite>script</cite></p></li>
+<li><p>Execute build <cite>before_cache</cite> (only if cache is effective, not emulated)</p></li>
+<li><p>Execute build code <cite>after_success</cite> (emulated) or <cite>after_failure</cite> (not emulated)</p></li>
+<li><p>Optional code <cite>before_deploy</cite> (only if deployment is effective, not emulated)</p></li>
+<li><p>Optional code <cite>deploy</cite> (not emulated)</p></li>
+<li><p>Optional code <cite>after_deploy</cite> (only if deployment is effective, not emulated)</p></li>
+<li><p>Execute code <cite>after_script</cite> (not emulated)</p></li>
+<li><p>Wep from local .travis.conf (not in travis-ci.org)</p></li>
+</ul>
+<p>Read furthermore info read <a class="reference external" href="https://docs.travis-ci.com/user/job-lifecycle/">travis-ci phase</a></p>
+<section id="difference-between-local-travis-and-web-site">
+<h4>Difference between local travis and web site<a class="headerlink" href="#difference-between-local-travis-and-web-site" title="Permalink to this heading"></a></h4>
+<p>The travis emulator works mostly like TravisCi web site. However you ha to consider some points where you run local tests:</p>
+<p>Local software is not published</p>
+<blockquote>
+<div><p>When you test on your local PC, the software is not yet publishd. Perhaps you prefer test
+local packages or local modules.
+The travis emulator with z0bug_odoo replace the commands <cite>git clone</cite> with local <cite>ln -s</cite> creating
+logical link with local repository, if possible.
+Local module are searched in the testing module directory. See Odoo structure for furthermore info.</p>
+</div></blockquote>
+<p>Your PC is not TravisCi web site</p>
+<blockquote>
+<div><p>Probability you have just one python interpreter and your user is not sudo enabled.
+The travis emulator run build just with Odoo interpreter installed even if your
+.travis.yml file contains more python version to test.
+The travis emulator does not try to install global packages because
+it does not change the PC configuration.
+Please, install manually all the global packages using apt-get, yum, dnf or your local installer software.</p>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h3>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Function</p></td>
+<td><p>Status</p></td>
+<td><p>Note</p></td>
+</tr>
+<tr class="row-even"><td><p>Execute tests in virtual environment</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>As TravisCI</p></td>
+</tr>
+<tr class="row-odd"><td><p>Python 2 test</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>If installed in local machine</p></td>
+</tr>
+<tr class="row-even"><td><p>Python 3 test</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>If installed in local machine</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bash test</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>Using zerobug package</p></td>
+</tr>
+<tr class="row-even"><td><p>Matrix</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>Test sequentialized</p></td>
+</tr>
+<tr class="row-odd"><td><p>Show coverage result</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>If installed in local machine</p></td>
+</tr>
+<tr class="row-even"><td><p>Quality check</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>With zerobug and z0bug_odoo packages</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stored images</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>In ~/VME/ directory (see -C switch)</p></td>
+</tr>
+<tr class="row-even"><td><p>Debug information</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>See -B and -D switches</p></td>
+</tr>
+<tr class="row-odd"><td><p>Keep DB after test</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>See -k switch</p></td>
+</tr>
+<tr class="row-even"><td><p>Lint level</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>With zerobug, see -L switch</p></td>
+</tr>
+<tr class="row-odd"><td><p>Build selection</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>See -O switch</p></td>
+</tr>
+<tr class="row-even"><td><p>System packages</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /> <img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+<td><p>See -S switch</p></td>
+</tr>
+<tr class="row-odd"><td><p>Use specific python version</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+<td><p>See -y switch</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<section id="travis-emulator-usage">
+<h3>Travis emulator usage<a class="headerlink" href="#travis-emulator-usage" title="Permalink to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">travis</span> <span class="p">[</span><span class="o">-</span><span class="n">hBC</span><span class="p">][</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">D</span> <span class="n">number</span><span class="p">][</span><span class="o">-</span><span class="n">dEFfjk</span><span class="p">][</span><span class="o">-</span><span class="n">L</span> <span class="n">number</span><span class="p">][</span><span class="o">-</span><span class="n">l</span> <span class="nb">dir</span><span class="p">][</span><span class="o">-</span><span class="n">Mmn</span><span class="p">][</span><span class="o">-</span><span class="n">O</span> <span class="n">git</span><span class="o">-</span><span class="n">org</span><span class="p">][</span><span class="o">-</span><span class="n">pqr</span><span class="p">][</span><span class="o">-</span><span class="n">S</span> <span class="n">false</span><span class="o">|</span><span class="n">true</span><span class="p">][</span><span class="o">-</span><span class="n">Vv</span><span class="p">][</span><span class="o">-</span><span class="n">X</span> <span class="mi">0</span><span class="o">|</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="n">Y</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">y</span> <span class="n">pyver</span><span class="p">][</span><span class="o">-</span><span class="n">Z</span><span class="p">]</span> <span class="n">action</span> <span class="n">sub</span> <span class="n">sub2</span>
+<span class="n">Travis</span><span class="o">-</span><span class="n">ci</span> <span class="n">emulator</span> <span class="k">for</span> <span class="n">local</span> <span class="n">developer</span> <span class="n">environment</span>
+<span class="n">Action</span> <span class="n">may</span> <span class="n">be</span><span class="p">:</span> <span class="p">[</span><span class="n">force</span><span class="o">-</span><span class="p">]</span><span class="n">lint</span><span class="p">,</span> <span class="p">[</span><span class="n">force</span><span class="o">-</span><span class="p">]</span><span class="n">test</span><span class="p">,</span> <span class="n">emulate</span> <span class="p">(</span><span class="n">default</span><span class="p">),</span> <span class="p">(</span><span class="n">new</span><span class="o">|</span><span class="n">chk</span><span class="o">|</span><span class="n">cp</span><span class="o">|</span><span class="n">mv</span><span class="o">|</span><span class="n">merge</span><span class="p">)</span><span class="n">_vm</span><span class="p">,</span> <span class="n">chkconfig</span> <span class="ow">or</span> <span class="n">parseyaml</span>
+ <span class="o">-</span><span class="n">h</span> <span class="o">--</span><span class="n">help</span>            <span class="n">this</span> <span class="n">help</span>
+ <span class="o">-</span><span class="n">B</span> <span class="o">--</span><span class="n">debug</span>           <span class="n">debug</span> <span class="n">mode</span><span class="p">:</span> <span class="n">do</span> <span class="ow">not</span> <span class="n">create</span> <span class="n">log</span>
+ <span class="o">-</span><span class="n">C</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">cache</span>        <span class="n">do</span> <span class="ow">not</span> <span class="n">use</span> <span class="n">stored</span> <span class="n">PYPI</span>
+ <span class="o">-</span><span class="n">c</span> <span class="o">--</span><span class="n">conf</span> <span class="n">file</span>
+                      <span class="n">configuration</span> <span class="n">file</span> <span class="p">(</span><span class="k">def</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">conf</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">D</span> <span class="o">--</span><span class="n">debug</span><span class="o">-</span><span class="n">level</span> <span class="n">number</span>
+                      <span class="n">travis_debug_mode</span><span class="p">:</span> <span class="n">may</span> <span class="n">be</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">8</span> <span class="ow">or</span> <span class="mi">9</span> <span class="p">(</span><span class="k">def</span> <span class="nf">yaml</span> <span class="n">dependents</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">d</span> <span class="o">--</span><span class="n">osx</span>             <span class="n">emulate</span> <span class="n">osx</span><span class="o">-</span><span class="n">darwin</span>
+ <span class="o">-</span><span class="n">E</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">savenv</span>       <span class="n">do</span> <span class="ow">not</span> <span class="n">save</span> <span class="n">virtual</span> <span class="n">environment</span> <span class="n">into</span> <span class="o">~/</span><span class="n">VME</span><span class="o">/...</span> <span class="k">if</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">exist</span>
+ <span class="o">-</span><span class="n">F</span> <span class="o">--</span><span class="n">full</span>            <span class="n">run</span> <span class="n">final</span> <span class="n">travis</span> <span class="k">with</span> <span class="n">full</span> <span class="n">features</span>
+ <span class="o">-</span><span class="n">f</span> <span class="o">--</span><span class="n">force</span>           <span class="n">force</span> <span class="n">yaml</span> <span class="n">to</span> <span class="n">run</span> <span class="n">w</span><span class="o">/</span><span class="n">o</span> <span class="n">cmd</span> <span class="n">subst</span>
+ <span class="o">-</span><span class="n">j</span>                   <span class="n">execute</span> <span class="n">tests</span> <span class="ow">in</span> <span class="n">project</span> <span class="nb">dir</span> <span class="n">rather</span> <span class="ow">in</span> <span class="n">test</span> <span class="nb">dir</span> <span class="p">(</span><span class="ow">or</span> <span class="n">expand</span> <span class="n">macro</span> <span class="k">if</span> <span class="n">parseyaml</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">k</span> <span class="o">--</span><span class="n">keep</span>            <span class="n">keep</span> <span class="n">DB</span> <span class="ow">and</span> <span class="n">virtual</span> <span class="n">environment</span> <span class="n">after</span> <span class="n">tests</span>
+ <span class="o">-</span><span class="n">L</span> <span class="o">--</span><span class="n">lint</span><span class="o">-</span><span class="n">level</span> <span class="n">number</span>
+                      <span class="n">lint_check_level</span><span class="p">:</span> <span class="n">may</span> <span class="n">be</span> <span class="n">minimal</span><span class="p">,</span><span class="n">reduced</span><span class="p">,</span><span class="n">average</span><span class="p">,</span><span class="n">nearby</span><span class="p">,</span><span class="n">oca</span><span class="p">;</span> <span class="k">def</span> <span class="nf">value</span> <span class="kn">from</span> <span class="nn">.travis.yml</span>
+ <span class="o">-</span><span class="n">l</span> <span class="o">--</span><span class="n">logdir</span> <span class="nb">dir</span>
+                      <span class="n">log</span> <span class="n">directory</span> <span class="p">(</span><span class="n">def</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">antoniomaria</span><span class="o">/</span><span class="n">odoo</span><span class="o">/</span><span class="n">travis_log</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">M</span>                   <span class="n">use</span> <span class="n">local</span> <span class="n">MQT</span> <span class="p">(</span><span class="n">deprecated</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">m</span> <span class="o">--</span><span class="n">missing</span>         <span class="n">show</span> <span class="n">missing</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">report</span> <span class="n">coverage</span>
+ <span class="o">-</span><span class="n">n</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span>         <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">O</span> <span class="o">--</span><span class="n">org</span> <span class="n">git</span><span class="o">-</span><span class="n">org</span>
+                      <span class="n">git</span> <span class="n">organization</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">oca</span> <span class="ow">or</span> <span class="n">zeroincombenze</span>
+ <span class="o">-</span><span class="n">p</span> <span class="o">--</span><span class="n">pytest</span>          <span class="n">prefer</span> <span class="n">python</span> <span class="n">test</span> <span class="n">over</span> <span class="n">bash</span> <span class="n">test</span> <span class="n">when</span> <span class="n">avaiable</span>
+ <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">silent</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">r</span>                   <span class="n">run</span> <span class="n">restricted</span> <span class="n">mode</span> <span class="p">(</span><span class="n">deprecated</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">S</span> <span class="o">--</span><span class="n">syspkg</span> <span class="n">false</span><span class="o">|</span><span class="n">true</span>
+                      <span class="n">use</span> <span class="n">python</span> <span class="n">system</span> <span class="n">packages</span> <span class="p">(</span><span class="k">def</span> <span class="nf">yaml</span> <span class="n">dependents</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">V</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">version</span>
+ <span class="o">-</span><span class="n">v</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">verbose</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">X</span> <span class="mi">0</span><span class="o">|</span><span class="mi">1</span>               <span class="n">enable</span> <span class="n">translation</span> <span class="n">test</span> <span class="p">(</span><span class="k">def</span> <span class="nf">yaml</span> <span class="n">dependents</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">Y</span> <span class="o">--</span><span class="n">yaml</span><span class="o">-</span><span class="n">file</span> <span class="n">file</span>
+                      <span class="n">file</span> <span class="n">yaml</span> <span class="n">to</span> <span class="n">process</span> <span class="p">(</span><span class="k">def</span> <span class="o">.</span><span class="n">travis</span><span class="o">.</span><span class="n">yml</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">y</span> <span class="o">--</span><span class="n">pyver</span> <span class="n">pyver</span>
+                      <span class="n">test</span> <span class="k">with</span> <span class="n">specific</span> <span class="n">python</span> <span class="n">versions</span> <span class="p">(</span><span class="n">comma</span> <span class="n">separated</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">Z</span> <span class="o">--</span><span class="n">zero</span>            <span class="n">use</span> <span class="n">local</span> <span class="n">zero</span><span class="o">-</span><span class="n">tools</span>
+</pre></div>
+</div>
+<section id="tree-directory">
+<h4>Tree directory<a class="headerlink" href="#tree-directory" title="Permalink to this heading"></a></h4>
+<p>While travis is running this is the tree directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>${HOME}
+┣━━ build                       # build root (by TravisCI)
+┃    ┣━━ ${TRAVIS_BUILD_DIR}    # testing project repository (by TravisCI)
+┃    ┗━━ ${ODOO_REPO}           # Odoo or OCA/OCB repository to check with    (1) (2)
+┃
+┣━━ ${ODOO_REPO}-${VERSION}     # symlnk of ${HOME}/build/{ODOO_REPO}         (1)
+┃
+┣━━ dependencies                # Odoo dependencies                           (3)
+┃
+┗━━ tools                       # clone of Zeroincombenze tools               (3) (4)
+     ┃
+     ┣━━ zerobug                # testing library
+     ┃       ┗━━ _travis        # testing commands
+     ┗━━ z0bug_odoo             # Odoo testing library
+             ┗━━ _travis        # testing commands
+
+(1) Directory with Odoo or OCA/OCB repository to check compatibility of testing project
+(2) If testing project is OCB, travis_install_env ignore this directory
+(3) Done by then following statements in .travis.yml:
+    - travis_install_env
+    Above statements replace the OCA statements:
+    - travis_install_nightly
+(4) Done by following statements in .travis.yml::
+    - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+    - \${HOME}/tools/install_tools.sh -qp
+    - source ${HOME}/dev/activate_tools
+    Above statements replace OCA following statements:
+    - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
+    - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+</pre></div>
+</div>
+</section>
+<section id="configuration-file">
+<h4>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this heading"></a></h4>
+<p>Values in configuration file are:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Parameter</p></td>
+<td><p>Descriptio</p></td>
+<td><p>Default value</p></td>
+</tr>
+<tr class="row-even"><td><p>CHAT_HOME</p></td>
+<td><p>URL to web chat to insert in documentation</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ODOO_SETUPS</p></td>
+<td><p>Names of Odoo manifest files</p></td>
+<td><p>__manifest__.py __openerp__.py __odoo__.py __terp__.py</p></td>
+</tr>
+<tr class="row-even"><td><p>dbtemplate</p></td>
+<td><p>Default value for MQT_TEMPLATE_DB</p></td>
+<td><p>openerp_template</p></td>
+</tr>
+<tr class="row-odd"><td><p>dbname</p></td>
+<td><p>Default value for MQT_TEST_DB</p></td>
+<td><p>openerp_test</p></td>
+</tr>
+<tr class="row-even"><td><p>dbuser</p></td>
+<td><p>Postgresql user: default value for MQT_DBUSER</p></td>
+<td><p>$USER</p></td>
+</tr>
+<tr class="row-odd"><td><p>UNBUFFER</p></td>
+<td><p>Use unbuffer</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>virtualenv_opts</p></td>
+<td><p>Default option to create virtual environment</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>NPM_CONFIG_PREFIX</p></td>
+<td><p>N/D</p></td>
+<td><p>$HOME/.npm-global</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_TXT_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>0;97;40</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_RUN_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>1;37;44</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_NOP_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>31;100</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_HDR1_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>97;42</p></td>
+</tr>
+<tr class="row-even"><td><p>PS_HDR2_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>30;43</p></td>
+</tr>
+<tr class="row-odd"><td><p>PS_HDR3_COLOR</p></td>
+<td><p>N/D</p></td>
+<td><p>30;45</p></td>
+</tr>
+<tr class="row-even"><td><p>PKGS_LIST</p></td>
+<td><p>N/D</p></td>
+<td><p>clodoo lisa odoo_score os0 python-plus travis_emulator wok_code z0bug-odoo z0lib zar zerobug</p></td>
+</tr>
+<tr class="row-odd"><td><p>PYTHON_MATRIX</p></td>
+<td><p>Python version available to test (space separated)</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h2>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h3>
+<section id="current-version-via-git">
+<h4>Current version via Git<a class="headerlink" href="#current-version-via-git" title="Permalink to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $HOME
+git clone https://github.com/zeroincombenze/tools.git
+cd ./tools
+./install_tools.sh -p
+source /opt/odoo/dev/activate_tools
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading"></a></h3>
+<p><em>Message “Denied inquire with psql [-U&lt;name&gt;]”</em></p>
+<blockquote>
+<div><p>User &lt;name&gt; cannot execute psql command.
+Travis emulator cannot drop test database after build completation.
+Please configure postgresql and enable user &lt;name&gt; to use psql via shell.
+If user is not <em>odoo</em> declare username with following command:</p>
+<p><cite>please config global</cite></p>
+<p>and then set <em>dbuser</em> parameter value.</p>
+</div></blockquote>
+<p><em>Message “false;   # Warning! TODO&gt; apt-get install &lt;pkg&gt;</em></p>
+<blockquote>
+<div><p>The package &lt;pkg&gt; is not installed on your system.
+Travis emulator run at low security level and cannot install debian or rpm packages.
+Please install the package &lt;pkg&gt; via <em>apt-get</em> or <em>yum</em> or <em>dnf</em> based on your distro.
+You can use <em>lisa</em> to install package &lt;pkg&gt; on all distribution with following command:</p>
+<p><cite>lisa install &lt;pkg&gt;</cite></p>
+</div></blockquote>
+</section>
+<section id="history">
+<h3>History<a class="headerlink" href="#history" title="Permalink to this heading"></a></h3>
+<section id="id1">
+<h4>1.0.2.1 (2021-08-06)<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h4>
+<p>[IMP] devel_tools replaced by wok_code</p>
+</section>
+<section id="id2">
+<h4>1.0.2.1 (2021-08-03)<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h4>
+<p>[IMP] Show virtual enviroment name in summary</p>
+</section>
+<section id="id3">
+<h4>1.0.1.2 (2021-05-31)<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
+<p>[FIX] readlink error</p>
+</section>
+<section id="id4">
+<h4>1.0.1.1 (2021-05-24)<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
+<p>[IMP] Local travis full emulator</p>
+</section>
+<section id="id5">
+<h4>1.0.0.14 (2021-04-07)<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<p>[IMP] Change message level showing</p>
+</section>
+<section id="id6">
+<h4>1.0.0.13 (2021-04-06)<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h4>
+<p>[IMP] travis: show stack execution</p>
+</section>
+<section id="id7">
+<h4>1.0.0.12 (2021-03-31)<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h4>
+<p>[FIX] travis: no crash it tools not found
+[IMP] travis: manage nvm
+[REF] travis: new colors output
+[IMP] vem: osx/darwin compatible</p>
+</section>
+<section id="id8">
+<h4>1.0.0.11 (2021-03-19)<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h4>
+<p>[FIX] travisrc: set_executable</p>
+</section>
+<section id="id9">
+<h4>1.0.0.10 (2021-03-15)<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h4>
+<p>[FIX] travisrc: set_executable</p>
+</section>
+<section id="id10">
+<h4>1.0.0.9 (2021-03-15)<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h4>
+<p>[DOC] Documentation upgrade</p>
+</section>
+<section id="id11">
+<h4>1.0.0.8 (2021-03-05)<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h4>
+<p>[IMP] travisrc: Best fileignore list
+[FIX] travisrc: clean_dirs
+[FIX] travisrc: set_executable
+[IMP] travis: local odoo module to not test</p>
+</section>
+<section id="id12">
+<h4>1.0.0.7 (2021-03-03)<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h4>
+<p>[FIX] no check if python-dev is installed</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+</section>
+<section id="credits">
+<h2>Credits<a class="headerlink" href="#credits" title="Permalink to this heading"></a></h2>
+<section id="copyright">
+<h3>Copyright<a class="headerlink" href="#copyright" title="Permalink to this heading"></a></h3>
+<p>SHS-AV s.r.l. &lt;<a class="reference external" href="https://www.shs-av.com/">https://www.shs-av.com/</a>&gt;</p>
+</section>
+<section id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Antonio M. Vigliotti &lt;<a class="reference external" href="mailto:info&#37;&#52;&#48;shs-av&#46;com">info<span>&#64;</span>shs-av<span>&#46;</span>com</a>&gt;</p></li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2021-08-07</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">travis_emulator 1.0.2.1</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#emulate-travis-to-test-application-before-pushing-to-git">Emulate travis to test application before pushing to git</a><ul>
+<li><a class="reference internal" href="#difference-between-local-travis-and-web-site">Difference between local travis and web site</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#features">Features</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#travis-emulator-usage">Travis emulator usage</a><ul>
+<li><a class="reference internal" href="#tree-directory">Tree directory</a></li>
+<li><a class="reference internal" href="#configuration-file">Configuration file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#current-version-via-git">Current version via Git</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#history">History</a><ul>
+<li><a class="reference internal" href="#id1">1.0.2.1 (2021-08-06)</a></li>
+<li><a class="reference internal" href="#id2">1.0.2.1 (2021-08-03)</a></li>
+<li><a class="reference internal" href="#id3">1.0.1.2 (2021-05-31)</a></li>
+<li><a class="reference internal" href="#id4">1.0.1.1 (2021-05-24)</a></li>
+<li><a class="reference internal" href="#id5">1.0.0.14 (2021-04-07)</a></li>
+<li><a class="reference internal" href="#id6">1.0.0.13 (2021-04-06)</a></li>
+<li><a class="reference internal" href="#id7">1.0.0.12 (2021-03-31)</a></li>
+<li><a class="reference internal" href="#id8">1.0.0.11 (2021-03-19)</a></li>
+<li><a class="reference internal" href="#id9">1.0.0.10 (2021-03-15)</a></li>
+<li><a class="reference internal" href="#id10">1.0.0.9 (2021-03-15)</a></li>
+<li><a class="reference internal" href="#id11">1.0.0.8 (2021-03-05)</a></li>
+<li><a class="reference internal" href="#id12">1.0.0.7 (2021-03-03)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits">Credits</a><ul>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+<li><a class="reference internal" href="#contributors">Contributors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/MAINPAGE.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">travis_emulator 1.0.2.1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2016-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

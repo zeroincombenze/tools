@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Digest of code_reference &#8212; python_plus 2.0.18 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=6e5bfe50"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Digest of vem" href="rtd_usage_vem.html" />
+    <link rel="prev" title="Digest of code_example" href="rtd_usage_code_example.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="rtd_usage_vem.html" title="Digest of vem"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Digest of code_example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Digest of code_reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="digest-of-code-reference">
+<h1>Digest of code_reference<a class="headerlink" href="#digest-of-code-reference" title="Link to this heading"></a></h1>
+<section id="code-reference">
+<h2>Code reference<a class="headerlink" href="#code-reference" title="Link to this heading"></a></h2>
+<p>`` str.qslit(sep=None, maxsplit=-1, quotes=[‘”’, ‘”’], escape=None, enquote=None, strip=None)``</p>
+<p>Like split function return a list of the words in the string, using sep as the delimiter string. If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements). If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).</p>
+<p>If sep is given, consecutive delimiters are not grouped together and are deemed to delimit empty strings (for example, ‘1,,2’.split(‘,’) returns [‘1’, ‘’, ‘2’]). The sep argument may consist of multiple characters (for example, ‘1&lt;&gt;2&lt;&gt;3’.split(‘&lt;&gt;’) returns [‘1’, ‘2’, ‘3’]). Splitting an empty string with a specified separator returns [‘’].</p>
+<p>If quotes is given, it is used to recognize quoted string: the sep tokens inside quoted string are ignored. The paramters quotes may be a string or a list. If it is a string trailing and ending delimiters are the same, like usual python string; if list is given, the first element is initial delimiter and the second element is the final delimiter like in html tag.</p>
+<p>If escape is given, it is used to escape delimiters.</p>
+<p>If enquote is True, returned list elements are enquoted by delimiters.</p>
+<p>If strip is Tru, trailing and tailing spaces in returned list elements are removed.</p>
+<p>For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_str_list</span> <span class="o">=</span> <span class="n">__</span><span class="p">(</span><span class="s1">&#39;abc,&quot;d,e&quot;,fgh&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">my_str_list</span><span class="o">.</span><span class="n">qsplit</span><span class="p">(</span><span class="n">my_str_list</span><span class="p">)</span>
+<span class="go">[&#39;abc&#39;, &#39;d,e&#39;, &#39;fgh&#39;]</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of python_plus"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Digest of code_reference</a><ul>
+<li><a class="reference internal" href="#code-reference">Code reference</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_usage_code_example.html"
+                          title="previous chapter">Digest of code_example</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_usage_vem.html"
+                          title="next chapter">Digest of vem</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage_code_reference.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="rtd_usage_vem.html" title="Digest of vem"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_code_example.html" title="Digest of code_example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">python_plus 2.0.18 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Digest of code_reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2019-25, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>
