@@ -1,4 +1,4 @@
-2.0.11 (2025-06-14)
+2.0.11 (2025-08-31)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi

@@ -236,7 +236,7 @@ PIP_PKGS=oerplib,virtualenv,future,Babel,python-openid,setuptools,simplejson,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
     configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
-    pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB,\
+    pylint_odoo,pyflakes,clodoo,z0lib,psycopg2-binary,PyXB,\
     phonenumbers,ebaysdk,html2text,pyldap,PyPDF2,xlrd,viivakoodi,py3o,fdb,\
     sqlalchemy,checksumdir,barcode,python-levenshtein,num2words,ofxparse,\
     suds-jurko,zpl2,idna,certifi,docutils,PyWebDAV

@@ -49,7 +49,7 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.15
+__version__=2.0.16
 
 
 OPTOPTS=(h        n            V           v)

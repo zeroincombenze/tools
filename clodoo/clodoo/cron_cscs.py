@@ -64,17 +64,15 @@ def main(cli_args=[]):
     if help:
         print("usage: cron_cscs [-f][-n][DBNAME]")
         exit(0)
-    utc=pytz.timezone("utc")
-    sql=("select id,name,interval_type,nextcall,priority,doall,interval_number,model"
+    sql = ("select id,name,interval_type,nextcall,priority,doall,interval_number,model"
          " from ir_cron where active=true order by nextcall")
-    cmd=["psql", db,  "-Atc", sql]
+    cmd = ["psql", db,  "-Atc", sql]
     sts, out, err = os_system(cmd)
     print(datetime.now(timezone.utc))
     print("cmd %s (%d)" % (" ".join(cmd), sts))
     if sts:
-         print("Error")
-         return sts
-    ofs = 0
+        print("Error")
+        return sts
     for ln in out.split("\n"):
         if not ln:
             continue
@@ -98,4 +96,3 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))
-
