@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=2.0.10
+# __version__=2.0.11
 # Can be used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macros are substituted in 2 steps:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -18,7 +18,7 @@ python:
   - "3.8"
   - "3.9"
   - "3.10"
-  # - "3.11"
+  - "3.11"
   # - "3.12"
 
 virtualenv:

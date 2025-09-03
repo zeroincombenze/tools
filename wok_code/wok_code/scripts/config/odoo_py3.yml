@@ -1,2 +1,0 @@
-include_global_py:
-  include: 'globals_py3'
