@@ -760,7 +760,9 @@ class Package(object):
             if sts == 0:
                 mo = re.search(r"[0-9]+\.[0-9]+", self.branch)
                 if mo:
-                    self.version = self.release = self.branch[mo.start(): mo.end()]
+                    self.release = self.branch[mo.start(): mo.end()]
+                    if not self.version:
+                        self.version = self.branch[mo.start(): mo.end()]
         elif self.prjname == "Odoo":
             mo = re.search(r"[0-9]+\.[0-9]+", path)
             if not mo:
@@ -769,7 +771,9 @@ class Package(object):
                 branch = path[mo.start(): mo.end()]
                 if "." not in branch:
                     branch += ".0"
-                self.branch = self.version = self.release = branch
+                self.release = branch
+                if not self.version:
+                    self.version = branch
         sts, stdout, stderr = os_system_traced(
             "git remote -v", verbose=False, dry_run=False, rtime=False)
         if sts == 0 and stdout:
@@ -835,6 +839,7 @@ class Package(object):
                     self.manifest = pth.join(p, "__openerp__.py")
                 if pth.isdir(pth.join(p, "tests")):
                     self.testdir = pth.join(p, "tests")
+                self.read_manifest_file()
             elif self.is_pypi_pkg(path=p):
                 self.rundir = p
                 if not self.name:
@@ -903,7 +908,9 @@ class Package(object):
         if os.path.isfile(release):
             with open(release, RMODE) as fd:
                 for line in fd.read().split("\n"):
-                    mo = re.match(r"version_info *= *\([0-9]+ *, *[0-9]+", line)
+                    mo = re.match(
+                        r"version_info *= *\([0-9]+ *, *[0-9]+",
+                        line.replace("FINAL", "0"))
                     if mo:
                         self.release = "%d.%d" % eval(mo.string.split("=")[1])[0:2]
                         if not self.version:
@@ -1018,7 +1025,7 @@ class Package(object):
         udi, umli = self.get_uniqid(ignore_version=all_version)
         ver = self.get_version_to_log()
         rex = (
-            r"[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" if not all_version
+            r"[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" if all_version
             else r"_%s-[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" % ver)
         log_filenames = []
         for fn in sorted(os.listdir(logdir), reverse=True):

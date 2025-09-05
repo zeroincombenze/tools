@@ -27,14 +27,6 @@ def expand_macro(line, section, ctx):
     branch = ctx["TRAVIS_BRANCH"].split(".")[0]
     if re.match(r"^ *#", line) or not line.strip():
         pass
-    elif ctx["PRJNAME"] == "Odoo" and section == "python":
-        if (
-            (re.match(r"^ *\- *[\"']?3", line)
-             and ctx["TRAVIS_PYTHON_VERSION"].startswith("2"))
-            or (re.match(r"^ *\- *[\"']?2", line)
-                and ctx["TRAVIS_PYTHON_VERSION"].startswith("3"))
-        ):
-            line = comment_line(line)
     elif section == "before_install":
         if re.match(r"^ *\- \$HOME/tools/install_tools.sh", line):
             verbose = "q" if int(ctx["TRAVIS_DEBUG_MODE"]) < 3 else "vv"
@@ -42,12 +34,12 @@ def expand_macro(line, section, ctx):
                 line = "  - $HOME/tools/install_tools.sh -%spt2" % verbose
             else:
                 line = "  - $HOME/tools/install_tools.sh -%spt" % verbose
-    elif section == "install":
-        if re.match(r"^ *\- travis_install_env", line):
-            if ctx["PRJNAME"] == "Odoo":
-                line = "  - travis_install_env"
-            else:
-                line = "  - travis_install_env tools"
+#     elif section == "install":
+#         if re.match(r"^ *\- travis_install_env", line):
+#             if ctx["PRJNAME"] == "Odoo":
+#                 line = "  - travis_install_env"
+#             else:
+#                 line = "  - travis_install_env tools"
     elif section == "env.global":
         if re.match(r"^ *\- WKHTMLTOPDF_VERSION", line):
             line = {

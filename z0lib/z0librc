@@ -1819,20 +1819,20 @@ export -f clean_dirs
 do_clean_log() {
     # do_clean_log dt_limit min max
     local fn dt_limit ctr min max x
-    [[ -n $1 && $1 =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && dt_limit="$1" || dt_limit=$(date -d "7 days ago" +%F)
-    [[ -n $2 ]] && min=$2 || min=2
-    [[ -n $3 ]] && max=$3 || max=8
-    ctr=0
-    if [[ -n $LOGDIR ]]; then
-        for fn in $(ls -r $LOGDIR/*); do
-            [[ ! $fn =~ [0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log ]] && continue
-            ((ctr++))
-            [[ $ctr -le $min ]] && continue
-            x=$(echo $fn | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+")
-            [[ $ctr -lt $max && ! $x < $dt_limit ]] && continue
-            run_traced "rm -f $fn"
-        done
-    fi
+#    [[ -n $1 && $1 =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && dt_limit="$1" || dt_limit=$(date -d "7 days ago" +%F)
+#    [[ -n $2 ]] && min=$2 || min=2
+#    [[ -n $3 ]] && max=$3 || max=8
+#    ctr=0
+#    if [[ -n $LOGDIR ]]; then
+#        for fn in $(ls -r $LOGDIR/*); do
+#            [[ ! $fn =~ [0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+.log ]] && continue
+#            ((ctr++))
+#            [[ $ctr -le $min ]] && continue
+#            x=$(echo $fn | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}\+[0-9]+")
+#            [[ $ctr -lt $max && ! $x < $dt_limit ]] && continue
+#            run_traced "rm -f $fn"
+#        done
+#    fi
 }
 
 do_lint_flake8() {

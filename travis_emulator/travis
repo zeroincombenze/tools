@@ -646,43 +646,43 @@ process_yaml_run_cmd() {
     xcmd="$(echo $xcmd | sed -e 's/apt-get /yum /g')"
     x[$ix]="yum"
   fi
-  if [[ ${x[$ix]} =~ ^(yum|apt-get)$ ]]; then
-    pp="(python-serial|libcups2-dev|cups-devel|unixodbc|unixODBC|unixodbc-dev|unixODBC-dev|unixODBC-devel"
-    pp="$pp|python-mysqldb|MYSQL-python|python-yaml|pyyaml|pyYAML|PyYAML|python-pypdf|pypdf|pyPdf"
-    pp="$pp|ruby-sass|rubygem-sass|python-simplejson|python2-simplejson|expect-dev|antiword)"
-    if [[ ${x[$ix2]} =~ $pp ]]; then
-      xcmd=$(echo $xcmd | sed -e 's/yum/$YML_lisa/g')
-      xcmd=$(echo $xcmd | sed -e 's/apt-get/$YML_lisa/g')
-      x[$ix]=$YML_lisa
-    fi
-  fi
-  if [ "${x[$ix]}" == "$YML_lisa" -a "${x[$ix1]}" == "install" ]; then
-    if $($YML_lisa status ${x[$ix2]} &>/dev/null); then
-      xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
-      xcmd="true;   # Warning! TODO> $xcmd"
-    else
-      xcmd="false;  # Error! TODO> $xcmd"
-    fi
-  elif [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
-    if $(rpm -q ${x[$ix2]} &>/dev/null); then
-      xcmd="# $xcmd"
-    elif $(yum info ${x[$ix2]} &>/dev/null); then
-      xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
-      xcmd="true;   # Warning! TODO# $xcmd"
-    else
-      xcmd="false;  # Error! TODO# $xcmd"
-    fi
-  elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
-    if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
-      xcmd="# $xcmd"
-    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
-      xcmd="true;   # Warning! TODO> $xcmd"
-    else
-      xcmd="false;  # Error! TODO> $xcmd"
-    fi
-  elif [ "${x[$ix]}" == "git" -a "${x[$ix1]}" == "clone" ]; then
+#  if [[ ${x[$ix]} =~ ^(yum|apt-get)$ ]]; then
+#    pp="(python-serial|libcups2-dev|cups-devel|unixodbc|unixODBC|unixodbc-dev|unixODBC-dev|unixODBC-devel"
+#    pp="$pp|python-mysqldb|MYSQL-python|python-yaml|pyyaml|pyYAML|PyYAML|python-pypdf|pypdf|pyPdf"
+#    pp="$pp|ruby-sass|rubygem-sass|python-simplejson|python2-simplejson|expect-dev|antiword)"
+#    if [[ ${x[$ix2]} =~ $pp ]]; then
+#      xcmd=$(echo $xcmd | sed -e 's/yum/$YML_lisa/g')
+#      xcmd=$(echo $xcmd | sed -e 's/apt-get/$YML_lisa/g')
+#      x[$ix]=$YML_lisa
+#    fi
+#  fi
+#  if [ "${x[$ix]}" == "$YML_lisa" -a "${x[$ix1]}" == "install" ]; then
+#    if $($YML_lisa status ${x[$ix2]} &>/dev/null); then
+#      xcmd="# $xcmd"
+#    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
+#      xcmd="true;   # Warning! TODO> $xcmd"
+#    else
+#      xcmd="false;  # Error! TODO> $xcmd"
+#    fi
+#  elif [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
+#    if $(rpm -q ${x[$ix2]} &>/dev/null); then
+#      xcmd="# $xcmd"
+#    elif $(yum info ${x[$ix2]} &>/dev/null); then
+#      xcmd="# $xcmd"
+#    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
+#      xcmd="true;   # Warning! TODO# $xcmd"
+#    else
+#      xcmd="false;  # Error! TODO# $xcmd"
+#    fi
+#  elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
+#    if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
+#      xcmd="# $xcmd"
+#    elif [[ ${x[$ix2]} =~ (expect|expect-dev|expect-devel|python-dev) ]]; then
+#      xcmd="true;   # Warning! TODO> $xcmd"
+#    else
+#      xcmd="false;  # Error! TODO> $xcmd"
+#    fi
+  if [ "${x[$ix]}" == "git" -a "${x[$ix1]}" == "clone" ]; then
     ix=$ix2
     tk=${x[$ix]}
     while [ "${tk:0:1}" == "-" ]; do
@@ -748,10 +748,12 @@ process_yaml_run_cmd() {
     xcmd=${xcmd/cp/mv}
   elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
     xcmd="# $xcmd"
-  elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
-    xcmd="# $xcmd"
-  elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
-    xcmd="# $xcmd"
+#  elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
+#    xcmd="# $xcmd"
+#  elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
+#    xcmd="# $xcmd"
+  elif [[ ${x[$ix]} =~ /tools/install_tools.sh && $TRAVIS_DEBUG_MODE -gt 2 ]]; then
+    xcmd="${x[$ix]} -vpt"
   else
     while [ -n "${x[$ix]}" ]; do
       if [[ "${x[$ix]}" =~ cd ]]; then
@@ -942,10 +944,10 @@ process_yaml() {
       [[ $LOGFILE != $o && -f $o ]] && run_traced "mv $o $LOGFILE"
       create_virtual_env
 
-      wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[0m"
+      wlog "\e[${PS_HDR2_COLOR}m===== [System information] =====\e[0m"
       TODAY=$(date "+%Y-%m-%d %H:%M:%S")
       for p in TODAY job-id opt_devpkg __version__ TCONF YML_repo\
-       BRANCH DIST HOME HOME_BRANCH HOME_DEVEL LOGFILE MQT_TEMPLATE_DB MQT_TEST_DB\
+       BRANCH DIST HOME HOME_BRANCH HOME_DEVEL LOGFILE\
         ODOO_ROOT PATH PKGNAME PKGPATH PIP PIPVER PRJNAME PRJPATH PGUSER PYPI_CACHED\
          PYTHON PYTHONPATH REPOSNAME TRAVIS TRAVIS_BRANCH TRAVIS_BUILD_DIR TRAVIS_DEBUG_MODE\
            TRAVIS_HOME TRAVIS_PDB TRAVIS_PYTHON_MATRIX\
