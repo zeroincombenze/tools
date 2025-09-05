@@ -17,7 +17,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.17",
+    version="2.1.0",
     description="Bash zeroincombenze lib",
     long_description=long_description,
     classifiers=[
@@ -48,6 +48,12 @@ setup(
     install_requires=["configparser", "future"],
     packages=find_packages(exclude=["docs", "examples", "tests", "junk"]),
     package_data={"": ["./xuname", "./z0librc"]},
-    entry_points={"console_scripts": ["z0lib-info = z0lib.scripts.main:internal_main"]},
+    entry_points={
+        "console_scripts":
+            [
+                "z0lib-info = z0lib.scripts.main:internal_main",
+                "z0lib = z0lib.__main__:main",
+            ]
+    },
     zip_safe=False,
 )

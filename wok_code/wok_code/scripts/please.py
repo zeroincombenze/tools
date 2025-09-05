@@ -36,6 +36,7 @@ SEE ALSO
 
 import os
 import os.path as pth
+from os.path import expanduser as pthuser
 import sys
 import argparse
 import math
@@ -84,6 +85,10 @@ RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
 GREEN = "\033[1;32m"
 CLEAR = "\033[0;m"
+
+
+def os_env(key, default=None):
+    return os.environ.get(key, default)
 
 
 class Please(object):
@@ -138,7 +143,7 @@ class Please(object):
                 [x for x in self.cli_args if x != self.magic]
             )
         self.home_devel = self.opt_args.home_devel or os.environ.get(
-            "HOME_DEVEL", pth.expanduser("~/devel")
+            "HOME_DEVEL", pthuser("~/devel")
         )
         self.odoo_root = pth.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
@@ -719,7 +724,7 @@ class Please(object):
 
     def get_odoo_version(self, path=None):
         path = path or pth.abspath(os.getcwd())
-        home = pth.expanduser("~/")
+        home = pthuser("~/")
         version = False
         while not self.is_repo_ocb(path):
             path = pth.dirname(path)
@@ -901,7 +906,7 @@ class Please(object):
 
     def get_logdir(self, path=None, git_org=None, read_only=False):
         if read_only:
-            return pth.abspath(pth.join(pth.expanduser("~/travis_log")))
+            return pth.abspath(pth.join(pthuser("~/travis_log")))
         path = path or os.getcwd()
         return pth.abspath(pth.join(path, "tests", "logs"))
 

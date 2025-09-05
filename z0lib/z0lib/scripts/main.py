@@ -19,11 +19,10 @@ import os.path as pth
 import sys
 
 
-__version__ = "2.0.17"
+__version__ = "2.1.0"
 
 PKG_FILES = (
     "bck_filestore.sh",
-    # "clodoo",
     "force_password.sh",
     "odooctl",
     "odoorc",
@@ -50,11 +49,6 @@ BIN_FILES = (
 
 
 def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
-    # if base == "clodoo":
-    #     fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, "odoorc")
-    #     if fn:
-    #         fn = pth.dirname(fn)
-    #     return fn
     fn = pth.abspath(pth.join(
         pypi_metadata["libpath"],
         pkg_resources.resource_filename(pypi, base)))
@@ -64,11 +58,6 @@ def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
 
 
 def get_fn_from_base_3(metadata, pypi, base):
-    # if base == "clodoo":
-    #     fn = get_fn_from_base_3(metadata, pypi, "odoorc")
-    #     if fn:
-    #         fn = pth.dirname(fn)
-    #     return fn
     fn = ""
     util = [p for p in metadata.files(pypi) if pth.basename(str(p)) == base]
     if util:

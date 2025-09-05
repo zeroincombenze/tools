@@ -70,7 +70,7 @@ test_01() {
     RES=$(list_requirements.py -qStpython -s ' ')
     test_result "list_requirements -qStpython" "$TRES" "$RES"
     #
-    TRES="astroid Click configparser coverage docopt docutils flake8 future GitPython isort lazy_object_proxy lxml MarkupSafe mccabe mock pbr polib pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyserial pytest python-magic PyWebDAV PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 websocket-client whichcraft wrapt z0bug_odoo zerobug"
+    TRES="astroid Click configparser coverage docopt docutils flake8 future GitPython isort lazy_object_proxy lxml MarkupSafe mccabe mock pbr polib pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyserial pytest python-magic pytz PyWebDAV PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 websocket-client whichcraft wrapt z0bug_odoo zerobug"
     RES=$(list_requirements.py -qTtpython -s ' ')
     test_result "list_requirements -qTtpython" "$TRES" "$RES"
     #
@@ -100,17 +100,17 @@ test_02() {
     RES=$(list_requirements.py -BTR -b12.0 -qtpython -s ' ')
     test_result "list_requirements -BTR -b12.0 -qtpython" "$TRES" "$RES"
     #
-    TRES="asn1crypto astroid certifi Click clodoo configparser coverage cryptography docopt docutils flake8 future GitPython idna isort lazy_object_proxy lxml MarkupSafe mccabe mock odoorpc oerplib3 pbr polib pyasn1 pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyOpenSSL pyserial pytest python-magic PyWebDAV3 PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 urllib3[secure] websocket-client whichcraft wrapt z0bug_odoo zerobug"
+    TRES="asn1crypto astroid certifi Click clodoo configparser coverage cryptography docopt docutils flake8 future GitPython idna isort lazy_object_proxy lxml MarkupSafe mccabe mock odoorpc oerplib3 pbr polib pyasn1 pycodestyle pycparser pyflakes Pygments pylint pylint-mccabe pylint-odoo pylint-plugin-utils pyOpenSSL pyserial pytest python-magic pytz PyWebDAV3 PyYAML QUnitSuite restructuredtext_lint rfc3986 setuptools simplejson six translators unittest2 urllib3[secure] websocket-client whichcraft wrapt z0bug_odoo zerobug"
     RES=$(list_requirements.py -TRS -b12.0 -qtpython -s ' ')
     test_result "list_requirements -TRS -b12.0 -qtpython" "$TRES" "$RES"
     #
-    TRES="Babel chardet decorator feedparser gdata gevent html2text Jinja2 lessc Mako num2words numpy odoo_score passlib Pillow psutil psycogreen psycopg2-binary pydot pyparsing pyPdf pyPDF2 Python-Chart python-dateutil python-ldap python-openid python-plus python-stdnum pytz reportlab six vatnumber Werkzeug"
+    TRES="Babel chardet decorator feedparser gdata gevent html2text Jinja2 lessc Mako num2words numpy odoo_score passlib Pillow psutil psycogreen psycopg2-binary pydot pyparsing pyPdf pyPDF2 Python-Chart python-dateutil python-ldap python-openid python-plus python-stdnum reportlab six vatnumber Werkzeug"
     RES=$(list_requirements.py -BX -b12.0 -qtpython -s ' ')
     test_result "list_requirements -BX -b12.0 -qtpython" "$TRES" "$RES"
 }
 
 test_03() {
-    TRES="astroid,Click,configparser,coverage,docopt,docutils,flake8,future,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-odoo,pylint-plugin-utils,pyserial,pytest,python-magic,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,simplejson,six,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,zerobug"
+    TRES="astroid,Click,configparser,coverage,docopt,docutils,flake8,future,GitPython,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,polib,pycodestyle,pycparser,pyflakes,Pygments,pylint,pylint-mccabe,pylint-odoo,pylint-plugin-utils,pyserial,pytest,python-magic,pytz,PyWebDAV,PyYAML,QUnitSuite,requests[security],restructuredtext_lint,rfc3986,setuptools,simplejson,six,unittest2,websocket-client,whichcraft,wrapt,z0bug_odoo,zerobug"
     RES=$(list_requirements.py -b10.0 -tpython -T)
     test_result "list_requirements -b10.0 -tpython -T" "$TRES" "$RES"
     #

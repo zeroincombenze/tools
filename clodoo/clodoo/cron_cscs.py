@@ -65,7 +65,7 @@ def main(cli_args=[]):
         print("usage: cron_cscs [-f][-n][DBNAME]")
         exit(0)
     sql = ("select id,name,interval_type,nextcall,priority,doall,interval_number,model"
-         " from ir_cron where active=true order by nextcall")
+           " from ir_cron where active=true order by nextcall")
     cmd = ["psql", db,  "-Atc", sql]
     sts, out, err = os_system(cmd)
     print(datetime.now(timezone.utc))
