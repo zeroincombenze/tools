@@ -31,8 +31,6 @@ from zerobug import z0test  # noqa: E402
 __version__ = "2.0.14"
 
 MODULE_ID = "z0lib"
-TEST_FAILED = 1
-TEST_SUCCESS = 0
 
 
 def version():

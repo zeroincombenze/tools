@@ -1,3 +1,10 @@
+2.1.0 (2025-09-05)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New class Package
+* [IMP] python 3.12 is certificated programming language
+* [QUA] Coverage 65%
+
 2.0.17 (2025-08-29)
 ~~~~~~~~~~~~~~~~~~~
 

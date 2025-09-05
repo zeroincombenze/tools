@@ -10,7 +10,7 @@ omit = *system_site_packages*, *site-packages*, *virtualenv*, *venv_odoo*
 include =
 #    ${TRAVIS_BUILD_DIR}/*
 #    *.py
-    /home/odoo/VENV_677000/build/local/z0lib/*
+    /home/odoo/VENV_969168/build/local/z0lib/*
 
 omit =
     */scenario/*
