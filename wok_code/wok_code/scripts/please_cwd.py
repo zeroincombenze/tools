@@ -11,6 +11,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import shutil
 
 from z0lib import z0lib
+from z0lib import Package
 
 try:
     import ConfigParser
@@ -344,11 +345,14 @@ class PleaseCwd(object):
 
     def do_clean(self):
         please = self.please
+        pkg = Package()
         is_odoo = please.is_odoo_pkg()
         is_pypi = please.is_pypi_pkg()
-        if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
+        # if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
+        if pkg.level == "module":
             sts = 0
-            for root, dirs, files in os.walk(self.cur_path_of_pkg()):
+            # for root, dirs, files in os.walk(self.cur_path_of_pkg()):
+            for root, dirs, files in os.walk(pkg.path):
                 for fn in files:
                     if (
                         fn != "it.mo"
@@ -362,20 +366,42 @@ class PleaseCwd(object):
                     sts = please.os_system(cmd, with_shell=True, rtime=True)
                     if sts:
                         break
-            logdir = please.get_logdir()
-            if is_odoo and pth.isdir(logdir):
-                last = " "
-                for root, dirs, files in os.walk(logdir):
-                    for fn in files:
-                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] > last:
-                            last = fn[-12:]
-                for root, dirs, files in os.walk(logdir):
-                    for fn in files:
-                        if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
-                            cmd = "rm " + pth.join(root, fn)
-                            sts = please.os_system(cmd)
-                            if sts:
-                                break
+            # logdir = please.get_logdir()
+            # if is_odoo and pth.isdir(logdir):
+            #     last = " "
+            #     for root, dirs, files in os.walk(logdir):
+            #         for fn in files:
+            #             if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] > last:
+            #                 last = fn[-12:]
+            #     for root, dirs, files in os.walk(logdir):
+            #         for fn in files:
+            #             if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
+            #                 cmd = "rm " + pth.join(root, fn)
+            #                 sts = please.os_system(cmd)
+            #                 if sts:
+            #                     break
+            dt_limit = datetime.strftime(datetime.now() - timedelta(7), "%Y%m%d")
+            ctr_min = 1
+            ctr_max = 2
+            ctrs = {"*": 0}
+            for fqn in pkg.list_log_filename(all_version=True):
+                ctrs["*"] += 1
+                # if ctrs["*"] < ctr_min:
+                #     continue
+                mo = re.search(
+                    r"[0-9]{2,3}-[0-9]{4}-?[0-9]{2}-?[0-9]{2}?\+[0-9]+", fqn)
+                if not mo:
+                    continue
+                ver, fqn_dt = fqn[mo.start(): mo.end()].split("-", 1)
+                ctrs[ver] = 1 if ver not in ctrs else ctrs[ver] + 1
+                if ctrs[ver] < ctr_min:
+                    continue
+                if ctrs[ver] <= ctr_max and fqn[mo.start(): mo.end()] >= dt_limit:
+                    continue
+                cmd = "rm " + pth.join(root, fqn)
+                sts = please.os_system(cmd)
+                if sts:
+                    break
             return sts
         return please.do_iter_action("do_clean", act_all_pypi=True, act_tools=True)
 
@@ -652,7 +678,9 @@ class PleaseCwd(object):
 
     def do_docs(self):
         please = self.please
-        if please.is_odoo_pkg():
+        pkg = Package()
+        # if please.is_odoo_pkg():
+        if pkg.prjname == "Odoo":
             if not pth.isdir("readme"):
                 please.log_warning(
                     "Module %s w/o documentation dir!" % pth.basename(os.getcwd())

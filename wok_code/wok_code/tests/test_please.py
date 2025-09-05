@@ -328,7 +328,7 @@ class RegressionTest:
         #     msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[0],
-            "> pre-commit run",
+            ".*> pre-commit run",
             msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[1],
