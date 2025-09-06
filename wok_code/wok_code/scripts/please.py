@@ -148,6 +148,7 @@ class Please(object):
         self.odoo_root = pth.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
         self.sh_subcmd = self.pickle_params()
+        self.package = None
 
     def log_info(self, msg):
         print(msg)

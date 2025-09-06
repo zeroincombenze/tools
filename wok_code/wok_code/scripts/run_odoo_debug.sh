@@ -1,7 +1,7 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 
-# Based on template 2.1.0
+# Based on template 2.1.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -24,10 +24,8 @@ x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $
 [[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
 [[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
 [[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
-# [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-# [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
-for d in $PYPATH /etc; do
+for d in $TDIR $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$(readlink -e $d)
@@ -49,6 +47,7 @@ link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
 get_pypi_param ALL
 RED="\e[1;31m"
+CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
@@ -79,11 +78,9 @@ check_for_modules() {
     [[ -n "$2" ]] && mods="$2" || mods="$opt_modules"
     if [[ $mods == "all" ]]; then
         OPTU="-uall"
-    else
-        [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
         mods=${mods//,/ }
         for m in $mods; do
-            r=$(psql $opts $db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
+            r=$($PSQL $db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
             if [[ $r =~ uninstallable ]]; then
                 XXX="$XXX $m"
             elif [[ $r =~ (uninstalled|to install) ]]; then
@@ -384,19 +381,18 @@ stop_bg_process() {
 
 clean_old_templates() {
     local c d m x opts
-    [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
     m=$(odoo_dependencies.py -RA rev $opaths -PB "$opt_modules")
     for x in ${m//,/ }; do
         [[ $x == $opt_modules ]] && continue
         d="template_${x}_${odoo_maj}"
         [[ $opt_verbose -gt 1 ]] && log_mesg "Searching for $d ..."
-        if psql $opts -Atl|cut -d"|" -f1|grep -q "$d"; then
-          run_traced "pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
-          c=$(pg_db_active -c "$d")
-          [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$d\" && dropdb $opts --if-exists \"$d\""
-          c=$(pg_db_active -c "$d")
+        if $PSQL -Atl|cut -d"|" -f1|grep -q "$d"; then
+          run_traced "pg_db_active $pg2_opts -L -wa \"$d\" && dropdb $pg1_opts --if-exists \"$d\""
+          c=$(pg_db_active $pg2_opts -c "$d")
+          [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active $pg2_opts -L -wa \"$d\" && dropdb $pg1_opts --if-exists \"$d\""
+          c=$(pg_db_active $pg2_opts -c "$d")
           [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$d\"" && continue
-          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$d" && log_mesg "Database \"$d\" removal failed!"
+          [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && $PSQL -Atl|cut -d"|" -f1|grep -q "$d" && log_mesg "Database \"$d\" removal failed!"
         fi
     done
 }
@@ -707,6 +703,14 @@ elif [[ -f $CONFN ]]; then
     DB_PORT=$(grep ^db_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ $DB_PORT == "False" ]] && unset DB_PORT
 fi
+if [[ -n "$DB_PORT" ]]; then
+    pg1_opts="-U$DB_USER -p$DB_PORT"
+    pg2_opts="-U$DB_USER -P$DB_PORT"
+else
+    pg2_opts="-U$DB_USER"
+    pg2_opts="-U$DB_USER"
+fi
+PSQL="psql $pg1_opts"
 
 create_db=0
 drop_db=0
@@ -917,49 +921,49 @@ fi
 
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 if [[ $create_db -gt 0 ]]; then
-    [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
     if [[ $opt_test -ne 0 ]]; then
-        if [[ -n "$depmods" ]]; then
-            fnparam="$LOGDIR/${UDI}.sh"
-            if [[ $opt_force -ne 0 ]] && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                run_traced "pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
-                c=$(pg_db_active -c "$TEMPLATE")
-                [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -P$DB_PORT -L -wa \"$TEMPLATE\" && dropdb $opts --if-exists \"$TEMPLATE\""
-                c=$(pg_db_active -c "$TEMPLATE")
-                [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
-                [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && log_mesg "Database \"$TEMPLATE\" removal failed!" && exit 1
+        fnparam="$LOGDIR/${UDI}.sh"
+        echo "$PSQL  -Atl|cut -d\"|\" -f1|grep -q \"$TEMPLATE\";"
+        if [[ $opt_force -ne 0 ]] && $PSQL -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+            run_traced "pg_db_active $pg2_opts -L -wa \"$TEMPLATE\" && dropdb $pg1_opts --if-exists \"$TEMPLATE\""
+            c=$(pg_db_active $pg2_opts -c "$TEMPLATE")
+            [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active $pg2_opts -L -wa \"$TEMPLATE\" && dropdb $pg1_opts --if-exists \"$TEMPLATE\""
+            c=$(pg_db_active $pg2_opts -c "$TEMPLATE")
+            [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$TEMPLATE\"" && exit 1
+            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && $PSQL -Atl|cut -d"|" -f1|grep -q "$TEMPLATE" && log_mesg "Database \"$TEMPLATE\" removal failed!" && exit 1
+        fi
+        if [[ $opt_force -ne 0 ]] || ! $PSQL -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
+            c=$(log_mesg $depmods|awk "-F," '{print NF-1}')
+            [[ $opt_verbose -gt 2 ]] && LLEV="--log-level=debug"
+            [[ $opt_verbose -eq 2 ]] && LLEV="--log-level=info"
+            [[ $opt_verbose -lt 2 ]] && LLEV="--log-level=warn"
+            ((c=(c*5+45)/60))
+            [[ $c -gt 0 ]] && log_mesg "Warning: wait for template building in about $c minutes"
+            [[ $c -gt 2 ]] && LLEV="--log-level=info"
+            [[ $odoo_maj -lt 10 ]] && run_traced "$PSQL template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
+            # Notice: stdbuf and tee are requires to show log
+            if [[ -n "$depmods" ]]; then
+                cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
+            else
+                cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i base --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
             fi
-            if [[ $opt_force -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$TEMPLATE"; then
-                c=$(log_mesg $depmods|awk "-F," '{print NF-1}')
-                [[ $opt_verbose -gt 2 ]] && LLEV="--log-level=debug"
-                [[ $opt_verbose -eq 2 ]] && LLEV="--log-level=info"
-                [[ $opt_verbose -lt 2 ]] && LLEV="--log-level=warn"
-                ((c=(c*5+45)/60))
-                [[ $c -gt 0 ]] && log_mesg "Warning: wait for template building in about $c minutes"
-                [[ $c -gt 2 ]] && LLEV="--log-level=info"
-                [[ $odoo_maj -lt 10 ]] && run_traced "psql $opts template1 -c 'create database \"$TEMPLATE\" owner $DB_USER'"
-                # Notice: stdbuf and tee are requires to show log
-                [[ $odoo_maj -le 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                [[ $odoo_maj -gt 10 ]] && cmd="cd $ODOO_RUNDIR && $SCRIPT -d$TEMPLATE $OPT_CONF $LLEV -i $depmods --stop-after-init 2>&1 | stdbuf -i0 -o0 -e0 tee -a $LOGFILE"
-                run_traced "$cmd"
-                if [[ -f $LOGFILE ]]; then
-                    grep -q " ERROR " $LOGFILE && cat $LOGFILE && exit 1
-                    tail $LOGFILE
-                    rm -f $LOGFILE
-                fi
+            run_traced "$cmd"
+            if [[ -f $LOGFILE ]]; then
+                grep -q " ERROR " $LOGFILE && cat $LOGFILE && exit 1
+                tail $LOGFILE
+                rm -f $LOGFILE
             fi
         fi
-        if psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
-            run_traced "pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
-            c=$(pg_db_active -c "$opt_db")
-            [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$opt_db\" && dropdb $opts --if-exists \"$opt_db\""
-            c=$(pg_db_active -c "$opt_db")
+        if $PSQL -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+            run_traced "pg_db_active $pg2_opts -L -wa \"$opt_db\" && dropdb $pg1_opts --if-exists \"$opt_db\""
+            c=$(pg_db_active $pg2_opts -c "$opt_db")
+            [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active $pg2_opts -L -wa \"$opt_db\" && dropdb $pg1_opts --if-exists \"$opt_db\""
+            c=$(pg_db_active $pg2_opts -c "$opt_db")
             [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
-            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db" && log_mesg "Database \"$opt_db\" removal failed!" && exit 1
+            [[ $opt_dry_run -eq 0 ]] && sleep 0.5 && $PSQL -Atl|cut -d"|" -f1|grep -q "$opt_db" && log_mesg "Database \"$opt_db\" removal failed!" && exit 1
         fi
-        if [[ $opt_dry_run -ne 0 ]] || ! psql $opts -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
-            [[ -n "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
-            [[ -z "$depmods" ]] && run_traced "psql $opts template1 -c 'create database \"$opt_db\" owner $DB_USER template template1'"
+        if [[ $opt_dry_run -ne 0 ]] || ! $PSQL -Atl|cut -d"|" -f1|grep -q "$opt_db"; then
+            run_traced "$PSQL template1 -c 'create database \"$opt_db\" owner $DB_USER template \"$TEMPLATE\"'"
         fi
     fi
 fi
@@ -1032,10 +1036,11 @@ if [[ $drop_db -gt 0 ]]; then
     clean_old_templates
     if [[ -z "$opt_modules" || $opt_stop -eq 0 ]]; then
         [[ -n "$DB_PORT" ]] && opts="-U$DB_USER -p$DB_PORT" || opts="-U$DB_USER"
-        run_traced "pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists \"$opt_db\""
-        c=$(pg_db_active -c "$opt_db")
-        [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active -L -wa \"$opt_db\"; dropdb $opts --if-exists \"$opt_db\""
-        c=$(pg_db_active -c "$opt_db")
+        [[ -n "$DB_PORT" ]] && opts2="-U$DB_USER -P$DB_PORT" || opts2="-U$DB_USER"
+        run_traced "pg_db_active $pg2_opts -L -wa \"$opt_db\"; dropdb $pg1_opts --if-exists \"$opt_db\""
+        c=$(pg_db_active $pg2_opts -c "$opt_db")
+        [[  $c -ne 0 && -n $bef_dropdb ]] && run_traced "$bef_dropdb && pg_db_active $pg2_opts -L -wa \"$opt_db\"; dropdb $pg1_opts --if-exists \"$opt_db\""
+        c=$(pg_db_active $pg2_opts -c "$opt_db")
         [[ $c -ne 0 ]] && log_mesg "FATAL! There are $c other sessions using the database \"$opt_db\"" && exit 1
     fi
 fi

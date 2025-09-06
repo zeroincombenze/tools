@@ -66,8 +66,7 @@ REQVERSION = {
         "3.12": ">41.0.7",
     },
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10", "11.0": ">=4.0.10"},
-    # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
-    "docutils": {"0": "==0.16"},       # By test pkgs
+    "docutils": {"0": "==0.16", "3.10": ">=0.22"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -583,7 +582,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    "feedparser odoo_major<8",
+    "feedparser; odoo_major<8",
     "future",
     "gdata",
     "gevent",

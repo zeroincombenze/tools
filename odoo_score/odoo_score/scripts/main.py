@@ -13,7 +13,6 @@ __version__ = "2.0.11"
 
 PKG_FILES = (
     "bck_filestore.sh",
-    # "clodoo",
     "force_password.sh",
     "odooctl",
     "odoorc",
@@ -22,7 +21,7 @@ PKG_FILES = (
     "travis",
     "travisrc",
     "xuname",
-    "z0librc"
+    "z0librc",
 )
 BIN_FILES = (
     "bck_filestore.sh",
@@ -30,6 +29,7 @@ BIN_FILES = (
     "force_password.sh",
     "list_requirements.py",
     "odooctl",
+    "pg_db_active",
     "pg_db_reassign_owner",
     "set_workers",
     "travis",
@@ -40,11 +40,6 @@ BIN_FILES = (
 
 
 def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
-    # if base == "clodoo":
-    #     fn = get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, "odoorc")
-    #     if fn:
-    #         fn = pth.dirname(fn)
-    #     return fn
     fn = pth.abspath(pth.join(
         pypi_metadata["libpath"],
         pkg_resources.resource_filename(pypi, base)))
@@ -54,11 +49,6 @@ def get_fn_from_base_2(pkg_resources, pypi, pypi_metadata, base):
 
 
 def get_fn_from_base_3(metadata, pypi, base):
-    # if base == "clodoo":
-    #     fn = get_fn_from_base_3(metadata, pypi, "odoorc")
-    #     if fn:
-    #         fn = pth.dirname(fn)
-    #     return fn
     fn = ""
     util = [p for p in metadata.files(pypi) if pth.basename(str(p)) == base]
     if util:

@@ -335,7 +335,7 @@ class PleaseCwd(object):
 
     def run_gen_readme(self, args, branch=None):
         argv = self.build_gen_readme_base_args(branch=branch)
-        argv.insert(0, "gen_readme")
+        argv.insert(0, "gen_readme.py")
         if isinstance(args, (list, tuple)):
             for arg in args:
                 argv.append(arg)
@@ -345,14 +345,15 @@ class PleaseCwd(object):
 
     def do_clean(self):
         please = self.please
-        pkg = Package()
+        if not please.package:
+            self.package = Package()
         # is_odoo = please.is_odoo_pkg()
         # is_pypi = please.is_pypi_pkg()
         # if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
-        if pkg.level == "module":
+        if self.package.level == "module":
             sts = 0
             # for root, dirs, files in os.walk(self.cur_path_of_pkg()):
-            for root, dirs, files in os.walk(pkg.path):
+            for root, dirs, files in os.walk(self.package.path):
                 for fn in files:
                     if (
                         fn != "it.mo"
@@ -384,7 +385,7 @@ class PleaseCwd(object):
             ctr_min = 1
             ctr_max = 2
             ctrs = {"*": 0}
-            for fqn in pkg.list_log_filename(all_version=True):
+            for fqn in self.package.list_log_filename(all_version=True):
                 ctrs["*"] += 1
                 # if ctrs["*"] < ctr_min:
                 #     continue
@@ -678,9 +679,11 @@ class PleaseCwd(object):
 
     def do_docs(self):
         please = self.please
-        pkg = Package()
+        if not please.package:
+            self.package = Package()
+
         # if please.is_odoo_pkg():
-        if pkg.prjname == "Odoo":
+        if self.package.prjname == "Odoo":
             if not pth.isdir("readme"):
                 please.log_warning(
                     "Module %s w/o documentation dir!" % pth.basename(os.getcwd())

@@ -7,7 +7,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2023 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# Based on template 2.1.0
+# Based on template 2.1.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 READLINK=$(which readlink 2>/dev/null)
 export READLINK
@@ -30,10 +30,8 @@ x=$ME; while [[ $x != $HOME && $x != "/" && ! -d $x/lib && ! -d $x/bin && ! -d $
 [[ -d $x/lib ]] && PYPATH="$PYPATH $x/lib"
 [[ -d $HOME_DEVEL/venv/bin ]] && PYPATH="$PYPATH $HOME_DEVEL/venv/bin"
 [[ -d $HOME_DEVEL/../tools ]] && PYPATH="$PYPATH $(readlink -f $HOME_DEVEL/../tools)"
-# [[ -x $TDIR/../bin/python3 ]] && PYTHON=$(readlink -f $TDIR/../bin/python3) || [[ -x $TDIR/python3 ]] && PYTHON="$TDIR/python3" || PYTHON=$(which python3 2>/dev/null) || PYTHON="python"
-# [[ -z $PYPATH ]] && PYPATH=$(echo -e "import os,sys\no=os.path\na=o.abspath\nj=o.join\nd=o.dirname\nb=o.basename\nf=o.isfile\np=o.isdir\nC=a('"$TDIR"')\nD='"$HOME_DEVEL"'\nif not p(D) and '/devel/' in C:\n D=C\n while b(D)!='devel':  D=d(D)\nN='venv_tools'\nU='setup.py'\nO='tools'\nH=o.expanduser('~')\nT=j(d(D),O)\nR=j(d(D),'pypi') if b(D)==N else j(D,'pypi')\nW=D if b(D)==N else j(D,'venv')\nS='site-packages'\nX='scripts'\ndef pt(P):\n P=a(P)\n if b(P) in (X,'tests','travis','_travis'):\n  P=d(P)\n if b(P)==b(d(P)) and f(j(P,'..',U)):\n  P=d(d(P))\n elif b(d(C))==O and f(j(P,U)):\n  P=d(P)\n return P\ndef ik(P):\n return P.startswith((H,D,K,W)) and p(P) and p(j(P,X)) and f(j(P,'__init__.py')) and f(j(P,'__main__.py'))\ndef ak(L,P):\n if P not in L:\n  L.append(P)\nL=[C]\nK=pt(C)\nfor B in ('z0lib','zerobug','odoo_score','clodoo','travis_emulator'):\n for P in [C]+sys.path+os.environ['PATH'].split(':')+[W,R,T]:\n  P=pt(P)\n  if B==b(P) and ik(P):\n   ak(L,P)\n   break\n  elif ik(j(P,B,B)):\n   ak(L,j(P,B,B))\n   break\n  elif ik(j(P,B)):\n   ak(L,j(P,B))\n   break\n  elif ik(j(P,S,B)):\n   ak(L,j(P,S,B))\n   break\nak(L,os.getcwd())\nprint(' '.join(L))\n"|$PYTHON)
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "PYPATH=$PYPATH"
-for d in $PYPATH /etc; do
+for d in $TDIR $PYPATH /etc; do
   if [[ -e $d/z0librc ]]; then
     . $d/z0librc
     Z0LIBDIR=$(readlink -e $d)
@@ -63,6 +61,7 @@ link_cfg $DIST_CONF $TCONF
 [[ $TRAVIS_DEBUG_MODE -ge 8 ]] && echo "DIST_CONF=$DIST_CONF" && echo "TCONF=$TCONF"
 get_pypi_param ALL
 RED="\e[1;31m"
+CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
@@ -270,107 +269,107 @@ do_publish() {
   return $sts
 }
 
-do_publish_svg() {
-  #do_publish_svg svg (prd|dev)
-  local sts=1
-  local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
-  local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
-  if [ $EUID -ne 0 ]; then
-    echo "!!Error: no privilege to publish svg!!"
-    return $sts
-  fi
-  if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-    local tgt="prd"
-  elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
-    local tgt="dev"
-  else
-    local tgt=""
-  fi
-  if [ ! -d $HTML_SVG_DIR ]; then
-    run_traced "mkdir -p $HTML_SVG_DIR"
-    run_traced "chown apache:apache $HTML_SVG_DIR"
-    if [ ! -d $HTML_SVG_DIR/$tgt ]; then
-      run_traced "mkdir -p $HTML_SVG_DIR/$tgt"
-      run_traced "chown apache:apache $HTML_SVG_DIR/$tgt"
-    fi
-  fi
-  mvfiles "$DEV_SVG" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
-  local sts=$?
-  if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-    scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
-    local s=$?
-    [ $sts -eq 0 ] && sts=$s
-  fi
-  return $sts
-}
-
-do_publish_docs() {
-  #do_publish_svg docs
-  local sts=1
-  if [ $EUID -ne 0 ]; then
-    echo "!!Error: no privilege to publish documentation!!"
-    return $sts
-  fi
-  local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
-  if [ -d $HTML_DOCS_DIR/$1 ]; then
-    run_traced "rm -fR $HTML_DOCS_DIR/$1"
-  fi
-  if [ ! -d $HTML_DOCS_DIR/$1 ]; then
-    run_traced "mkdir -p $HTML_DOCS_DIR/$1"
-    run_traced "chown apache:apache $HTML_DOCS_DIR/$1"
-  fi
-  mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
-  local sts=$?
-  rmdir $PRJPATH/html
-  if [ -d $PRJPATH/latex ]; then
-    rm -fR $PRJPATH/latex
-  fi
-  if [ $opt_verbose -gt 0 ]; then
-    echo ""
-    echo -e "see \e[1mdocs.zeroincombenze.org/$1\e[0m webpage"
-  fi
-  return $sts
-}
-
-do_publish_download() {
-  #do_publish_download
-  local f n s v
-  local sts=1
-  if [ $EUID -ne 0 ]; then
-    echo "!!Error: no privilege to publish download!!"
-    return $sts
-  fi
-  local HTML_DOWNLOAD_DIR=$(get_cfg_value "" "HTML_DOWNLOAD_DIR")
-  if [ "$PRJNAME" != "Odoo" ]; then
-    if [ ! -d $HTML_DOWNLOAD_DIR ]; then
-      run_traced "mkdir -p $HTML_DOWNLOAD_DIR"
-      run_traced "chown apache:apache $HTML_DOWNLOAD_DIR"
-    fi
-    run_traced "cd $PKGPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
-    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
-    f=$(ls -1 $n*$v*tar.gz)
-    # f=$n*$v*tar.gz
-    if [ -n "$f" -a -f "$f" ]; then
-      mvfiles "$PKGPATH" "$HTML_DOWNLOAD_DIR" "$f" "apache:apache"
-      sts=$?
-      if [ $sts -eq 0 ]; then
-        run_traced "cp $HTML_DOWNLOAD_DIR/$f $HTML_DOWNLOAD_DIR/$n.tar.gz"
-        run_traced "chown apache:apache $HTML_DOWNLOAD_DIR/$n.tar.gz"
-        create_pubblished_index "$HTML_DOWNLOAD_DIR"
-        if [ $opt_verbose -gt 0 ]; then
-          echo ""
-          echo -e "You can download this package typing"
-          echo -e "\$ wget http://download.zeroincombenze.org/$n.tar.gz"
-        fi
-      fi
-    else
-      echo "Source $n*$v*tar.gz file non found!"
-    fi
-  fi
-  return $sts
-}
+#do_publish_svg() {
+#  #do_publish_svg svg (prd|dev)
+#  local sts=$STS_FAILED
+#  local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
+#  local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
+#  if [ $EUID -ne 0 ]; then
+#    echo "!!Error: no privilege to publish svg!!"
+#    return $sts
+#  fi
+#  if [ "$HOSTNAME" == "$PRD_HOST" ]; then
+#    local tgt="prd"
+#  elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
+#    local tgt="dev"
+#  else
+#    local tgt=""
+#  fi
+#  if [ ! -d $HTML_SVG_DIR ]; then
+#    run_traced "mkdir -p $HTML_SVG_DIR"
+#    run_traced "chown apache:apache $HTML_SVG_DIR"
+#    if [ ! -d $HTML_SVG_DIR/$tgt ]; then
+#      run_traced "mkdir -p $HTML_SVG_DIR/$tgt"
+#      run_traced "chown apache:apache $HTML_SVG_DIR/$tgt"
+#    fi
+#  fi
+#  mvfiles "$DEV_SVG" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
+#  local sts=$?
+#  if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+#    scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
+#    local s=$?
+#    [ $sts -eq $STS_SUCCESS ] && sts=$s
+#  fi
+#  return $sts
+#}
+#
+#do_publish_docs() {
+#  #do_publish_svg docs
+#  local sts=$STS_FAILED
+#  if [ $EUID -ne 0 ]; then
+#    echo "!!Error: no privilege to publish documentation!!"
+#    return $sts
+#  fi
+#  local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
+#  if [ -d $HTML_DOCS_DIR/$1 ]; then
+#    run_traced "rm -fR $HTML_DOCS_DIR/$1"
+#  fi
+#  if [ ! -d $HTML_DOCS_DIR/$1 ]; then
+#    run_traced "mkdir -p $HTML_DOCS_DIR/$1"
+#    run_traced "chown apache:apache $HTML_DOCS_DIR/$1"
+#  fi
+#  mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
+#  local sts=$?
+#  rmdir $PRJPATH/html
+#  if [ -d $PRJPATH/latex ]; then
+#    rm -fR $PRJPATH/latex
+#  fi
+#  if [ $opt_verbose -gt 0 ]; then
+#    echo ""
+#    echo -e "see \e[1mdocs.zeroincombenze.org/$1\e[0m webpage"
+#  fi
+#  return $sts
+#}
+#
+#do_publish_download() {
+#  #do_publish_download
+#  local f n s v
+#  local sts=$STS_FAILED
+#  if [ $EUID -ne 0 ]; then
+#    echo "!!Error: no privilege to publish download!!"
+#    return $sts
+#  fi
+#  local HTML_DOWNLOAD_DIR=$(get_cfg_value "" "HTML_DOWNLOAD_DIR")
+#  if [ "$PRJNAME" != "Odoo" ]; then
+#    if [ ! -d $HTML_DOWNLOAD_DIR ]; then
+#      run_traced "mkdir -p $HTML_DOWNLOAD_DIR"
+#      run_traced "chown apache:apache $HTML_DOWNLOAD_DIR"
+#    fi
+#    run_traced "cd $PKGPATH"
+#    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+#    n=$(cat setup.py | grep "name *=" | awk -F= '{print $2}' | grep --color=never -Eo '[a-zA-Z0-9_-]+' | head -n1)
+#    v=$(cat setup.py | grep version | grep --color=never -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+#    f=$(ls -1 $n*$v*tar.gz)
+#    # f=$n*$v*tar.gz
+#    if [ -n "$f" -a -f "$f" ]; then
+#      mvfiles "$PKGPATH" "$HTML_DOWNLOAD_DIR" "$f" "apache:apache"
+#      sts=$?
+#      if [ $sts -eq $STS_SUCCESS ]; then
+#        run_traced "cp $HTML_DOWNLOAD_DIR/$f $HTML_DOWNLOAD_DIR/$n.tar.gz"
+#        run_traced "chown apache:apache $HTML_DOWNLOAD_DIR/$n.tar.gz"
+#        create_pubblished_index "$HTML_DOWNLOAD_DIR"
+#        if [ $opt_verbose -gt 0 ]; then
+#          echo ""
+#          echo -e "You can download this package typing"
+#          echo -e "\$ wget http://download.zeroincombenze.org/$n.tar.gz"
+#        fi
+#      fi
+#    else
+#      echo "Source $n*$v*tar.gz file non found!"
+#    fi
+#  fi
+#  return $sts
+#}
 
 do_publish_testpypi() {
   do_publish_pypi testpypi
@@ -452,88 +451,88 @@ do_register_testpypi() {
   return $sts
 }
 
-do_edit() {
-  #do_edit (pofile|translation|untranslated)
-  local cmd
-  wlog "do_edit $1 $2"
-  cmd="do_edit_$1"
-  sts=0
-  if [ "$(type -t $cmd)" == "function" ]; then
-    eval $cmd "$@"
-  else
-    echo "Missing object! Use:"
-    echo "> please edit (pofile|translation|translation_from_pofile|untranslated)"
-    sts=1
-  fi
-  return $sts
-}
-
-do_edit_pofile() {
-  [[ -f "./i18n/it.po" ]] && run_traced "poedit ./i18n/it.po" || echo "No file it.po found!"
-  return $STS_STS_SUCCESS
-}
-
-do_edit_translation() {
-  local xfile
-  [[ -f "$HOME_DEVEL/pypi/tools/odoo_template_tnl" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_template_tnl.xlsx"
-  if [[ -n "$xfile" ]]; then
-    [[ -f /etc/wsl.conf ]] && xfile="z:$xfile"
-    run_traced "libreoffice $xfile"
-  else
-    echo "No file odoo_template_tnl.xlsx found!"
-  fi
-  return $STS_STS_SUCCESS
-}
-
-do_edit_untranslated() {
-  local xfile
-  [[ -f "$HOME/odoo_default_tnl.csv" ]] && run_traced "libreoffice $HOME/odoo_default_tnl.csv" || echo "No file odoo_default_tnl.csv found!"
-  return $STS_STS_SUCCESS
-}
-
-create_pkglist() {
-  # create_pkglist(pkgname type)
-  local PKGLIST Z0LIB OELIB x
-  local xx="$(get_cfg_value 0 filedel)"
-  local yy="$(get_cfg_value 0 fileignore)"
-  if [ $opt_keep -ne 0 ]; then
-    xx="$xx $yy"
-  else
-    xx="$xx $yy tests/"
-  fi
-  if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
-    PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
-    if [ -n "$PKGLIST" ]; then
-      PKGLIST="${PKGLIST//,/ }"
-    fi
-    if [ "$2" == "etcPkgList" ]; then
-      x=$(cat setup.py | grep "# BUILD_WITH_Z0LIBR=" | awk -F= '{print $2}')
-      if [ "$x" == "1" ]; then
-        Z0LIB=$(findpkg z0librc "/etc . ..")
-        [ -z "$Z0LIB" ] && Z0LIB=z0librc
-      fi
-      x=$(cat setup.py | grep "# BUILD_WITH_ODOORC=" | awk -F= '{print $2}')
-      if [ "$x" == "1" ]; then
-        OELIB=$(findpkg odoorc "/etc $HOME_DEVEL . ..")
-        [ -z "$OELIB" ] && OELIB=odoorc
-      fi
-    fi
-    if [ -z "$PKGLIST" -a "$2" == "PkgList" ]; then
-      x="find . -type f"
-      for f in $xx "setup.*"; do
-        if [ "${f: -1}" == "/" ]; then
-          x="$x -not -path '*/$f*'"
-        else
-          x="$x -not -name '*$f'"
-        fi
-      done
-      eval $x >./tmp.log
-      PKGLIST="$(cat ./tmp.log | tr '\n' ' ')"
-      rm -f ./tmp.log
-    fi
-  fi
-  echo "$PKGLIST $Z0LIB $OELIB"
-}
+#do_edit() {
+#  #do_edit (pofile|translation|untranslated)
+#  local cmd
+#  wlog "do_edit $1 $2"
+#  cmd="do_edit_$1"
+#  sts=$STS_SUCCESS
+#  if [ "$(type -t $cmd)" == "function" ]; then
+#    eval $cmd "$@"
+#  else
+#    echo "Missing object! Use:"
+#    echo "> please edit (pofile|translation|translation_from_pofile|untranslated)"
+#    sts=$STS_FAILED
+#  fi
+#  return $sts
+#}
+#
+#do_edit_pofile() {
+#  [[ -f "./i18n/it.po" ]] && run_traced "poedit ./i18n/it.po" || echo "No file it.po found!"
+#  return $STS_STS_SUCCESS
+#}
+#
+#do_edit_translation() {
+#  local xfile
+#  [[ -f "$HOME_DEVEL/pypi/tools/odoo_template_tnl" ]] && xfile="$HOME_DEVEL/pypi/tools/odoo_template_tnl.xlsx"
+#  if [[ -n "$xfile" ]]; then
+#    [[ -f /etc/wsl.conf ]] && xfile="z:$xfile"
+#    run_traced "libreoffice $xfile"
+#  else
+#    echo "No file odoo_template_tnl.xlsx found!"
+#  fi
+#  return $STS_STS_SUCCESS
+#}
+#
+#do_edit_untranslated() {
+#  local xfile
+#  [[ -f "$HOME/odoo_default_tnl.csv" ]] && run_traced "libreoffice $HOME/odoo_default_tnl.csv" || echo "No file odoo_default_tnl.csv found!"
+#  return $STS_STS_SUCCESS
+#}
+#
+#create_pkglist() {
+#  # create_pkglist(pkgname type)
+#  local PKGLIST Z0LIB OELIB x
+#  local xx="$(get_cfg_value 0 filedel)"
+#  local yy="$(get_cfg_value 0 fileignore)"
+#  if [ $opt_keep -ne 0 ]; then
+#    xx="$xx $yy"
+#  else
+#    xx="$xx $yy tests/"
+#  fi
+#  if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
+#    PKGLIST=$(cat setup.py | grep "# PKGLIST=" | awk -F= '{print $2}')
+#    if [ -n "$PKGLIST" ]; then
+#      PKGLIST="${PKGLIST//,/ }"
+#    fi
+#    if [ "$2" == "etcPkgList" ]; then
+#      x=$(cat setup.py | grep "# BUILD_WITH_Z0LIBR=" | awk -F= '{print $2}')
+#      if [ "$x" == "1" ]; then
+#        Z0LIB=$(findpkg z0librc "/etc . ..")
+#        [ -z "$Z0LIB" ] && Z0LIB=z0librc
+#      fi
+#      x=$(cat setup.py | grep "# BUILD_WITH_ODOORC=" | awk -F= '{print $2}')
+#      if [ "$x" == "1" ]; then
+#        OELIB=$(findpkg odoorc "/etc $HOME_DEVEL . ..")
+#        [ -z "$OELIB" ] && OELIB=odoorc
+#      fi
+#    fi
+#    if [ -z "$PKGLIST" -a "$2" == "PkgList" ]; then
+#      x="find . -type f"
+#      for f in $xx "setup.*"; do
+#        if [ "${f: -1}" == "/" ]; then
+#          x="$x -not -path '*/$f*'"
+#        else
+#          x="$x -not -name '*$f'"
+#        fi
+#      done
+#      eval $x >./tmp.log
+#      PKGLIST="$(cat ./tmp.log | tr '\n' ' ')"
+#      rm -f ./tmp.log
+#    fi
+#  fi
+#  echo "$PKGLIST $Z0LIB $OELIB"
+#}
 
 add_file_2_pkg() {
   #add_file_2_pkg(pkgname type)
@@ -1061,11 +1060,13 @@ do_lint() {
     echo "======== Testing test_flake8 ========"
     [[ $PRJNAME == "Odoo" && $(basename $(dirname $PWD)) == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && VDIR="$(dirname $p)/oca$x/venv_odoo"
     [[ $PRJNAME == "Odoo" && -z $VDIR ]] && VDIR=$(build_odoo_param VDIR ./)
-    [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg)"
+    # shellcheck disable=SC2317
+    [[ $opt_debug -ne 0 && -f $HOME_DEVEL/pypi/zerobug/zerobug/_travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $HOME_DEVEL/pypi/zerobug/zerobug/_travis/cfg/travis_run_flake8.cfg)"
     if [[ -z $FLAKE8_CONFIG ]]; then
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
       [[ -n $x ]] && run_traced "export FLAKE8_CONFIG=$($READLINK -f $x/zerobug/_travis/cfg/travis_run_flake8.cfg)"
     fi
+    [[ -z $FLAKE8_CONFIG && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_flake8.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
     [[ -z $FLAKE8_CONFIG ]] && echo "Non flake8 configuration file found!" && return 1
     [[ $TRAVIS_PYTHON_VERSION =~ ^2 ]] && opts="--extend-ignore=B006,F812 --max-line-length=88" || opts="--extend-ignore=B006 --max-line-length=88"
     [[ $opt_verbose -gt 1 ]] && opts="$opts -v"
@@ -1083,11 +1084,12 @@ do_lint() {
     sts=$?
     echo "test_flake8|$sts|$(date '+%F %T')" >> "$LOGDIR/.run.log"
     echo "======== Testing test_pylint ========"
-    [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export FLAKE8_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
+    [[ $opt_debug -ne 0 && -f $HOME_DEVEL/pypi/zerobug/zerobug/_travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/pypi/zerobug/zerobug/_travis/cfg)"
     if [[ -z $PYLINT_CONFIG_DIR ]]; then
       x=$(find $HOME_DEVEL/venv/lib -type d -name site-packages)
       [[ -n $x ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $x/zerobug/_travis/cfg)"
     fi
+    [[ -z $PYLINT_CONFIG_DIR && -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg/travis_run_pylint_beta.cfg ]] && run_traced "export PYLINT_CONFIG_DIR=$($READLINK -f $HOME_DEVEL/maintainer-quality-tools/travis/cfg)"
     [[ -z $PYLINT_CONFIG_DIR ]] && echo "Non pylint configuration file found!" && return 1
     if [[ -n $VDIR ]]; then
       run_traced "vem $VDIR exec \"pylint --rcfile=$PYLINT_CONFIG_DIR/travis_run_pylint_beta.cfg ./\""

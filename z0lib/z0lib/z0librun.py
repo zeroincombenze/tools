@@ -71,6 +71,15 @@ def nakedname(path):
     return pth.splitext(pth.basename(path))[0]
 
 
+def wep_stdout(stdout):
+    mo = True
+    while mo:
+        mo = re.search(r"\033\[[^a-z]+.", stdout)
+        if mo:
+            stdout = stdout[:mo.start()] + stdout[mo.end():]
+    return stdout
+
+
 def print_flush(msg, end=None, flush=True):
     if sys.version_info[0] == 3:                                     # pragma: no cover
         print(msg, end=end, flush=flush)
@@ -103,9 +112,17 @@ def echo_cmd_verbose(
             print_flush("%s %s%s" % (prompt, args, eol))
 
 
-def clear_tty(dry_run=None, flush=False):
-    if not dry_run:
+def clear_tty(dry_run=None, flush=False, humdrum=1):
+    if not dry_run and humdrum == 0:
         print_flush("\033[0m", end="", flush=flush)
+
+
+def split_n_rm_comment_lines(stdout):
+    lines = []
+    for ln in stdout.split('\n'):
+        if not ln.startswith('#'):
+            lines.append(ln)
+    return lines
 
 
 def join_args(args):
@@ -204,7 +221,7 @@ def os_system_traced(
             if verbose:
                 print_flush(e, flush=flush)
             sts = 126
-    clear_tty(dry_run=dry_run, flush=flush)
+    clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
     return sts, prcout, prcerr
 
 
@@ -264,7 +281,7 @@ def os_system(
             if verbose:
                 print_flush(e, flush=flush)
             sts = 126
-    clear_tty(dry_run=dry_run, flush=flush)
+    clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
     return sts
 
 
@@ -275,7 +292,7 @@ def run_traced(cmd,
                is_alias=None,
                rtime=False,
                flush=True,
-               humdrum=0):
+               humdrum=1):
     """Run system command with aliases log; return system status and trace log"""
 
     def cmd_neutral_if(
@@ -364,7 +381,7 @@ def run_traced(cmd,
             if sts == 0 or with_shell or rtime:
                 break
             with_shell = True
-        clear_tty(dry_run=dry_run, flush=flush)
+        clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
         return sts, prcout, prcerr
 
     def sh_cd(args, verbose=0, dry_run=None, flush=None, humdrum=1):
@@ -377,14 +394,14 @@ def run_traced(cmd,
             os.chdir(tgtpath)
         elif not dry_run:
             sts = 1
-        clear_tty(dry_run=dry_run, flush=flush)
+        clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
         return sts, "", ""
 
     def sh_cp(args, verbose=0, dry_run=None, flush=None, humdrum=1):
         if dry_run:
             if verbose:
                 echo_cmd_verbose(args, dry_run=dry_run, humdrum=humdrum)
-            clear_tty(dry_run=dry_run, flush=flush)
+            clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
             return 0, "", ""
         argv, opt_unk, paths, params = simple_parse(
             args, {
@@ -410,7 +427,7 @@ def run_traced(cmd,
                     shutil.copytree(paths[0], paths[1], symlinks=False)
             else:
                 shutil.copy2(paths[0], paths[1])
-            clear_tty(dry_run=dry_run, flush=flush)
+            clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
             return 0, "", ""
         return sh_any(argv)
 
@@ -475,7 +492,7 @@ def run_traced(cmd,
             if pth.isdir(tgt):
                 if verbose:
                     echo_cmd_verbose(args, dry_run=dry_run, humdrum=humdrum)
-                clear_tty(dry_run=dry_run, flush=flush)
+                clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
                 return 1, "", ""
             os.mkdir(tgt)
             if repo in ("OCB", "odoo"):
@@ -497,7 +514,7 @@ def run_traced(cmd,
                             is_alias=True)
                 if verbose:
                     echo_cmd_verbose(args, dry_run=dry_run, humdrum=humdrum)
-                clear_tty(dry_run=dry_run, flush=flush)
+                clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
                 return 0, "", ""
             else:
                 return run_traced(
@@ -513,7 +530,7 @@ def run_traced(cmd,
         if dry_run:
             if verbose:
                 echo_cmd_verbose(args, dry_run=dry_run, humdrum=humdrum)
-            clear_tty(dry_run=dry_run, flush=flush)
+            clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(args, {})
         if opt_unk:
@@ -521,7 +538,7 @@ def run_traced(cmd,
         else:
             os.mkdir(paths[0])
             sts = 0 if pth.exists(paths[0]) else 1
-        clear_tty(dry_run=dry_run, flush=flush)
+        clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
         return sts, prcout, prcerr
 
     def sh_rm(args, verbose=0, dry_run=None, flush=None, humdrum=1):
@@ -529,7 +546,7 @@ def run_traced(cmd,
         if dry_run:
             if verbose:
                 echo_cmd_verbose(args, dry_run=dry_run, humdrum=humdrum)
-            clear_tty(dry_run=dry_run, flush=flush)
+            clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
             return 0, prcout, prcerr
         argv, opt_unk, paths, params = simple_parse(
             args,
@@ -553,7 +570,7 @@ def run_traced(cmd,
             if verbose:
                 echo_cmd_verbose(args, flush=flush, humdrum=humdrum)
             os.unlink(tgtpath)
-        clear_tty(dry_run=dry_run, flush=flush)
+        clear_tty(dry_run=dry_run, flush=flush, humdrum=humdrum)
         return sts, prcout, prcerr
 
     args = shlex.split(cmd)
@@ -857,16 +874,16 @@ class Package(object):
                 if pth.isdir(pth.join(p, "tests")):
                     self.testdir = pth.join(p, "tests")
             elif self.is_repo_ocb(path=p):
-                if not self.name:
+                if not self.name and not self.prjpath:
                     self.name = "OCB"
-                self.prjname = "Odoo"
-                self.prjpath = p
-                if not self.reposname:
-                    self.reposname = "OCB"
-                if not self.level:
-                    self.level = "repo"
-                self.get_odoo_version(path=p)
-                self.get_remote_info(path=p)
+                    self.prjname = "Odoo"
+                    self.prjpath = p
+                    if not self.reposname:
+                        self.reposname = "OCB"
+                    if not self.level:
+                        self.level = "repo"
+                    self.get_odoo_version(path=p)
+                    self.get_remote_info(path=p)
                 break
             elif self.is_repo_odoo(path=p):
                 if not self.name:
