@@ -28,8 +28,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -47,9 +47,8 @@ setup(
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={
         "": [
-            # "scripts/setup.info",
-            "scripts/pg_db_active.sh",
             "./bck_filestore.sh",
+            "./pg_db_active",
             "./pg_db_reassign_owner",
             "./zar_bck",
             "./zar_cptbl",
@@ -59,10 +58,10 @@ setup(
             "./zarrc",
         ]
     },
-    entry_points={
-        'console_scripts': [
-            'pg_db_active = zar.scripts.pg_db_active:main',
-        ]
-    },
+    # entry_points={
+    #     'console_scripts': [
+    #         'pg_db_active = zar.scripts.pg_db_active:main',
+    #     ]
+    # },
     zip_safe=False,
 )
