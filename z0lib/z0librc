@@ -770,52 +770,55 @@ export -f run_traced
 #    Level 5 subdirectory list (space separated) where file could be found (maybe be empty)
 findpkg() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
-    READLINK=$(which greadlink 2>/dev/null) || READLINK=$(which readlink 2>/dev/null)
     local p2 p3 p4 p5 p6
     local r2 r3 r4 r5 r6
     local i2 i3 i4 i5 i6
     local result
+    [[ -f $(dirname $ME)/$1 ]] && result="$(dirname $ME)/$1"
     [[ -n "$3" ]] && i3="$3" || i3="."
     [[ -n "$4" ]] && i4="$4" || i4="."
     [[ -n "$5" ]] && i5="$5" || i5="."
     [[ -n "$6" ]] && i6="$6" || i6="."
-    for p2 in $2; do
-      r2=$p2
-      if [[ -n "$1" && -e $r2/$1 ]]; then
-        result=$(readlink -e $r2/$1)
-        break
-      fi
-      for p3 in $i3; do
-        [[ -n "$p3" ]] && r3=/$p3 || r3=""
-        if [[ -n "$1" && -e $r2$r3/$1 ]]; then
-          result=$(readlink -e $r2$r3/$1)
+    if [[ -z $result ]]; then
+      for p2 in $2; do
+        r2=$p2
+        if [[ -n "$1" && -e $r2/$1 ]]; then
+          result=$(readlink -e $r2/$1)
           break
         fi
-        for p4 in $i4; do
-          [[ -n "$p4" ]] && r4=/$p4 || r4=""
-          if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
-            result=$(readlink -e $r2$r3$r4/$1)
+        for p3 in $i3; do
+          [[ -n "$p3" ]] && r3=/$p3 || r3=""
+          if [[ -n "$1" && -e $r2$r3/$1 ]]; then
+            result=$(readlink -e $r2$r3/$1)
             break
           fi
-          for p5 in $i5; do
-            [[ -n "$p5" ]] && r5=/$p5 || r5=""
-            if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
-              result=$(readlink -e $r2$r3$r4$r5/$1)
+          for p4 in $i4; do
+            [[ -n "$p4" ]] && r4=/$p4 || r4=""
+            if [[ -n "$1" && -e $r2$r3$r4/$1 ]]; then
+              result=$(readlink -e $r2$r3$r4/$1)
               break
             fi
-            for p6 in $i6; do
-              [[ -n "$p6" ]] && r6=/$p6 || r6=""
-              if [[ -z "$1" ]]; then
-                if [[ -d $r2$r3$r4$r5$r6 ]]; then
-                  result=$(readlink -e $r2$r3$r4$r5$r6)
-                  break
-                fi
-              else
-                if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
-                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
-                  break
-                fi
+            for p5 in $i5; do
+              [[ -n "$p5" ]] && r5=/$p5 || r5=""
+              if [[ -n "$1" && -e $r2$r3$r4$r5/$1 ]]; then
+                result=$(readlink -e $r2$r3$r4$r5/$1)
+                break
               fi
+              for p6 in $i6; do
+                [[ -n "$p6" ]] && r6=/$p6 || r6=""
+                if [[ -z "$1" ]]; then
+                  if [[ -d $r2$r3$r4$r5$r6 ]]; then
+                    result=$(readlink -e $r2$r3$r4$r5$r6)
+                    break
+                  fi
+                else
+                  if [[ -e $r2$r3$r4$r5$r6/$1 ]]; then
+                    result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                    break
+                  fi
+                fi
+              done
+              [[ -n "$result" ]] && break
             done
             [[ -n "$result" ]] && break
           done
@@ -823,8 +826,7 @@ findpkg() {
         done
         [[ -n "$result" ]] && break
       done
-      [[ -n "$result" ]] && break
-    done
+    fi
     echo "$result"
     $SETX
 }

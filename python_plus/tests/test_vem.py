@@ -36,12 +36,12 @@ def version():
 class RegressionTest:
 
     def setup(self):
-        self.venv_dir = os.path.join(self.Z.testdir, "SAMPLE")
+        self.venv_dir = os.path.join(self.testdir, "SAMPLE")
         os.chdir(os.environ["HOME"])
         self.SAVED_HOME = os.getcwd()
         self.SAVED_VENV = os.environ["VIRTUAL_ENV"]
         z0lib.run_traced(
-            "build_cmd %s" % os.path.join(self.Z.rundir, "scripts", "vem.py")
+            "build_cmd %s" % os.path.join(self.rundir, "scripts", "vem.py")
         )
 
     def clear_venv(self):
@@ -59,11 +59,11 @@ class RegressionTest:
 
     def check_4_homedir(self, homedir):
         cmd = 'vem %s -q exec "cd; pwd"' % self.venv_dir
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         self.assertEqual(
             homedir,
-            stdout.split()[-1] if stdout else "<None>",
+            stdout.split()[0] if stdout else "<None>",
             msg_info="- home %s" % homedir,
         )
 
@@ -78,7 +78,7 @@ class RegressionTest:
         self.assertTrue(os.path.isdir(tgtdir))
 
         cmd = "vem %s -q info %s" % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         res = ""
         for ln in stdout.split("\n"):
@@ -99,7 +99,7 @@ class RegressionTest:
         sts = z0lib.os_system(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         cmd = "vem %s -q info %s" % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         res = ""
         for ln in stdout.split("\n"):
@@ -123,7 +123,7 @@ class RegressionTest:
         sts = z0lib.os_system(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         cmd = "vem %s -q info %s" % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         res = ""
         for ln in stdout.split("\n"):
@@ -141,7 +141,7 @@ class RegressionTest:
         sts = z0lib.os_system(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         cmd = "vem %s -q info %s" % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         res = ""
         for ln in stdout.split("\n"):
@@ -155,7 +155,7 @@ class RegressionTest:
         libdir = os.path.join(self.venv_dir, "lib", "python%s" % pyver, "site-packages")
         tgtdir = os.path.join(libdir, pypi.lower())
         cmd = "vem %s -q info %s" % (self.venv_dir, pypi)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         res = ""
         for ln in stdout.split("\n"):
@@ -171,11 +171,10 @@ class RegressionTest:
 
     def check_4_exec(self):
         test_python = os.path.join(self.venv_dir, "test_python.py")
-        if not self.Z.dry_run:
-            with open(test_python, "w") as fd:
-                fd.write(TEST_PYTHON)
+        with open(test_python, "w") as fd:
+            fd.write(TEST_PYTHON)
         cmd = 'vem -qf %s exec "python %s"' % (self.venv_dir, test_python)
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         if sys.version_info[0] == 2:
             # Python2 version is issued on stderr
             self.assertEqual(
@@ -192,7 +191,7 @@ class RegressionTest:
         # Not isolated environment
         cmd = "vem -qf -p%s create %s" % (pyver, self.venv_dir)
         print(cmd, "... please wait for a minute")
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         self.assertTrue(os.path.isdir(self.venv_dir), msg_info=cmd)
         self.check_4_paths()
@@ -206,7 +205,7 @@ class RegressionTest:
         # Isolated environment
         cmd = "vem -qIf -p%s create %s" % (pyver, self.venv_dir)
         print(cmd, "... please wait for a minute")
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         self.assertTrue(os.path.isdir(self.venv_dir), msg_info=cmd)
         self.check_4_paths()
@@ -220,7 +219,7 @@ class RegressionTest:
         # Isolated environment + devel packages
         cmd = "vem -qDIf -p%s create %s" % (pyver, self.venv_dir)
         print(cmd, "... please wait for a minute")
-        sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+        sts, stdout, stderr = z0lib.run_traced(cmd)
         self.assertEqual(0, sts, msg_info=cmd)
         self.assertTrue(os.path.isdir(self.venv_dir), msg_info=cmd)
         self.check_4_paths()
@@ -237,15 +236,18 @@ class RegressionTest:
         elif sys.version_info[1] <= 7:
             # odoo_ver = "12.0"
             odoo_versions = ["12.0", "14.0"]
+        elif sys.version_info[1] <= 9:
+            # odoo_ver = "14.0"
+            odoo_versions = ["14.0", "16.0"]
         else:
             # odoo_ver = "16.0"
-            odoo_versions = ["18.0", "16.0", "14.0"]
+            odoo_versions = ["18.0", "16.0"]
         for odoo_ver in odoo_versions:
             majver = int(odoo_ver.split(".")[0])
             # Isolated environment + devel packages + Odoo
             cmd = "vem -qDIf -p%s create %s -O %s" % (pyver, self.venv_dir, odoo_ver)
             print(cmd, "... please wait for a minute")
-            sts, stdout, stderr = z0lib.run_traced(cmd, dry_run=self.Z.dry_run)
+            sts, stdout, stderr = z0lib.run_traced(cmd)
             self.assertEqual(0, sts, msg_info=cmd)
             self.assertTrue(os.path.isdir(self.venv_dir), msg_info=cmd)
             self.check_4_paths()

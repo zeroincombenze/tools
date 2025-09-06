@@ -1,3 +1,8 @@
+2.0.19 (2025-09-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+
 2.0.18 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 

@@ -1,3 +1,12 @@
+2.1.1 (2025-09-06)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Clean code
+* [IMP] findpkg search on current execution file directory first
+* [IMP] run_traced: default humdrum=1
+* [IMP] New function wep_stdout
+* [IMP] New function split_n_rm_comment_lines
+
 2.1.0 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -22,7 +31,7 @@
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
-* [IMP] simulate get_metadat in test environment
+* [IMP] simulate get_metadata in test environment
 
 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~

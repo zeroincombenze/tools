@@ -31,7 +31,7 @@ PKG_FILES = (
     "travis",
     "travisrc",
     "xuname",
-    "z0librc"
+    "z0librc",
 )
 BIN_FILES = (
     "bck_filestore.sh",
@@ -39,6 +39,7 @@ BIN_FILES = (
     "force_password.sh",
     "list_requirements.py",
     "odooctl",
+    "pg_db_active",
     "pg_db_reassign_owner",
     "set_workers",
     "travis",

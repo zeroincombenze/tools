@@ -27,7 +27,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -66,8 +66,7 @@ REQVERSION = {
         "3.12": ">41.0.7",
     },
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10", "11.0": ">=4.0.10"},
-    # "docutils": {"0": "==0.14", "6.1": "==0.12", "3.7": "==0.16"},
-    "docutils": {"0": "==0.16"},       # By test pkgs
+    "docutils": {"0": "==0.16", "3.10": ">=0.22"},       # By test pkgs
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -470,9 +469,11 @@ PIP2_TEST_PACKAGES = [
     "python-magic",
     "pyserial",
     "pytest",
+    "pytz",
     "PyWebDAV",
     "PyYAML",
     "QUnitSuite",
+    "requests",
     "restructuredtext_lint",
     "rfc3986",
     "setuptools",
@@ -515,6 +516,7 @@ PIP3_TEST_PACKAGES = [
     "python-magic",
     "pyserial",
     "pytest",
+    "pytz",
     "PyWebDAV",
     "PyYAML",
     "QUnitSuite",
@@ -580,7 +582,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    "feedparser odoo_major<8",
+    "feedparser; odoo_major<8",
     "future",
     "gdata",
     "gevent",
@@ -1695,6 +1697,8 @@ def main(cli_args=None):
                 del deps_list["bin"][ii]
     if ctx["pypi_name"]:
         for dep_pkg in deps_list["python"]:
+            if not dep_pkg:
+                continue
             pkg = split_versions(dep_pkg)[0]
             if pkg == ctx["pypi_name"]:
                 deps_list["python"] = [dep_pkg]

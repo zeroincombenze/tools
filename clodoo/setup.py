@@ -44,7 +44,7 @@ else:
 
 setup(
     name=name,
-    version="2.0.15",
+    version="2.0.16",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[
@@ -55,8 +55,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
