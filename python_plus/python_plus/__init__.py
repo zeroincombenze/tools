@@ -10,7 +10,7 @@ from . import scripts
 __title__ = 'python_plus'
 __author__ = 'Antonio Maria Vigliotti'
 __copyright__ = 'Copyright 2018-2025 SHS-AV srl'
-__version__ = '2.0.18'
+__version__ = '2.0.19'
 
 PYCODESET = 'utf-8'
 if PY3:

@@ -1,8 +1,10 @@
-2.0.8 (2025-04-27)
+2.0.8 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] Compress tar w/o filestore
+* [FIX] pg_db_active with no odoo user
 * [IMP] python 3.11 is certificated programming language
+* [IMP] python 3.12 is certificated programming language
 
 2.0.7 (2024-12-30)
 ~~~~~~~~~~~~~~~~~~

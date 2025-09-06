@@ -346,8 +346,8 @@ class PleaseCwd(object):
     def do_clean(self):
         please = self.please
         pkg = Package()
-        is_odoo = please.is_odoo_pkg()
-        is_pypi = please.is_pypi_pkg()
+        # is_odoo = please.is_odoo_pkg()
+        # is_pypi = please.is_pypi_pkg()
         # if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
         if pkg.level == "module":
             sts = 0

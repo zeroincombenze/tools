@@ -27,7 +27,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.18"
+__version__ = "2.0.19"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -1698,6 +1698,8 @@ def main(cli_args=None):
                 del deps_list["bin"][ii]
     if ctx["pypi_name"]:
         for dep_pkg in deps_list["python"]:
+            if not dep_pkg:
+                continue
             pkg = split_versions(dep_pkg)[0]
             if pkg == ctx["pypi_name"]:
                 deps_list["python"] = [dep_pkg]
