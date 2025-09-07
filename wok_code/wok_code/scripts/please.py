@@ -97,6 +97,7 @@ class Please(object):
         self.clsname = self.__class__.__name__
         self.cls = self
         self.cli_args = []
+        self.package = None
         self.store_actions_n_aliases()
         self.parse_top_cli_args(cli_args=cli_args)
         if self.objname:
@@ -149,7 +150,6 @@ class Please(object):
         self.odoo_root = pth.dirname(self.home_devel)
         self.pypi_list = self.get_pypi_list(act_tools=False)
         self.sh_subcmd = self.pickle_params()
-        self.package = None
 
     def log_info(self, msg):
         print(msg)
@@ -820,13 +820,18 @@ class Please(object):
         pypi_list = []
         if pth.isdir(path):
             for fn in os.listdir(path):
-                fqn = pth.join(path, fn)
                 if fn == "tools" and not act_tools:
                     continue
+                fqn = pth.join(path, fn)
                 if not pth.isdir(fqn):
                     continue
-                if self.is_pypi_pkg(path=fqn) and self.get_pypi_valid(fqn):
+                if not Package().candidate(fn):
+                    continue
+                if fn == "tools":
                     pypi_list.append(fn)
+                pkg = Package(fqn)
+                if pkg.dir_level == "module" and pkg.prjname == "Z0tools":
+                    pypi_list.append(pkg.name)
         return sorted(pypi_list)
 
     def get_actions_list(self, actions=None):

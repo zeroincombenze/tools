@@ -119,8 +119,17 @@ def clear_tty(dry_run=None, flush=False, humdrum=1):
 
 def split_n_rm_comment_lines(stdout):
     lines = []
-    for ln in stdout.split('\n'):
-        if not ln.startswith('#'):
+    for ln in stdout.split("\n"):
+        if not wep_stdout(ln).startswith("#"):
+            lines.append(ln)
+    return lines
+
+
+def split_n_extr_cmd_lines(stdout):
+    lines = []
+    for ln in stdout.split("\n"):
+        ln2 = wep_stdout(ln)
+        if not ln2.startswith(">") and not ln2.startswith("$"):
             lines.append(ln)
     return lines
 

@@ -34,6 +34,10 @@ def main(cli_args=None):
                 "os_system_traced",
                 "run_traced"):
             return getattr(z0lib, cli_args[0])(args, **kwargs)[0]
+        elif cli_args[0] == "get_uniqid":
+            udi, umli = getattr(z0lib.Package(cli_args[1]), cli_args[0])()
+            print("export UDI=\"%s\"; export UMLI=\"%s\"" % (udi, umli))
+            return 0
     return 126
 
 
