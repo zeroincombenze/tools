@@ -9,7 +9,7 @@ github_url = "https://github.com/zeroincombenze/tools"
 author = "Antonio Maria Vigliotti"
 author_email = "antoniomaria.vigliotti@gmail.com"
 source_url = "%s/tree/master/%s" % (github_url, name)
-doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/#zerobug"
+doc_url = "https://zeroincombenze-tools.readthedocs.io/en/latest/#arcangelo"
 changelog_url = "%s/blob/master/%s/egg-info/CHANGELOG.rst" % (github_url, name)
 try:
     long_description = open(pth.join(pth.dirname(__file__), "README.rst")).read()
@@ -17,20 +17,20 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "python_plus",
+    "python_plus>=2.0.19",
     "clodoo",
     "future",
 ]
-if sys.version_info >= (3, 0):
-    install_requires.append("twine")
-    if sys.version_info >= (3, 7):
-        install_requires.append("distro")
-else:
-    install_requires.append("twine==1.15.0")
+# if sys.version_info >= (3, 0):
+#     install_requires.append("twine")
+#     if sys.version_info >= (3, 7):
+#         install_requires.append("distro")
+# else:
+#     install_requires.append("twine==1.15.0")
 
 setup(
     name=name,
-    version="2.1.0",
+    version="2.1.1",
     description="Source code mass automatic upgrade",
     long_description_content_type="text/x-rst",
     long_description=long_description,
@@ -42,8 +42,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",

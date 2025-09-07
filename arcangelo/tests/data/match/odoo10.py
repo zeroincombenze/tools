@@ -13,9 +13,9 @@ class ResPartner(models.Model):
     @api.one
     def compute(self, item):
         if isinstance(item, basestring):
-            return "str"
+            return "basestring"
         elif isinstance(item, (int, long, float)):
             return "num"
-        elif isinstance(item, (int, long)):
+        elif isinstance(item, int, long):
             return "int"
         return False
