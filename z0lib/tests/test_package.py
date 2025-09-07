@@ -50,6 +50,7 @@ class RegressionTest:
 
     def test_01(self):
         self.oe_ver = "18.0"
+        self.oe_maj = 18
         self.oe_root = z0testodoo.build_odoo_env(self.oe_ver)
         self.ocb_repo = os.path.join(self.oe_root, self.oe_ver)
         self.repodir = z0testodoo.create_repo(
@@ -64,17 +65,20 @@ class RegressionTest:
         self.assertEqual("Odoo", package.prjname, msg_info="Test package Odoo")
         self.assertEqual(
             self.oe_ver, package.version, msg_info="- Odoo self.oe_version")
+        self.assertEqual(
+            self.oe_maj, package.majver, msg_info="- Odoo major version")
         self.assertEqual("test_module", package.name, msg_info="- Module name")
         self.assertEqual(self.moduledir, package.path, msg_info="- Module path")
         self.assertEqual(self.moduledir, package.rundir, msg_info="- Module rundir")
-        self.assertEqual(self.ocb_repo, package.prjpath, msg_info="- Repo path")
+        self.assertEqual(self.repodir, package.prjpath, msg_info="- Repo path")
         self.assertEqual("oca", package.git_orgid, msg_info="- Repo orgid")
-        self.assertEqual("module", package.level, msg_info="- Package kind")
+        self.assertEqual("module", package.dir_level, msg_info="- Package kind")
         self.assertTrue(package.read_only, msg_info="- Read only")
         logdir = package.get_log_dir()
         self.assertEqual(pth.join(os.environ["TRAVIS_SAVED_HOME"], "travis_log"),
                          logdir,
                          msg_info="- Log directory")
+        self.assertEqual(self.ocb_repo, package.root, msg_info="- root")
 
     def test_02(self):
         self.pypi_root = self.build_os_tree(self.os_tree)
@@ -91,14 +95,14 @@ class RegressionTest:
                      "    version='%s',\n"
                      ")" % __version__)
         package = z0lib.Package(self.rundir)
-        self.assertEqual("pypi", package.prjname, msg_info="Test package PYPI")
+        self.assertEqual("Z0tools", package.prjname, msg_info="Test package PYPI")
         self.assertEqual(__version__, package.version, msg_info="- Pypi version")
         self.assertEqual("zerobug", package.name, msg_info="- Pypi name")
         self.assertEqual(self.pkgpath, package.path, msg_info="- Pypi path")
         self.assertEqual(self.rundir, package.rundir, msg_info="- Pypi rundir")
         self.assertEqual(self.pypi_repo, package.prjpath, msg_info="- Repo path")
         self.assertEqual("zero", package.git_orgid, msg_info="- Repo orgid")
-        self.assertEqual("module", package.level, msg_info="- Package kind")
+        self.assertEqual("module", package.dir_level, msg_info="- Package kind")
         self.assertFalse(package.read_only, msg_info="- Read only")
         logdir = package.get_log_dir()
         self.assertEqual(pth.join(self.rundir, "tests", "logs"),
@@ -110,28 +114,34 @@ class RegressionTest:
         self.assertEqual("Odoo", package.prjname, msg_info="Test package Odoo")
         self.assertEqual(
             self.oe_ver, package.version, msg_info="- Odoo self.oe_version")
+        self.assertEqual(
+            self.oe_maj, package.majver, msg_info="- Odoo major version")
         self.assertEqual("test_repo", package.name, msg_info="- Repo name")
-        self.assertEqual(self.ocb_repo, package.prjpath, msg_info="- Repo path")
+        self.assertEqual(self.repodir, package.prjpath, msg_info="- Repo path")
         self.assertEqual("oca", package.git_orgid, msg_info="- Repo orgid")
-        self.assertEqual("repo", package.level, msg_info="- Package kind")
+        self.assertEqual("repo", package.dir_level, msg_info="- Package kind")
+        self.assertEqual(self.ocb_repo, package.root, msg_info="- root")
 
     def test_04(self):
         package = z0lib.Package(self.ocb_repo)
         self.assertEqual("Odoo", package.prjname, msg_info="Test package Odoo")
         self.assertEqual(
             self.oe_ver, package.version, msg_info="- Odoo self.oe_version")
+        self.assertEqual(
+            self.oe_maj, package.majver, msg_info="- Odoo major version")
         self.assertEqual("OCB", package.name, msg_info="- Repo name")
         self.assertEqual(self.ocb_repo, package.prjpath, msg_info="- Repo path")
         self.assertEqual("oca", package.git_orgid, msg_info="- Repo orgid")
-        self.assertEqual("repo", package.level, msg_info="- Package kind")
+        self.assertEqual("repo", package.dir_level, msg_info="- Package kind")
+        self.assertEqual(self.ocb_repo, package.root, msg_info="- root")
 
     def test_05(self):
         package = z0lib.Package(self.pypi_repo)
-        self.assertEqual("pypi", package.prjname, msg_info="Test package PYPI")
+        self.assertEqual("Z0tools", package.prjname, msg_info="Test package PYPI")
         self.assertEqual("pypi", package.name, msg_info="- Pypi name")
         self.assertEqual(self.pypi_repo, package.prjpath, msg_info="- Repo path")
         self.assertEqual("zero", package.git_orgid, msg_info="- Repo orgid")
-        self.assertEqual("repo", package.level, msg_info="- Package kind")
+        self.assertEqual("repo", package.dir_level, msg_info="- Package kind")
 
     def test_06(self):
         package = z0lib.Package(self.rundir)

@@ -17,7 +17,7 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "clodoo", "z0lib>=2.0.13", "python_plus",
+    "arcangelo>=2.1.1", "clodoo", "z0lib>=2.1.0", "python_plus>=2.0.19",
     "future", "Babel", "lxml", "openpyxl", "pyyaml", "six",
 ]
 if sys.version_info >= (3, 0):
@@ -42,8 +42,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",

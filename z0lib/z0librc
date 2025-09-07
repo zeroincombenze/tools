@@ -681,15 +681,16 @@ elog_debug() {
 # Parameter $1:
 #    command line with parameters; command may be a comment (beginning with '#')
 #    command 'cd ' is always executed, also if dry_run
-# Parameter $2:
-#    execute as user; caller must be sudoer
-#    -q disable verbose mode
-#    -i sudo switch
-#    -u sudo switch
-# Parameter $3:
-#    1 = do login, if execute as user
+#
 run_traced() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
+##    local z sts
+##    z="$(dirname ${BASH_SOURCE-})/z0lib"
+##    [[ ! -x $z ]] && z="$z0lib"
+##    eval $z "run_traced" "$1" "verbose=${opt_verbose:-0}" "dry_run=${opt_dry_run:-0}" "rtime=1"
+##    sts=$?
+##    $SETX
+##    return $sts
     [[ -z ${Z0_STACK:+_} ]] && export Z0_STACK=0
     local xcmd="$1" lm="                    "
     local sts=0 verbose=${opt_verbose:-0}
@@ -740,12 +741,6 @@ run_traced() {
     ((Z0_STACK=Z0_STACK-2))
     $SETX
     return $sts
-##    local z="z0lib"
-##    [[ -x $TDIR/z0lib ]] && z="$TDIR/z0lib"
-##    local sts=0
-##    eval $z "run_traced" "$1" "verbose=${opt_verbose:-0}" "dry_run=${opt_dry_run:-0}" "rtime=1"
-##    sts=$?
-##    return $sts
 }
 export -f run_traced
 

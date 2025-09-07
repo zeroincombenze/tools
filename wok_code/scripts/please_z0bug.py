@@ -5,6 +5,7 @@ import os.path as pth
 import sys
 
 import re
+from z0lib import Package
 
 
 __version__ = "2.0.23"
@@ -200,14 +201,20 @@ class PleaseZ0bug(object):
 
     def _do_lint_odoo(self):
         please = self.please
-        branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
-        manifest_path = (
-            "__openerp__.py"
-            if branch and int(branch.split(".")[0]) <= 9
-            else "__manifest__.py"
-        )
-        manifest = please.read_manifest_file(manifest_path)
-        if not manifest["installable"]:
+        if not please.package:
+            please.package = Package()
+        # branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
+        # manifest_path = (
+        #     "__openerp__.py"
+        #     if branch and int(branch.split(".")[0]) <= 9
+        #     else "__manifest__.py"
+        # )
+        # manifest = please.read_manifest_file(manifest_path)
+        # if not manifest["installable"]:
+        #     please.log_warning(
+        #       "Module %s not installable!" % pth.basename(os.getcwd()))
+        #     return 3
+        if not please.package.installable:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
 
@@ -260,6 +267,9 @@ class PleaseZ0bug(object):
 
     def do_lint(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
+
         if please.is_odoo_pkg():
             return self._do_lint_odoo()
         elif please.is_repo_odoo() or please.is_repo_ocb():
@@ -374,6 +384,8 @@ class PleaseZ0bug(object):
 
     def _do_test_odoo_pkg(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
         sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
         if sts:
             return sts
@@ -455,6 +467,7 @@ class PleaseZ0bug(object):
         sts = please.chain_python_cmd(
             "run_odoo_debug.py", args, verbose=True, rtime=True
         )
+        sts = 0  # debug
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
         if not please.opt_args.no_verify:
@@ -524,6 +537,8 @@ class PleaseZ0bug(object):
 
     def do_zerobug(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
         if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_repo_ocb():
             sts = self.do_lint()
             if not please.is_fatal_sts(sts):

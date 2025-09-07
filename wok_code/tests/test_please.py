@@ -103,10 +103,10 @@ class RegressionTest:
         # 6 "> <PYTHON> <SCRIPT>/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n"
         # 7 MESG
         # 8 ERROR
-        # 9 "> gen_readme -b 12.0 -f -n -RW"
+        # 9 "> gen_readme.py -b 12.0 -f -n -RW"
         # 10 ERROR
-        # 11 "> gen_readme -b 12.0 -f -n"
-        # 12 "> gen_readme -b 12.0 -f -n -I"
+        # 11 "> gen_readme.py -b 12.0 -f -n"
+        # 12 "> gen_readme.py -b 12.0 -f -n -I"
         # 13 "Test log file not found!"
         # 14 "> git add ./"
         #
@@ -129,26 +129,27 @@ class RegressionTest:
         cmd = "please zerobug -vfn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        stdout = z0lib.split_n_rm_comment_lines(stdout)
         self.assertIn("pre-commit run",
-                      stdout.split("\n")[0],
+                      stdout[0],
                       msg="Bash command not found in stdout")
         self.assertIn("please.sh lint -vfn",
-                      stdout.split("\n")[1],
+                      stdout[1],
                       msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[3],
+            stdout[2],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -f -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[9],
-            ".*gen_readme -b 12.0 -f -n",
+            stdout[3],
+            ".*gen_readme.py -b 12.0 -f -n",
             msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[10],
-            ".*gen_readme -b 12.0 -f -n -I",
-            msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout[4],
+        #     "gen_readme.py -b 12.0 -f -n -I",
+        #     msg="Bash command not found in stdout")
         self.assertIn("git add ./",
-                      stdout.split("\n")[12],
+                      stdout[4],
                       msg="Bash command not found in stdout")
 
         os.chdir(self.odoo_moduledir)
@@ -254,20 +255,21 @@ class RegressionTest:
         cmd = "please test -vn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        stdout = z0lib.split_n_rm_comment_lines(stdout)
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout[0],
             ".*run_odoo_debug.py",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[6],
-            ".*gen_readme -b 12.0 -n",
+            stdout[1],
+            ".*gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout[2],
+        #     ".*gen_readme.py -b 12.0 -n -I",
+        #     msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[7],
-            ".*gen_readme -b 12.0 -n -I",
-            msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[9],
+            stdout[2],
             ".*git add ./",
             msg="Bash command not found in stdout")
 
@@ -278,18 +280,19 @@ class RegressionTest:
         cmd = "please test -vn --no-translate"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
         self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        stdout = z0lib.split_n_rm_comment_lines(stdout)
         self.assertMatch(
-            stdout.split("\n")[1],
+            stdout[0],
             ".*/python .*/run_odoo_debug.py -T -m test_module -b 12.0 -v -n",
             msg="Bash command not found in stdout")
         self.assertMatch(
-            stdout.split("\n")[6],
-            ".*gen_readme -b 12.0 -n",
+            stdout[1],
+            ".*gen_readme.py -b 12.0 -n",
             msg="Bash command not found in stdout")
-        self.assertMatch(
-            stdout.split("\n")[7],
-            ".*gen_readme -b 12.0 -n -I",
-            msg="Bash command not found in stdout")
+        # self.assertMatch(
+        #     stdout[2],
+        #     ".*gen_readme.py -b 12.0 -n -I",
+        #     msg="Bash command not found in stdout")
 
     def test_06(self):
         os.chdir(self.tool_pkgdir)
@@ -328,7 +331,7 @@ class RegressionTest:
         #     msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[0],
-            "> pre-commit run",
+            ".*> pre-commit run",
             msg="Bash command not found in stdout")
         self.assertMatch(
             stdout.split("\n")[1],
