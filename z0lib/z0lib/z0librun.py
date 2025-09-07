@@ -650,16 +650,18 @@ class Package(object):
         self.path = None
         self.prjname = None
         self.prjpath = None
+        self.root = None
         self.reposname = None
         self.git_orgid = None
         self.read_only = False
         self.url = None
         self.upstream = None
         self.stash_list = None
-        self.level = None
+        self.dir_level = None
         self.confn = None
         self.branch = None
         self.version = None
+        self.majver = None
         self.release = None
         self.manifest = None
         self.testdir = None
@@ -779,7 +781,8 @@ class Package(object):
                 if mo:
                     self.release = self.branch[mo.start(): mo.end()]
                     if not self.version:
-                        self.version = self.branch[mo.start(): mo.end()]
+                        self.version = self.release
+                        self.majver = int(self.version.split(".")[0])
         elif self.prjname == "Odoo":
             mo = re.search(r"[0-9]+\.[0-9]+", path)
             if not mo:
@@ -791,6 +794,7 @@ class Package(object):
                 self.release = branch
                 if not self.version:
                     self.version = branch
+                    self.majver = int(self.version.split(".")[0])
         sts, stdout, stderr = os_system_traced(
             "git remote -v", verbose=False, dry_run=False, rtime=False)
         if sts == 0 and stdout:
@@ -809,7 +813,7 @@ class Package(object):
                 self.stash_list = stdout
         elif self.prjname == "Odoo":
             self.git_orgid = "oca"
-        elif self.prjname == "pypi":
+        elif self.prjname == "Z0tools":
             self.git_orgid = "zero"
         os.chdir(saved_path)
 
@@ -836,20 +840,24 @@ class Package(object):
         elif self.git_orgid == "oca":
             self.read_only = True
 
+    def candidate(self, path):
+        pkgname = pth.basename(path)
+        if pkgname in self.invalid_names or pkgname.startswith((".", "_")):
+            return False
+        return pkgname
+
     def get_info_from_path(self, path=None):
         p = pth.abspath(path or os.getcwd())
-        while pth.isdir(p):
-            if pthuser("~").startswith(p) or p == "/":
-                break
-            pkgname = pth.basename(p)
-            if pkgname in self.invalid_names or pkgname.startswith((".", "_")):
+        while pth.isdir(p) and not pthuser("~").startswith(p) and p != "/":
+            pkgname = self.candidate(p)
+            if not pkgname:
                 pass
             elif self.is_odoo_pkg(path=p):
                 self.path = p
                 self.rundir = p
                 self.name = pkgname
                 self.prjname = "Odoo"
-                self.level = "module"
+                self.dir_level = "module"
                 if pth.isfile(pth.join(p, "__manifest__.py")):
                     self.manifest = pth.join(p, "__manifest__.py")
                 elif pth.isfile(pth.join(p, "__openerp__.py")):
@@ -861,8 +869,8 @@ class Package(object):
                 self.rundir = p
                 if not self.name:
                     self.name = pkgname
-                self.prjname = "pypi"
-                self.level = "module"
+                self.prjname = "Z0tools"
+                self.dir_level = "module"
                 if pth.isfile(pth.join(p, "setup.py")):
                     self.manifest = pth.join(p, "setup.py")
                     self.path = p
@@ -874,14 +882,15 @@ class Package(object):
                 if pth.isdir(pth.join(p, "tests")):
                     self.testdir = pth.join(p, "tests")
             elif self.is_repo_ocb(path=p):
+                self.root = p
                 if not self.name and not self.prjpath:
                     self.name = "OCB"
                     self.prjname = "Odoo"
                     self.prjpath = p
                     if not self.reposname:
                         self.reposname = "OCB"
-                    if not self.level:
-                        self.level = "repo"
+                    if not self.dir_level:
+                        self.dir_level = "repo"
                     self.get_odoo_version(path=p)
                     self.get_remote_info(path=p)
                 break
@@ -891,18 +900,18 @@ class Package(object):
                 self.prjname = "Odoo"
                 self.prjpath = p
                 self.reposname = pkgname
-                if not self.level:
-                    self.level = "repo"
+                if not self.dir_level:
+                    self.dir_level = "repo"
                 self.get_remote_info(path=p)
             elif self.is_repo_pypi(path=p):
                 if not self.name:
                     self.name = pkgname
-                self.prjname = "pypi"
+                self.prjname = "Z0tools"
                 self.prjpath = p
                 # Wrong: just for compatibility with bash
                 self.reposname = "tools"
-                if not self.level:
-                    self.level = "repo"
+                if not self.dir_level:
+                    self.dir_level = "repo"
                 self.get_remote_info(path=p)
             if self.prjname != "Odoo" and pth.isdir(pth.join(p, ".git")):
                 break
@@ -932,6 +941,7 @@ class Package(object):
                         self.release = "%d.%d" % eval(mo.string.split("=")[1])[0:2]
                         if not self.version:
                             self.version = self.release
+                            self.majver = int(self.version.split(".")[0])
                         break
 
     def get_pypi_version(self, path=None):
@@ -951,12 +961,13 @@ class Package(object):
         except (ImportError, IOError, SyntaxError):
             raise Exception("Wrong manifest file %s" % self.manifest)
         self.version = manifest.get("version", self.release)
+        self.majver = int(self.version.split(".")[0])
         self.installable = manifest.get("installable", True)
 
     def get_version_to_log(self):
         if self.prjname == "Odoo":
             ver = ("0" + (self.version or "18.0").split(".")[0])[-2:]
-        elif self.prjname == "pypi":
+        elif self.prjname == "Z0tools":
             ver = (
                 self.pyver.replace(".", "0")
                 if re.match(r"[23]\.[6789]", self.pyver)

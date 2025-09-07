@@ -346,14 +346,14 @@ class PleaseCwd(object):
     def do_clean(self):
         please = self.please
         if not please.package:
-            self.package = Package()
+            please.package = Package()
         # is_odoo = please.is_odoo_pkg()
         # is_pypi = please.is_pypi_pkg()
         # if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
-        if self.package.level == "module":
+        if please.package.dir_level == "module":
             sts = 0
             # for root, dirs, files in os.walk(self.cur_path_of_pkg()):
-            for root, dirs, files in os.walk(self.package.path):
+            for root, dirs, files in os.walk(please.package.path):
                 for fn in files:
                     if (
                         fn != "it.mo"
@@ -385,7 +385,7 @@ class PleaseCwd(object):
             ctr_min = 1
             ctr_max = 2
             ctrs = {"*": 0}
-            for fqn in self.package.list_log_filename(all_version=True):
+            for fqn in please.package.list_log_filename(all_version=True):
                 ctrs["*"] += 1
                 # if ctrs["*"] < ctr_min:
                 #     continue
@@ -680,42 +680,41 @@ class PleaseCwd(object):
     def do_docs(self):
         please = self.please
         if not please.package:
-            self.package = Package()
+            please.package = Package()
 
-        # if please.is_odoo_pkg():
-        if self.package.prjname == "Odoo":
+        if please.is_odoo_pkg():
             if not pth.isdir("readme"):
                 please.log_warning(
                     "Module %s w/o documentation dir!" % pth.basename(os.getcwd())
                 )
                 return 3
-            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
-            if sts == 0:
-                self.branch = branch
-                sts = self.assure_doc_dirs(pkgtype="odoo")
-                if sts:
-                    return sts
-                please.merge_test_result()
-                odoo_major_version = int(branch.split(".")[0])
-                repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
-                if please.opt_args.oca:
-                    sts = please.os_system(
-                        "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
-                        % (branch, repo_name),
-                        with_shell=True,
-                        rtime=True,
-                    )
-                else:
-                    if repo_name == "marketplace":
-                        sts = self.run_gen_readme("-R", branch=branch)
-                    sts = self.run_gen_readme([], branch=branch)
-                    if sts == 0:
-                        sts = self.run_gen_readme("-I", branch=branch)
-                    if sts == 0 and odoo_major_version <= 7:
-                        sts = self.run_gen_readme("-R", branch=branch)
-                if sts == 0:
-                    self.do_clean()
+            # sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            # if sts == 0:
+            self.branch = please.package.branch
+            sts = self.assure_doc_dirs(pkgtype="odoo")
+            if sts:
                 return sts
+            please.merge_test_result()
+            odoo_major_version = int(self.branch.split(".")[0])
+            repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+            if please.opt_args.oca:
+                sts = please.os_system(
+                    "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
+                    % (self.branch, repo_name),
+                    with_shell=True,
+                    rtime=True,
+                )
+            else:
+                if repo_name == "marketplace":
+                    sts = self.run_gen_readme("-R", branch=self.branch)
+                sts = self.run_gen_readme([], branch=self.branch)
+                if sts == 0:
+                    sts = self.run_gen_readme("-I", branch=self.branch)
+                if sts == 0 and odoo_major_version <= 7:
+                    sts = self.run_gen_readme("-R", branch=self.branch)
+            if sts == 0:
+                self.do_clean()
+            return sts
         elif please.is_repo_odoo() or please.is_repo_ocb():
             sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
             if sts == 0:
@@ -728,7 +727,6 @@ class PleaseCwd(object):
             return sts
         elif please.is_pypi_pkg():
             self.branch = please.get_pypi_version()
-            # pkg_name = pth.basename(pth.dirname(os.getcwd()))
             sts = self.assure_doc_dirs(pkgtype="pypi")
             if sts:
                 return sts

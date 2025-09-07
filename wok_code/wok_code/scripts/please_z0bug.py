@@ -199,8 +199,10 @@ class PleaseZ0bug(object):
             args.append("-n")
         return args
 
-    def _do_lint_odoo(self, pkg):
+    def _do_lint_odoo(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
         # branch = please.get_odoo_branch_from_git(try_by_fs=True)[1]
         # manifest_path = (
         #     "__openerp__.py"
@@ -212,7 +214,7 @@ class PleaseZ0bug(object):
         #     please.log_warning(
         #       "Module %s not installable!" % pth.basename(os.getcwd()))
         #     return 3
-        if not pkg.installable:
+        if not please.package.installable:
             please.log_warning("Module %s not installable!" % pth.basename(os.getcwd()))
             return 3
 
@@ -241,7 +243,7 @@ class PleaseZ0bug(object):
             return please.os_system(cmd, with_shell=True, rtime=True)
         return sts
 
-    def _do_lint_pypi(self, pkg):
+    def _do_lint_pypi(self):
         please = self.please
         sts = 0
         if not please.opt_args.no_verify:
@@ -266,11 +268,10 @@ class PleaseZ0bug(object):
     def do_lint(self):
         please = self.please
         if not please.package:
-            self.package = Package()
+            please.package = Package()
 
-        # if please.is_odoo_pkg():
-        if self.package.level == "module" and self.package.prjname == "Odoo":
-            return self._do_lint_odoo(self.package)
+        if please.is_odoo_pkg():
+            return self._do_lint_odoo()
         elif please.is_repo_odoo() or please.is_repo_ocb():
             sts = 0
             for path in please.get_next_module_path():
@@ -281,9 +282,8 @@ class PleaseZ0bug(object):
                 if please.is_fatal_sts(sts):
                     break
             return sts
-        # elif please.is_pypi_pkg():
-        elif self.package.level == "module" and self.package.prjname == "pypi":
-            return self._do_lint_pypi(self.package)
+        elif please.is_pypi_pkg():
+            return self._do_lint_pypi()
         return please.do_iter_action("do_lint", act_all_pypi=True, act_tools=False)
 
     def do_show(self):
@@ -384,6 +384,8 @@ class PleaseZ0bug(object):
 
     def _do_test_odoo_pkg(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
         sts, url, upstream, stash_list = please.get_remote_info(verbose=False)
         if sts:
             return sts
@@ -462,9 +464,9 @@ class PleaseZ0bug(object):
 
         args = self.build_run_odoo_base_args(branch=branch)
         print("#### Running Tests ... ####")
-        # sts = please.chain_python_cmd(
-        #     "run_odoo_debug.py", args, verbose=True, rtime=True
-        # )
+        sts = please.chain_python_cmd(
+            "run_odoo_debug.py", args, verbose=True, rtime=True
+        )
         sts = 0  # debug
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
@@ -535,6 +537,8 @@ class PleaseZ0bug(object):
 
     def do_zerobug(self):
         please = self.please
+        if not please.package:
+            please.package = Package()
         if please.is_odoo_pkg() or please.is_repo_odoo() or please.is_repo_ocb():
             sts = self.do_lint()
             if not please.is_fatal_sts(sts):

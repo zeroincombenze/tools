@@ -46,6 +46,7 @@ import re
 import itertools
 
 from z0lib import z0lib
+from z0lib import Package
 
 try:
     from please_z0bug import PleaseZ0bug  # noqa: F401
@@ -605,71 +606,32 @@ class Please(object):
         return path, pkgname
 
     def is_pypi_pkg(self, path=None):
-        path, pkgname = self.get_pkgname(path=path)
-        pkgpath = self.get_home_pypi_pkg(pkgname)
-        root = pkgpath if pkgname == "tools" else pth.dirname(pkgpath)
-        pkgpath2 = self.get_home_tools_pkg(pkgname)
-        return (
-            pth.isdir(pkgpath)
-            and path.startswith(root)
-            and pth.isfile(pth.join(root, "setup.py"))
-            and (pth.isfile(pth.join(pkgpath, "__init__.py")) or pkgname == "tools")
-        ) or (
-            pth.isdir(pkgpath2)
-            and path.startswith(pkgpath2)
-            and pkgname == "tools"
-            or (
-                pth.isfile(pth.join(pkgpath2, "setup.py"))
-                and pth.isfile(pth.join(pkgpath2, "__init__.py"))
-            )
-        )
+        if not self.package or (path and pth.abspath(path) != self.package.path):
+            self.package = Package(path)
+        return self.package.dir_level == "module" and self.package.prjname == "Z0tools"
 
     def is_all_pypi(self, path=None):
-        path = path or os.getcwd()
-        return path == self.get_home_pypi()
+        if not self.package or (path and pth.abspath(path) != self.package.path):
+            self.package = Package(path)
+        return self.package.dir_level == "repo" and self.package.prjname == "Z0tools"
 
     def is_odoo_pkg(self, path=None):
-        path = path or os.getcwd()
-        files = os.listdir(path)
-        filtered = [
-            x
-            for x in files
-            if x in ("__manifest__.py", "__openerp__.py", "__init__.py")
-        ]
-        return len(filtered) == 2 and "__init__.py" in filtered
+        if not self.package or (path and pth.abspath(path) != self.package.path):
+            self.package = Package(path)
+        return self.package.dir_level == "module" and self.package.prjname == "Odoo"
 
     def is_repo_ocb(self, path=None):
-        path = path or os.getcwd()
-        if (
-            pth.isdir(pth.join(path, ".git"))
-            and (
-                pth.isfile(pth.join(path, "odoo-bin"))
-                or pth.isfile(pth.join(path, "openerp-server"))
-            )
-            and pth.isdir(pth.join(path, "addons"))
-            and (
-                pth.isdir(pth.join(path, "odoo"))
-                and pth.isfile(pth.join(path, "odoo", "__init__.py"))
-            )
-            or (
-                pth.isdir(pth.join(path, "openerp"))
-                and pth.isfile(pth.join(path, "odoo", "__init__.py"))
-            )
-        ):
-            return True
-        if pth.basename(path) in ("addons", "odoo", "openerp"):
-            return self.is_repo_ocb(path=pth.dirname(path))
-        return False
+        if not self.package or (path and pth.abspath(path) != self.package.path):
+            self.package = Package(path)
+        return (
+            self.package.dir_level == "repo"
+            and self.package.prjname == "Odoo"
+            and self.package.name == "OCB")
 
     def is_repo_odoo(self, path=None):
-        path = path or os.getcwd()
-        if not pth.isdir(pth.join(path, ".git")):
-            return False
-        for fn in os.listdir(path):
-            subpath = pth.join(path, fn)
-            if pth.isdir(subpath) and self.is_odoo_pkg(path=subpath):
-                return True
-        return self.is_repo_ocb(pth.dirname(path))
+        if not self.package or (path and pth.abspath(path) != self.package.path):
+            self.package = Package(path)
+        return self.package.dir_level == "repo" and self.package.prjname == "Odoo"
 
     def get_next_module_path(self, path=None):
         path = path or os.getcwd()
