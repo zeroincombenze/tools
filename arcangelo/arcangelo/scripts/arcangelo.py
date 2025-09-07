@@ -17,7 +17,7 @@ try:
 except ImportError:  # pragma: no cover
     import license_mgnt
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -536,7 +536,7 @@ class MigrateEnv(MigrateMeta):
             elif pth.isdir(pth.dirname(opt_args.path[0])):
                 os.chdir(pth.dirname(opt_args.path[0]))
             sts, stdout, stderr = z0lib.os_system_traced(
-                "git branch", verbose=False, dry_run=False
+                "git branch", verbose=False, dry_run=False, rtime=False
             )
             os.chdir(curcwd)
             if sts == 0 and stdout:
@@ -856,7 +856,7 @@ class MigrateFile(MigrateMeta):
         if self.opt_args.debug and key:
             self.lines[lineno] += " # " + key + "/" + action
 
-    def assing_lineno(self, lineno, value):
+    def assign_lineno(self, lineno, value):
         if value.startswith("+"):
             new_lineno = lineno + int(value[1:])
             if new_lineno >= (len(self.lines) - 1):
@@ -927,7 +927,7 @@ class MigrateFile(MigrateMeta):
             return True, -1
         elif action == "i":
             # insert line before current with params[0] or by params[1]
-            new_lineno = self.assing_lineno(
+            new_lineno = self.assign_lineno(
                 lineno, args[1]) if len(args) > 1 and args[1] else lineno
             self.lines.insert(new_lineno, args[0] % self.__dict__)
             self.trace_debug(key, lineno, action)
@@ -984,7 +984,7 @@ class MigrateFile(MigrateMeta):
             if not args:
                 self.raise_error("Invalid expression mv")
                 return False, 0
-            new_lineno = self.assing_lineno(lineno, args[0])
+            new_lineno = self.assign_lineno(lineno, args[0])
             if new_lineno != lineno:
                 line = self.lines[lineno]
                 del self.lines[lineno]
@@ -1131,16 +1131,16 @@ class MigrateFile(MigrateMeta):
         test_res_msg = self.opt_args.test_res_msg.replace("\\n", "\n")
         if test_res_msg.startswith('"') or test_res_msg.startswith("'"):
             test_res_msg = test_res_msg[1: -1]
-        x = re.search("[0-9]+ TestPoint", test_res_msg)
-        if x and "\n" in test_res_msg:
+        mo = re.search("[0-9]+ TestPoint", test_res_msg)
+        if mo and "\n" in test_res_msg:
             left_mesg, suppl = test_res_msg.split("\n", 1)
-            right_mesg = left_mesg[x.end() - 10:]
-            ctr = int(left_mesg[x.start():].split(" ", 1)[0])
-            left_mesg = left_mesg[: x.start()]
+            right_mesg = left_mesg[mo.end() - 10:]
+            ctr = int(left_mesg[mo.start():].split(" ", 1)[0])
+            left_mesg = left_mesg[: mo.start()]
             for ln in suppl.split("\n"):
-                x = re.search("[0-9]+ TestPoint", ln)
-                if x:
-                    ctr += int(ln[x.start(): x.end() - 10])
+                mo = re.search("[0-9]+ TestPoint", ln)
+                if mo:
+                    ctr += int(ln[mo.start(): mo.end() - 10])
             test_res_msg = left_mesg + str(ctr) + right_mesg
 
         last_date = ""
@@ -1151,16 +1151,17 @@ class MigrateFile(MigrateMeta):
                 if found_list:
                     break
                 continue
-            if not last_date and re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
-                x = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
-                if not x:
-                    print(red("Invalid changelog line: ") + ln)
+            if re.match(r"[0-9]+\.[0-9]+\.[0-9]+.*\([0-9]+", ln):
+                if not last_date:
+                    mo = re.search(r"\([0-9]{4}-[0-9]{2}-[0-9]{2}\)", ln)
+                    if not mo:
+                        print(red("Invalid changelog line: ") + ln)
+                        break
+                    i_start = mo.start() + 1
+                    i_end = mo.end() - 1
+                    last_date = ln[i_start: i_end]
+                    title_lineno = lineno
                     continue
-                i_start = x.start() + 1
-                i_end = x.end() - 1
-                last_date = ln[i_start: i_end]
-                title_lineno = lineno
-                continue
             if qua_lineno < 0 and re.match(r"['\"]*\* *\[QUA\]", ln):
                 qua_lineno = lineno
             if last_date and ln.startswith("*"):
@@ -1173,7 +1174,7 @@ class MigrateFile(MigrateMeta):
             if qua_lineno:
                 self.lines[qua_lineno] = test_res_msg
             else:
-                lineno -= lineno - 1
+                lineno -= 1
                 self.lines.insert(lineno, test_res_msg)
                 if not self.opt_args.dry_run:
                     with open(self.fqn, "w", encoding="utf-8") as fd:

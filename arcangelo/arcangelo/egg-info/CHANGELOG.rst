@@ -6,6 +6,7 @@
 * [IMP] New pass1 context
 * [IMP] Set trigger with parameters
 * [FIX] New rule parsing algorithm
+* [FIX] python 3.11 and 3.12
 
 2.1.0 (2025-06-15)
 ~~~~~~~~~~~~~~~~~~~
