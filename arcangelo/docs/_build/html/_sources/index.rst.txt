@@ -1,10 +1,10 @@
 .. arcangelo documentation master file, created by
-   gen_readme.py on 2025-09-01 08:23:36
+   gen_readme.py on 2025-09-08 09:04:16
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 =========================================
-Welcome to arcangelo 2.1.0 documentation!
+Welcome to arcangelo 2.1.1 documentation!
 =========================================
 
 .. toctree::
@@ -15,6 +15,12 @@ Welcome to arcangelo 2.1.0 documentation!
    rtd_description
    rtd_usage
    rtd_getting_started
+   rtd_description_arcangelo
+   rtd_usage_arcangelo
+   rtd_description_gen_readme
+   rtd_usage_gen_readme
+   rtd_usage_gen_readme_sym
+   rtd_description_macro
    rtd_changelog
    rtd_credits
 
@@ -32,10 +38,10 @@ Welcome to arcangelo 2.1.0 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

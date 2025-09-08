@@ -39,7 +39,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.22"
+__version__ = "2.1.1"
 
 DOUBLE_CHARS = _u("✅❌")
 

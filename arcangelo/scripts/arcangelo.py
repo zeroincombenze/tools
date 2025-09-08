@@ -1293,6 +1293,10 @@ class MigrateFile(MigrateMeta):
                 os.makedirs(pth.dirname(out_fqn))
         else:
             out_fqn = pth.join(pth.dirname(self.fqn), self.out_fn)
+        while len(self.lines) > 1 and self.lines[-1] == "" and self.lines[-2] == "":
+            del self.lines[2]
+        if self.lines[-1] != "":
+            self.lines.append("")
         if not self.file_action and (
                 self.opt_args.lint_anyway
                 or out_fqn != self.fqn
