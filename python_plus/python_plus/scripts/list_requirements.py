@@ -440,12 +440,11 @@ PIP_SECURE_PACKAGES = [
     "pyasn1",
 ]
 PIP2_TEST_PACKAGES = [
+    "arcangelo",
     "astroid",
     "Click",
     "configparser",
-    # "codecov",
     "coverage",
-    # "coveralls",
     "docopt",
     "docutils",
     "flake8",
@@ -486,12 +485,11 @@ PIP2_TEST_PACKAGES = [
     "zerobug",
 ]
 PIP3_TEST_PACKAGES = [
+    "arcangelo",
     "astroid",
     "Click",
     "configparser",
-    # "codecov",
     "coverage",
-    # "coveralls",
     "docopt",
     "docutils",
     "flake8",
@@ -550,7 +548,6 @@ PIP_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    # "feedparser",
     "future",
     "gdata",
     "gevent",
@@ -572,8 +569,6 @@ PIP_BASE_PACKAGES = [
     "simplejson",
     "six",
     "python-stdnum",
-    # "vatnumber",
-    # "wheel",
 ]
 PIP3_BASE_PACKAGES = []
 PIP_ODOO_BASE_PACKAGES = [

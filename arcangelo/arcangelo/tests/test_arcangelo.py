@@ -71,11 +71,15 @@ class RegressionTest:
         with open(src_ffn, "r") as fd:
             source = fd.read().replace("\n\n", "\n")
             source = source.split("\n")
+            if source[-1] != "":
+                source.append("")
         with open(tgt_ffn, "r") as fd:
             target = fd.read().replace("\n\n", "\n")
             target = target.split("\n")
+            if target[-1] != "":
+                target.append("")
         src_lno = tgt_lno = 0
-        while src_lno < len(source):
+        while src_lno < len(source) and tgt_lno < len(target):
             if source[src_lno] == target[tgt_lno]:
                 src_lno += 1
                 tgt_lno += 1
@@ -89,11 +93,15 @@ class RegressionTest:
         with open(src_ffn, "r") as fd:
             source = fd.read().replace("\n\n", "\n")
             source = source.split("\n")
+            if source[-1] != "":
+                source.append("")
         with open(tgt_ffn, "r") as fd:
             target = fd.read().replace("\n\n", "\n")
             target = target.split("\n")
+            if target[-1] != "":
+                target.append("")
         src_lno = tgt_lno = 0
-        while src_lno < len(source):
+        while src_lno < len(source) and tgt_lno < len(target):
             if source[src_lno].strip() == target[tgt_lno].strip():
                 src_lno += 1
                 tgt_lno += 1

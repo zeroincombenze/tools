@@ -71,7 +71,7 @@ setup(
             "arcangelo = arcangelo.scripts.arcangelo:main",
             "gen_readme.py = arcangelo.scripts.gen_readme:main",
             "cvt_script = arcangelo.scripts.cvt_script:main",
-            "cvt_2_rst.py = arcangelo.scripts.cvt_2_rst:main",
+            "cvt_csv_2_rst.py = arcangelo.scripts.cvt_csv_2_rst:main",
         ]
     },
     zip_safe=False,

@@ -83,8 +83,8 @@ debug_shell() {
     local sts h v
     sts=0
     if [[ -n $1 && -n $2 && $2 =~ $1 ]]; then
-      [[ -z "$3" ]] && echo "PATH=$PATH"
-      echo "PS1='\[\033[=25h\](ctrl+d to continue)> '">/tmp/$$.sh
+      [[ -z $3 ]] && echo "PATH=$PATH"
+      echo "PS1='\[\033[31m\]DEBUG\[\033[=25h\033[0m\]> '">/tmp/$$.sh
       echo "alias EXIT='exit 1'">>/tmp/$$.sh
       h=" * HELP       # This help\n"
       h="${h} * EXIT       # Exit from debug session and ${RED}quit testing process${CLR}\n"
@@ -104,6 +104,10 @@ debug_shell() {
           TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_SAVED_HOME TRAVIS_SAVED_PKGPATH; do
         [[ -n ${!v} ]] && echo "export $v='${!v}'">>/tmp/$$.sh
       done
+      [[ $2 =~ ^::[a-zA-Z0-9_]+$ ]] && v="YML_${2:2}" && [[ -n ${!v} ]] && echo "export $v='${!v}'">>/tmp/$$.sh
+      h="${h} ctrl+d       # Continue debug session\n"
+      # echo "export process_yaml_quote_xtl">>/tmp/$$.sh
+      # echo "alias LS_TODO='for ln in $YML_before_install; do echo "$(process_yaml_quote_xtl \"$ln\")"; done'>>/tmp/$$.sH
       echo -e "$h"
       eval $SHELL --noprofile --rcfile /tmp/$$.sh -s
       sts=$?
@@ -527,14 +531,12 @@ process_yaml_before_install() {
   if [[ $TRAVIS_DEBUG_MODE -ne 0 ]]; then
     wlog "\e[${PS_HDR3_COLOR}m------ [[before_install] in .travis.yml] ------\e[0m"
   fi
-  if [ $sts -eq $STS_SUCCESS ]; then
-    for lne in $YML_before_install; do
-      [[ $TRAVIS_DEBUG_MODE -ge 3 ]] && echo "#> $(process_yaml_quote_xtl $lne)"
-      process_yaml_run_cmd "$lne"
-      s=$?; [[ ${s-1} -ne 0 && $sts -eq 0 ]] && sts=$s
-      [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement <<$(process_yaml_quote_xtl \"$lne\")>>failed failed!\e[${PS_TXT_COLOR}m"
-    done
-  fi
+  for lne in $YML_before_install; do
+    [[ $TRAVIS_DEBUG_MODE -ge 3 ]] && echo "#> $(process_yaml_quote_xtl $lne)"
+    process_yaml_run_cmd "$lne"
+    s=$?; [[ ${s-1} -ne 0 && $sts -eq 0 ]] && sts=$s
+    [[ $s -ne 0 ]] && echo -e "\e[${PS_HDR3_COLOR}mInternal error! Statement <<$(process_yaml_quote_xtl \"$lne\")>>failed failed!\e[${PS_TXT_COLOR}m"
+  done
   [[ $sts -ne 0 ]] && exit $sts
   for lne in $YML_env; do
     line="export $(process_yaml_quote_xtl $lne)"
