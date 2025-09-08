@@ -18,7 +18,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.0.22",
+    version="2.0.23",
     description="Odoo testing framework",
     long_description=long_description,
     classifiers=[
@@ -29,8 +29,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -47,7 +47,12 @@ setup(
     author_email=author_email,
     license="GPL-3.0-or-later",
     install_requires=[
-        "future", "python-magic", "zerobug", "gitPython", "Click", "z0lib>=2.0.11"
+        "future",
+        "python-magic",
+        "zerobug>=2.0.20",
+        "gitPython",
+        "Click",
+        "z0lib>=2.1.0"
     ],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={

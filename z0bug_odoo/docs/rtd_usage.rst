@@ -74,7 +74,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.22
+* z0bug_odoo PYPI package version 2.0.23
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -1259,10 +1259,10 @@ def get_records_from_act_windows(self, act_windows):
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.23/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.23/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

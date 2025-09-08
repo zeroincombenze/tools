@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.22
+z0bug_odoo 2.0.23
 =================
 
 
@@ -817,7 +817,7 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package 2.0.22
+* z0bug_odoo PYPI package 2.0.23
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
@@ -917,7 +917,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.22
+* z0bug_odoo PYPI package version 2.0.23
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -2146,12 +2146,15 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.23 (2025-06-14)
+2.0.23 (2025-09-08)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi
 * [FIX] testenv.py with Odoo 16.0+
-* [IMP] python 3.11
+* [IMP] python 3.12
+* [IMP] Old code cleaned
+* [IMP] New summary more detailed
+* [QUA] Test coverage 21% (1031: 812+219) [0 TestPoints] - quality rating 15 (target 100)
 
 2.0.22 (2025-03-21)
 ~~~~~~~~~~~~~~~~~~~
@@ -2367,10 +2370,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.23/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.23/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

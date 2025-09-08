@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
-"""Test Environment v2.0.24
+"""Test Environment v2.0.23
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
