@@ -23,8 +23,8 @@ if sys.version_info >= (3, 0):
             "coverage",
             "pylint-odoo",
             "python-magic",
-            "python-plus",
-            "z0lib>=2.0.14",
+            "python-plus>=2.0.19",
+            "z0lib>=2.1.0",
         ],
     )
 else:
@@ -34,8 +34,8 @@ else:
             "coverage",
             "pylint-odoo<=3.10.0",
             "python-magic",
-            "python-plus",
-            "z0lib>=2.0.14",
+            "python-plus>=2.0.19",
+            "z0lib>=2.1.0",
         ],
     )
 
@@ -53,8 +53,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",

@@ -153,9 +153,10 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.20 (2025-06-14)
+2.0.20 (2025-09-09)
 ~~~~~~~~~~~~~~~~~~~
 
+* [IMP] Refactoring
 * [FIX] License declaration compatible with pypi
 
 2.0.19 (2025-03-14)
