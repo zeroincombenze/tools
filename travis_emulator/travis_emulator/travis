@@ -889,7 +889,7 @@ process_yaml() {
   for v in $x; do
     [[ $v =~ $python_matrix && $v =~ $ymtrx ]] && TRAVIS_PYTHON_MATRIX="$TRAVIS_PYTHON_MATRIX $v"
   done
-  [[ -z $TRAVIS_PYTHON_MATRIX ]] && echo -e "${RED}No valid python version declared! Use $python_matrix${CLR}"
+  [[ -z $TRAVIS_PYTHON_MATRIX ]] && echo -e "${RED}No valid python version declared! Use $python_matrix${CLR}" && sts=126
   for TRAVIS_PYTHON_VERSION in $TRAVIS_PYTHON_MATRIX; do
     [[ $sts -ne 0 ]] && break
     echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"

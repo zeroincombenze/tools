@@ -1,9 +1,12 @@
-2.0.23 (2025-06-14)
+2.0.23 (2025-09-08)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] License declaration compatible with pypi
 * [FIX] testenv.py with Odoo 16.0+
-* [IMP] python 3.11
+* [IMP] python 3.12
+* [IMP] Old code cleaned
+* [IMP] New summary more detailed
+* [QUA] Test coverage 21% (1031: 812+219) [0 TestPoints] - quality rating 15 (target 100)
 
 2.0.22 (2025-03-21)
 ~~~~~~~~~~~~~~~~~~~
