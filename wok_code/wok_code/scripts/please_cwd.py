@@ -247,24 +247,27 @@ class PleaseCwd(object):
             chnglog = pth.join(docdir, "CHANGELOG.rst")
             if not pth.isfile(chnglog):
                 with open(chnglog, "w") as fd:
-                    fd.write("%s (%s)\n" % (branch, "2023-09-23"))
+                    fd.write("%s (%s)\n" % (branch, "2025-09-09"))
                     fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
                     fd.write("\n")
                     fd.write("* Initial implementation\n")
         return 0
 
-    def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
-        if pkgtype not in ("odoo", "pypi"):
-            self.please.log_error("Invalid package type: use 'odoo' or 'pypi'")
-            return 33
+    def assure_doc_dirs(self, docdir=None, is_repo=False):
         please = self.please
-        if pkgtype == "pypi":
+        pkgtype = please.package.prjname
+        if pkgtype not in ("Odoo", "Z0tools"):
+            self.please.log_error("Invalid package kind '%s': use 'Odoo' or 'Z0tools'"
+                                  % please.package.prjname)
+            return 33
+        if pkgtype == "Z0tools":
             docs_dir = "./docs"
             if not pth.isdir(docs_dir):
                 if not please.opt_args.force and not please.opt_args.dry_run:
-                    if please.opt_args.verbose:
-                        self.please.log_error("Directory %s not found!" % docs_dir)
-                    return 126
+                    please.log_error(
+                        "Module %s w/o documentation dir %s!"
+                        % (please.package.name, docs_dir))
+                    return 3
                 if please.opt_args.verbose:
                     self.please.log_warning("Directory %s not found!" % docs_dir)
                 if not please.opt_args.dry_run:
@@ -283,7 +286,7 @@ class PleaseCwd(object):
                 if not please.opt_args.dry_run:
                     shutil.copy(srclogo, logo)
 
-        docdir = docdir or ("readme" if pkgtype == "odoo" else "egg-info")
+        docdir = docdir or ("readme" if pkgtype == "Odoo" else "egg-info")
         if (
             not docdir.startswith("/")
             and not docdir.startswith("./")
@@ -301,14 +304,14 @@ class PleaseCwd(object):
                 os.mkdir(docdir)
         self.docdir = docdir
 
-        if pkgtype == "odoo":
+        if pkgtype == "Odoo":
             return self.assure_doc_dirs_odoo(is_repo=is_repo)
-        elif pkgtype == "pypi":
+        elif pkgtype == "Z0tools":
             return self.assure_doc_dirs_pypi()
         return 33
 
     def build_gen_readme_base_args(self, branch=None):
-        branch = branch or self.branch
+        # branch = branch or self.branch
         args = []
         if self.please.opt_args.debug:
             args.append("-" + ("B" * self.please.opt_args.debug))
@@ -395,7 +398,7 @@ class PleaseCwd(object):
                     continue
                 ver, fqn_dt = fqn[mo.start(): mo.end()].split("-", 1)
                 ctrs[ver] = 1 if ver not in ctrs else ctrs[ver] + 1
-                if ctrs[ver] < ctr_min:
+                if ctrs[ver] <= ctr_min:
                     continue
                 if ctrs[ver] <= ctr_max and fqn[mo.start(): mo.end()] >= dt_limit:
                     continue
@@ -681,22 +684,14 @@ class PleaseCwd(object):
         please = self.please
         if not please.package:
             please.package = Package()
-
         if please.is_odoo_pkg():
-            if not pth.isdir("readme"):
-                please.log_warning(
-                    "Module %s w/o documentation dir!" % pth.basename(os.getcwd())
-                )
-                return 3
-            # sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
-            # if sts == 0:
-            self.branch = please.package.branch
-            sts = self.assure_doc_dirs(pkgtype="odoo")
+            self.branch = please.package.release
+            sts = self.assure_doc_dirs()
             if sts:
                 return sts
             please.merge_test_result()
             odoo_major_version = int(self.branch.split(".")[0])
-            repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+            repo_name = please.package.reposname
             if please.opt_args.oca:
                 sts = please.os_system(
                     "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
@@ -705,36 +700,20 @@ class PleaseCwd(object):
                     rtime=True,
                 )
             else:
-                if repo_name == "marketplace":
-                    sts = self.run_gen_readme("-R", branch=self.branch)
                 sts = self.run_gen_readme([], branch=self.branch)
                 if sts == 0:
                     sts = self.run_gen_readme("-I", branch=self.branch)
-                if sts == 0 and odoo_major_version <= 7:
+                if sts == 0 and (repo_name == "marketplace" or odoo_major_version <= 7):
                     sts = self.run_gen_readme("-R", branch=self.branch)
             if sts == 0:
                 self.do_clean()
             return sts
-        elif please.is_repo_odoo() or please.is_repo_ocb():
-            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
-            if sts == 0:
-                self.branch = branch
-                sts = self.assure_doc_dirs(pkgtype="odoo", is_repo=True)
-                if sts:
-                    return sts
-                if not please.opt_args.oca:
-                    sts = self.run_gen_readme([], branch=branch)
-            return sts
         elif please.is_pypi_pkg():
-            self.branch = please.get_pypi_version()
-            sts = self.assure_doc_dirs(pkgtype="pypi")
+            self.branch = please.package.version
+            sts = self.assure_doc_dirs()
             if sts:
                 return sts
-            if not pth.isdir(self.docs_dir):
-                please.log_error(
-                    "Document template directory %s not found!" % self.docs_dir
-                )
-                return 33 if not self.please.opt_args.dry_run else 0
+            please.merge_test_result()
             sts = self.run_gen_readme([])
             if sts == 0:
                 sts = self.run_gen_readme("-I")
@@ -745,7 +724,17 @@ class PleaseCwd(object):
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
-            sts = 0             # TODO> Remoe ?
+            # sts = 0  # TODO> Remoe ?
+            return sts
+        elif please.is_repo_odoo() or please.is_repo_ocb():
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                self.branch = branch
+                sts = self.assure_doc_dirs(is_repo=True)
+                if sts:
+                    return sts
+                if not please.opt_args.oca:
+                    sts = self.run_gen_readme([], branch=branch)
             return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 

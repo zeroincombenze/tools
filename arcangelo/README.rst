@@ -30,8 +30,9 @@ Usage
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
+                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG]
+                        [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
+                        [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -71,6 +72,8 @@ Usage
       -S, --string-normalization
                             force double quote enclosing strings
       --test-res-msg TEST_RES_MSG
+      --test-res-msg-range TEST_RES_MSG_RANGE
+                            Date limit to join test result message
       -v, --verbose
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
@@ -353,7 +356,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.1.1 (2025-06-28)
+2.1.2 (2025-09-08)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Quality message position
+* [IMP] Test message capture range
+
+2.1.1 (2025-09-07)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] New trigger search rather than match in rules

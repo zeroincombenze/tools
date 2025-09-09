@@ -5,7 +5,13 @@ ChangeLog History
 =================
 
 
-2.1.1 (2025-06-28)
+2.1.2 (2025-09-08)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Quality message position
+* [IMP] Test message capture range
+
+2.1.1 (2025-09-07)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] New trigger search rather than match in rules

@@ -184,6 +184,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.24 (2025-09-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Quality message on pypi packages
+
 2.0.23 (2025-08-14)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -433,11 +438,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
 
 
 

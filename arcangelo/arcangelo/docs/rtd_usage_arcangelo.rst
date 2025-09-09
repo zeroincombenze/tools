@@ -11,8 +11,9 @@ Digest of arcangelo
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
+                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG]
+                        [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
+                        [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -52,6 +53,8 @@ Digest of arcangelo
       -S, --string-normalization
                             force double quote enclosing strings
       --test-res-msg TEST_RES_MSG
+      --test-res-msg-range TEST_RES_MSG_RANGE
+                            Date limit to join test result message
       -v, --verbose
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter

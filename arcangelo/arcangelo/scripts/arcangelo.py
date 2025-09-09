@@ -5,9 +5,10 @@ from io import open
 import sys
 import os
 import os.path as pth
-from datetime import datetime
+from datetime import datetime, timedelta
 import argparse
 import re
+
 import lxml.etree as ET
 import yaml
 from python_plus import _b, _u, qsplit
@@ -1143,9 +1144,13 @@ class MigrateFile(MigrateMeta):
                     ctr += int(ln[mo.start(): mo.end() - 10])
             test_res_msg = left_mesg + str(ctr) + right_mesg
 
-        last_date = ""
+        last_date = None
         found_list = False
         title_lineno = qua_lineno = i_start = i_end = -1
+        date_limit = (
+            datetime.strptime(self.opt_args.test_res_msg_range, "%Y-%m-%d")
+            if self.opt_args.test_res_msg_range else (datetime.now() - timedelta(20))
+        )
         for lineno, ln in enumerate(self.lines):
             if not ln:
                 if found_list:
@@ -1159,22 +1164,19 @@ class MigrateFile(MigrateMeta):
                         break
                     i_start = mo.start() + 1
                     i_end = mo.end() - 1
-                    last_date = ln[i_start: i_end]
+                    last_date = datetime.strptime(ln[i_start: i_end], "%Y-%m-%d")
                     title_lineno = lineno
                     continue
             if qua_lineno < 0 and re.match(r"['\"]*\* *\[QUA\]", ln):
                 qua_lineno = lineno
             if last_date and ln.startswith("*"):
                 found_list = True
-        if (
-            last_date
-            and found_list
-            and (datetime.now() - datetime.strptime(last_date, "%Y-%m-%d")).days < 20
-        ):
-            if qua_lineno:
+        if last_date and last_date >= date_limit and found_list:
+            if qua_lineno >= 0:
                 self.lines[qua_lineno] = test_res_msg
             else:
-                lineno -= 1
+                if lineno >= len(self.lines) or self.lines[lineno]:
+                    lineno -= 1
                 self.lines.insert(lineno, test_res_msg)
                 if not self.opt_args.dry_run:
                     with open(self.fqn, "w", encoding="utf-8") as fd:
@@ -1467,6 +1469,10 @@ def main(cli_args=None):
         help='force double quote enclosing strings'
     )
     parser.add_argument('--test-res-msg')
+    parser.add_argument(
+        '--test-res-msg-range',
+        help='Date limit to join test result message'
+    )
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
