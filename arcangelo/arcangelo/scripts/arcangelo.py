@@ -469,6 +469,9 @@ class MigrateMeta(object):
             return False
         return regex
 
+    def set_trigger(self, trigger, value):
+        setattr(self, trigger, value)
+
     def get_mig_rules(self):
         return self.pass1_rules if self.pass1 else self.mig_rules
 
@@ -716,9 +719,6 @@ class MigrateFile(MigrateMeta):
             x = re.search("noupdate *=\"(0|1|True|False)\"", self.lines[lineno])
             return self.lines[lineno][x.start(): x.end()]
         return ""
-
-    def set_trigger(self, trigger, value):
-        setattr(self, trigger, value)
 
     def match_ignore_line(self, lineno):
         return True, 0
@@ -1295,14 +1295,14 @@ class MigrateFile(MigrateMeta):
                 os.makedirs(pth.dirname(out_fqn))
         else:
             out_fqn = pth.join(pth.dirname(self.fqn), self.out_fn)
-        while len(self.lines) > 1 and self.lines[-1] == "" and self.lines[-2] == "":
-            del self.lines[2]
-        if self.lines[-1] != "":
-            self.lines.append("")
         if not self.file_action and (
                 self.opt_args.lint_anyway
                 or out_fqn != self.fqn
                 or self.source != "\n".join(self.lines)):
+            while len(self.lines) > 1 and self.lines[-1] == "" and self.lines[-2] == "":
+                del self.lines[2]
+            if self.lines[-1] != "":
+                self.lines.append("")
             if not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_fqn
                 if pth.isfile(bakfile):
@@ -1531,7 +1531,7 @@ def main(cli_args=None):
                 and migrate_env.opt_args.from_version != migrate_env.opt_args.to_version
             ):
                 sys.stderr.write(
-                    'Target path %s conflicts with source ptah %s for migration!!\n'
+                    'Target path %s conflicts with source path %s for migration!!\n'
                     % (migrate_env.opt_args.output, path)
                 )
                 return 2

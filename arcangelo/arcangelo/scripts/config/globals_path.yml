@@ -17,3 +17,12 @@ testenv_file:
       args:
         - 'file_action'
         - 'no'
+pyc_file:
+  match: '.*/.*\.(pyc|pyo|bak|tmp)$'
+  ctx: 'pass1 and first_line'
+  prio: '1'
+  do:
+    - action: '+'
+      args:
+        - 'file_action'
+        - 'no'

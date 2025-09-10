@@ -9,7 +9,12 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] Quality message position
+* [FIX] New rule parsing algorithm
 * [IMP] Test message capture range
+* [IMP] New trigger search rather than match in rules
+* [IMP] Two passes parsing
+* [IMP] New pass1 context
+* [IMP] Set trigger with parameters
 
 2.1.1 (2025-09-07)
 ~~~~~~~~~~~~~~~~~~
