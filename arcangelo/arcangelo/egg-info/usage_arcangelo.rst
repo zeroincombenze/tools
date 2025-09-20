@@ -54,6 +54,7 @@ distinct expressions, which are:
     * **+**: set trigger TRIGGER_NAME (from 1st group of matching regex)
     * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
+    * **mv**: move currente line to another position
 
 **Python test and replacing macros**.
 

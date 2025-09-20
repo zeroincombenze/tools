@@ -1,16 +1,9 @@
-include_odoo_py_new_api:
+include_odoo_python_new_api:
   ctx: 'final'
-  include: 'odoo_py_new_api'
+  include: 'odoo_python_new_api'
 include_odoo_api_multi:
   ctx: 'final or backport_multi'
-  include: 'odoo_py_api_multi'
-sort_from_odoo_import:
-  match: '^from (odoo|openerp) import [\w, ]+'
-  prio: '9'
-  do:
-    - action: '$'
-      args:
-      - 'sort_from_odoo_import'
+  include: 'odoo_python_api_multi'
 class_product_uom:
   match: '.*(?<!\w)ProductUom(?!\w)'
   prio: '9'

@@ -1,4 +1,4 @@
-2.1.1 (2025-09-06)
+2.1.1 (2025-09-20)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Clean code
@@ -6,6 +6,7 @@
 * [IMP] run_traced: default humdrum=1
 * [IMP] New function wep_stdout
 * [IMP] New function split_n_rm_comment_lines
+* [IMP] Best package recognition algorithm
 
 2.1.0 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~~

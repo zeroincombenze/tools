@@ -13,4 +13,4 @@ from_openerp:
       - 'openerp'
 include_odoo_api_multi:
   ctx: 'final or migrate_multi'
-  include: 'odoo_py_api_multi'
+  include: 'odoo_python_api_multi'

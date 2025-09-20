@@ -10,7 +10,7 @@ test_files:
       args:
       - 'file_action'
       - 'no'
-test_files_2:
+test_files_data:
   match: '.*/tests/data/'
   ctx: 'not force'
   prio: '0'
@@ -18,4 +18,4 @@ test_files_2:
     - action: '+'
       args:
       - 'file_action'
-      - 'new'
+      - 'ply'

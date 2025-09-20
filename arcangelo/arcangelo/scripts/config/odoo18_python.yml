@@ -1,0 +1,6 @@
+include_odoo_python_new_api:
+  ctx: 'final'
+  include: 'odoo_python_new_api'
+include_odoo_no_api_multi:
+  ctx: 'final'
+  include: 'odoo_python_no_api_multi'

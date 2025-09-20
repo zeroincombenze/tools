@@ -8,7 +8,7 @@ found_shebang:
     - action: '+'
       args:
       - 'found_shebang'
-      - '%(lineno)s'
+      - '%(stmtno)s'
 found_no_action:
   search: '# (flake8: noqa|pylint: skip-file)'
   ctx: 'pass1'
@@ -16,7 +16,7 @@ found_no_action:
     - action: '+'
       args:
       - 'found_no_action'
-      - '%(lineno)s'
+      - '%(stmtno)s'
 found_no_action2:
   search: '# (flake8: noqa|pylint: skip-file)'
   ctx: 'pass1 and not force'
@@ -83,7 +83,7 @@ update_coding_utf8:
     - action: '+'
       args:
       - 'found_coding_utf8'
-      - '%(lineno)s'
+      - '%(stmtno)s'
 
 match_class:
   match: ' *class *([^(]+)\('

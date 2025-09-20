@@ -441,7 +441,7 @@ class RegressionTest:
             content = fd.read().replace("12.0.1.2.3", "10.0.1.2.3")
         with open(res_fqn, "w") as fd:
             fd.write(content)
-        cmd = "arcangelo -fi -F10.0 -b12.0 %s" % (res_fqn,)
+        cmd = "arcangelo -POdoo -fi -F10.0 -b12.0 %s" % (res_fqn,)
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.assertTrue(

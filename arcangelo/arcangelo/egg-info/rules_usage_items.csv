@@ -9,7 +9,7 @@ header,Current line is in the file header (comments and empty lines)
 imported,Imported packages list
 indent,Space indentation of current line
 migration_multi,Processing a migrate version with multiple version path
-mime,Current file mime
+language,Current file language
 open_stmt,"# of open parens; if > 0, current line is a continuation line"
 python_future,True if source is python 2 and 3 with future
 stage,"Parsing stage: pre,header,import,class_body,function_body,comment"

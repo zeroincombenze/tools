@@ -1,3 +1,3 @@
-include_global_py:
+include_globals_py3:
   include: 'globals_py2'
 

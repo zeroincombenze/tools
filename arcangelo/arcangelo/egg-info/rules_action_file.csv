@@ -1,0 +1,6 @@
+Value,Meaning,Action,-i,New path
+no,Do nothing,Do not process file and keep as is,idem,not copied
+mv,Rename,Rename file and process it,idem,Copy file with new name and process it
+mv+no,Rename,Rename file: do not process,idem,Copy file with new name: do not process
+rm,Remove,Rename file .bak,idem,Ignore (do not copy)
+new:Copy new,Nothing,Nothing,Copy directory if it does not exit: do not process

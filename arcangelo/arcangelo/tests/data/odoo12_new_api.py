@@ -12,3 +12,4 @@ class ResPartner(models.Model):
     def my_fun(self, param):
         super().my_fun(param)
         raise UserError("Example")
+

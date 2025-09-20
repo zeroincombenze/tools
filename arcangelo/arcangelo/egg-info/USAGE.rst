@@ -70,12 +70,13 @@ ACTION is applied on current item (file or line) if CTX and PYEXPR and EREGEX ar
     * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
+    ACTION values for directories:
+
+.. $include rules_action_path.csv
 
     ACTION values for files:
 
-    * **mv**: mv current file to new fqn
-    * **rm**: remove file
-    * **no**: no action done
+.. $include rules_action_path.csv
 
 Action **substitute**: "s REGEX REPLACE_TEXT"
 
