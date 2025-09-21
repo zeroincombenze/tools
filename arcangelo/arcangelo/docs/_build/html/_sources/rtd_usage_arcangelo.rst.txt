@@ -7,11 +7,12 @@ Digest of arcangelo
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
+    usage: arcangelo.py [-h] [-A] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG]
+                        [-j PYTHON] [-l] [--list-syntax] [-n] [-o OUTPUT]
+                        [-P PACKAGE_NAME] [-R RULES] [-S]
+                        [--test-res-msg TEST_RES_MSG]
                         [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
                         [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
@@ -23,6 +24,7 @@ Digest of arcangelo
     
     options:
       -h, --help            show this help message and exit
+      -A, --analyze         analyze source file(s)
       -a, --lint-anyway     set to True when migrate software
       -B, --debug           add comment with applied rule: do not use in
                             production
@@ -44,6 +46,7 @@ Digest of arcangelo
                             python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
+      --list-syntax         list language syntax rules
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
@@ -133,6 +136,7 @@ distinct expressions, which are:
     * **+**: set trigger TRIGGER_NAME (from 1st group of matching regex)
     * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
+    * **mv**: move currente line to another position
 
 **Python test and replacing macros**.
 
@@ -176,7 +180,7 @@ Value list:
 +--------------------+---------------------------------------------------------------------------+
 | migration_multi    | Processing a migrate version with multiple version path                   |
 +--------------------+---------------------------------------------------------------------------+
-| mime               | Current file mime                                                         |
+| language           | Current file language                                                     |
 +--------------------+---------------------------------------------------------------------------+
 | open_stmt          | # of open parens; if > 0, current line is a continuation line             |
 +--------------------+---------------------------------------------------------------------------+

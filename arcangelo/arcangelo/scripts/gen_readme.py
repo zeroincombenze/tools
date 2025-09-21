@@ -407,6 +407,9 @@ INVALID_NAMES = [
     "win32",
 ]
 
+def os_realpath(path):
+    return pth.abspath(pth.expanduser(path))
+
 
 def __init__(ctx):
     def data_from_url(url):
@@ -433,8 +436,8 @@ def __init__(ctx):
     ctx["home_devel"] = ctx["home_devel"] or os.environ.get(
         "home_devel", pth.expanduser("~/devel")
     )
-    ctx["odoo_root"] = pth.abspath(pth.join(ctx["home_devel"], ".."))
-    ctx["path_name"] = pth.abspath(ctx["path_name"])
+    ctx["odoo_root"] = os_realpath(pth.dirname(ctx["home_devel"]))
+    ctx["path_name"] = os_realpath(ctx["path_name"])
     if not ctx["product_doc"]:
         if "/pypi/" in ctx["path_name"] or ctx["path_name"].endswith("/tools"):
             ctx["product_doc"] = "pypi"
@@ -611,7 +614,7 @@ def assure_docdir(ctx, path):
     if not pth.isdir(path):
         if not ctx["suppress_warning"]:
             print_red_message(
-                "*** Documentation directory %s not found!" % pth.abspath(path)
+                "*** Documentation directory %s not found!" % os_realpath(path)
             )
         if ctx["force"] or ctx["write_authinfo"]:
             os.makedirs(path)
@@ -718,9 +721,10 @@ def get_actual_fqn(ctx, path, filename):
             fqn = pth.join(path, "icons", filename)
             if pth.isfile(fqn):
                 return fqn
-    if pth.basename(pth.abspath(path)) in ("readme", "egg-info", "docs"):
-        docdirs = [pth.basename(pth.abspath(path))]
-        path = pth.dirname(pth.abspath(path))
+    path = os_realpath(path)
+    if pth.basename(path) in ("readme", "egg-info", "docs"):
+        docdirs = [pth.basename(path)]
+        path = pth.dirname(path)
     else:
         docdirs = ("readme", "egg-info")
     for docdir in docdirs:
@@ -2058,7 +2062,7 @@ def parse_pypi_packges(ctx):
 
 def parse_merge_docs(ctx):
     def get_module_dir(module):
-        module_dir = pth.abspath(pth.join(os.getcwd(), ".."))
+        module_dir = os_realpath(pth.dirname(os.getcwd()))
         while pth.isdir(pth.join(module_dir, module)):
             # down to module root
             module_dir = pth.join(module_dir, module)
@@ -2292,6 +2296,7 @@ def parse_local_file(
             )
         return ""
 
+    fqn = os_realpath(fqn)
     fqn, source = read_file_rst_or_csv(ctx, fqn)
     if section:
         ctx["%s_filename"] = fqn
@@ -2356,7 +2361,7 @@ def read_setup(ctx):
     else:
         MANIFEST_LIST = ("./setup.py",)
     for manifest in MANIFEST_LIST:
-        manifest_filename = pth.abspath(pth.join(ctx["path_name"], manifest))
+        manifest_filename = os_realpath(pth.join(ctx["path_name"], manifest))
         if pth.isfile(manifest_filename):
             break
         manifest_filename = ""
@@ -2444,7 +2449,7 @@ def read_all_manifests(ctx, path=None, module2search=None, no_history=False):
             return False
         return True
 
-    path = os.path.abspath(path or ".")
+    path = os_realpath(path or ".")
     ctx["manifest"] = {}
     ctx["histories"] = ""
     if not no_history:
