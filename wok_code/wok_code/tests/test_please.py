@@ -75,19 +75,28 @@ class RegressionTest:
         os.chdir(self.tool_pkgdir)
         cmd = "please z0bug -vn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
-        self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        self.assertEqual(sts,
+                         0,
+                         msg="%s -> sts=%s" % (cmd, sts),
+                         msg_info="%s> %s" % (os.getcwd(), cmd))
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
         os.chdir(self.tool_pkgdir)
         cmd = "please zerobug -vn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
-        self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        self.assertEqual(sts,
+                         0,
+                         msg="%s -> sts=%s" % (cmd, sts),
+                         msg_info="%s> %s" % (os.getcwd(), cmd))
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
         os.chdir(self.pypi_dir)
         cmd = "please zerobug -vn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
-        self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        self.assertEqual(sts,
+                         0,
+                         msg="%s -> sts=%s" % (cmd, sts),
+                         msg_info="%s> %s" % (os.getcwd(), cmd))
         self.assertEqual(stdout.split("\n")[0], "> travis emulate -vn")
 
         # Test result (<PYTHON> = ~/VENV_*/bin/python
@@ -128,7 +137,10 @@ class RegressionTest:
 
         cmd = "please zerobug -vfn"
         sts, stdout, stderr = z0lib.os_system_traced(cmd, verbose=False, rtime=False)
-        self.assertEqual(sts, 0, msg="%s -> sts=%s" % (cmd, sts), msg_info="%s" % cmd)
+        self.assertEqual(sts,
+                         0,
+                         msg="%s -> sts=%s" % (cmd, sts),
+                         msg_info="%s> %s" % (os.getcwd, cmd))
         stdout = z0lib.split_n_rm_comment_lines(stdout)
         self.assertIn("pre-commit run",
                       stdout[0],

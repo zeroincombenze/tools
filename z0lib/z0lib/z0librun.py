@@ -1063,15 +1063,16 @@ class Package(object):
 
     def list_log_filename(self, all_version=True):
         logdir = self.get_log_dir()
-        udi, umli = self.get_uniqid(ignore_version=all_version)
+        # udi, umli = self.get_uniqid(ignore_version=all_version)
         ver = self.get_version_to_log()
         rex = (
             r"[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" if all_version
             else r"_%s-[0-9]{4}-?[0-9]{2}-?[0-9]{2}(\+[0-9]+)?.log" % ver)
         log_filenames = []
-        for fn in sorted(os.listdir(logdir), reverse=True):
-            if re.search(rex, fn):
-                log_filenames.append(pth.join(logdir, fn))
+        if pth.isdir(logdir):
+            for fn in sorted(os.listdir(logdir), reverse=True):
+                if re.search(rex, fn):
+                    log_filenames.append(pth.join(logdir, fn))
         return log_filenames
 
 

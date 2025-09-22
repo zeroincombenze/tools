@@ -407,6 +407,7 @@ INVALID_NAMES = [
     "win32",
 ]
 
+
 def os_realpath(path):
     return pth.abspath(pth.expanduser(path))
 

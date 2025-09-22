@@ -47,6 +47,11 @@ INVALID_NAMES = [
 ]
 
 
+def is_device(path):
+    return path and (
+        path == "--" or path.startswith("/dev") or re.match("^[a-z0-9]+:", path))
+
+
 def os_realpath(path):
     return pth.abspath(pth.expanduser(path))
 
@@ -897,7 +902,7 @@ class MigrateEnv(MigrateMeta):
                                    default_name=opt_args.package_name)
         else:
             self.recognize_package(default_name=opt_args.package_name)
-        if opt_args.output:
+        if opt_args.output and not is_device(opt_args.output):
             opt_args.output = os_realpath(opt_args.output)
 
         self.set_python_future = False
@@ -1145,6 +1150,47 @@ class MigrateFile(MigrateEnv):
             self.statements.append(self.source[start: stop])
             ix = ix2
 
+    def join_source_statements(self):
+        while (
+                len(self.statements) > 1
+                and self.statements[-1] == "\n"
+                and self.statements[-2] == "\n"
+        ):
+            del self.statements[-1]
+        if len(self.statements) and self.statements[-1] != "\n":
+            self.statements.append("\n")
+        if self.language == "xml":
+            target = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
+            target += _u(ET.tostring(
+                ET.fromstring(_b("".join(self.statements).replace('\t', '    '))),
+                encoding="unicode", with_comments=True, pretty_print=True))
+            mo = self.REX_CLOTAG.search(target)
+            while mo:
+                target = self.REX_CLOTAG.sub(r"<\1/>", target)
+                mo = self.REX_CLOTAG.search(target)
+        else:
+            target = "".join(self.statements)
+        if self.opt_args.analyze:
+            colored_target = ""
+            for token in self.syntax.tokenize(target):
+                if token[0] in ("name",):
+                    colored_target += "\033[31m" + token[1] + "\033[0m"
+                elif token[0] in ("text",):
+                    colored_target += "\033[32m" + token[1] + "\033[0m"
+                elif token[0] in ("rem_eol",):
+                    colored_target += "\033[34m" + token[1] + "\033[0m"
+                elif token[0] in ("op_lparen",
+                                  "op_rparen",
+                                  "op_lbracket",
+                                  "op_rbracket",
+                                  "op_lbrace",
+                                  "op_rbrace"):
+                    colored_target += "\033[34m" + token[1] + "\033[0m"
+                else:
+                    colored_target += "\033[37m" + token[1] + "\033[0m"
+            target = colored_target
+        return target
+
     def get_noupdate_property(self, stmtno):
         if "noupdate" in self.statements[stmtno]:
             x = re.search("noupdate *=\"(0|1|True|False)\"", self.statements[stmtno])
@@ -1179,7 +1225,7 @@ class MigrateFile(MigrateEnv):
                                        "    <data %s>\n" % property_noupdate)
             else:
                 self.statements.insert(stmtno + 1, "    <data>\n")
-            self.statements[stmtno] = "<openerp>"
+            self.statements[stmtno] = "<openerp>\n"
             self.ctr_tag_openerp += 1
         else:
             self.ctr_tag_odoo += 1
@@ -1187,7 +1233,7 @@ class MigrateFile(MigrateEnv):
 
     def match_openerp_tag(self, stmtno):
         if self.to_major_version >= 8 and self.ctr_tag_odoo == 0:
-            self.statements[stmtno] = "<odoo>"
+            self.statements[stmtno] = "<odoo>\n"
             self.ctr_tag_odoo += 1
         else:
             self.ctr_tag_openerp += 1
@@ -1204,7 +1250,7 @@ class MigrateFile(MigrateEnv):
                     stmtno = 0
                     while not self.re_match("^ *<odoo", self.statements[stmtno]):
                         stmtno += 1
-                    self.statements[stmtno] = "<odoo %s>" % property_noupdate
+                    self.statements[stmtno] = "<odoo %s>\n" % property_noupdate
             else:
                 self.ctr_tag_data += 1
         else:
@@ -1633,18 +1679,6 @@ class MigrateFile(MigrateEnv):
                 stmtno += 1
         return True
 
-    def write_xml(self, out_fqn):
-        with open(out_fqn, "w", encoding="utf-8") as fd:
-            source_xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
-            source_xml += _u(ET.tostring(
-                ET.fromstring(_b("\n".join(self.statements).replace('\t', '    '))),
-                encoding="unicode", with_comments=True, pretty_print=True))
-            x = self.REX_CLOTAG.search(source_xml)
-            while x:
-                source_xml = self.REX_CLOTAG.sub(r"<\1/>", source_xml)
-                x = self.REX_CLOTAG.search(source_xml)
-            fd.write(source_xml)
-
     def format_file(self, out_fqn):
         prettier_config = False
         black_config = False
@@ -1700,8 +1734,15 @@ class MigrateFile(MigrateEnv):
             if sts:
                 self.opt_args.no_parse_with_formatter = True
 
+    def print_output(self):
+        print()
+        print('👽 %s' % self.fqn)
+        print(self.join_source_statements())
+
     def close(self):
-        if self.opt_args.output:
+        if is_device(self.opt_args.output):
+            out_fqn = self.opt_args.output
+        elif self.opt_args.output:
             if pth.isdir(self.opt_args.output):
                 root = [x for x in self.opt_args.path
                         if self.fqn.startswith(x)]
@@ -1720,38 +1761,36 @@ class MigrateFile(MigrateEnv):
         if not self.file_action and (
                 self.opt_args.lint_anyway
                 or out_fqn != self.fqn
-                or self.source != "".join(self.statements)):
-            while (
-                    len(self.statements) > 1
-                    and self.statements[-1] == "\n"
-                    and self.statements[-2] == "\n"
-            ):
-                del self.statements[2]
-            if len(self.statements) and self.statements[-1] != "\n":
-                self.statements.append("\n")
-            if not self.opt_args.in_place:
+                or self.source != self.join_source_statements()
+        ):
+            if is_device(out_fqn) and not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_fqn
                 if pth.isfile(bakfile):
                     os.remove(bakfile)
                 if pth.isfile(out_fqn):
                     os.rename(out_fqn, bakfile)
             if not self.opt_args.dry_run:
-                if self.language == "xml":
-                    self.write_xml(out_fqn)
+                if is_device(out_fqn):
+                    self.print_output()
                 else:
                     with open(out_fqn, "w", encoding="utf-8") as fd:
-                        fd.write("".join(self.statements))
-            if not self.opt_args.no_parse_with_formatter:
-                self.format_file(out_fqn)
-            if self.opt_args.verbose > 0:
-                print('👽 %s' % out_fqn)
+                        fd.write(self.join_source_statements())
+            if not is_device(out_fqn):
+                if not self.opt_args.no_parse_with_formatter:
+                    self.format_file(out_fqn)
+                if self.opt_args.verbose > 0:
+                    print('👽 %s' % out_fqn)
         elif self.file_action == "ply":
-            if not pth.exists(out_fqn):
+            if not pth.exists(out_fqn) and not is_device(out_fqn):
                 cmd = "cp %s %s" % (self.fqn, out_fqn)
                 z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
                 if self.opt_args.verbose > 0:
                     print('👽 %s' % out_fqn)
-        elif self.file_action == "no" and self.fqn != out_fqn:
+        elif (
+                self.file_action == "no"
+                and self.fqn != out_fqn
+                and not is_device(out_fqn)
+        ):
             cmd = "cp %s %s" % (self.fqn, out_fqn)
             z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
             if self.opt_args.verbose > 0:
@@ -1836,6 +1875,7 @@ def main(cli_args=None):
         action="store_true",
     )
     parser.add_argument('-o', '--output')
+    parser.add_argument('--no-output', action='store_const', dest='output', const='--')
     parser.add_argument('-P', '--package-name')
     parser.add_argument(
         '-R', '--rules',
@@ -1898,6 +1938,7 @@ def main(cli_args=None):
         return 2
     if (
         opt_args.output
+        and not is_device(opt_args.output)
         and not pth.isdir(opt_args.output)
         and not pth.isdir(pth.dirname(opt_args.output))
     ):
@@ -1911,6 +1952,7 @@ def main(cli_args=None):
             if (
                 not migrate_env.opt_args.assume_yes
                 and migrate_env.opt_args.output
+                and not is_device(migrate_env.opt_args.output)
                 and pth.isdir(migrate_env.opt_args.output)
                 and pth.basename(path) != pth.basename(migrate_env.opt_args.output)
                 and migrate_env.opt_args.from_version
@@ -1924,6 +1966,7 @@ def main(cli_args=None):
                 return 2
             if (
                 migrate_env.opt_args.output
+                and not is_device(migrate_env.opt_args.output)
                 and not pth.isdir(migrate_env.opt_args.output)
             ):
                 os.makedirs(migrate_env.opt_args.output)

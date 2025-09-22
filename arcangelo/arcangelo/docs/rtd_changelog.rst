@@ -5,7 +5,7 @@ ChangeLog History
 =================
 
 
-2.1.2 (2025-09-08)
+2.1.2 (2025-09-22)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] Quality message position
@@ -15,6 +15,7 @@ ChangeLog History
 * [IMP] Two passes parsing
 * [IMP] New pass1 context
 * [IMP] Set trigger with parameters
+* [IMP] Printing result
 
 2.1.1 (2025-09-07)
 ~~~~~~~~~~~~~~~~~~
