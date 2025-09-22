@@ -1,5 +1,5 @@
 =============
-clodoo 2.0.14
+clodoo 2.0.16
 =============
 
 
@@ -123,6 +123,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.16 (2025-09-22)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Installation trouble
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
 2.0.15 (2025-08-28)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -223,11 +228,6 @@ ChangeLog History
 * [IMP] odoorc: best virtual environment recognize
 * [FIX] odoorc: SVCNAME
 
-2.0.0.2 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: get data from setup.py od Odoo
-
 
 
 Credits
@@ -265,10 +265,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.14/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.16/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.14/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.16/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -25,9 +25,9 @@ if sys.version_info >= (3, 0):
         "oerplib3",
         "odoo-client-lib",
         "psycopg2-binary",
-        "python-plus",
+        "python-plus>=2.0.19",
         "unidecode",
-        "z0lib>=2.0.11",
+        "z0lib>=2.1.0",
     ]
 else:
     install_requires = [
