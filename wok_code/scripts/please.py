@@ -38,11 +38,12 @@ import os
 import os.path as pth
 from os.path import expanduser as pthuser
 import sys
+from datetime import datetime, timedelta
 import argparse
 import math
 import re
 
-# from subprocess import call
+
 import itertools
 
 from z0lib import z0lib
@@ -981,10 +982,23 @@ class Please(object):
         if not pth.isfile(changelog_fqn):
             self.log_warning("Changelog history file not found!")
             return 3
-        sts = self.chain_python_cmd(
-            "arcangelo.py", [pth.abspath(changelog_fqn),
-                             "-i", '--test-res-msg="%s"' % test_cov_msg]
-        )
+        manifest = self.package.manifest
+        dt_limit = False
+        if manifest:
+            dt_limit = datetime.strftime(datetime.now() - timedelta(365), "%Y-%m-%d")
+            cmd = "git log --date=iso --since=%s -- %s" % (dt_limit, manifest)
+            sts, stdout, stderr = z0lib.os_system_traced(cmd)
+            if sts == 0:
+                for ln in stdout.split("\n"):
+                    if ln.startswith("Date"):
+                        mo = re.search("[0-9]{4}-[0-9]{2}-[0-9]{2}", ln)
+                        dt_limit = ln[mo.start(): mo.end()]
+                        break
+        cmd = "arcangelo %s -i --test-res-msg=\"%s\"" % (
+            pth.abspath(changelog_fqn), test_cov_msg)
+        if dt_limit:
+            cmd += (" --test-res-msg-range=%s" % dt_limit)
+        sts = self.os_system(cmd)
         return sts
 
     def chain_python_cmd(self, pyfile, args, verbose=None, rtime=None):

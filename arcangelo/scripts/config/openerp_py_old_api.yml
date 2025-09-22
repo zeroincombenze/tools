@@ -105,13 +105,6 @@ from_openerp:
       args:
       - 'odoo'
       - 'openerp'
-sort_from_odoo_import:
-  match: '^from (odoo|openerp) import [\w, ]+'
-  prio: '9'
-  do:
-    - action: '$'
-      args:
-      - sort_from_odoo_import
 index:
   match: 'select=(0|1|True|False)'
   prio: '9'

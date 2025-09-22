@@ -1,11 +1,11 @@
 .. z0lib documentation master file, created by
-   gen_readme.py on 2025-09-01 18:59:26
+   gen_readme.py on 2025-09-20 14:21:42
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-======================================
-Welcome to z0lib 2.0.17 documentation!
-======================================
+=====================================
+Welcome to z0lib 2.1.0 documentation!
+=====================================
 
 .. toctree::
    :maxdepth: 2
@@ -32,10 +32,10 @@ Welcome to z0lib 2.0.17 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -5,6 +5,16 @@ ChangeLog History
 =================
 
 
+2.0.13 (2025-09-08)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Invalid python version return errorcode 126
+
+2.0.12 (2025-09-03)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] clean deprecated code
+
 2.0.11 (2025-08-10)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -110,10 +120,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.10/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.10/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

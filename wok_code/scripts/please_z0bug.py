@@ -269,7 +269,6 @@ class PleaseZ0bug(object):
         please = self.please
         if not please.package:
             please.package = Package()
-
         if please.is_odoo_pkg():
             return self._do_lint_odoo()
         elif please.is_repo_odoo() or please.is_repo_ocb():

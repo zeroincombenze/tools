@@ -53,13 +53,13 @@ Unknown Odoo version
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
+.. $include table.csv
+"""
+
+TABLE_CSV = """
+Feature A,|check|
+Feature B,
+Feature C,
 """
 
 AUTHORS_FN = """Lorem ipsum
@@ -109,13 +109,13 @@ Unknown Odoo version
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
++-------------------------------------------+----------------------------------+
+| Feature A                                 | |check|                          |
++-------------------------------------------+----------------------------------+
+| Feature B                                 |                                  |
++-------------------------------------------+----------------------------------+
+| Feature C                                 |                                  |
++-------------------------------------------+----------------------------------+
 """
 
 README_10 = """Lorem ipsum **dolor** sit amet
@@ -133,13 +133,13 @@ odoo 10.0
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
++-------------------------------------------+----------------------------------+
+| Feature A                                 | |check|                          |
++-------------------------------------------+----------------------------------+
+| Feature B                                 |                                  |
++-------------------------------------------+----------------------------------+
+| Feature C                                 |                                  |
++-------------------------------------------+----------------------------------+
 """
 
 README_12 = """Lorem ipsum **dolor** sit amet
@@ -157,13 +157,13 @@ odoo 12.0
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
-+-----------+---------+
-| Feature A | |check| |
-+-----------+---------+
-| Feature B |         |
-+-----------+---------+
-| Feature C | ©SHS    |
-+-----------+---------+
++-------------------------------------------+----------------------------------+
+| Feature A                                 | |check|                          |
++-------------------------------------------+----------------------------------+
+| Feature B                                 |                                  |
++-------------------------------------------+----------------------------------+
+| Feature C                                 |                                  |
++-------------------------------------------+----------------------------------+
 """
 
 
@@ -265,6 +265,9 @@ Acknoledges to
         descr_fn = os.path.join(egg_info_path, "DESCRIPTION.rst")
         with open(descr_fn, "w") as fd:
             fd.write(_c(DESCR_FN % odoo_version))
+        table_csv_fn = os.path.join(egg_info_path, "table.csv")
+        with open(table_csv_fn, "w") as fd:
+            fd.write(_c(TABLE_CSV))
 
     def create_authors_file(self, moduledir, odoo_version, gitorg):
         egg_info_path = self.get_doc_path(moduledir, gitorg)

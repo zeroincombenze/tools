@@ -44,12 +44,14 @@
 </div>
 <section id="digest-of-arcangelo">
 <h1>Digest of arcangelo<a class="headerlink" href="#digest-of-arcangelo" title="Link to this heading"></a></h1>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>usage: arcangelo.py [-h] [-A] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
                     [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                     [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                    [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                    [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                    [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
+                    [-j PYTHON] [-l] [--list-syntax] [-n] [-o OUTPUT]
+                    [-P PACKAGE_NAME] [-R RULES] [-S]
+                    [--test-res-msg TEST_RES_MSG]
+                    [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
+                    [-y] [--add-rule-group ADD_RULE_GROUP]
                     [path ...]
 
 Beautiful source file
@@ -59,6 +61,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+  -A, --analyze         analyze source file(s)
   -a, --lint-anyway     set to True when migrate software
   -B, --debug           add comment with applied rule: do not use in
                         production
@@ -80,6 +83,7 @@ options:
                         python version, format #.##, 2+3 use future
   -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                         list)
+  --list-syntax         list language syntax rules
   -n, --dry-run         do nothing (dry-run)
   -o OUTPUT, --output OUTPUT
   -P PACKAGE_NAME, --package-name PACKAGE_NAME
@@ -89,6 +93,8 @@ options:
   -S, --string-normalization
                         force double quote enclosing strings
   --test-res-msg TEST_RES_MSG
+  --test-res-msg-range TEST_RES_MSG_RANGE
+                        Date limit to join test result message
   -v, --verbose
   -V, --version         show program&#39;s version number and exit
   -w, --no-parse-with-formatter
@@ -182,6 +188,7 @@ the undeclared python expression or undeclared status eregx returns always true.
 <li><p><strong>+</strong>: set trigger TRIGGER_NAME (from 1st group of matching regex)</p></li>
 <li><p><strong>-</strong>: reset trigger TRIGGER_NAME</p></li>
 <li><p><strong>=</strong>: execute python code</p></li>
+<li><p><strong>mv</strong>: move currente line to another position</p></li>
 </ul>
 </div></blockquote>
 <p><strong>Python test and replacing macros</strong>.</p>
@@ -232,8 +239,8 @@ expression:</p>
 <tr class="row-odd"><td><p>migration_multi</p></td>
 <td><p>Processing a migrate version with multiple version path</p></td>
 </tr>
-<tr class="row-even"><td><p>mime</p></td>
-<td><p>Current file mime</p></td>
+<tr class="row-even"><td><p>language</p></td>
+<td><p>Current file language</p></td>
 </tr>
 <tr class="row-odd"><td><p>open_stmt</p></td>
 <td><p># of open parens; if &gt; 0, current line is a continuation line</p></td>

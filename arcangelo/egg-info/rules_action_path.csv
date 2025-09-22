@@ -1,0 +1,5 @@
+Value,Meaning,Action,-i,New path
+no,Do nothing,Ignore all file in it and keep them as they are,idem,not copied
+mv,Rename,Rename directory,Rename directory,Copy directory with new name
+rm,Remove,Rename directory .bak,idem,Ignore (do not copy)
+new:Copy new,Nothing,Nothing,Copy directory if it does not exit

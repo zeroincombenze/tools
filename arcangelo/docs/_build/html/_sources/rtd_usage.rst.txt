@@ -7,12 +7,14 @@ Usage
 
 ::
 
-    usage: arcangelo.py [-h] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
+    usage: arcangelo.py [-h] [-A] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
-                        [-j PYTHON] [-l] [-n] [-o OUTPUT] [-P PACKAGE_NAME]
-                        [-R RULES] [-S] [--test-res-msg TEST_RES_MSG] [-v] [-V]
-                        [-w] [-y] [--add-rule-group ADD_RULE_GROUP]
+                        [-j PYTHON] [-l] [--list-syntax] [-n] [-o OUTPUT]
+                        [-P PACKAGE_NAME] [-R RULES] [-S]
+                        [--test-res-msg TEST_RES_MSG]
+                        [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
+                        [-y] [--add-rule-group ADD_RULE_GROUP]
                         [path ...]
     
     Beautiful source file
@@ -22,6 +24,7 @@ Usage
     
     options:
       -h, --help            show this help message and exit
+      -A, --analyze         analyze source file(s)
       -a, --lint-anyway     set to True when migrate software
       -B, --debug           add comment with applied rule: do not use in
                             production
@@ -43,6 +46,7 @@ Usage
                             python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
+      --list-syntax         list language syntax rules
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
@@ -52,6 +56,8 @@ Usage
       -S, --string-normalization
                             force double quote enclosing strings
       --test-res-msg TEST_RES_MSG
+      --test-res-msg-range TEST_RES_MSG_RANGE
+                            Date limit to join test result message
       -v, --verbose
       -V, --version         show program's version number and exit
       -w, --no-parse-with-formatter
@@ -132,12 +138,37 @@ ACTION is applied on current item (file or line) if CTX and PYEXPR and EREGEX ar
     * **-**: reset trigger TRIGGER_NAME
     * **=**: execute python code
 
+    ACTION values for directories:
+
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| Value        | Meaning    | Action                                          | -i                                 | New path                     |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| no           | Do nothing | Ignore all file in it and keep them as they are | idem                               | not copied                   |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| mv           | Rename     | Rename directory                                | Rename directory                   | Copy directory with new name |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| rm           | Remove     | Rename directory .bak                           | idem                               | Ignore (do not copy)         |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| new:Copy new | Nothing    | Nothing                                         | Copy directory if it does not exit | None                         |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+
+
 
     ACTION values for files:
 
-    * **mv**: mv current file to new fqn
-    * **rm**: remove file
-    * **no**: no action done
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| Value        | Meaning    | Action                                          | -i                                 | New path                     |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| no           | Do nothing | Ignore all file in it and keep them as they are | idem                               | not copied                   |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| mv           | Rename     | Rename directory                                | Rename directory                   | Copy directory with new name |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| rm           | Remove     | Rename directory .bak                           | idem                               | Ignore (do not copy)         |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+| new:Copy new | Nothing    | Nothing                                         | Copy directory if it does not exit | None                         |
++--------------+------------+-------------------------------------------------+------------------------------------+------------------------------+
+
+
 
 Action **substitute**: "s REGEX REPLACE_TEXT"
 
@@ -219,7 +250,7 @@ The regular expression EREGEX may contains macro names enclose by "%(name)s".
 +--------------------+---------------------------------------------------------------------------+
 | migration_multi    | Processing a migrate version with multiple version path                   |
 +--------------------+---------------------------------------------------------------------------+
-| mime               | Current file mime                                                         |
+| language           | Current file language                                                     |
 +--------------------+---------------------------------------------------------------------------+
 | open_stmt          | # of open parens; if > 0, current line is a continuation line             |
 +--------------------+---------------------------------------------------------------------------+

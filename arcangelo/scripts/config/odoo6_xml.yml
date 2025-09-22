@@ -1,0 +1,3 @@
+include_odoo_xml_old_api:
+  ctx: 'final'
+  include: 'odoo_xml_old_api'

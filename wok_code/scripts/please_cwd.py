@@ -247,24 +247,27 @@ class PleaseCwd(object):
             chnglog = pth.join(docdir, "CHANGELOG.rst")
             if not pth.isfile(chnglog):
                 with open(chnglog, "w") as fd:
-                    fd.write("%s (%s)\n" % (branch, "2023-09-23"))
+                    fd.write("%s (%s)\n" % (branch, "2025-09-09"))
                     fd.write("~~~~~~~~~~~~~~~~~~~~~~~\n")
                     fd.write("\n")
                     fd.write("* Initial implementation\n")
         return 0
 
-    def assure_doc_dirs(self, docdir=None, pkgtype=None, is_repo=False):
-        if pkgtype not in ("odoo", "pypi"):
-            self.please.log_error("Invalid package type: use 'odoo' or 'pypi'")
-            return 33
+    def assure_doc_dirs(self, docdir=None, is_repo=False):
         please = self.please
-        if pkgtype == "pypi":
+        pkgtype = please.package.prjname
+        if pkgtype not in ("Odoo", "Z0tools"):
+            self.please.log_error("Invalid package kind '%s': use 'Odoo' or 'Z0tools'"
+                                  % please.package.prjname)
+            return 33
+        if pkgtype == "Z0tools":
             docs_dir = "./docs"
             if not pth.isdir(docs_dir):
                 if not please.opt_args.force and not please.opt_args.dry_run:
-                    if please.opt_args.verbose:
-                        self.please.log_error("Directory %s not found!" % docs_dir)
-                    return 126
+                    please.log_error(
+                        "Module %s w/o documentation dir %s!"
+                        % (please.package.name, docs_dir))
+                    return 3
                 if please.opt_args.verbose:
                     self.please.log_warning("Directory %s not found!" % docs_dir)
                 if not please.opt_args.dry_run:
@@ -283,7 +286,7 @@ class PleaseCwd(object):
                 if not please.opt_args.dry_run:
                     shutil.copy(srclogo, logo)
 
-        docdir = docdir or ("readme" if pkgtype == "odoo" else "egg-info")
+        docdir = docdir or ("readme" if pkgtype == "Odoo" else "egg-info")
         if (
             not docdir.startswith("/")
             and not docdir.startswith("./")
@@ -301,14 +304,14 @@ class PleaseCwd(object):
                 os.mkdir(docdir)
         self.docdir = docdir
 
-        if pkgtype == "odoo":
+        if pkgtype == "Odoo":
             return self.assure_doc_dirs_odoo(is_repo=is_repo)
-        elif pkgtype == "pypi":
+        elif pkgtype == "Z0tools":
             return self.assure_doc_dirs_pypi()
         return 33
 
     def build_gen_readme_base_args(self, branch=None):
-        branch = branch or self.branch
+        # branch = branch or self.branch
         args = []
         if self.please.opt_args.debug:
             args.append("-" + ("B" * self.please.opt_args.debug))
@@ -352,7 +355,6 @@ class PleaseCwd(object):
         # if is_odoo or is_pypi or please.is_repo_odoo() or please.is_repo_ocb():
         if please.package.dir_level == "module":
             sts = 0
-            # for root, dirs, files in os.walk(self.cur_path_of_pkg()):
             for root, dirs, files in os.walk(please.package.path):
                 for fn in files:
                     if (
@@ -367,42 +369,27 @@ class PleaseCwd(object):
                     sts = please.os_system(cmd, with_shell=True, rtime=True)
                     if sts:
                         break
-            # logdir = please.get_logdir()
-            # if is_odoo and pth.isdir(logdir):
-            #     last = " "
-            #     for root, dirs, files in os.walk(logdir):
-            #         for fn in files:
-            #             if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] > last:
-            #                 last = fn[-12:]
-            #     for root, dirs, files in os.walk(logdir):
-            #         for fn in files:
-            #             if re.match(r".*_\d{8}.txt$", fn) and fn[-12:] != last:
-            #                 cmd = "rm " + pth.join(root, fn)
-            #                 sts = please.os_system(cmd)
-            #                 if sts:
-            #                     break
             dt_limit = datetime.strftime(datetime.now() - timedelta(7), "%Y%m%d")
             ctr_min = 1
             ctr_max = 2
             ctrs = {"*": 0}
-            for fqn in please.package.list_log_filename(all_version=True):
-                ctrs["*"] += 1
-                # if ctrs["*"] < ctr_min:
-                #     continue
-                mo = re.search(
-                    r"[0-9]{2,3}-[0-9]{4}-?[0-9]{2}-?[0-9]{2}?\+[0-9]+", fqn)
-                if not mo:
-                    continue
-                ver, fqn_dt = fqn[mo.start(): mo.end()].split("-", 1)
-                ctrs[ver] = 1 if ver not in ctrs else ctrs[ver] + 1
-                if ctrs[ver] < ctr_min:
-                    continue
-                if ctrs[ver] <= ctr_max and fqn[mo.start(): mo.end()] >= dt_limit:
-                    continue
-                cmd = "rm " + pth.join(root, fqn)
-                sts = please.os_system(cmd)
-                if sts:
-                    break
+            if please.package.log_dir:
+                for fqn in please.package.list_log_filename(all_version=True):
+                    ctrs["*"] += 1
+                    mo = re.search(
+                        r"[0-9]{2,3}-[0-9]{4}-?[0-9]{2}-?[0-9]{2}?\+[0-9]+", fqn)
+                    if not mo:
+                        continue
+                    ver, fqn_dt = fqn[mo.start(): mo.end()].split("-", 1)
+                    ctrs[ver] = 1 if ver not in ctrs else ctrs[ver] + 1
+                    if ctrs[ver] <= ctr_min:
+                        continue
+                    if ctrs[ver] <= ctr_max and fqn[mo.start(): mo.end()] >= dt_limit:
+                        continue
+                    cmd = "rm " + pth.join(root, fqn)
+                    sts = please.os_system(cmd)
+                    if sts:
+                        break
             return sts
         return please.do_iter_action("do_clean", act_all_pypi=True, act_tools=True)
 
@@ -496,13 +483,6 @@ class PleaseCwd(object):
             srcdir = os.getcwd()
             pkgname = pth.basename(srcdir)
             sts = 0
-            # if pkgname != "tools":
-            #     fn = pth.join(pth.dirname(srcdir), "setup.py")
-            #     if pth.isfile(fn):
-            #         sts = please.os_system(
-            #             "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-            #             rtime=True,
-            #         )
             if not please.opt_args.no_verify:
                 sts = please.os_system("git add ../", rtime=True)
                 if sts == 0:
@@ -681,22 +661,14 @@ class PleaseCwd(object):
         please = self.please
         if not please.package:
             please.package = Package()
-
         if please.is_odoo_pkg():
-            if not pth.isdir("readme"):
-                please.log_warning(
-                    "Module %s w/o documentation dir!" % pth.basename(os.getcwd())
-                )
-                return 3
-            # sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
-            # if sts == 0:
-            self.branch = please.package.branch
-            sts = self.assure_doc_dirs(pkgtype="odoo")
+            self.branch = please.package.release
+            sts = self.assure_doc_dirs()
             if sts:
                 return sts
             please.merge_test_result()
             odoo_major_version = int(self.branch.split(".")[0])
-            repo_name = build_odoo_param("REPOS", odoo_vid=".", multi=True)
+            repo_name = please.package.reposname
             if please.opt_args.oca:
                 sts = please.os_system(
                     "oca-gen-addon-readme --gen-html --branch=%s --repo-name=%s"
@@ -705,47 +677,41 @@ class PleaseCwd(object):
                     rtime=True,
                 )
             else:
-                if repo_name == "marketplace":
-                    sts = self.run_gen_readme("-R", branch=self.branch)
                 sts = self.run_gen_readme([], branch=self.branch)
                 if sts == 0:
                     sts = self.run_gen_readme("-I", branch=self.branch)
-                if sts == 0 and odoo_major_version <= 7:
+                if sts == 0 and (repo_name == "marketplace" or odoo_major_version <= 7):
                     sts = self.run_gen_readme("-R", branch=self.branch)
             if sts == 0:
                 self.do_clean()
             return sts
-        elif please.is_repo_odoo() or please.is_repo_ocb():
-            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
-            if sts == 0:
-                self.branch = branch
-                sts = self.assure_doc_dirs(pkgtype="odoo", is_repo=True)
-                if sts:
-                    return sts
-                if not please.opt_args.oca:
-                    sts = self.run_gen_readme([], branch=branch)
-            return sts
         elif please.is_pypi_pkg():
-            self.branch = please.get_pypi_version()
-            sts = self.assure_doc_dirs(pkgtype="pypi")
+            self.branch = please.package.version
+            sts = self.assure_doc_dirs()
             if sts:
                 return sts
-            if not pth.isdir(self.docs_dir):
-                please.log_error(
-                    "Document template directory %s not found!" % self.docs_dir
-                )
-                return 33 if not self.please.opt_args.dry_run else 0
+            please.merge_test_result()
             sts = self.run_gen_readme([])
             if sts == 0:
                 sts = self.run_gen_readme("-I")
-            if sts == 0:
+            if sts == 0 and pth.isdir(self.docs_dir):
                 saved_pwd = os.getcwd()
                 os.chdir(self.docs_dir)
                 sts = please.os_system("make html", rtime=True)
                 os.chdir(saved_pwd)
             if sts == 0:
                 self.do_clean()
-            sts = 0             # TODO> Remoe ?
+            # sts = 0  # TODO> Remove ?
+            return sts
+        elif please.is_repo_odoo() or please.is_repo_ocb():
+            sts, branch = please.get_odoo_branch_from_git(try_by_fs=True)
+            if sts == 0:
+                self.branch = branch
+                sts = self.assure_doc_dirs(is_repo=True)
+                if sts:
+                    return sts
+                if not please.opt_args.oca:
+                    sts = self.run_gen_readme([], branch=branch)
             return sts
         return please.do_iter_action("do_docs", act_all_pypi=True, act_tools=True)
 
@@ -915,19 +881,6 @@ class PleaseCwd(object):
         return 126
 
     def _do_translate_export(self, action="all"):
-        # def get_po_revision_date(pofile):
-        #     po_revision_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        #     with open(pofile, "r") as fd:
-        #         for ln in fd.read().split("\n"):
-        #             if "PO-Revision-Date:" in ln:
-        #                 x = re.search(
-        #                     "[0-9]{4}-[0-9]{2}-[0-9]{2}.[0-9]{2}:[0-9]{2}", ln
-        #                 )
-        #                 if ln:
-        #                     po_revision_date = ln[x.start(): x.end()]
-        #                     break
-        #     return po_revision_date
-
         please = self.please
         if action not in ("all", "translate"):
             please.log_error(
@@ -969,7 +922,6 @@ class PleaseCwd(object):
                 if self.db_name != response[0][0]:
                     please.log_warning("Database %s does not exist!" % self.db_name)
                     return 3
-                # db_create_ts = response[0][1].replace(tzinfo=None)
                 self.connect_db()
                 query = (
                     "select state from ir_module_module where name = '%s'" % module_name
@@ -1090,12 +1042,6 @@ class PleaseCwd(object):
             pkgname = pth.basename(srcdir)
             sts = 0
             if pkgname != "tools":
-                # fn = pth.join(pth.dirname(srcdir), "setup.py")
-                # if pth.isfile(fn):
-                #     sts = please.os_system(
-                #         "cp %s %s" % (fn, pth.join(srcdir, "scripts", "setup.info")),
-                #         rtime=True,
-                #     )
                 if sts == 0:
                     sts = please.os_system(
                         "vem %s update %s" % (tgtdir, pth.dirname(srcdir)), rtime=True

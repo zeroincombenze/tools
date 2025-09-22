@@ -1,0 +1,17 @@
+# This configuration is always loaded for all .py files
+# when product is Oddo
+#
+found_api:
+  match: '.*'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'match_found_api'
+sort_from_odoo_import:
+  match: '^from (odoo|openerp) import [\w, ]+'
+  prio: '9'
+  do:
+    - action: '$'
+      args:
+      - 'sort_from_odoo_import'

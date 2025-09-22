@@ -119,8 +119,17 @@ def clear_tty(dry_run=None, flush=False, humdrum=1):
 
 def split_n_rm_comment_lines(stdout):
     lines = []
-    for ln in stdout.split('\n'):
-        if not ln.startswith('#'):
+    for ln in stdout.split("\n"):
+        if not wep_stdout(ln).startswith("#"):
+            lines.append(ln)
+    return lines
+
+
+def split_n_extr_cmd_lines(stdout):
+    lines = []
+    for ln in stdout.split("\n"):
+        ln2 = wep_stdout(ln)
+        if not ln2.startswith(">") and not ln2.startswith("$"):
             lines.append(ln)
     return lines
 
@@ -851,8 +860,9 @@ class Package(object):
         while pth.isdir(p) and not pthuser("~").startswith(p) and p != "/":
             pkgname = self.candidate(p)
             if not pkgname:
-                pass
-            elif self.is_odoo_pkg(path=p):
+                if self.name and self.prjname and self.dir_level:
+                    break
+            elif not self.dir_level and self.is_odoo_pkg(path=p):
                 self.path = p
                 self.rundir = p
                 self.name = pkgname
@@ -865,7 +875,7 @@ class Package(object):
                 if pth.isdir(pth.join(p, "tests")):
                     self.testdir = pth.join(p, "tests")
                 self.read_manifest_file()
-            elif self.is_pypi_pkg(path=p):
+            elif not self.dir_level and self.is_pypi_pkg(path=p):
                 self.rundir = p
                 if not self.name:
                     self.name = pkgname
@@ -881,7 +891,8 @@ class Package(object):
                     self.get_pypi_version(path=self.path)
                 if pth.isdir(pth.join(p, "tests")):
                     self.testdir = pth.join(p, "tests")
-            elif self.is_repo_ocb(path=p):
+            elif (not self.prjname
+                  or self.prjname == "Odoo") and self.is_repo_ocb(path=p):
                 self.root = p
                 if not self.name and not self.prjpath:
                     self.name = "OCB"
@@ -894,7 +905,8 @@ class Package(object):
                     self.get_odoo_version(path=p)
                     self.get_remote_info(path=p)
                 break
-            elif self.is_repo_odoo(path=p):
+            elif (not self.prjname
+                  or self.prjname == "Odoo") and self.is_repo_odoo(path=p):
                 if not self.name:
                     self.name = pkgname
                 self.prjname = "Odoo"
@@ -903,7 +915,8 @@ class Package(object):
                 if not self.dir_level:
                     self.dir_level = "repo"
                 self.get_remote_info(path=p)
-            elif self.is_repo_pypi(path=p):
+            elif (not self.prjname
+                  or self.prjname == "Z0tools") and self.is_repo_pypi(path=p):
                 if not self.name:
                     self.name = pkgname
                 self.prjname = "Z0tools"

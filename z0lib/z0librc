@@ -6,8 +6,6 @@
 #__version__=2.1.0
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 [ "${BASH_SOURCE-}" == "$0" ] && echo "You must source this script: \$ source $0" >&2 && exit 33
-STS_FAILED=1
-STS_SUCCESS=0
 
 export RED="\e[1;31m"
 export GREEN="\e[1;32m"
@@ -443,11 +441,16 @@ export -f print_help
 #    REPOS
 get_uniqid() {
     [[ :$SHELLOPTS: =~ :xtrace: ]] && set +x && local SETX="set -x"
+##    local x z
+##    z="$(dirname ${BASH_SOURCE-})/z0lib"
+##    [[ ! -x $z ]] && z="$z0lib"
+##    x=$(eval $z "get_uniqid" "$1")
+##    eval "$x"
     local go m p pkg ro
     [[ -n $1 ]] && p="$1" || p=$PWD
     pkg=$(basename $p)
     m="$2"
-    [[ $m =~ ^3\.[6789] ]] && m=${m//./0}
+    [[ $m =~ ^[23]\.[6789] ]] && m=${m//./0}
     [[ $m =~ ^[6789]$ ]] && m="0$m"
     [[ -n $m ]] && m=${m//./}
     go="$3"

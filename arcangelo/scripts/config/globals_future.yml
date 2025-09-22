@@ -8,7 +8,7 @@ found_coding_utf8:
     - action: '+'
       args:
       - 'found_coding_utf8'
-      - '%(lineno)s'
+      - '%(stmtno)s'
 
 match_coding_utf8:
   match: '# -\*- coding[:=] utf-8 -\*-'
@@ -71,10 +71,14 @@ basestr:
       - 'basestring'
       -
 int_long:
-  search: '\bint[^(]'
+  search: '\bint[^("'']'
   prio: '9'
   do:
     - action: 's'
       args:
       - '\bint\b'
       - 'int, long'
+    - action: 's'
+      args:
+      - '\bint\)'
+      - '(int, long)'

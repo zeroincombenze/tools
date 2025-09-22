@@ -5,13 +5,20 @@ from io import open
 import sys
 import os
 import os.path as pth
-from datetime import datetime
+from datetime import datetime, timedelta
 import argparse
 import re
+
 import lxml.etree as ET
 import yaml
+import mimetypes
+
 from python_plus import _b, _u, qsplit
 from z0lib import z0lib
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 try:
     from . import license_mgnt
 except ImportError:  # pragma: no cover
@@ -40,52 +47,278 @@ INVALID_NAMES = [
 ]
 
 
+def os_realpath(path):
+    return pth.abspath(pth.expanduser(path))
+
+
+def get_config_path(fn, is_config=False):
+    items = [pth.dirname(os_realpath(__file__))]
+    if is_config:
+        items.append("config")
+    items.append(fn)
+    return pth.join(*items)
+
+
+class Syntax(object):
+    """The class syntax manages the rules to parse source of a specific language.
+    Syntax rules are grouped by states; i.e. after comment delimiter usual parsing is
+    broken. Some delimiters can shift from a state to another.
+    A language can have as many as possible states; some common states are known
+    globally.
+    Globals states are:
+        - "code": code parsing (initial state for almost languages)
+        - "rem_eol": comment until end of line
+        - "remark": multi line comment
+        - "mtext": multi line text (initial state for xml/html)
+        - "pre": preprocessor (c language)
+
+    Every state can manages multiple items, every item has the own parsing rule;
+    i.e. for object name regex rule may be "[a-zA-Z_][a-zA-Z0-9]*".
+    A language state can have as many as possible items which generates tokens; some
+    common items names are known across states. These common items are:
+        - "name": object or variable name
+        - "text": text constant
+        - "text#": alternate text constant (where # ia a digit from 2)
+        - "mtext": multi line text constant
+        - "int": integer constant
+        - "float" floating constant
+    When the name of item is in states, system switches to state; every state must
+    contains at least one name to switch another state. Only initial state, if is the
+    unique state, can miss escape name to switch states.
+    Items rule must cover all token kinds; to avoid infinite loop, system automatically
+    can adds 2 magic name: "nl", "s" and "other".
+    The item "nl" spits lines by "\n" (new line); then item "s" is space separator and
+    finally the item "other" capture any character not catched by rules.
+    """
+
+    def __init__(self, language):
+        config = ConfigParser.ConfigParser()
+        config_fqn = get_config_path(language + ".conf", is_config=True)
+        if not pth.isfile(config_fqn) and language == "manifest-python":
+            language = "python"
+            config_fqn = get_config_path(language + ".conf", is_config=True)
+        if not pth.isfile(config_fqn):
+            language = "unknown"
+            config_fqn = get_config_path(language + ".conf", is_config=True)
+        config.read(config_fqn)
+        if not config.has_section(language):
+            raise SyntaxError("File %s w/o section %s" % (config_fqn, language))
+        self.language = language
+        self.states = [x.strip()
+                       for x in config.get(language, "states").split(",")]
+        self.syntax_rules = {}
+        self.tok_regex = {}
+        self.re_s = self.re_nl = self.re_other = self.re_rem_eol = None
+        for state in self.states:
+            self.syntax_rules[state] = {}
+            magic_names = []
+            for (key, regex) in config.items(state):
+                if key == "magic_names":
+                    magic_names = [x.strip() for x in regex.split(",")]
+                    continue
+                self.syntax_rules[state][key] = re.compile(regex, re.M | re.S)
+                if key == "rem_eol":
+                    self.re_rem_eol = self.syntax_rules[state][key]
+            if any([k not in self.states
+                    for k in list(self.syntax_rules[state].keys())]):
+                simple_state = False
+                magic_names = magic_names or ["s", "nl", "other"]
+            else:
+                simple_state = True
+                magic_names = magic_names or ["nl", "other"]
+            for name in magic_names:
+                if name == "nl":
+                    if name not in self.syntax_rules[state].keys():
+                        self.re_nl = re.compile(r"\n", re.M | re.S)
+                    else:
+                        self.re_nl = self.syntax_rules[state][name]
+                        del self.syntax_rules[state][name]
+                elif name == "s":
+                    if name not in self.syntax_rules[state].keys():
+                        self.re_s = re.compile(r"\s+", re.M | re.S)
+                    else:
+                        self.re_s = self.syntax_rules[state][name]
+                        del self.syntax_rules[state][name]
+                elif name == "other":
+                    if name not in self.syntax_rules[state].keys():
+                        if simple_state and self.syntax_rules[state]:
+                            self.re_other = re.compile(
+                                ".*?[^%s]" % "".join(
+                                    [x.pattern[0]
+                                     if x.pattern[0] != "\\" else x.pattern[0:2]
+                                     for x in self.syntax_rules[state].values()]),
+                                re.M | re.S)
+                        else:
+                            self.re_other = re.compile(".", re.M | re.S)
+                    else:
+                        self.re_other = self.syntax_rules[state][name]
+                        del self.syntax_rules[state][name]
+
+    def get_next_mo(self, source):
+        if self.pos < len(source):
+            if self.re_nl:
+                mo = self.re_nl.match(source, self.pos)
+                if mo:
+                    return "nl", mo
+            if self.re_s:
+                mo = self.re_s.match(source, self.pos)
+                if mo:
+                    return "s", mo
+            for (kind, rex) in self.syntax_rules[self.state].items():
+                mo = rex.match(source, self.pos)
+                if mo:
+                    return kind, mo
+            if self.re_other:
+                mo = self.re_other.match(source, self.pos)
+                if mo:
+                    return "other", mo
+            print("No syntax rule found for <<<%-.16s>>> ... (state=%s)"
+                  % (source[self.pos:], self.state))
+            kind = "other"
+            pattern = "."
+            self.re_other = re.compile(pattern, re.M | re.S)
+            return kind, self.re_other.match(source, self.pos)
+        return None, None
+
+    def action_nl(self, mo):
+        self.lineno += 1
+        self.linestart = mo.end()
+        if (self.parens + self.brackets + self.brackets + self.quotes) == 0:
+            self.newline_pos.append(mo.end())
+
+    def save_self(self, value, kind):
+        return {
+            "pos": self.pos,
+            "value": value,
+            "kind": kind,
+        }
+
+    def multiple_action_nl(self, saved_self, source):
+        end = saved_self["pos"] + len(saved_self["value"])
+        if saved_self["kind"] == "mtext":
+            self.quotes = 1
+        while "\n" in saved_self["value"]:
+            mo = self.re_nl.search(source, saved_self["pos"])
+            if not mo or mo.end() > end:
+                break
+            self.action_nl(mo)
+            saved_self["pos"] = mo.end()
+        if saved_self["kind"] == "mtext":
+            self.quotes = 0
+
+    def tokenize(self, source):
+        self.state = self.states[0]
+        self.pos = 0
+        self.linestart = 0
+        self.lineno = 1
+        self.column = 1
+        self.pos = 0
+        self.parens = 0
+        self.brackets = 0
+        self.braces = 0
+        self.quotes = 0
+        self.newline_pos = [0]
+        self.language = None
+        saved_self = None
+        while self.pos < len(source):
+            if saved_self:
+                self.multiple_action_nl(saved_self, source)
+            kind, mo = self.get_next_mo(source)
+            value = mo.group()
+            saved_self = self.save_self(value, kind)
+            start = mo.start()
+            self.pos = end = mo.end()
+            self.column = start - self.linestart + 1
+            if kind in self.states:
+                self.state = kind
+            elif kind in ("nl", "s"):
+                continue
+            # elif kind == "other":
+            #     continue
+            elif kind == "op_lparen":
+                self.parens += 1
+            elif kind == "op_rparen":
+                self.parens -= 1
+            elif kind == "op_lbracket":
+                self.brackets += 1
+            elif kind == "op_rbracket":
+                self.brackets -= 1
+            elif kind == "op_lbrace":
+                self.braces += 1
+            elif kind == "op_rbrace":
+                self.braces -= 1
+            yield (kind, value, self.lineno, self.column, start, end)
+        if saved_self:
+            self.multiple_action_nl(saved_self, source)
+
+
 class MigrateMeta(object):
+    """The template class MigrateMeta manages the file and directory which code is to
+    migrate. Migration workflow depends on file type/directory.
+    For directory action may be:
+    "no": do not process directory (ignore all file in it and keep them as they are)
+    "mv": rename directory, if inplace, else copy directory with new name
+    "rm": rename directory .bak, if inplace (remove directory) else ignore
+    "ply": copy directory if it does not exit else do nothing (inplace do nothing)
+    For file action may be:
+    "no": do not process file and keep as is
+    "mv": rename file, if inplace else copy file with new name
+    "mv+no": rename file, if inplace else copy file with new name; never process
+    "rm": rename file .bak, if inplace (remove file) else ignore
+    "ply": copy file but do not process, if it does not exit else or inplace do nothing
+
+    Processing file depends on its mime: currently are managed just python and
+    xml files.
+    """
+
+    def __init__(self):
+        for name in (
+            "backport_multi",
+            "final",
+            "migration_multi",
+            "python_future",
+            "py23",
+        ):
+            setattr(self, name, False)
+        for name in (
+            "from_major_version",
+            "to_major_version",
+            "sts",
+        ):
+            setattr(self, name, 0)
+        self.file_action = ""
+        self.statements = []
 
     def raise_error(self, message):   # pragma: no cover
         sys.stderr.write(message)
         sys.stderr.write("\n")
         self.sts = 3
 
-    def init_env_file(self, migrate_env=None):
-        if migrate_env:
-            for kk in (
-                    "from_version",
-                    "to_version",
-                    "from_major_version",
-                    "to_major_version",
-                    "python_future",
-                    "set_python_future",
-                    "python_version",
-                    "py23",
-                    "opt_args",
-                    "file_action",
-            ):
-                setattr(self, kk, getattr(migrate_env, kk))
-        self.header = True
-        self.property_noupdate = False
-        self.ctr_tag_data = 0
-        self.ctr_tag_odoo = 0
-        self.ctr_tag_openerp = 0
-        self.classname = ""
-        self.indent = ""
-        self.in_import = False
-        self.UserError = False
-        self.utf8_lineno = -1
-        self.lines_2_rm = []
-        self.file_action = ""
-        self.py23 = int(self.python_version.split(".")[0])
-        self.first_line = False
+    def init_env_file(self):
+        for name in (
+            "classname",
+            "indent",
+            "language",
+            "stage",
+            "stmt_indent",
+            "transition_stage",
+        ):
+            setattr(self, name, "")
+        for name in (
+            "dedent",
+            "first_line",
+        ):
+            setattr(self, name, False)
+        for name in (
+            "header",
+        ):
+            setattr(self, name, True)
+
         self.stage = "header"
-        self.transition_stage = ""
         self.try_indent = -1
-        self.force = self.opt_args.force
-        for trigger in ("first_line", "migrate_multi", "backport_multi"):
-            setattr(self, trigger, False)
-        self.final = False
-        self.imported = []
         self.mig_rules = {}
         self.pass1_rules = {}
+        self.imported = []
 
     def get_pyver_4_odoo(self, odoo_ver):
         odoo_major = int(odoo_ver.split(".")[0])
@@ -95,76 +328,98 @@ class MigrateMeta(object):
             pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
         return pyver
 
-    def populate_default_rule_categ(self, mime):
-        self.rule_categ.append("globals_" + mime)
-        if mime in ("py", "manifest"):
-            self.rule_categ.append("globals_py%s" % self.py23)
-            if self.set_python_future:
-                self.rule_categ.append("globals_future")
+    def populate_default_rule_categ(self, language):
+        language = language.split("-")[0]
+        if language:
+            self.rule_categ.append("globals_" + language)
+            if language in ("python", "manifest"):
+                self.rule_categ.append("globals_py%s" % (self.py23 or 3))
+                if self.set_python_future:
+                    self.rule_categ.append("globals_future")
 
-        if self.opt_args.git_orgid:
-            self.rule_categ.append("%s-%s_%s" % (
-                self.opt_args.package_name,
-                self.opt_args.git_orgid,
-                mime))
+        if self.package_name:
+            if language:
+                self.rule_categ.append("%s_%s" % (self.package_name, language))
+                if language in ("python", "manifest"):
+                    self.rule_categ.append("%s_py%s" % (
+                        self.package_name, self.py23 or 3))
+                    if self.set_python_future:
+                        self.rule_categ.append("%s_future" % self.package_name)
 
-        self.rule_categ.append("%s_%s" % (self.opt_args.package_name, mime))
+        if self.git_orgid:
+            if language:
+                self.rule_categ.append("%s_%s" % (self.git_orgid, language))
+                if self.package_name:
+                    self.rule_categ.append("%s-%s_%s" % (
+                        self.package_name,
+                        self.git_orgid,
+                        language))
+                if language in ("python", "manifest"):
+                    self.rule_categ.append("%s_py%s" % (self.git_orgid, self.py23 or 3))
+                    if self.set_python_future:
+                        self.rule_categ.append("%s_future" % self.git_orgid)
+                    if self.package_name:
+                        self.rule_categ.append(
+                            "%s-%s_py%s" % (
+                                self.package_name,
+                                self.git_orgid,
+                                (self.py23 or 3)))
+                        if self.python_future or self.set_python_future:
+                            self.rule_categ.append("%s-%s_future" % (
+                                self.package_name, self.git_orgid))
 
-        if mime == "py":
-            if self.python_future or self.set_python_future:
-                self.rule_categ.append("%s_future" % self.opt_args.package_name)
-            else:
+        if self.package_name:
+            if (
+                    self.from_major_version == self.to_major_version
+                    and self.to_major_version
+            ):
+                fn = "%s%s_%s"
                 self.rule_categ.append(
-                    "%s_py%s" % (self.opt_args.package_name, self.py23))
-
-        if (
-                not self.from_major_version
-                or self.from_major_version == self.to_major_version
-        ):
-            fn = "%s_%s_%s"
-            self.rule_categ.append(
-                fn % (self.opt_args.package_name, mime, self.to_major_version))
-            if self.opt_args.git_orgid:
-                self.rule_categ.append("%s-%s_%s_%s" % (
-                    self.opt_args.package_name,
-                    self.opt_args.git_orgid,
-                    mime,
-                    self.to_major_version))
-        elif self.from_major_version and self.to_major_version:
-            fn = "%s_%s_%s"
-            if self.from_major_version < self.to_major_version:
-                # Migration to newer Odoo version
-                from_major_version = self.from_major_version - 1
-                to_major_version = from_major_version + 1
-                while to_major_version <= self.to_major_version:
-                    self.rule_categ.append(
-                        fn % (self.opt_args.package_name, mime, to_major_version))
-                    if self.opt_args.git_orgid:
-                        self.rule_categ.append("%s-%s_%s_%s" % (
-                            self.opt_args.package_name,
-                            self.opt_args.git_orgid,
-                            mime,
-                            to_major_version))
-                    from_major_version += 1
+                    fn % (self.package_name, self.to_major_version, language))
+                if self.git_orgid:
+                    self.rule_categ.append("%s%s-%s_%s" % (
+                        self.package_name,
+                        self.to_major_version,
+                        self.git_orgid,
+                        language))
+            elif self.from_major_version and self.to_major_version:
+                fn = "%s%s_%s"
+                if self.from_major_version < self.to_major_version:
+                    # Migration to newer Odoo version
+                    from_major_version = self.from_major_version - 1
                     to_major_version = from_major_version + 1
-            elif self.from_major_version > self.to_major_version:
-                # Backport to older Odoo version
-                from_major_version = self.from_major_version - 1
-                to_major_version = from_major_version + 1
-                while to_major_version >= self.to_major_version:
-                    self.rule_categ.append(
-                        fn % (self.opt_args.package_name, mime, to_major_version))
-                    if self.opt_args.git_orgid:
-                        self.rule_categ.append("%s-%s_%s_%s" % (
-                            self.opt_args.package_name,
-                            self.opt_args.git_orgid,
-                            mime,
-                            to_major_version))
-                    from_major_version -= 1
+                    while to_major_version <= self.to_major_version:
+                        self.rule_categ.append(
+                            fn % (self.package_name, to_major_version, language))
+                        if self.git_orgid:
+                            self.rule_categ.append("%s%s-%s_%s" % (
+                                self.package_name,
+                                to_major_version,
+                                self.git_orgid,
+                                language))
+                        from_major_version += 1
+                        to_major_version = from_major_version + 1
+                elif (
+                        self.from_major_version > self.to_major_version
+                        and self.package_name
+                ):
+                    # Backport to older Odoo version
+                    from_major_version = self.from_major_version - 1
                     to_major_version = from_major_version + 1
+                    while to_major_version >= self.to_major_version:
+                        self.rule_categ.append(
+                            fn % (self.package_name, to_major_version, language))
+                        if self.git_orgid:
+                            self.rule_categ.append("%s%s-%s_%s" % (
+                                self.package_name,
+                                to_major_version,
+                                self.git_orgid,
+                                language))
+                        from_major_version -= 1
+                        to_major_version = from_major_version + 1
 
-    def detect_mig_rules(self, mime="path"):
-        # mime: (path|xml|py)
+    def detect_mig_rules(self, language=None):
+        # language: (path|xml|python)
         # mig_rules structure:
         # - prio -> rule priority (int); it is the alias for beloved prio
         # - name -> rule name (text)
@@ -175,12 +430,15 @@ class MigrateMeta(object):
         #       - action -> action command to do (text)
         #       - args -> argument for action (list)
         #
+        language = language or "path"
         self.rule_ctr = 0
         self.rule_categ = []
+        self.mig_rules = {}
+        self.pass1_rules = {}
 
         if self.opt_args.rule_groups:
             if "-" in self.opt_args.rule_groups:
-                self.populate_default_rule_categ(mime)
+                self.populate_default_rule_categ(language)
 
             for rule_cat in self.opt_args.rule_groups.split(","):
                 if "-" in rule_cat:
@@ -193,7 +451,7 @@ class MigrateMeta(object):
                     self.rule_categ.append(rule_cat)
 
         if not self.opt_args.rule_groups or "+" in self.opt_args.rule_groups:
-            self.populate_default_rule_categ(mime)
+            self.populate_default_rule_categ(language)
         # Local rules
         self.rule_categ.append(self.opt_args.add_rule_group)
 
@@ -203,28 +461,26 @@ class MigrateMeta(object):
         Every rule is list of PYEREX, (ACTION, PARAMETERS), ...
 
         Sort rule keys."""
-        configpath = pth.join(
-            pth.dirname(pth.abspath(pth.expanduser(__file__))),
-            "config",
-            confname + ".yml",
-        )
-        self.final = True if confname.endswith("_%d" % self.to_major_version) else False
+        configpath = get_config_path(confname + ".yml", is_config=True)
         self.migrate_multi = False
         self.backport_multi = False
-        if "_" in confname:
-            x = confname.rsplit("_", 1)[-1]
+        if self.package_name and confname.startswith(self.package_name):
+            x = confname[len(self.package_name):].split("-")[0].split("_")[0]
             if x.isdigit():
                 cur_ver = int(x)
+                self.final = cur_ver == self.to_major_version
                 if self.from_major_version < self.to_major_version:
                     nxt_ver = cur_ver - 1
+                    item = self.package_name + str(nxt_ver)
                     for x in self.rule_categ:
-                        if x.endswith("_%s" % nxt_ver):
+                        if x.startswith(item):
                             self.migrate_multi = True
                             break
                 elif self.from_major_version > self.to_major_version:
                     nxt_ver = cur_ver + 1
+                    item = self.package_name + str(nxt_ver)
                     for x in self.rule_categ:
-                        if x.endswith("_%s" % nxt_ver):
+                        if x.startswith(item):
                             self.backport_multi = True
                             break
 
@@ -239,6 +495,8 @@ class MigrateMeta(object):
                     rules = yaml_rules
                 elif yaml_rules is not None:
                     self.raise_error("Invalid file %s!" % configpath)
+                for rule in list(rules.keys()):
+                    rules[rule]["fqn"] = pth.basename(configpath)
         elif not ignore_not_found:
             self.raise_error("File %s not found!" % configpath)
         elif self.opt_args.debug:
@@ -468,21 +726,43 @@ class MigrateMeta(object):
             return False
         return regex
 
+    def set_trigger(self, trigger, value):
+        setattr(self, trigger, value)
+
     def get_mig_rules(self):
         return self.pass1_rules if self.pass1 else self.mig_rules
 
     def get_mig_keys(self):
         return self.pass1_keys if self.pass1 else self.mig_keys
 
-    def apply_rules_on_item(self, item, lineno=None):
+    def apply_rules_on_item(self, item, stmtno=None):
         """Apply migration rule on current item.
-        Current item may be a source line (with lineno) or a full qualified name"""
-        if lineno is None:
+        Current item may be a source line (with stmtno) or a full qualified name"""
+        if stmtno is None:
             next_item = self.out_fn = None
+            mimetypes.init()
+            base = pth.basename(item)
+            ext = pth.splitext(item)[1]
+            if pth.isdir(item):
+                self.mime = "inode/directory"
+            elif base in ("__manifest__.py", "__openerp__.py"):
+                self.mime = "text/manifest-python"
+            elif base in ("history.rst", "HISTORY.rst", "CHANGELOG.rst"):
+                self.mime = "text/history"
+            else:
+                self.mime = mimetypes.types_map.get(ext, "text/" + ext[1:])
+            self.language = {
+                "x-python": "python",
+                # "manifest-python": "python",
+            }.get(self.mime.split("/")[1], "")
+            if not self.language and self.mime.split("/")[0] in ("image",):
+                self.language = self.mime.split("/")[0]
+            if not self.language:
+                self.language = self.mime.split("/")[1]
         else:
-            next_item = lineno + 1
+            next_item = stmtno + 1
         do_continue = False
-        self.lineno = lineno
+        self.stmtno = stmtno
         for (prio, key) in self.get_mig_keys():
             rule = self.get_mig_rules()[key]
             self.singleton = rule["ctr"] == 0
@@ -492,99 +772,203 @@ class MigrateMeta(object):
                 if not eval(rule["expr"], self.__dict__):
                     regex = False
             if regex:
-                if "match" in rule:
+                if (
+                        stmtno is None
+                        and key == "noop_file"
+                        and self.language in ("image", )
+                ):
+                    regex = ".*"
+                elif "match" in rule:
                     regex = self.match_rule(rule["match"], item)
                 elif "search" in rule:
                     regex = self.search_rule(rule["search"], item)
             if not self.pass1 and regex:
                 rule["ctr"] += 1
             do_continue, do_break, next_item = self.run_sub_rules(
-                rule, regex, item, lineno, next_item, key=key)
-            item = self.lines[lineno] if lineno else item
+                rule, regex, item, stmtno, next_item, key=key)
+            item = self.statements[stmtno] if stmtno else item
             if do_continue or do_break:
                 break
         if do_continue:
             return next_item
-        if lineno is not None:
-            lineno += 1
-        return lineno
+        if stmtno is not None:
+            stmtno += 1
+        return stmtno
+
+    def load_all_config_rules(self, language=None):
+        language = language or self.language
+        self.detect_mig_rules(language=language)
+        prio = len(self.rule_categ) + 1 if language != "path" else 0
+        for rule_cat in self.rule_categ:
+            self.load_config(rule_cat, prio=prio)
+            prio -= 1
+        if language not in ("path", "history") and not self.mig_rules:
+            # No rule to process, ignore file
+            self.file_action = "no"
+
+    def list_rules(self):
+        print("Rules to apply (Package %s version=%s)"
+              % (self.package_name, self.package.release))
+        if not self.opt_args.path:
+            self.opt_args.path = [os_realpath("./")]
+        for language in ("path", "python", "manifest-python", "history", "xml"):
+            self.load_all_config_rules(language=language)
+            if self.opt_args.list_rules > 1:
+                self.print_rule_language(language)
+            else:
+                self.print_rule_classes(language)
+
+    def print_rule_language(self, language):
+        if "python" in language:
+            print("\n===[%s: %s-%s(future=%s)]==="
+                  % (self.package_name, language,
+                     self.python_version, self.set_python_future))
+        else:
+            print("\n===[%s-%s: %s]==="
+                  % (self.package_name, self.package.release, language))
+        self.load_all_config_rules(language=language)
+        if self.mig_rules:
+            for (prio, key) in self.mig_keys:
+                if self.mig_rules[key].get("search"):
+                    print("  %-60.60s .*%s" % (
+                        self.mig_rules[key]["fqn"] + "/" + key,
+                        yellow(self.mig_rules[key]["search"])))
+                elif self.mig_rules[key].get("match"):
+                    print("  %-60.60s %s" % (
+                        self.mig_rules[key]["fqn"] + "/" + key,
+                        yellow(self.mig_rules[key]["match"])))
+                else:
+                    print("  %-60.60s" % (
+                        self.mig_rules[key]["fqn"] + "/" + key))
+                if self.opt_args.list_rules <= 2:
+                    continue
+                for item in self.mig_rules[key].get("do", {}):
+                    text = item["action"]
+                    if text == "$":
+                        text += item["args"][0]
+                    elif not item.get("args"):
+                        pass
+                    elif len(item["args"]) == 1:
+                        text += " " + green(item["args"][0])
+                    elif len(item["args"]) == 2:
+                        text += (" " + red(item["args"][0]) + " "
+                                 + green(item["args"][1]))
+                    print("%8.8s %s" % ("", text))
+
+    def print_rule_classes(self, language=None):
+        if "python" in language:
+            print("\n%s: %s=%s / future=%s"
+                  % (self.package_name, language,
+                     self.python_version, self.set_python_future))
+        else:
+            print("\n%s-%s: %s files"
+                  % (self.package_name, self.package.release, language))
+        self.detect_mig_rules(language=language)
+        for rule in self.rule_categ:
+            configpath = get_config_path(rule + ".yml", is_config=True)
+            if pth.isfile(configpath):
+                print("%8.8s> %s" % (language, rule))
+            else:
+                print("%8.8s> (%s)" % (language, rule))
+
+    def list_syntax(self):
+        if self.language == "unknown":
+            self.language = "python"
+        print("\n===[%s]===" % self.language)
+        syntax = Syntax(self.language)
+        for state in list(syntax.syntax_rules.keys()):
+            print("---[%s]---" % state)
+            for key, value in syntax.syntax_rules[state].items():
+                print("%s=%s" % (key, value.pattern))
 
 
 class MigrateEnv(MigrateMeta):
     """This class manages the migration environment
-    Rules mime is "path"
+    Rules language is "path"
     """
     def __init__(self, opt_args):
-        if opt_args.path:
-            opt_args.path = [pth.expanduser(p) for p in opt_args.path]
+        super().__init__()
+        self.init_env_file()
+        if hasattr(self, "fqn") and any([x in self.fqn for x in opt_args.path]):
+            self.recognize_package(path=self.fqn, default_name=opt_args.package_name)
+        elif opt_args.path:
+            opt_args.path = [os_realpath(p) for p in opt_args.path]
+            self.recognize_package(path=opt_args.path[0],
+                                   default_name=opt_args.package_name)
+        else:
+            self.recognize_package(default_name=opt_args.package_name)
         if opt_args.output:
-            opt_args.output = pth.expanduser(opt_args.output)
-        self.out_fn = None
+            opt_args.output = os_realpath(opt_args.output)
 
-        self.set_python_future = self.python_future = False
+        self.set_python_future = False
+
         if opt_args.from_version:
             self.from_version = opt_args.from_version
             self.from_major_version = int(opt_args.from_version.split('.')[0])
         else:
             self.from_version = ""
             self.from_major_version = 0
-        branch = ""
-        if (not opt_args.to_version or opt_args.to_version == "0.0") and opt_args.path:
-            curcwd = os.getcwd()
-            if pth.isdir(opt_args.path[0]):
-                os.chdir(opt_args.path[0])
-            elif pth.isdir(pth.dirname(opt_args.path[0])):
-                os.chdir(pth.dirname(opt_args.path[0]))
-            sts, stdout, stderr = z0lib.os_system_traced(
-                "git branch", verbose=False, dry_run=False, rtime=False
-            )
-            os.chdir(curcwd)
-            if sts == 0 and stdout:
-                sts = 1
-                for ln in stdout.split("\n"):
-                    if ln.startswith("*"):
-                        branch = ln[2:]
-                        sts = 0
-                        break
-            if sts == 0:
-                x = re.match(r"[0-9]+\.[0-9]+", branch)
-                if not x:
-                    sts = 1
-            if sts == 0:
-                branch = branch[x.start(): x.end()]
-                opt_args.to_version = branch
-            elif opt_args.package_name == "odoo":
-                opt_args.to_version = DEFAULT_ODOO_VER
-            else:
-                opt_args.to_version = "0.0"
-        self.to_version = opt_args.to_version
+        if not opt_args.to_version or opt_args.to_version == "0.0":
+            opt_args.to_version = self.package.release or "0.0"
+        if opt_args.to_version == "0.0" and self.package_name == "odoo":
+            opt_args.to_version = DEFAULT_ODOO_VER
+        self.package.release = opt_args.to_version
         if opt_args.to_version and "." in opt_args.to_version:
             self.to_major_version = int(opt_args.to_version.split('.')[0])
         else:
             self.to_major_version = 0
+
         if (
-                opt_args.package_name == "odoo"
+                self.package_name == "odoo"
                 and not opt_args.python
                 and opt_args.to_version
         ):
             opt_args.python = self.get_pyver_4_odoo(opt_args.to_version)
         if opt_args.python == "2+3":
-            if opt_args.package_name == "odoo":
+            if self.package_name == "odoo":
                 self.python_version = self.get_pyver_4_odoo(opt_args.to_version)
             else:
                 self.python_version = DEFAULT_PYTHON_VER
             self.set_python_future = True
         elif opt_args.python:
             self.python_version = opt_args.python
+        elif self.package.python_versions:
+            self.python_version = self.package.python_versions[0]
         else:
             self.python_version = DEFAULT_PYTHON_VER
-            if opt_args.package_name == "pypi":
-                self.set_python_future = True
+        if self.package_name == "pypi":
+            self.set_python_future = True
+        self.py23 = int(self.python_version.split(".")[0])
+
+        self.git_orgid = opt_args.git_orgid or self.package.git_orgid
+        # Keep value for expression
+        self.force = opt_args.force
         self.opt_args = opt_args
-        self.init_env_file()
-        self.detect_mig_rules(mime="path")
-        for rule_cat in self.rule_categ:
-            self.load_config(rule_cat, prio=0)
+        self.load_all_config_rules(language="path")
+
+    def init_env_file(self):
+        super(MigrateEnv, self).init_env_file()
+
+    def get_pkg_id(self, package_name):
+        return {
+            "Z0tools": "pypi",
+            "Odoo": "odoo",
+        }.get(package_name, package_name)
+
+    def recognize_package(self, path=None, default_name=""):
+        self.package_name = self.get_pkg_id(default_name)
+        if path:
+            self.package = z0lib.Package(
+                path
+                if pth.isdir(path)
+                else pth.dirname(path))
+        else:
+            self.package = z0lib.Package()
+            self.package.version = self.package.release = self.branch = "0.0"
+        if not self.package_name:
+            self.package_name = self.get_pkg_id(self.package.prjname) or "undefined"
+        if not self.package.prjname:
+            self.package.prjname = self.package_name
 
     def action_on_file(self, subrule, regex, fqn):
         """Apply a rule on current file
@@ -619,7 +1003,7 @@ class MigrateEnv(MigrateMeta):
                     regex, pth.basename(fqn), args[1] % self.__dict__
                 )
             return 0
-        elif action in ("no", "rm", "new"):
+        elif action in ("no", "rm", "ply"):
             # Ignore current file
             self.file_action = action
             return 0
@@ -639,178 +1023,225 @@ class MigrateEnv(MigrateMeta):
             self.raise_error("Invalid rule action %s" % action)
         return 1
 
-    def run_sub_rules(self, rule, regex, item, dummy, next_dummy, key=None):
+    def run_sub_rules(self, rule, regex, item, stmtno, next_lineno, key=None):
         do_continue = do_break = False
         for subrule in rule["do"]:
-            do_break = self.action_on_file(subrule, regex, item)
-        return do_continue, do_break, dummy
+            if stmtno is None:
+                do_break = self.action_on_file(subrule, regex, item)
+                if do_break:
+                    break
+            else:
+                do_break, offset = self.update_line(subrule, regex, stmtno, key=key)
+                if offset:
+                    next_lineno = stmtno + 1 + offset
+                    if offset < 0:
+                        do_continue = True
+                        break
+                elif do_break:
+                    break
+        return do_continue, do_break, next_lineno
+
+    def process_file(self):
+        self.do_process_source()
+        self.close()
+        return self.sts
 
 
-class MigrateFile(MigrateMeta):
+class MigrateFile(MigrateEnv):
     """This class manages a file migration process.
     This class inherits some properties from Migration Environment
-    Rules mime depends on file: "manifest", "py", "xml", "history", etc.
+    Rules mime depends on file: "manifest-python", "python", "xml", "history", etc.
     """
-    def __init__(self, fqn, opt_args, migrate_env):
-        self.sts = 0
-        self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
-        if opt_args.verbose > 0:
-            print("Reading %s ..." % fqn)
+    def __init__(self, opt_args, fqn):
         self.fqn = fqn
-        base = pth.basename(fqn)
-        self.out_fn = migrate_env.out_fn or base
-        if base in ("__manifest__.py", "__openerp__.py"):
-            self.mime = "manifest"
-        elif base in ("history.rst", "HISTORY.rst", "CHANGELOG.rst"):
-            self.mime = "history"
-        else:
-            self.mime = pth.splitext(fqn)[1][1:]
-        self.init_env_file(migrate_env=migrate_env)
-        if self.file_action in ("no", "rm", "new"):
+        super().__init__(opt_args)
+        self.init_env_file()
+        if self.opt_args.verbose > 0:
+            print("Reading %s ..." % self.fqn)
+        self.load_all_config_rules(language="path")
+        self.apply_rules_on_item(fqn)
+        self.out_fn = self.out_fn or pth.basename(self.fqn)
+        if self.sts or self.file_action in ("no", "rm", "ply"):
             return
-        self.lines = []
+        self.load_all_config_rules()
+        if self.sts or self.file_action in ("no", "rm", "ply"):
+            return
+        self.read_source()
+        if self.sts or self.file_action in ("no", "rm", "ply"):
+            return
+        self.syntax = Syntax(self.language)
+        self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
+        self.tokenize_source()
+        self.split_source_statements()
+
+    def read_source(self):
         try:
-            with open(fqn, "r", encoding="utf-8") as fd:
+            with open(self.fqn, "r", encoding="utf-8") as fd:
                 self.source = fd.read()
         except BaseException:
             self.source = ""
             self.file_action = "no"
-            return
-        self.lines = self.source.split('\n')
-        self.analyze_source()
+            self.sts = 1
+        if self.source and self.source[-1] != "\n":
+            self.source += "\n"
 
-    def init_env_file(self, migrate_env=None):
-        super(MigrateFile, self).init_env_file(migrate_env=migrate_env)
-        self.detect_mig_rules(mime=self.mime)
-        prio = len(self.rule_categ) + 1
-        for rule_cat in self.rule_categ:
-            self.load_config(rule_cat, prio=prio)
-            prio -= 1
-        if not self.mig_rules:
-            # No rule to process, ignore file
-            self.file_action = "no"
+    def check_shebang(self):
+        mo = re.match("#![^\n]+", self.source)
+        if mo:
+            value = mo.group()
+            for language in ("python", ):
+                if language in value:
+                    if self.language != language:
+                        if "python3" in value:
+                            self.python_version = DEFAULT_PYTHON_VER
+                        else:
+                            self.python_version = "2.7"
+                        self.py23 = int(self.python_version.split(".")[0])
+                        self.load_all_config_rules()
+                        self.syntax = Syntax(language)
+                    break
+
+    def tokenize_source(self):
+        self.tokenized = []
+        self.check_shebang()
+        for token in self.syntax.tokenize(self.source):
+            self.tokenized.append(token)
+
+    def init_env_file(self):
+        super(MigrateFile, self).init_env_file()
+        self.property_noupdate = False
+        self.ctr_tag_data = 0
+        self.ctr_tag_odoo = 0
+        self.ctr_tag_openerp = 0
+        self.in_import = False
+        self.UserError = False
+        self.utf8_lineno = -1
+        self.lines_2_rm = []
+        self.try_indent = -1
 
     def analyze_source(self):
         self.pass1 = True
         self.exceptions = []
-        if (
-                not self.opt_args.from_version
-                and self.lines
-                and self.lines[0].startswith("#!")
-        ):
-            if "python3" in self.lines[0]:
-                self.from_version = DEFAULT_PYTHON_VER
-                self.from_major_version = 3
-            elif "python3" in self.lines[0]:
-                self.from_version = "2.7"
-                self.from_major_version = 2
-        lineno = 0
-        while lineno < len(self.lines):
-            lineno = self.apply_rules_on_item(self.lines[lineno], lineno=lineno)
+        stmtno = 0
+        while stmtno < len(self.statements):
+            stmtno = self.apply_rules_on_item(self.statements[stmtno], stmtno=stmtno)
         self.exceptions = ", ".join(self.exceptions) if self.exceptions else ""
         self.pass1 = False
 
-    def get_noupdate_property(self, lineno):
-        if "noupdate" in self.lines[lineno]:
-            x = re.search("noupdate *=\"(0|1|True|False)\"", self.lines[lineno])
-            return self.lines[lineno][x.start(): x.end()]
+    def split_source_statements(self):
+        self.statements = []
+        ix = 0
+        while ix < len(self.syntax.newline_pos):
+            ix2 = ix + 1
+            start = self.syntax.newline_pos[ix]
+            if ix2 >= len(self.syntax.newline_pos):
+                stop = len(self.source)
+                if stop == start:
+                    break
+                stop = len(self.syntax.newline_pos)
+                self.source += "\n"
+            else:
+                stop = self.syntax.newline_pos[ix2]
+            self.statements.append(self.source[start: stop])
+            ix = ix2
+
+    def get_noupdate_property(self, stmtno):
+        if "noupdate" in self.statements[stmtno]:
+            x = re.search("noupdate *=\"(0|1|True|False)\"", self.statements[stmtno])
+            return self.statements[stmtno][x.start(): x.end()]
         return ""
 
-    def set_trigger(self, trigger, value):
-        setattr(self, trigger, value)
-
-    def match_ignore_line(self, lineno):
+    def match_ignore_line(self, stmtno):
         return True, 0
 
-    def match_found_api(self, lineno):
-        if re.match(r"^ @*api\.", self.lines[lineno]):
-            if re.match(r"^ @*api\.multi", self.lines[lineno]):
+    def match_found_api(self, stmtno):
+        if re.match(r"^ @*api\.", self.statements[stmtno]):
+            if re.match(r"^ @*api\.multi", self.statements[stmtno]):
                 self.api_multi = True
         else:
             self.api_multi = False
         return False, 0
 
-    def sort_from_odoo_import(self, lineno):
+    def sort_from_odoo_import(self, stmtno):
         # Sort import
-        x = self.re_match(r"(from (odoo|openerp) import )([\w, ]+)", self.lines[lineno])
-        if x:
-            self.lines[lineno] = x.groups()[0] + ", ".join(
-                sorted([k.strip() for k in x.groups()[-1].split(",")]))
+        mo = self.re_match(r"(from (odoo|openerp) import )([\w, ]+)",
+                           self.statements[stmtno])
+        if mo:
+            self.statements[stmtno] = mo.groups()[0] + ", ".join(
+                sorted([k.strip() for k in mo.groups()[-1].split(",")])) + "\n"
         return False, 0
 
-    def match_odoo_tag(
-        self,
-        lineno,
-    ):
+    def match_odoo_tag(self, stmtno):
         if self.to_major_version < 8 and self.ctr_tag_openerp == 0:
-            property_noupdate = self.get_noupdate_property(lineno)
+            property_noupdate = self.get_noupdate_property(stmtno)
             if property_noupdate:
-                self.lines.insert(lineno + 1, "    <data %s>" % property_noupdate)
+                self.statements.insert(stmtno + 1,
+                                       "    <data %s>\n" % property_noupdate)
             else:
-                self.lines.insert(lineno + 1, "    <data>")
-            self.lines[lineno] = "<openerp>"
+                self.statements.insert(stmtno + 1, "    <data>\n")
+            self.statements[stmtno] = "<openerp>"
             self.ctr_tag_openerp += 1
         else:
             self.ctr_tag_odoo += 1
         return True, 0
 
-    def match_openerp_tag(self, lineno):
+    def match_openerp_tag(self, stmtno):
         if self.to_major_version >= 8 and self.ctr_tag_odoo == 0:
-            self.lines[lineno] = "<odoo>"
+            self.statements[stmtno] = "<odoo>"
             self.ctr_tag_odoo += 1
         else:
             self.ctr_tag_openerp += 1
         return True, 0
 
-    def match_data_tag(self, lineno):
+    def match_data_tag(self, stmtno):
         offset = 0
         if self.ctr_tag_data == 0:
-            property_noupdate = self.get_noupdate_property(lineno)
+            property_noupdate = self.get_noupdate_property(stmtno)
             if self.ctr_tag_odoo == 1:
-                del self.lines[lineno]
+                del self.statements[stmtno]
                 offset = -1
                 if property_noupdate:
-                    lineno = 0
-                    while not self.re_match("^ *<odoo", self.lines[lineno]):
-                        lineno += 1
-                    self.lines[lineno] = "<odoo %s>" % property_noupdate
+                    stmtno = 0
+                    while not self.re_match("^ *<odoo", self.statements[stmtno]):
+                        stmtno += 1
+                    self.statements[stmtno] = "<odoo %s>" % property_noupdate
             else:
                 self.ctr_tag_data += 1
         else:
             self.ctr_tag_data += 1
         return True, offset
 
-    def match_data_endtag(self, lineno):
+    def match_data_endtag(self, stmtno):
         offset = 0
         if self.ctr_tag_data == 0 and self.ctr_tag_odoo == 1:
-            del self.lines[lineno]
+            del self.statements[stmtno]
             offset = -1
         else:
             self.ctr_tag_data -= 1
         return True, offset
 
-    def match_openerp_endtag(self, lineno):
+    def match_openerp_endtag(self, stmtno):
         if self.ctr_tag_openerp == 0 and self.ctr_tag_odoo == 1:
-            self.lines[lineno] = "</odoo>"
+            self.statements[stmtno] = "</odoo>"
             self.ctr_tag_odoo -= 1
         else:
             self.ctr_tag_openerp -= 1
         return True, 0
 
-    def match_odoo_endtag(self, lineno):
+    def match_odoo_endtag(self, stmtno):
         offset = 0
         if self.ctr_tag_odoo == 0 and self.ctr_tag_openerp == 1:
-            self.lines[lineno] = "</openerp>"
+            self.statements[stmtno] = "</openerp>"
             self.ctr_tag_openerp -= 1
             if self.ctr_tag_data:
-                self.lines.insert(lineno, "    </data>")
+                self.statements.insert(stmtno, "    </data>\n")
                 self.ctr_tag_data -= 1
                 offset = 1
         else:
             self.ctr_tag_odoo -= 1
         return True, offset
 
-    def match_utf8(self, lineno):
+    def match_utf8(self, stmtno):
         offset = 0
         if (
             (self.python_future
@@ -818,82 +1249,92 @@ class MigrateFile(MigrateMeta):
              or (self.opt_args.python and self.py23 == 2))
             and self.utf8_lineno < 0
         ):
-            self.utf8_lineno = lineno
+            self.utf8_lineno = stmtno
         else:
-            del self.lines[lineno]
+            del self.statements[stmtno]
             offset = -1
         return False, offset
 
-    def match_end_utf8(self, lineno):
+    def match_end_utf8(self, stmtno):
         offset = 0
         if self.utf8_lineno < 0 and (self.py23 == 2 or self.python_future):
             if not self.opt_args.ignore_pragma:
-                self.lines.insert(lineno, "# -*- coding: utf-8 -*-")
-                self.utf8_lineno = lineno
+                self.statements.insert(stmtno, "# -*- coding: utf-8 -*-\n")
+                self.utf8_lineno = stmtno
         return False, offset
 
-    def match_lint(self, lineno):
+    def match_lint(self, stmtno):
         offset = 0
         if self.utf8_lineno >= 0:
-            del self.lines[self.utf8_lineno]
+            del self.statements[self.utf8_lineno]
             self.utf8_lineno = -1
             offset = -1
         return False, offset
 
-    def match_version(self, lineno):
+    def match_version(self, stmtno):
         if self.opt_args.from_version and self.opt_args.to_version:
-            self.lines[lineno] = re.sub(
+            self.statements[stmtno] = re.sub(
                 r"\b(" + self.from_version.replace(
                     ".", r"\.") + r")(\.[0-9]+(?:\.[0-9]+)*)\b",
-                self.to_version + r"\2",
-                self.lines[lineno])
+                self.package.release + r"\2",
+                self.statements[stmtno])
         return False, 0
 
     def comparable_version(self, version):
         return ".".join(["%03d" % int(x) for x in version.split(".")])
 
-    def trace_debug(self, key, lineno, action):
+    def trace_debug(self, key, stmtno, action):
         if self.opt_args.debug and key:
-            self.lines[lineno] += " # " + key + "/" + action
+            self.statements[stmtno] += " # " + key + "/" + action
 
-    def assign_lineno(self, lineno, value):
+    def assign_stmtno(self, stmtno, value):
         if value.startswith("+"):
-            new_lineno = lineno + int(value[1:])
-            if new_lineno >= (len(self.lines) - 1):
-                new_lineno = len(self.lines) - 1
+            new_lineno = stmtno + int(value[1:])
+            if new_lineno >= (len(self.statements) - 1):
+                new_lineno = len(self.statements) - 1
         elif value.startswith("-"):
-            new_lineno = lineno - int(value[1:])
+            new_lineno = stmtno - int(value[1:])
             if new_lineno < 0:
                 new_lineno = 0
         elif value in ("1.2", "1.3", "1.4", "1.5"):
             new_lineno = 0
-            if self.lines[new_lineno].startswith("#!"):
+            if self.statements[new_lineno].startswith("#!"):
                 new_lineno += 1
             if value != "1.2" and re.search(
-                    r"# (flake8: noqa|pylint: skip-file)", self.lines[new_lineno]):
+                    r"# (flake8: noqa|pylint: skip-file)", self.statements[new_lineno]):
                 new_lineno += 1
             if value not in ("1.2", "1.3") and re.match(
-                    r"# -\*- coding[:=] utf-8 -\*-", self.lines[new_lineno]):
+                    r"# -\*- coding[:=] utf-8 -\*-", self.statements[new_lineno]):
                 new_lineno += 1
             if value in ("1.4", "1.5"):
-                while re.match("#", self.lines[new_lineno]):
+                while re.match("#", self.statements[new_lineno]):
                     new_lineno += 1
             if value == "1.5" and re.search(
-                    r"\bimport\b", self.lines[new_lineno]):
+                    r"\bimport\b", self.statements[new_lineno]):
                 new_lineno += 1
         else:
             new_lineno = int(value)
-            if new_lineno >= (len(self.lines) - 1):
-                new_lineno = len(self.lines) - 1
+            if new_lineno >= (len(self.statements) - 1):
+                new_lineno = len(self.statements) - 1
         return new_lineno
 
-    def update_line(self, subrule, regex, lineno, key=None):
-        """Update current line self.lines[lineno]
+    def update_line(self, subrule, regex, stmtno, key=None):
+        """Update current line self.statements[stmtno]
         Rule is (action, params, ...)
-        action may be: "/?([+-][0-9.]+)?(s|d|i|a|$|=)"
+        action may be: "/?([+-][0-9.]+)?(s|d|i|a|$|=|mv)"
+        Action digest:
+        's': substitute REGEX REPLACE_TEXT
+        'd': delete line; stop immediately rule processing and re-read the line
+        'i': insert line before current line
+        'a': append line after current line
+        '$': execute FUNCTION
+        '+': set trigger TRIGGER_NAME (from 1st group of matching regex)
+        '-': reset trigger TRIGGER_NAME
+        '=': execute python code
+        'mv': move current line to new position
 
         Args:
-            lineno (int): line number
+            stmtno (int): line number
             subrule (list): current rule to apply
             regex (str): regex to match rule
 
@@ -911,70 +1352,72 @@ class MigrateFile(MigrateMeta):
         if (not_re and regex) or (not not_re and not regex):
             return False, 0
         if action == "s":
-            regex = self.match_rule(args[0], self.lines[lineno], partial=True)
+            regex = self.match_rule(args[0], self.statements[stmtno], partial=True)
             if regex:
-                self.lines[lineno] = re.sub(regex,
-                                            args[1] % self.__dict__,
-                                            self.lines[lineno])
-                self.trace_debug(key, lineno, action)
+                self.statements[stmtno] = re.sub(regex,
+                                                 args[1] % self.__dict__,
+                                                 self.statements[stmtno])
+                self.trace_debug(key, stmtno, action)
             return False, 0
         elif action == "d":
             if self.opt_args.debug and key:
-                self.lines[lineno] = "# " + key + "/" + action
+                self.statements[stmtno] = "# " + key + "/" + action
             else:
                 # delete current line
-                del self.lines[lineno]
+                del self.statements[stmtno]
             return True, -1
         elif action == "i":
             # insert line before current with params[0] or by params[1]
-            new_lineno = self.assign_lineno(
-                lineno, args[1]) if len(args) > 1 and args[1] else lineno
-            self.lines.insert(new_lineno, args[0] % self.__dict__)
-            self.trace_debug(key, lineno, action)
-            return True, -1 if new_lineno == lineno else 0
+            new_lineno = self.assign_stmtno(
+                stmtno, args[1]) if len(args) > 1 and args[1] else stmtno
+            args[0] += "\n"
+            self.statements.insert(new_lineno, args[0] % self.__dict__)
+            self.trace_debug(key, stmtno, action)
+            return True, -1 if new_lineno == stmtno else 0
         elif action == "a":
             # append line after current with params[0]
-            self.lines.insert(lineno + 1, args[0] % self.__dict__, )
-            self.trace_debug(key, lineno + 1, action)
+            args[0] += "\n"
+            self.statements.insert(stmtno + 1, args[0] % self.__dict__, )
+            self.trace_debug(key, stmtno + 1, action)
             return False, 0
         elif action == "$":
             if not hasattr(self, args[0]):
                 self.raise_error("Function %s not found!" % args[0])
                 return False, 0
-            do_break, offset = getattr(self, args[0])(lineno)
-            self.trace_debug(key, lineno, action + args[0] + "()")
+            do_break, offset = getattr(self, args[0])(stmtno)
+            self.trace_debug(key, stmtno, action + args[0] + "()")
             return do_break, offset
         elif action == "+":
             if not args:
                 self.raise_error("Action set trigger (+) w/o trigger name!")
                 return False, 0
             x = re.match(
-                self.get_mig_rules()[key]["match"], self.lines[lineno]
+                self.get_mig_rules()[key]["match"], self.statements[stmtno]
             ) if "match" in self.get_mig_rules()[key] else None
             if x and x.groups():
                 self.set_trigger(args[0], x.groups()[0])
-                self.trace_debug(key, lineno, action + args[0])
+                self.trace_debug(key, stmtno, action + args[0])
             elif len(args) > 1:
                 if re.match("[+-][0-9]+", args[1]):
                     self.set_trigger(args[0], int(args[1]) + getattr(self, args[0], 0))
                 else:
                     self.set_trigger(args[0], args[1] % self.__dict__)
-                self.trace_debug(key, lineno, action + args[0] + args[1])
+                self.trace_debug(key, stmtno, action + args[0] + args[1])
             else:
                 self.set_trigger(args[0], True)
-                self.trace_debug(key, lineno, action + "True")
+                self.trace_debug(key, stmtno, action + "True")
             return False, 0
         elif action == "-":
             if not args:
                 self.raise_error("Action reset trigger (+) w/o trigger name!")
                 return False, 0
             self.set_trigger(args[0], False)
-            self.trace_debug(key, lineno, action + args[0])
+            self.trace_debug(key, stmtno, action + args[0])
             return False, 0
         elif action == "=":
             try:
                 eval(args[0], self.__dict__)
-                self.trace_debug(key, lineno, action + args[0])
+                self.trace_debug(key, stmtno, action + args[0])
             except BaseException as e:
                 self.raise_error("Invalid expression %s" % args[0])
                 self.raise_error(e)
@@ -984,145 +1427,124 @@ class MigrateFile(MigrateMeta):
             if not args:
                 self.raise_error("Invalid expression mv")
                 return False, 0
-            new_lineno = self.assign_lineno(lineno, args[0])
-            if new_lineno != lineno:
-                line = self.lines[lineno]
-                del self.lines[lineno]
-                self.lines.insert(new_lineno, line)
+            new_lineno = self.assign_stmtno(stmtno, args[0])
+            if new_lineno != stmtno:
+                line = self.statements[stmtno]
+                del self.statements[stmtno]
+                self.statements.insert(new_lineno, line)
             return False, 0
         else:
             self.raise_error("Invalid rule action %s" % action)
         return False, 0
 
-    def run_sub_rules(self, rule, regex, item, lineno, next_lineno, key=None):
-        do_continue = do_break = False
-        for subrule in rule["do"]:
-            do_break, offset = self.update_line(subrule, regex, lineno, key=key)
-            if offset:
-                next_lineno = lineno + 1 + offset
-                if offset < 0:
-                    do_continue = True
-                    break
-            elif do_break:
-                break
-        return do_continue, do_break, next_lineno
-
     def do_process_source(self):
         if self.opt_args.git_merge_conflict:
-            self.solve_git_merge()
+            return self.solve_git_merge()
+        if self.opt_args.test_res_msg:
+            return self.do_upgrade_res_msg()
         if self.file_action in ("no", "rm"):
             return self.do_copy_file()
         else:
-            meth = "do_upgrade_" + self.mime
-            if hasattr(self, meth):
-                return getattr(self, meth)()
-            meth = "do_upgrade_file"
-            if hasattr(self, meth):
-                return getattr(self, meth)()
+            self.analyze_source()
+            self.do_upgrade_license_comment()
+            return self.do_upgrade_file()
         return False
 
     def do_copy_file(self):
         return False
 
-    def do_upgrade_py(self):
-        res = self.do_upgrade_file()
-        if (
-                self.opt_args.copyright_check
-                and self.opt_args.package_name == "odoo"
-                and self.opt_args.to_version
-        ):
-            License = license_mgnt.License()
-            for lineno, ln in enumerate(self.lines):
-                if not self.lines[lineno]:
-                    continue
-                if not self.lines[lineno].startswith("#"):
-                    break
-                _, _, _, _, old_years = License.extract_info_from_line(
-                    self.lines[lineno])
-                _, _, _, _, cur_years = License.extract_info_from_line(
-                    self.lines[lineno],
-                    odoo_major_version=self.to_major_version,
-                    force_from=True if self.opt_args.copyright_check > 1 else False)
-                if old_years != cur_years:
-                    self.lines[lineno] = self.lines[lineno].replace(
-                        old_years, cur_years, 1)
-        return res
-
-    def do_upgrade_manifest(self):
-        return self.do_upgrade_py()
-
-    def do_upgrade_history(self):
-        res = self.do_upgrade_file()
-        self.do_upgrade_res_msg()
-        return res
+    def do_upgrade_license_comment(self):
+        License = license_mgnt.License()
+        for stmtno, ln in enumerate(self.statements):
+            if not self.statements[stmtno]:
+                continue
+            if not self.statements[stmtno].startswith("#"):
+                break
+            _, _, _, _, old_years = License.extract_info_from_line(
+                self.statements[stmtno])
+            _, _, _, _, cur_years = License.extract_info_from_line(
+                self.statements[stmtno],
+                odoo_major_version=self.to_major_version,
+                force_from=True if self.opt_args.copyright_check > 1 else False)
+            if old_years != cur_years:
+                self.statements[stmtno] = self.statements[stmtno].replace(
+                    old_years, cur_years, 1)
+        return True
 
     def do_upgrade_file(self):
-
-        def count_unbalanced(ln, left, right):
-            ln = qsplit(ln, "#")[0]
+        def count_unbalanced(ln, left, right, comment_char="#"):
+            ln = qsplit(ln, comment_char)[0]
             return len(qsplit(ln, left)) - (len(qsplit(ln, right)) if right else 1)
 
         if not self.file_action:
-            self.init_env_file()
-            lineno = parens = brackets = braces = quotes = angles = 0
+            stmtno = 0
             self.open_stmt = False
             self.imported = []
             self.try_indent = -1
             self.indent = self.stmt_indent = ""
-            while lineno < len(self.lines):
-                self.first_line = lineno == 0
-                if self.lines[lineno]:
-                    if not re.match("^ *#", self.lines[lineno]):
+            rex_import = re.compile(r"^ *(from [^\s]+)? import ")
+            while stmtno < len(self.statements):
+                self.first_line = stmtno == 0
+                mo = self.syntax.re_s and self.syntax.re_s.match(
+                    self.statements[stmtno])
+                if mo:
+                    pos = mo.end()
+                    self.indent = self.statements[stmtno][mo.start(): mo.end()]
+                else:
+                    pos = 0
+                    self.indent = ""
+                self.dedent = self.indent < self.stmt_indent
+                if pos < len(self.statements[stmtno]):
+                    if (
+                        self.syntax.re_rem_eol
+                        and not self.syntax.re_rem_eol.match(self.statements[stmtno],
+                                                             pos)
+                    ):
                         self.header = False
-                        if (
-                                re.match("^ *from .* import ", self.lines[lineno])
-                                or re.match("^ *import ", self.lines[lineno])
-                        ):
+                        mo = rex_import.match(self.statements[stmtno], pos)
+                        if mo:
                             self.transition_stage = (
                                 "import" if self.transition_stage == "import"
                                 else self.stage)
                             self.stage = "import"
-                            pkgs = re.split("import", self.lines[lineno])[1]
-                            pkgs = pkgs.split("#")[0]
+                            pkgs = self.statements[stmtno][mo.end():].split(
+                                "#")[0].strip()
                             for pkg in pkgs.split(","):
                                 pkg = pkg.strip()
                                 if pkg not in self.imported:
                                     self.imported.append(pkg)
-                        elif re.match(" *def ", self.lines[lineno]):
-                            self.transition_stage = self.stage
-                            self.stage = "function_body"
-                        elif re.match(" *class ", self.lines[lineno]):
-                            self.transition_stage = (
-                                "import"
-                                if self.stage in ("header", "import")
-                                else self.stage)
-                            self.stage = "class_body"
+                            stmtno = self.apply_rules_on_item(
+                                self.statements[stmtno], stmtno=stmtno)
                         elif (
-                            re.match("[^# ]", self.lines[lineno])
-                            and self.stage == "header"
+                                self.stage != "import"
+                                and self.transition_stage != "import"
+                                and not self.imported
                         ):
                             self.transition_stage = self.stage
                             self.stage = "import"
-                    x = re.match(r"[\s]*", self.lines[lineno])
-                    self.indent = self.lines[lineno][x.start():x.end()] if x else ""
-                    if not self.open_stmt:
-                        self.dedent = self.indent < self.stmt_indent
-                        self.stmt_indent = self.indent
-                        if re.match("^ *try:", self.lines[lineno]):
-                            self.try_indent = len(self.indent)
-                        elif len(self.indent) <= self.try_indent:
-                            self.try_indent = -1
-                lineno = self.apply_rules_on_item(self.lines[lineno], lineno=lineno)
-                if lineno < len(self.lines) and self.lines[lineno]:
-                    if self.mime == "xml":
-                        angles += count_unbalanced(self.lines[lineno], "<", ">")
-                    elif self.mime in ("py", "manifest"):
-                        parens += count_unbalanced(self.lines[lineno], "(", ")")
-                        brackets += count_unbalanced(self.lines[lineno], "[", "]")
-                        braces += count_unbalanced(self.lines[lineno], "{", "}")
-                        quotes += count_unbalanced(self.lines[lineno], '"""', None)
-                        quotes = quotes % 2
-                    self.open_stmt = (parens + brackets + braces + quotes + angles) != 0
+                            prior_stmtno = stmtno
+                            stmtno = self.apply_rules_on_item(
+                                self.statements[stmtno], stmtno=stmtno)
+                            if re.match(" *def ", self.statements[prior_stmtno]):
+                                self.transition_stage = self.stage
+                                self.stage = "function_body"
+                            elif re.match(" *class ", self.statements[prior_stmtno]):
+                                self.transition_stage = self.stage
+                                self.stage = "class_body"
+                            elif re.match("^ *try:", self.statements[prior_stmtno]):
+                                self.try_indent = len(self.indent)
+                            elif len(self.indent) <= self.try_indent:
+                                self.try_indent = -1
+                        else:
+                            stmtno = self.apply_rules_on_item(
+                                self.statements[stmtno], stmtno=stmtno)
+                    else:
+                        stmtno = self.apply_rules_on_item(
+                            self.statements[stmtno], stmtno=stmtno)
+                else:
+                    stmtno = self.apply_rules_on_item(
+                        self.statements[stmtno], stmtno=stmtno)
+                self.stmt_indent = self.indent
         return True
 
     def do_upgrade_res_msg(self):
@@ -1143,11 +1565,15 @@ class MigrateFile(MigrateMeta):
                     ctr += int(ln[mo.start(): mo.end() - 10])
             test_res_msg = left_mesg + str(ctr) + right_mesg
 
-        last_date = ""
+        last_date = None
         found_list = False
         title_lineno = qua_lineno = i_start = i_end = -1
-        for lineno, ln in enumerate(self.lines):
-            if not ln:
+        date_limit = (
+            datetime.strptime(self.opt_args.test_res_msg_range, "%Y-%m-%d")
+            if self.opt_args.test_res_msg_range else (datetime.now() - timedelta(20))
+        )
+        for stmtno, ln in enumerate(self.statements):
+            if ln == "\n":
                 if found_list:
                     break
                 continue
@@ -1159,61 +1585,59 @@ class MigrateFile(MigrateMeta):
                         break
                     i_start = mo.start() + 1
                     i_end = mo.end() - 1
-                    last_date = ln[i_start: i_end]
-                    title_lineno = lineno
+                    last_date = datetime.strptime(ln[i_start: i_end], "%Y-%m-%d")
+                    title_lineno = stmtno
                     continue
             if qua_lineno < 0 and re.match(r"['\"]*\* *\[QUA\]", ln):
-                qua_lineno = lineno
+                qua_lineno = stmtno
             if last_date and ln.startswith("*"):
                 found_list = True
-        if (
-            last_date
-            and found_list
-            and (datetime.now() - datetime.strptime(last_date, "%Y-%m-%d")).days < 20
-        ):
-            if qua_lineno:
-                self.lines[qua_lineno] = test_res_msg
+        if last_date and last_date >= date_limit and found_list:
+            if qua_lineno >= 0:
+                self.statements[qua_lineno] = test_res_msg
             else:
-                lineno -= 1
-                self.lines.insert(lineno, test_res_msg)
+                if stmtno >= len(self.statements) or self.statements[stmtno]:
+                    stmtno -= 1
+                self.statements.insert(stmtno, test_res_msg + "\n")
                 if not self.opt_args.dry_run:
                     with open(self.fqn, "w", encoding="utf-8") as fd:
-                        fd.write("\n".join(self.lines))
-            self.lines[title_lineno] = (
-                self.lines[title_lineno][:i_start]
+                        fd.write("\n".join(self.statements))
+            self.statements[title_lineno] = (
+                self.statements[title_lineno][:i_start]
                 + datetime.strftime(datetime.now(), "%Y-%m-%d")
-                + self.lines[title_lineno][i_end:])
+                + self.statements[title_lineno][i_end:])
         return True
 
     def solve_git_merge(self):
         state = "both"
         state_lev = 0
-        lineno = 0
-        while lineno < len(self.lines):
-            ln = self.lines[lineno]
+        stmtno = 0
+        while stmtno < len(self.statements):
+            ln = self.statements[stmtno]
             if ln.startswith("<<<<<<<"):
                 state = "left"
                 state_lev += 1
-                del self.lines[lineno]
+                del self.statements[stmtno]
             elif ln.startswith(">>>>>>>"):
                 state = "right"
                 state_lev += 1
-                del self.lines[lineno]
+                del self.statements[stmtno]
             elif ln.startswith("=======") and state != "both":
                 state_lev -= 1
                 if not state_lev:
                     state = "both"
-                del self.lines[lineno]
+                del self.statements[stmtno]
             elif state not in ("both", self.opt_args.git_merge_conflict):
-                del self.lines[lineno]
+                del self.statements[stmtno]
             else:
-                lineno += 1
+                stmtno += 1
+        return True
 
     def write_xml(self, out_fqn):
         with open(out_fqn, "w", encoding="utf-8") as fd:
             source_xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
             source_xml += _u(ET.tostring(
-                ET.fromstring(_b("\n".join(self.lines).replace('\t', '    '))),
+                ET.fromstring(_b("\n".join(self.statements).replace('\t', '    '))),
                 encoding="unicode", with_comments=True, pretty_print=True))
             x = self.REX_CLOTAG.search(source_xml)
             while x:
@@ -1224,17 +1648,17 @@ class MigrateFile(MigrateMeta):
     def format_file(self, out_fqn):
         prettier_config = False
         black_config = False
-        path = pth.dirname(pth.abspath(pth.expanduser(out_fqn)))
+        path = pth.dirname(os_realpath(out_fqn))
         out_fqn_dir_path = path
         while not prettier_config and not black_config:
             if pth.isfile(pth.join(path, ".pre-commit-config.yaml")):
                 black_config = pth.join(path, ".pre-commit-config.yaml")
             if pth.isfile(pth.join(path, ".prettierrc.yml")):
                 prettier_config = pth.join(path, ".prettierrc.yml")
-            if path == pth.abspath(pth.expanduser("~")) or path == "/":
+            if path == os_realpath("~") or path == "/":
                 break
             path = pth.dirname(path)
-        if self.mime == "xml":
+        if self.language == "xml":
             if prettier_config:
                 cmd = (
                     "npx prettier --plugin=@prettier/plugin-xml --config=%s"
@@ -1249,16 +1673,16 @@ class MigrateFile(MigrateMeta):
             sts = z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
             if sts:
                 self.opt_args.no_parse_with_formatter = True
-        elif self.mime in ("py", "manifest"):
-            if self.mime == "manifest" and self.opt_args.to_version:
+        elif self.language in ("python", "manifest-python"):
+            if self.language == "manifest-python" and self.opt_args.to_version:
                 curcwd = os.getcwd()
                 os.chdir(out_fqn_dir_path)
                 opts = "-Rw -lmodule -Podoo"
                 if self.opt_args.from_version and self.opt_args.to_version:
                     opts += " -F%s -b%s" % (self.opt_args.from_version,
                                             self.opt_args.to_version)
-                if self.opt_args.git_orgid:
-                    opts += " -G%s" % self.opt_args.git_orgid
+                if self.git_orgid:
+                    opts += " -G%s" % self.git_orgid
                 cmd = "%s %s %s" % (
                     sys.executable,
                     pth.join(pth.dirname(__file__), "gen_readme.py"),
@@ -1279,8 +1703,8 @@ class MigrateFile(MigrateMeta):
     def close(self):
         if self.opt_args.output:
             if pth.isdir(self.opt_args.output):
-                root = [pth.abspath(x) for x in self.opt_args.path
-                        if self.fqn.startswith(pth.abspath(x))]
+                root = [x for x in self.opt_args.path
+                        if self.fqn.startswith(x)]
                 if root:
                     out_fqn = pth.join(self.opt_args.output,
                                        self.fqn[len(root[0]) + 1:])
@@ -1293,14 +1717,18 @@ class MigrateFile(MigrateMeta):
                 os.makedirs(pth.dirname(out_fqn))
         else:
             out_fqn = pth.join(pth.dirname(self.fqn), self.out_fn)
-        while len(self.lines) > 1 and self.lines[-1] == "" and self.lines[-2] == "":
-            del self.lines[2]
-        if self.lines[-1] != "":
-            self.lines.append("")
         if not self.file_action and (
                 self.opt_args.lint_anyway
                 or out_fqn != self.fqn
-                or self.source != "\n".join(self.lines)):
+                or self.source != "".join(self.statements)):
+            while (
+                    len(self.statements) > 1
+                    and self.statements[-1] == "\n"
+                    and self.statements[-2] == "\n"
+            ):
+                del self.statements[2]
+            if len(self.statements) and self.statements[-1] != "\n":
+                self.statements.append("\n")
             if not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_fqn
                 if pth.isfile(bakfile):
@@ -1308,16 +1736,16 @@ class MigrateFile(MigrateMeta):
                 if pth.isfile(out_fqn):
                     os.rename(out_fqn, bakfile)
             if not self.opt_args.dry_run:
-                if self.mime == "xml":
+                if self.language == "xml":
                     self.write_xml(out_fqn)
                 else:
                     with open(out_fqn, "w", encoding="utf-8") as fd:
-                        fd.write("\n".join(self.lines))
+                        fd.write("".join(self.statements))
             if not self.opt_args.no_parse_with_formatter:
                 self.format_file(out_fqn)
             if self.opt_args.verbose > 0:
                 print('👽 %s' % out_fqn)
-        elif self.file_action == "new":
+        elif self.file_action == "ply":
             if not pth.exists(out_fqn):
                 cmd = "cp %s %s" % (self.fqn, out_fqn)
                 z0lib.os_system(cmd, dry_run=self.opt_args.dry_run)
@@ -1342,66 +1770,15 @@ def green(text):
     return GREEN + text + CLEAR
 
 
-def print_rule_mime(migrate_env, opt_args, mime):
-    print("\n===[%s]===" % mime)
-    migrate_env.detect_mig_rules(mime=mime)
-    prio = len(migrate_env.rule_categ) + 1
-    for rule in migrate_env.rule_categ:
-        migrate_env.load_config(rule, prio)
-        prio -= 1
-    if migrate_env.mig_rules:
-        for (prio, key) in migrate_env.mig_keys:
-            print("  %-40.40s %s" % (
-                key,
-                yellow(migrate_env.mig_rules[key].get("match", ">>> include"))))
-            if opt_args.list_rules <= 2:
-                continue
-            for item in migrate_env.mig_rules[key].get("do", {}):
-                text = item["action"]
-                if text == "$":
-                    text += item["args"][0]
-                elif not item.get("args"):
-                    pass
-                elif len(item["args"]) == 1:
-                    text += " " + green(item["args"][0])
-                elif len(item["args"]) == 2:
-                    text += (" " + red(item["args"][0]) + " " + green(item["args"][1]))
-                print("%8.8s %s" % ("", text))
-
-
-def print_rule_classes(migrate_env, mime):
-    print()
-    migrate_env.detect_mig_rules(mime=mime)
-    for rule in migrate_env.rule_categ:
-        print("%4.4s> %s" % (mime, rule))
-
-
-def list_rules(opt_args):
-    if not opt_args.path:
-        opt_args.path = ["./"]
-    migrate_env = MigrateEnv(opt_args)
-    for trigger in ("first_line", "migrate_multi", "backport_multi"):
-        setattr(migrate_env, trigger, True)
-    opt_args.header = True
-    for mime in ("path", "py", "manifest", "history", "xml"):
-        if opt_args.list_rules > 1:
-            print_rule_mime(migrate_env, opt_args, mime)
-        else:
-            print_rule_classes(migrate_env, mime)
-    return 0
-
-
-def process_file(migrate_env, fqn):
-    source = MigrateFile(fqn, migrate_env.opt_args, migrate_env)
-    source.do_process_source()
-    source.close()
-    return source.sts
-
-
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
         description="Beautiful source file", epilog="© 2021-2025 by SHS-AV s.r.l."
+    )
+    parser.add_argument(
+        '-A', '--analyze',
+        action='store_true',
+        help='analyze source file(s)',
     )
     parser.add_argument(
         '-a', '--lint-anyway',
@@ -1449,13 +1826,17 @@ def main(cli_args=None):
         default=0,
         help='list rule groups (-ll list with rules too, -lll full list)')
     parser.add_argument(
+        '--list-syntax',
+        action='store_true',
+        help='list language syntax rules')
+    parser.add_argument(
         "-n",
         "--dry-run",
         help="do nothing (dry-run)",
         action="store_true",
     )
     parser.add_argument('-o', '--output')
-    parser.add_argument('-P', '--package-name', default='odoo')
+    parser.add_argument('-P', '--package-name')
     parser.add_argument(
         '-R', '--rules',
         help=('Rules (comma separated) to parse (use - for removing)'
@@ -1467,6 +1848,10 @@ def main(cli_args=None):
         help='force double quote enclosing strings'
     )
     parser.add_argument('--test-res-msg')
+    parser.add_argument(
+        '--test-res-msg-range',
+        help='Date limit to join test result message'
+    )
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-V', '--version', action="version", version=__version__)
     parser.add_argument(
@@ -1487,10 +1872,6 @@ def main(cli_args=None):
     )
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
-
-    if opt_args.list_rules > 0:
-        return list_rules(opt_args)
-
     if (
             opt_args.git_merge_conflict
             and opt_args.git_merge_conflict not in ("left", "right")
@@ -1498,23 +1879,35 @@ def main(cli_args=None):
         print("Invalid value for switch --git-merge-conflict")
         print("Please use --git-merge-conflict=left or --git-merge-conflict=right")
         return 3
+    if opt_args.analyze and opt_args.in_place:
+        print("Switches --analyze and --in-place are mutually exclusive")
+        return 3
+    if opt_args.debug and opt_args.in_place:
+        print("Switches --debug and --in-place are mutually exclusive")
+        return 3
 
     sts = 0
-    migrate_env = MigrateEnv(opt_args)
-    if not migrate_env.opt_args.path:
+    if opt_args.list_rules > 0:
+        MigrateEnv(opt_args).list_rules()
+        return sts
+    elif opt_args.list_syntax:
+        MigrateEnv(opt_args).list_syntax()
+        return sts
+    if not opt_args.path:
         sys.stderr.write('No path supplied!\n')
         return 2
     if (
-        migrate_env.opt_args.output
-        and not pth.isdir(migrate_env.opt_args.output)
-        and not pth.isdir(pth.dirname(migrate_env.opt_args.output))
+        opt_args.output
+        and not pth.isdir(opt_args.output)
+        and not pth.isdir(pth.dirname(opt_args.output))
     ):
         sys.stderr.write(
-            'Path %s does not exist!\n' % pth.dirname(migrate_env.opt_args.output))
+            'Path %s does not exist!\n' % pth.dirname(opt_args.output))
         return 2
 
-    for path in migrate_env.opt_args.path:
+    for path in opt_args.path:
         if pth.isdir(path):
+            migrate_env = MigrateEnv(opt_args)
             if (
                 not migrate_env.opt_args.assume_yes
                 and migrate_env.opt_args.output
@@ -1524,8 +1917,8 @@ def main(cli_args=None):
                 and migrate_env.opt_args.to_version
                 and migrate_env.opt_args.from_version != migrate_env.opt_args.to_version
             ):
-                sys.stderr.write(
-                    'Target path %s conflicts with source ptah %s for migration!!\n'
+                migrate_env.raise_error(
+                    'Target path %s conflicts with source path %s for migration!!\n'
                     % (migrate_env.opt_args.output, path)
                 )
                 return 2
@@ -1548,16 +1941,15 @@ def main(cli_args=None):
                     )
                 ]
                 for fn in dirs:
-                    fqn = pth.abspath(pth.join(root, fn)) + "/"
+                    fqn = os_realpath(pth.join(root, fn)) + "/"
                     migrate_env.apply_rules_on_item(fqn)
                 for fn in files:
-                    fqn = pth.abspath(pth.join(root, fn))
-                    migrate_env.apply_rules_on_item(fqn)
-                    sts = process_file(migrate_env, fqn)
+                    fqn = os_realpath(pth.join(root, fn))
+                    sts = MigrateFile(opt_args, fqn).process_file()
                     if sts:
                         break
         elif pth.isfile(path):
-            sts = process_file(migrate_env, path)
+            sts = MigrateFile(opt_args, path).process_file()
         else:
             sys.stderr.write('Path %s does not exist!\n' % path)
             sts = 2

@@ -1,0 +1,59 @@
+# This configuration is loaded for .py files in Odoo product
+# when organization is "zero" and Odoo version is 12.0
+#
+module_l10n_it_fatturapa_out:
+  match: '.*["'']l10n_it_einvoice_out["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_out'
+      - 'l10n_it_fatturapa_out'
+module_l10n_it_account_stamp:
+  match: '.*["'']l10n_it_einvoice_stamp["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'l10n_it_einvoice_stamp'
+      - 'l10n_it_account_stamp'
+model_sdi_channel:
+  match: '.*["'']italy.ade.sender["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - 'italy.ade.sender'
+      - 'sdi.channel'
+sdi_channel_id:
+  match: '.*(?<!\w)einvoice_sender_id(?!\w)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - einvoice_sender_id
+        - sdi_channel_id
+def_send_to_sdi:
+  match: '.*(?<!\w)send_verify(?!\w)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - send_verify
+      - send_to_sdi
+def_get_sdi_channel:
+  match: '.*(?<!\w)get_send_channel(?!\w)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - get_send_channel
+        - get_sdi_channel
+state_subtype_mapping:
+  match: '.*(?<!\w)evolve_stato_mapping(?!\w)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - evolve_stato_mapping
+        - STATE_SUBTYPE_MAPPING

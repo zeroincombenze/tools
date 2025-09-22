@@ -1,6 +1,6 @@
-============
-z0lib 2.0.17
-============
+===========
+z0lib 2.1.0
+===========
 
 
 
@@ -107,6 +107,23 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.1.1 (2025-09-20)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Clean code
+* [IMP] findpkg search on current execution file directory first
+* [IMP] run_traced: default humdrum=1
+* [IMP] New function wep_stdout
+* [IMP] New function split_n_rm_comment_lines
+* [IMP] Best package recognition algorithm
+
+2.1.0 (2025-09-05)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] New class Package
+* [IMP] python 3.12 is certificated programming language
+* [QUA] Coverage 65%
+
 2.0.17 (2025-08-29)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -124,7 +141,7 @@ ChangeLog History
 2.0.15 (2025-01-18)
 ~~~~~~~~~~~~~~~~~~~
 
-* [IMP] simulate get_metadat in test environment
+* [IMP] simulate get_metadata in test environment
 
 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~
@@ -216,11 +233,6 @@ ChangeLog History
 
 * [FIX] run_traced return code
 
-2.0.0.2 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_traced for python apps
-
 
 
 Credits
@@ -258,10 +270,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

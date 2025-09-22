@@ -91,7 +91,7 @@ def format_line(ctx, cols_size, row, sep=None, flist=None):
                     sz -= row[i].count(ch)
             else:
                 for ch in DOUBLE_CHARS:
-                    sz -= row[p].count(ch)
+                    sz -= (row[p] or "").count(ch)
         line += format_field(
             sep,
             sz,
