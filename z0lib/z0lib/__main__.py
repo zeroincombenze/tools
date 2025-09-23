@@ -5,7 +5,7 @@ import re
 # from .scripts.main import internal_main
 from z0lib import internal_main, z0lib
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 def version():

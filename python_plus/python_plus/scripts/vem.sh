@@ -1440,6 +1440,7 @@ do_venv_create() {
 do_venv_exec() {
   # do_venv_exec VENV cmd
   local d f mime VENV V sitecustom sts
+  [[ -d $2 ]] && echo "Invalid command '$2'! It is a directory" && exit 1
   VENV="$1"
   run_traced "$2 $3 $4 $5 $6 $7 $8 $9"
   sts=$?

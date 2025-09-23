@@ -60,7 +60,7 @@ OE_CONF = False
 DEFDCT = {}
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 def os_env(key, default=None):
@@ -770,6 +770,16 @@ class Package(object):
                 return True
         return False
 
+    def get_majver(self, version):
+        majver = int(version.split(".")[0]) if version else 0
+        return majver if 6 <= majver <= 19 else 0
+
+    def extract_release(self, version):
+        mo = re.search(r"[0-9]+\.[0-9]+", version)
+        if mo:
+            return version[mo.start(): mo.end()]
+        return None
+
     def get_remote_info(self, path=None):
         path = pth.abspath(path or os.getcwd())
         saved_path = pth.abspath(os.getcwd())
@@ -786,24 +796,25 @@ class Package(object):
                     sts = 0
                     break
             if sts == 0:
-                mo = re.search(r"[0-9]+\.[0-9]+", self.branch)
-                if mo:
-                    self.release = self.branch[mo.start(): mo.end()]
+                release = self.extract_release(self.branch)
+                if release:
+                    self.release = release
                     if not self.version:
                         self.version = self.release
-                        self.majver = int(self.version.split(".")[0])
+                        self.majver = self.get_majver(self.version)
         elif self.prjname == "Odoo":
             mo = re.search(r"[0-9]+\.[0-9]+", path)
             if not mo:
                 mo = re.search(r"[0-9]+", path)
             if mo:
                 branch = path[mo.start(): mo.end()]
-                if "." not in branch:
-                    branch += ".0"
+                majver = self.get_majver(branch)
+                if "." not in branch and majver:
+                    branch += ".0" if majver > 6 else ".1"
                 self.release = branch
                 if not self.version:
                     self.version = branch
-                    self.majver = int(self.version.split(".")[0])
+                    self.majver = majver
         sts, stdout, stderr = os_system_traced(
             "git remote -v", verbose=False, dry_run=False, rtime=False)
         if sts == 0 and stdout:
@@ -954,7 +965,7 @@ class Package(object):
                         self.release = "%d.%d" % eval(mo.string.split("=")[1])[0:2]
                         if not self.version:
                             self.version = self.release
-                            self.majver = int(self.version.split(".")[0])
+                            self.majver = self.get_majver(self.version)
                         break
 
     def get_pypi_version(self, path=None):
@@ -973,8 +984,17 @@ class Package(object):
                 manifest = eval(fd.read())
         except (ImportError, IOError, SyntaxError):
             raise Exception("Wrong manifest file %s" % self.manifest)
-        self.version = manifest.get("version", self.release)
-        self.majver = int(self.version.split(".")[0])
+        version = manifest.get("version")
+        majver = self.get_majver(version)
+        if 6 <= majver <= 19:
+            self.version = version
+            self.majver = majver
+            release = self.extract_release(version)
+            if release and not self.release:
+                self.release = release
+        elif self.release:
+            self.version = self.release
+            self.majver = self.get_majver(self.version)
         self.installable = manifest.get("installable", True)
 
     def get_version_to_log(self):

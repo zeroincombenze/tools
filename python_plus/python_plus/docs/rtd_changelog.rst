@@ -5,6 +5,11 @@ ChangeLog History
 =================
 
 
+2.0.19 (2025-09-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+
 2.0.18 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -125,16 +130,6 @@ ChangeLog History
 
 * [IMP] stable version
 
-2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: install package with list_requirements.py
-
-2.0.0.2 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: no input inquire
-
 |
 |
 
@@ -148,10 +143,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

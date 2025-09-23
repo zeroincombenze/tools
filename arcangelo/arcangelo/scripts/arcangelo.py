@@ -185,10 +185,13 @@ class Syntax(object):
             return kind, self.re_other.match(source, self.pos)
         return None, None
 
+    def is_open_stmt(self):
+        return (self.parens + self.brackets + self.braces + self.quotes)
+
     def action_nl(self, mo):
         self.lineno += 1
         self.linestart = mo.end()
-        if (self.parens + self.brackets + self.brackets + self.quotes) == 0:
+        if not self.is_open_stmt():
             self.newline_pos.append(mo.end())
 
     def save_self(self, value, kind):
@@ -211,7 +214,7 @@ class Syntax(object):
         if saved_self["kind"] == "mtext":
             self.quotes = 0
 
-    def tokenize(self, source):
+    def tokenize(self, source, spaces=False):
         self.state = self.states[0]
         self.pos = 0
         self.linestart = 0
@@ -237,9 +240,10 @@ class Syntax(object):
             if kind in self.states:
                 self.state = kind
             elif kind in ("nl", "s"):
+                if not spaces:
+                    continue
+            elif kind in ("nl", "s"):
                 continue
-            # elif kind == "other":
-            #     continue
             elif kind == "op_lparen":
                 self.parens += 1
             elif kind == "op_rparen":
@@ -807,9 +811,9 @@ class MigrateMeta(object):
         for rule_cat in self.rule_categ:
             self.load_config(rule_cat, prio=prio)
             prio -= 1
-        if language not in ("path", "history") and not self.mig_rules:
-            # No rule to process, ignore file
-            self.file_action = "no"
+        # if language not in ("path", "history") and not self.mig_rules:
+        #     # No rule to process, ignore file
+        #     self.file_action = "no"
 
     def list_rules(self):
         print("Rules to apply (Package %s version=%s)"
@@ -1172,22 +1176,31 @@ class MigrateFile(MigrateEnv):
             target = "".join(self.statements)
         if self.opt_args.analyze:
             colored_target = ""
-            for token in self.syntax.tokenize(target):
-                if token[0] in ("name",):
-                    colored_target += "\033[31m" + token[1] + "\033[0m"
-                elif token[0] in ("text",):
-                    colored_target += "\033[32m" + token[1] + "\033[0m"
-                elif token[0] in ("rem_eol",):
-                    colored_target += "\033[34m" + token[1] + "\033[0m"
-                elif token[0] in ("op_lparen",
-                                  "op_rparen",
-                                  "op_lbracket",
-                                  "op_rbracket",
-                                  "op_lbrace",
-                                  "op_rbrace"):
-                    colored_target += "\033[34m" + token[1] + "\033[0m"
+            for (kind, value, row, column, start, end) in self.syntax.tokenize(
+                    target, spaces=True):
+                if kind in ("name",):
+                    colored_target += "\033[31m" + value + "\033[0m"
+                elif kind in ("text",):
+                    colored_target += "\033[32m" + value + "\033[0m"
+                elif kind in ("code", "uncode"):
+                    colored_target += "\033[33m" + value + "\033[0m"
+                elif kind in ("rem_eol", "remark"):
+                    colored_target += "\033[34m" + value + "\033[0m"
+                elif kind in ("op_lparen",
+                              "op_rparen",
+                              "op_lbracket",
+                              "op_rbracket",
+                              "op_lbrace",
+                              "op_rbrace",
+                              "assign",
+                              "operator",):
+                    colored_target += "\033[36m" + value + "\033[0m"
+                elif kind in ("nl", "s"):
+                    if self.syntax.is_open_stmt() and kind == "nl":
+                        colored_target += "␤"
+                    colored_target += value
                 else:
-                    colored_target += "\033[37m" + token[1] + "\033[0m"
+                    colored_target += "\033[37m" + value + "\033[0m"
             target = colored_target
         return target
 
@@ -1522,7 +1535,7 @@ class MigrateFile(MigrateEnv):
             ln = qsplit(ln, comment_char)[0]
             return len(qsplit(ln, left)) - (len(qsplit(ln, right)) if right else 1)
 
-        if not self.file_action:
+        if not self.file_action and self.mig_rules:
             stmtno = 0
             self.open_stmt = False
             self.imported = []
@@ -1738,6 +1751,7 @@ class MigrateFile(MigrateEnv):
         print()
         print('👽 %s' % self.fqn)
         print(self.join_source_statements())
+        print("---------------------------------------------------------------------")
 
     def close(self):
         if is_device(self.opt_args.output):
@@ -1756,6 +1770,8 @@ class MigrateFile(MigrateEnv):
                 out_fqn = self.opt_args.output
             if not pth.isdir(pth.dirname(out_fqn)):
                 os.makedirs(pth.dirname(out_fqn))
+        elif self.opt_args.analyze:
+            out_fqn = "--"
         else:
             out_fqn = pth.join(pth.dirname(self.fqn), self.out_fn)
         if not self.file_action and (
@@ -1763,7 +1779,7 @@ class MigrateFile(MigrateEnv):
                 or out_fqn != self.fqn
                 or self.source != self.join_source_statements()
         ):
-            if is_device(out_fqn) and not self.opt_args.in_place:
+            if not is_device(out_fqn) and not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_fqn
                 if pth.isfile(bakfile):
                     os.remove(bakfile)

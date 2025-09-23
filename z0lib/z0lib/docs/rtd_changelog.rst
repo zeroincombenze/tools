@@ -5,7 +5,7 @@ ChangeLog History
 =================
 
 
-2.1.1 (2025-09-20)
+2.1.1 (2025-09-23)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Clean code
@@ -13,10 +13,9 @@ ChangeLog History
 * [IMP] run_traced: default humdrum=1
 * [IMP] New function wep_stdout
 * [IMP] New function split_n_rm_comment_lines
-* [IMP] Best package recognition algorithm
-
-2.1.0 (2025-09-05)
-~~~~~~~~~~~~~~~~~~
+* [IMP] Best Odoo version recognition
+* [QUA] Test coverage 65% (871: 306+565) [0 TestPoints] - quality rating 38 (target 100)2.1.0 (2025-09-05)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] New class Package
 * [IMP] python 3.12 is certificated programming language
@@ -144,10 +143,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

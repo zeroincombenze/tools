@@ -1,4 +1,4 @@
-2.1.1 (2025-09-20)
+2.1.1 (2025-09-23)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Clean code
@@ -6,9 +6,8 @@
 * [IMP] run_traced: default humdrum=1
 * [IMP] New function wep_stdout
 * [IMP] New function split_n_rm_comment_lines
-* [IMP] Best package recognition algorithm
-
-2.1.0 (2025-09-05)
+* [IMP] Best Odoo version recognition
+* [QUA] Test coverage 65% (871: 306+565) [0 TestPoints] - quality rating 38 (target 100)2.1.0 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] New class Package
@@ -139,3 +138,4 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring for shell scripts
+
