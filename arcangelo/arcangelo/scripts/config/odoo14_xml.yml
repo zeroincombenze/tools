@@ -12,3 +12,71 @@ binding_model:
       args:
       - 'src_model="([^"]*)"'
       - 'binding_model="\1"'
+tag_t_out:
+  search: '<t-out'
+  do:
+    - action: 's'
+      args:
+        - '<t-out'
+        - '<t-raw'
+no_tag_act_windows:
+  search: '<act_window .*?>'
+  do:
+    - action: 's'
+      args:
+        - '<act_window'
+        - '<record model="ir.actions.act_window"'
+    - action: 's'
+      args:
+        - '\?name="(.*?)"'
+        - '<field name="name">\1</field>'
+    - action: 's'
+      args:
+        - '\?res_model="(.*?)"'
+        - '<field name="res_model">\1</field>'
+    - action: 's'
+      args:
+        - '\?view_mode="(.*?)"'
+        - '<field name="view_mode">\1</field>'
+    - action: 's'
+      args:
+        - '\?binding_view="(.*?)"'
+        - '<field name="binding_view_type">\1</field>'
+    - action: 's'
+      args:
+        - '\?target="(.*?)"'
+        - '<field name="target">\1</field>'
+    - action: 's'
+      args:
+        - '\?context="(.*?)"'
+        - '<field name="context">\1</field>'
+    - action: 's'
+      args:
+        - '\?binding_model="(.*?)"'
+        - '<field name="binding_model_id" ref="model_\1"/>'
+    - action: 's'
+      args:
+        - '\?groups="(.*?)"'
+        - '<field name="groups_id" eval="[(4, ref(''\1''))]"/>'
+tag_to_ref:
+  search: 'ref=".*?"'
+  do:
+    - action: 's'
+      args:
+        - '\.'
+        - '_'
+button_string_title:
+  search: '<button .*?>'
+  do:
+    - action: 's'
+      args:
+        - 'string='
+        - 'title='
+ir_actions_sudo:
+  search: 'self\.env\[["'']ir\.actions.*?["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.actions.*?)["'']'
+        - 'self.env["\1"].sudo()'

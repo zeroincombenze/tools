@@ -1,3 +1,9 @@
+2.0.24 (2025-09-27)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] testenv.py with Odoo 18.0
+* [QUA] Test coverage 21% (1031: 812+219) [0 TestPoints] - quality rating 15 (target 100)
+
 2.0.23 (2025-09-08)
 ~~~~~~~~~~~~~~~~~~~
 

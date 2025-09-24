@@ -4,3 +4,47 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final'
   include: 'odoo_python_no_api_multi'
+search_display_name:
+  search: '\b_search_display_name\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\b_search_display_name\b'
+      - '_name_search'
+has_cycle:
+  search: '\b_has_cycle\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\b_has_cycle\b'
+      - '_check_recursion'
+aggregator:
+  search: '\baggregator='
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\baggregator='
+      - 'group_operator='
+compute_display_name:
+  search: '\bname_get\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bname_get\b'
+      - '_compute_display_name'
+file_path:
+  search: '\bget_module_resource *\([^)]+?\)\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bget_module_resource\b'
+      - 'file_path'
+    - action: 's'
+      args:
+        - '["''], *["'']'
+        - '/'

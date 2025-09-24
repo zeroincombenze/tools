@@ -4,3 +4,27 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final'
   include: 'odoo_python_no_api_multi'
+search_display_name:
+  search: '\b_name_search\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\b_name_search\b'
+      - '_search_display_name'
+has_cycle:
+  search: '\b_check_recursion\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\b_check_recursion\b'
+      - '_has_cycle'
+aggregator:
+  search: '\bgroup_operator='
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bgroup_operator='
+      - 'aggregator='

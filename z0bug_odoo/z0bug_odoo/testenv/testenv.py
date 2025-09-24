@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
-"""Test Environment v2.0.23
+"""Test Environment v2.0.24
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -32,7 +32,7 @@ Your python test file have to contain some following example lines:
     class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super().setUp()
+            super(MyTest, self).setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
             # keep data after tests
@@ -40,7 +40,7 @@ Your python test file have to contain some following example lines:
             self.setup_env()                # Create test environment
 
         def tearDown(self):
-            super().tearDown()
+            super(MyTest, self).tearDown()
 
         def test_mytest(self):
             _logger.info(
@@ -210,7 +210,7 @@ following example:
     class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super().setUp()
+            super(MyTest, self).setUp()
             self.debug_level = 2
             self.setup_env()                # Create base test environment
 
@@ -1062,20 +1062,21 @@ class MainTest(test_common.TransactionCase):
         field = self.childs_name[resource]
         if values.get(field):
             return values
-            childs_resource = self.childs_resource[resource]
-            for child_xref in self.get_resource_data_list(childs_resource, group=group):
-                if child_xref.startswith(xref):
-                    record = self.resource_browse(
-                        child_xref,
-                        raise_if_not_found=False,
-                        resource=childs_resource,
-                        group=group,
-                        no_warning=True,
-                    )
-                    if record:
-                        values[field].append((1, record.id, child_xref))
-                    else:
-                        values[field].append((0, 0, child_xref))
+        values[field] = []
+        childs_resource = self.childs_resource[resource]
+        for child_xref in self.get_resource_data_list(childs_resource, group=group):
+            if child_xref.startswith(xref):
+                record = self.resource_browse(
+                    child_xref,
+                    raise_if_not_found=False,
+                    resource=childs_resource,
+                    group=group,
+                    no_warning=True,
+                )
+                if record:
+                    values[field].append((1, record.id, child_xref))
+                else:
+                    values[field].append((0, 0, child_xref))
         if (
             self.odoo_major_version >= 13
             and resource == "account.move"
@@ -1128,16 +1129,19 @@ class MainTest(test_common.TransactionCase):
         module, name = xref.split(".", 1)
         if module == "external":
             return False
-        ir_model = self.env["ir.model.data"]
+        if self.odoo_major_version < 11:
+            IrModelData = self.env["ir.model.data"]
+        else:
+            IrModelData = self.env["ir.model.data"].sudo()
         values = {
             "module": module,
             "name": name,
             "model": resource,
             "res_id": xid,
         }
-        xrefs = ir_model.search([("module", "=", module), ("name", "=", name)])
+        xrefs = IrModelData.search([("module", "=", module), ("name", "=", name)])
         if not xrefs:
-            return ir_model.create(values)
+            return IrModelData.create(values)
         xrefs[0].write(values)  # pragma: no cover
         return xrefs[0]  # pragma: no cover
 
@@ -1271,7 +1275,7 @@ class MainTest(test_common.TransactionCase):
         ftype = self.struct[resource][field]["type"]
         if ftype not in ("text", "binary", "html"):
             value = self._get_conveyed_value(resource, field, value, fmt=fmt)
-        if isinstance(value, str) or (
+        if isinstance(value, basestring) or (
             sys.version_info[0] == 2 and isinstance(value, unicode)
         ):
             x = re.match(r"(<\? *odoo)(.*)(\?>)", value)
@@ -2403,7 +2407,11 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def default_company(self):
-        return self.env.user.company_id
+        return (
+            self.env.user.company_id
+            if self.odoo_major_version < 14
+            else self.env.company
+        )
 
     def compute_date(self, date, refdate=None):
         """Compute date against reference date or today
@@ -2989,8 +2997,12 @@ class MainTest(test_common.TransactionCase):
                 "account.data_account_type_liquidity",
                 "bank_account_code_prefix",
             )
-        if self.env.user.company_id != company:
-            self.env.user.company_id = company  # pragma: no cover
+        if self.odoo_major_version < 14:
+            if self.env.user.company_id != company:
+                self.env.user.company_id = company  # pragma: no cover
+        else:
+            if self.env.company != company:
+                self.env.company = company  # pragma: no cover
         return self.default_company()
 
     def setup_env(
@@ -3040,7 +3052,8 @@ class MainTest(test_common.TransactionCase):
                 self.raise_error("No data supplied for %s" % resource)
 
         if not hasattr(self, "module"):
-            raise EnvironmentError("super().setUp() not called before test!")
+            raise EnvironmentError(
+                "super(MyTest, self).setUp() not called before test!")
         self.set_datadir(data_dir=data_dir, merge=merge)
         ix = found = False
         for ix in range(10):

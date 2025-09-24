@@ -52,7 +52,7 @@ setup(
         "zerobug>=2.0.20",
         "gitPython",
         "Click",
-        "z0lib>=2.1.0"
+        "z0lib>=2.1.1"
     ],
     packages=find_packages(exclude=["docs", "examples", "tests", "egg-info", "junk"]),
     package_data={

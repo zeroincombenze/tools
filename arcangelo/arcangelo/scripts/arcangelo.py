@@ -16,13 +16,11 @@ import mimetypes
 from python_plus import _b, _u, qsplit
 from z0lib import z0lib
 try:
-    import ConfigParser
-except ImportError:
-    import configparser as ConfigParser
-try:
     from . import license_mgnt
 except ImportError:  # pragma: no cover
     import license_mgnt
+
+from .arcangelo_syntax import Syntax, get_config_path
 
 __version__ = "2.1.1"
 
@@ -54,211 +52,6 @@ def is_device(path):
 
 def os_realpath(path):
     return pth.abspath(pth.expanduser(path))
-
-
-def get_config_path(fn, is_config=False):
-    items = [pth.dirname(os_realpath(__file__))]
-    if is_config:
-        items.append("config")
-    items.append(fn)
-    return pth.join(*items)
-
-
-class Syntax(object):
-    """The class syntax manages the rules to parse source of a specific language.
-    Syntax rules are grouped by states; i.e. after comment delimiter usual parsing is
-    broken. Some delimiters can shift from a state to another.
-    A language can have as many as possible states; some common states are known
-    globally.
-    Globals states are:
-        - "code": code parsing (initial state for almost languages)
-        - "rem_eol": comment until end of line
-        - "remark": multi line comment
-        - "mtext": multi line text (initial state for xml/html)
-        - "pre": preprocessor (c language)
-
-    Every state can manages multiple items, every item has the own parsing rule;
-    i.e. for object name regex rule may be "[a-zA-Z_][a-zA-Z0-9]*".
-    A language state can have as many as possible items which generates tokens; some
-    common items names are known across states. These common items are:
-        - "name": object or variable name
-        - "text": text constant
-        - "text#": alternate text constant (where # ia a digit from 2)
-        - "mtext": multi line text constant
-        - "int": integer constant
-        - "float" floating constant
-    When the name of item is in states, system switches to state; every state must
-    contains at least one name to switch another state. Only initial state, if is the
-    unique state, can miss escape name to switch states.
-    Items rule must cover all token kinds; to avoid infinite loop, system automatically
-    can adds 2 magic name: "nl", "s" and "other".
-    The item "nl" spits lines by "\n" (new line); then item "s" is space separator and
-    finally the item "other" capture any character not catched by rules.
-    """
-
-    def __init__(self, language):
-        config = ConfigParser.ConfigParser()
-        config_fqn = get_config_path(language + ".conf", is_config=True)
-        if not pth.isfile(config_fqn) and language == "manifest-python":
-            language = "python"
-            config_fqn = get_config_path(language + ".conf", is_config=True)
-        if not pth.isfile(config_fqn):
-            language = "unknown"
-            config_fqn = get_config_path(language + ".conf", is_config=True)
-        config.read(config_fqn)
-        if not config.has_section(language):
-            raise SyntaxError("File %s w/o section %s" % (config_fqn, language))
-        self.language = language
-        self.states = [x.strip()
-                       for x in config.get(language, "states").split(",")]
-        self.syntax_rules = {}
-        self.tok_regex = {}
-        self.re_s = self.re_nl = self.re_other = self.re_rem_eol = None
-        for state in self.states:
-            self.syntax_rules[state] = {}
-            magic_names = []
-            for (key, regex) in config.items(state):
-                if key == "magic_names":
-                    magic_names = [x.strip() for x in regex.split(",")]
-                    continue
-                self.syntax_rules[state][key] = re.compile(regex, re.M | re.S)
-                if key == "rem_eol":
-                    self.re_rem_eol = self.syntax_rules[state][key]
-            if any([k not in self.states
-                    for k in list(self.syntax_rules[state].keys())]):
-                simple_state = False
-                magic_names = magic_names or ["s", "nl", "other"]
-            else:
-                simple_state = True
-                magic_names = magic_names or ["nl", "other"]
-            for name in magic_names:
-                if name == "nl":
-                    if name not in self.syntax_rules[state].keys():
-                        self.re_nl = re.compile(r"\n", re.M | re.S)
-                    else:
-                        self.re_nl = self.syntax_rules[state][name]
-                        del self.syntax_rules[state][name]
-                elif name == "s":
-                    if name not in self.syntax_rules[state].keys():
-                        self.re_s = re.compile(r"\s+", re.M | re.S)
-                    else:
-                        self.re_s = self.syntax_rules[state][name]
-                        del self.syntax_rules[state][name]
-                elif name == "other":
-                    if name not in self.syntax_rules[state].keys():
-                        if simple_state and self.syntax_rules[state]:
-                            self.re_other = re.compile(
-                                ".*?[^%s]" % "".join(
-                                    [x.pattern[0]
-                                     if x.pattern[0] != "\\" else x.pattern[0:2]
-                                     for x in self.syntax_rules[state].values()]),
-                                re.M | re.S)
-                        else:
-                            self.re_other = re.compile(".", re.M | re.S)
-                    else:
-                        self.re_other = self.syntax_rules[state][name]
-                        del self.syntax_rules[state][name]
-
-    def get_next_mo(self, source):
-        if self.pos < len(source):
-            if self.re_nl:
-                mo = self.re_nl.match(source, self.pos)
-                if mo:
-                    return "nl", mo
-            if self.re_s:
-                mo = self.re_s.match(source, self.pos)
-                if mo:
-                    return "s", mo
-            for (kind, rex) in self.syntax_rules[self.state].items():
-                mo = rex.match(source, self.pos)
-                if mo:
-                    return kind, mo
-            if self.re_other:
-                mo = self.re_other.match(source, self.pos)
-                if mo:
-                    return "other", mo
-            print("No syntax rule found for <<<%-.16s>>> ... (state=%s)"
-                  % (source[self.pos:], self.state))
-            kind = "other"
-            pattern = "."
-            self.re_other = re.compile(pattern, re.M | re.S)
-            return kind, self.re_other.match(source, self.pos)
-        return None, None
-
-    def is_open_stmt(self):
-        return (self.parens + self.brackets + self.braces + self.quotes)
-
-    def action_nl(self, mo):
-        self.lineno += 1
-        self.linestart = mo.end()
-        if not self.is_open_stmt():
-            self.newline_pos.append(mo.end())
-
-    def save_self(self, value, kind):
-        return {
-            "pos": self.pos,
-            "value": value,
-            "kind": kind,
-        }
-
-    def multiple_action_nl(self, saved_self, source):
-        end = saved_self["pos"] + len(saved_self["value"])
-        if saved_self["kind"] == "mtext":
-            self.quotes = 1
-        while "\n" in saved_self["value"]:
-            mo = self.re_nl.search(source, saved_self["pos"])
-            if not mo or mo.end() > end:
-                break
-            self.action_nl(mo)
-            saved_self["pos"] = mo.end()
-        if saved_self["kind"] == "mtext":
-            self.quotes = 0
-
-    def tokenize(self, source, spaces=False):
-        self.state = self.states[0]
-        self.pos = 0
-        self.linestart = 0
-        self.lineno = 1
-        self.column = 1
-        self.pos = 0
-        self.parens = 0
-        self.brackets = 0
-        self.braces = 0
-        self.quotes = 0
-        self.newline_pos = [0]
-        self.language = None
-        saved_self = None
-        while self.pos < len(source):
-            if saved_self:
-                self.multiple_action_nl(saved_self, source)
-            kind, mo = self.get_next_mo(source)
-            value = mo.group()
-            saved_self = self.save_self(value, kind)
-            start = mo.start()
-            self.pos = end = mo.end()
-            self.column = start - self.linestart + 1
-            if kind in self.states:
-                self.state = kind
-            elif kind in ("nl", "s"):
-                if not spaces:
-                    continue
-            elif kind in ("nl", "s"):
-                continue
-            elif kind == "op_lparen":
-                self.parens += 1
-            elif kind == "op_rparen":
-                self.parens -= 1
-            elif kind == "op_lbracket":
-                self.brackets += 1
-            elif kind == "op_rbracket":
-                self.brackets -= 1
-            elif kind == "op_lbrace":
-                self.braces += 1
-            elif kind == "op_rbrace":
-                self.braces -= 1
-            yield (kind, value, self.lineno, self.column, start, end)
-        if saved_self:
-            self.multiple_action_nl(saved_self, source)
 
 
 class MigrateMeta(object):
@@ -806,6 +599,8 @@ class MigrateMeta(object):
 
     def load_all_config_rules(self, language=None):
         language = language or self.language
+        if language != "path":
+            self.language = language
         self.detect_mig_rules(language=language)
         prio = len(self.rule_categ) + 1 if language != "path" else 0
         for rule_cat in self.rule_categ:
@@ -898,7 +693,8 @@ class MigrateEnv(MigrateMeta):
     def __init__(self, opt_args):
         super().__init__()
         self.init_env_file()
-        if hasattr(self, "fqn") and any([x in self.fqn for x in opt_args.path]):
+        if hasattr(self, "fqn") and self.fqn and any(
+                [x in self.fqn for x in opt_args.path]):
             self.recognize_package(path=self.fqn, default_name=opt_args.package_name)
         elif opt_args.path:
             opt_args.path = [os_realpath(p) for p in opt_args.path]
@@ -1061,27 +857,49 @@ class MigrateFile(MigrateEnv):
     This class inherits some properties from Migration Environment
     Rules mime depends on file: "manifest-python", "python", "xml", "history", etc.
     """
-    def __init__(self, opt_args, fqn):
+    def __init__(self, opt_args, fqn, language=None, source=None):
         self.fqn = fqn
         super().__init__(opt_args)
         self.init_env_file()
-        if self.opt_args.verbose > 0:
-            print("Reading %s ..." % self.fqn)
-        self.load_all_config_rules(language="path")
-        self.apply_rules_on_item(fqn)
-        self.out_fn = self.out_fn or pth.basename(self.fqn)
+        self.out_fn = None
+        self.sts = 0
+        self.tokenized = []
+        self.remarks = []
+        if self.fqn:
+            if self.opt_args.verbose > 0:
+                print("Reading %s ..." % self.fqn)
+            self.load_all_config_rules(language="path")
+            self.apply_rules_on_item(fqn)
+            self.out_fn = self.out_fn or pth.basename(self.fqn)
+            if self.sts or self.file_action in ("no", "rm", "ply"):
+                return
+        if language:
+            self.load_all_config_rules(language=language)
+        else:
+            self.load_all_config_rules()
         if self.sts or self.file_action in ("no", "rm", "ply"):
             return
-        self.load_all_config_rules()
-        if self.sts or self.file_action in ("no", "rm", "ply"):
-            return
-        self.read_source()
-        if self.sts or self.file_action in ("no", "rm", "ply"):
-            return
+        if source:
+            self.source = source
+        else:
+            self.read_source()
+            if self.sts or self.file_action in ("no", "rm", "ply"):
+                return
         self.syntax = Syntax(self.language)
         self.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
-        self.tokenize_source()
-        self.split_source_statements()
+        self.tokenize_source(check_shebang=True)
+
+    def clone_env(self, language, source):
+        new_env = self
+        new_env.fqn = new_env.out_fn = None
+        new_env.sts = 0
+        new_env.source = source
+        if language != new_env.language:
+            new_env.load_all_config_rules(language=language)
+        new_env.syntax = Syntax(self.language)
+        new_env.REX_CLOTAG = re.compile(r"<((td|tr)[^>]*)> *?</\2>")
+        new_env.tokenize_source()
+        return new_env
 
     def read_source(self):
         try:
@@ -1110,11 +928,16 @@ class MigrateFile(MigrateEnv):
                         self.syntax = Syntax(language)
                     break
 
-    def tokenize_source(self):
+    def tokenize_source(
+            self, hide_remark=False, check_shebang=False, split_statements=True):
         self.tokenized = []
-        self.check_shebang()
+        self.remarks = []
+        if check_shebang:
+            self.check_shebang()
         for token in self.syntax.tokenize(self.source):
             self.tokenized.append(token)
+        if split_statements:
+            self.split_source_statements()
 
     def init_env_file(self):
         super(MigrateFile, self).init_env_file()
@@ -1158,22 +981,28 @@ class MigrateFile(MigrateEnv):
         while (
                 len(self.statements) > 1
                 and self.statements[-1] == "\n"
-                and self.statements[-2] == "\n"
         ):
             del self.statements[-1]
-        if len(self.statements) and self.statements[-1] != "\n":
-            self.statements.append("\n")
+        target = "".join(self.statements).replace("\t", "    ")
+        if self.remarks:
+            for ix in range(len(self.remarks)):
+                pos = target.find("\v")
+                if pos < 0:
+                    break
+                target = target[:pos] + self.remarks[ix] + target[pos:]
         if self.language == "xml":
-            target = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
-            target += _u(ET.tostring(
-                ET.fromstring(_b("".join(self.statements).replace('\t', '    '))),
-                encoding="unicode", with_comments=True, pretty_print=True))
+            target = (
+                "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n"
+                + _u(ET.tostring(
+                    ET.fromstring(_b(target)),
+                    encoding="unicode",
+                    with_comments=True,
+                    pretty_print=True))
+            )
             mo = self.REX_CLOTAG.search(target)
             while mo:
                 target = self.REX_CLOTAG.sub(r"<\1/>", target)
                 mo = self.REX_CLOTAG.search(target)
-        else:
-            target = "".join(self.statements)
         if self.opt_args.analyze:
             colored_target = ""
             for (kind, value, row, column, start, end) in self.syntax.tokenize(
@@ -1337,6 +1166,120 @@ class MigrateFile(MigrateEnv):
                     ".", r"\.") + r")(\.[0-9]+(?:\.[0-9]+)*)\b",
                 self.package.release + r"\2",
                 self.statements[stmtno])
+        return False, 0
+
+    def cvt_attrs_formula(self, stmtno):
+        mo = re.search("attrs=\".*?\"", self.statements[stmtno])
+        if not mo:
+            self.raise_error(
+                "Internal error: attrs not found in %s!" % self.statements[stmtno])
+        source = mo.group().split("=", 1)[1][1: -1].strip()
+        unplugged = MigrateFile(self.opt_args, None, language="python", source=source)
+        formula = expr = and_or = pos = ""
+        state = ""
+        # states: {property:[query(expr)]}
+        for (kind, value, row, column, start, end) in unplugged.tokenized:
+            if kind in ("op_lbracket", "op_rbracket"):
+                continue
+            if kind == "op_lbrace":
+                state = "property"
+            elif state == "property":
+                if kind == "text":
+                    formula = value[1: -1]
+                elif value == ":":
+                    formula += "=\""
+                    state = ""
+            elif not state:
+                if value == "'|'":
+                    and_or = "or"
+                elif kind == "op_lparen":
+                    expr = ""
+                    state = "expr"
+                    pos = "left"
+                elif kind == "op_rparen":
+                    formula += expr
+                    if and_or:
+                        formula += " " + and_or + " "
+                        and_or = ""
+                elif kind == "op_rbrace":
+                    formula += "\""
+                    self.statements[stmtno] = self.statements[stmtno].replace(
+                        mo.group(), formula)
+                    formula = expr = and_or = pos = ""
+            elif state == "expr":
+                if value == ",":
+                    pass
+                elif pos == "left":
+                    expr = value[1: -1]
+                    pos = "op"
+                elif pos == "op":
+                    op = value[1: -1]
+                    if op == "=":
+                        op = "=="
+                    expr += " %s " % op
+                    pos = "right"
+                elif pos == "right":
+                    expr += value
+                    pos = state = ""
+                    if expr.endswith(" == False"):
+                        expr = "not " + expr.replace(" == False", "")
+        return False, 0
+
+    def cvt_formula_attrs(self, stmtno):
+        mo = re.search("(invisible|readonly)=\".*?\"", self.statements[stmtno])
+        if not mo:
+            self.raise_error(
+                "Internal error: invisible|readonly not found in %s!"
+                % self.statements[stmtno])
+        attr, source = mo.group().split("=", 1)
+        source = source[1: -1].strip()
+        unplugged = MigrateFile(self.opt_args, None, language="python", source=source)
+        expr = and_or = pos = ""
+        formula = "attrs="
+        state = ""
+        for (kind, value, row, column, start, end) in unplugged.tokenized:
+            if kind == "op_lbrace":
+                formula += "\""
+            if state == "property":
+                if kind == "text":
+                    formula = value[1: -1]
+                elif value == ":":
+                    formula += "=\""
+                    state = ""
+            elif not state:
+                if value == "'|'":
+                    and_or = "or"
+                elif kind == "op_lparen":
+                    expr = ""
+                    state = "expr"
+                    pos = "left"
+                elif kind == "op_rparen":
+                    formula += expr
+                    if and_or:
+                        formula += " " + and_or + " "
+                        and_or = ""
+                elif kind == "op_rbracket":
+                    formula += "\""
+                    self.statements[stmtno] = self.statements[stmtno].replace(
+                        mo.group(), formula)
+                    formula = expr = and_or = pos = ""
+            elif state == "expr":
+                if value == ",":
+                    pass
+                elif pos == "left":
+                    expr = value[1: -1]
+                    pos = "op"
+                elif pos == "op":
+                    op = value[1: -1]
+                    if op == "=":
+                        op = "=="
+                    expr += " %s " % op
+                    pos = "right"
+                elif pos == "right":
+                    expr += value
+                    pos = state = ""
+                    if expr.endswith(" == False"):
+                        expr = "not " + expr.replace(" == False", "")
         return False, 0
 
     def comparable_version(self, version):
@@ -1612,17 +1555,19 @@ class MigrateFile(MigrateEnv):
         test_res_msg = self.opt_args.test_res_msg.replace("\\n", "\n")
         if test_res_msg.startswith('"') or test_res_msg.startswith("'"):
             test_res_msg = test_res_msg[1: -1]
+        if not test_res_msg.endswith("\n"):
+            test_res_msg += "\n"
         mo = re.search("[0-9]+ TestPoint", test_res_msg)
-        if mo and "\n" in test_res_msg:
-            left_mesg, suppl = test_res_msg.split("\n", 1)
-            right_mesg = left_mesg[mo.end() - 10:]
-            ctr = int(left_mesg[mo.start():].split(" ", 1)[0])
-            left_mesg = left_mesg[: mo.start()]
-            for ln in suppl.split("\n"):
-                mo = re.search("[0-9]+ TestPoint", ln)
-                if mo:
-                    ctr += int(ln[mo.start(): mo.end() - 10])
-            test_res_msg = left_mesg + str(ctr) + right_mesg
+        # if mo and "\n" in test_res_msg:
+        #     left_mesg, suppl = test_res_msg.split("\n", 1)
+        #     right_mesg = left_mesg[mo.end() - 10:]
+        #     ctr = int(left_mesg[mo.start():].split(" ", 1)[0])
+        #     left_mesg = left_mesg[: mo.start()]
+        #     for ln in suppl.split("\n"):
+        #         mo = re.search("[0-9]+ TestPoint", ln)
+        #         if mo:
+        #             ctr += int(ln[mo.start(): mo.end() - 10])
+        #     test_res_msg = left_mesg + str(ctr) + right_mesg
 
         last_date = None
         found_list = False
@@ -1657,7 +1602,7 @@ class MigrateFile(MigrateEnv):
             else:
                 if stmtno >= len(self.statements) or self.statements[stmtno]:
                     stmtno -= 1
-                self.statements.insert(stmtno, test_res_msg + "\n")
+                self.statements.insert(stmtno, test_res_msg)
                 if not self.opt_args.dry_run:
                     with open(self.fqn, "w", encoding="utf-8") as fd:
                         fd.write("\n".join(self.statements))
@@ -1695,7 +1640,7 @@ class MigrateFile(MigrateEnv):
     def format_file(self, out_fqn):
         prettier_config = False
         black_config = False
-        path = pth.dirname(os_realpath(out_fqn))
+        path = pth.dirname(out_fqn)
         out_fqn_dir_path = path
         while not prettier_config and not black_config:
             if pth.isfile(pth.join(path, ".pre-commit-config.yaml")):
@@ -1774,10 +1719,11 @@ class MigrateFile(MigrateEnv):
             out_fqn = "--"
         else:
             out_fqn = pth.join(pth.dirname(self.fqn), self.out_fn)
+        new_source = self.join_source_statements()
         if not self.file_action and (
                 self.opt_args.lint_anyway
                 or out_fqn != self.fqn
-                or self.source != self.join_source_statements()
+                or self.source != new_source
         ):
             if not is_device(out_fqn) and not self.opt_args.in_place:
                 bakfile = '%s.bak' % out_fqn
@@ -1790,7 +1736,7 @@ class MigrateFile(MigrateEnv):
                     self.print_output()
                 else:
                     with open(out_fqn, "w", encoding="utf-8") as fd:
-                        fd.write(self.join_source_statements())
+                        fd.write(new_source)
             if not is_device(out_fqn):
                 if not self.opt_args.no_parse_with_formatter:
                     self.format_file(out_fqn)
@@ -1928,6 +1874,7 @@ def main(cli_args=None):
     )
     parser.add_argument('path', nargs="*")
     opt_args = parser.parse_args(cli_args)
+
     if (
             opt_args.git_merge_conflict
             and opt_args.git_merge_conflict not in ("left", "right")
@@ -1963,6 +1910,7 @@ def main(cli_args=None):
         return 2
 
     for path in opt_args.path:
+        path = os_realpath(path)
         if pth.isdir(path):
             migrate_env = MigrateEnv(opt_args)
             if (

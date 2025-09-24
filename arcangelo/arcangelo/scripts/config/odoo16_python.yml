@@ -4,3 +4,47 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final'
   include: 'odoo_python_no_api_multi'
+compute_display_name:
+  search: '\b_compute_display_name\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\b_compute_display_name\b'
+      - 'name_get'
+file_path:
+  search: '\bfile_path *\((["''])[^)]+?\)\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bfile_path\b'
+      - 'get_module_resource'
+    - action: 's'
+      args:
+        - '/'
+        - '\1, \1'
+_fields:
+  search: '\bfields_get\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '\bfields_get\(\)'
+      - '_fields'
+fields_keys:
+  search: '\bfields_get_keys\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\bfields_get_keys\(\)'
+        - '_fields.keys()'
+fields_get_keys:
+  search: '\bfields_get_keys\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\bfields_get_keys\(\)'
+        - 'get_views()'

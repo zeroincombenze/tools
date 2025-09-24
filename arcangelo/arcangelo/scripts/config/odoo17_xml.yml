@@ -1,3 +1,44 @@
 include_odoo_xml_new_api:
   ctx: 'final'
   include: 'odoo_xml_new_api'
+tag_list:
+  search: '(</?)list'
+  do:
+    - action: 's'
+      args:
+        - '(</?)list'
+        - '\1tree'
+context_id:
+  search: 'context=".*\bactive_id\b"'
+  do:
+    - action: 's'
+      args:
+        - '\bactive_id'
+        - 'id'
+cvt_attrs_formula:
+  search: 'attrs=".*?"'
+  do:
+    - action: '$'
+      args:
+        - 'cvt_attrs_formula'
+app_settings_block:
+  search: '<div( *[^\s]* )class="app_settings_block"'
+  do:
+    - action: 's'
+      args:
+        - '<div( *[^\s]* )class="app_settings_block"'
+        - '<app\1'
+o_settings_container:
+  search: '<div( *[^\s]* )class="o_settings_container"'
+  do:
+    - action: 's'
+      args:
+        - '<div( *[^\s]* )class="o_settings_container"'
+        - '<block\1'
+o_setting_box:
+  search: '<div( *[^\s]* )class="o_setting_box"'
+  do:
+    - action: 's'
+      args:
+        - '<div( *[^\s]* )class="o_setting_box"'
+        - '<setting\1'

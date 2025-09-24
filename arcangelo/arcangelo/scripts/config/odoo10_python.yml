@@ -92,3 +92,19 @@ MailDeliveryException:
       args:
       - odoo.addons.base.models.ir_mail_server
       - odoo.addons.base.ir.ir_mail_server
+ir_model_sudo:
+  search: 'self\.env\[["'']ir\.config_parameter["''].sudo\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.config_parameter)["''].sudo\(\)'
+        - 'self.env["ir.config_parameter"]'
+env_ref:
+  search: 'self\.env\[["'']ir.model.data["'']\]\.xmlid_to_res_model_res_id\('
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["'']ir.model.data["'']\]\.xmlid_to_res_model_res_id\('
+        - 'self.env.ref('

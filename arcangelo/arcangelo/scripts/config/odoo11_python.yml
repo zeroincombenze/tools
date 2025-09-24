@@ -20,3 +20,11 @@ oerplib3:
       args:
       - oerplib
       - oerplib3
+ir_model_sudo:
+  search: 'self\.env\[["'']ir\.config_parameter["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.config_parameter)["'']'
+        - 'self.env["ir.config_parameter"].sudo()'
