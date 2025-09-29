@@ -36,3 +36,11 @@ ir_model_sudo:
       args:
         - 'self\.env\[["''](ir\.model.*?)["'']'
         - 'self.env["\1"].sudo()'
+xmlid_to_res_model_res_id(:
+  search: '\bxmlid_to_res_model_res_id\('
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\bxmlid_to_res_model_res_id\('
+        - '\b_xmlid_to_res_model_res_id('

@@ -20,3 +20,11 @@ self_env_company:
       args:
         - 'self\.env\.user\.company_id'
         - 'self.env.company'
+xmlid_to_res_model_res_id(:
+  search: '\b_xmlid_to_res_model_res_id\('
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\b_xmlid_to_res_model_res_id\('
+        - '\bxmlid_to_res_model_res_id('

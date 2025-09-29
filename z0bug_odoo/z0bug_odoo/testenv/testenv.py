@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
+# -*- coding: utf-8 -*-
 """Test Environment v2.0.24
 
 You can locate the recent testenv.py in testenv directory of module
@@ -534,7 +534,7 @@ except ImportError:
     except ImportError:
         release = None
 if release:
-    if int(release.major_version.split(".")[0]) < 10:
+    if int(release.major_version.split(".")[0]) < 10:  # pragma: no cover
         if int(release.major_version.split(".")[0]) > 7:
             from openerp import api  # noqa: F401
         import openerp.tests.common as test_common
@@ -1171,6 +1171,10 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _get_model_of_xref(self, xref):
+        if self.odoo_major_version <= 14:
+            xmlid_2_res_model_id = self.env["ir.model.data"].xmlid_to_res_model_res_id
+        else:
+            xmlid_2_res_model_id = self.env["ir.model.data"]._xmlid_to_res_model_res_id
         resource = name = ln = None
         if xref in self.setup_xrefs:
             group, resource = self.setup_xrefs[xref]
@@ -1180,13 +1184,9 @@ class MainTest(test_common.TransactionCase):
                 group, resource = self.setup_xrefs[name]
                 resource = self.childs_resource.get(resource, resource)
         if not resource:
-            resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
-                xref, raise_if_not_found=False
-            )
+            resource, res_id = xmlid_2_res_model_id(xref, raise_if_not_found=False)
             if not resource and name and ln:
-                resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
-                    name, raise_if_not_found=False
-                )
+                resource, res_id = xmlid_2_res_model_id(name, raise_if_not_found=False)
                 resource = self.childs_resource.get(resource, resource)
             if resource:
                 self.setup_xrefs[xref] = (None, resource)
@@ -1275,7 +1275,7 @@ class MainTest(test_common.TransactionCase):
         ftype = self.struct[resource][field]["type"]
         if ftype not in ("text", "binary", "html"):
             value = self._get_conveyed_value(resource, field, value, fmt=fmt)
-        if isinstance(value, basestring) or (
+        if isinstance(value, str) or (
             sys.version_info[0] == 2 and isinstance(value, unicode)
         ):
             x = re.match(r"(<\? *odoo)(.*)(\?>)", value)
@@ -1652,7 +1652,7 @@ class MainTest(test_common.TransactionCase):
             items = []
         for item in items:
             if isinstance(item, basestring):
-                # xref (exists)           -> (6,0,[id])       / [id]
+                # xref (exists)           -> (4,[id])         / [id]
                 # xref (not exists)       -> (0,0,dict)       / dict
                 xid = self._get_xref_id(child_resource, item, fmt=fmt, group=group)
                 if not xid and self.get_resource_data(child_resource, item):
@@ -1667,7 +1667,7 @@ class MainTest(test_common.TransactionCase):
                 elif xid == item and fmt:  # pragma: no cover
                     self.raise_error("Unknown value %s of %s" % (item, items))
                 elif xid:
-                    res.append((6, 0, [xid]) if fmt == "cmd" else xid)
+                    res.append((4, xid) if fmt == "cmd" else xid)
                 is_cmd = True
                 levl = 0
             elif isinstance(item, dict):
@@ -1678,9 +1678,9 @@ class MainTest(test_common.TransactionCase):
                 is_cmd = True
                 levl = 0
             elif isinstance(item, (list, tuple)) and levl == 0:
-                # [xref] (exists)         -> (6,0,[id])       / [id]
+                # [xref] (exists)         -> (4,[id])       / [id]
                 # [xref] (not exists)     -> (0,0,dict)       / dict
-                # [xref,...] (exists)     -> (6,0,[ids])      / [ids]
+                # [xref,...] (exists)     -> (4,[ids])      / [ids]
                 # [xref,...] (not exists) -> (0,0,dict),(...) / dict,...
                 res.append(
                     self._cast_2many(
@@ -1688,7 +1688,7 @@ class MainTest(test_common.TransactionCase):
                     )
                 )
             elif isinstance(item, (list, tuple)) and levl > 0:
-                # '(6,0,ids)'         -> ids
+                # '(4,ids)'         -> ids
                 res.append(
                     self._cast_2many(
                         resource, field, item, group=group, fmt="id", levl=levl + 1
@@ -3075,7 +3075,7 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.23 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.24 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(
