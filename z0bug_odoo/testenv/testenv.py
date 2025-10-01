@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 # pylint: skip-file
-"""Test Environment v2.0.23
+# -*- coding: utf-8 -*-
+"""Test Environment v2.0.24
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -32,7 +32,7 @@ Your python test file have to contain some following example lines:
     class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super().setUp()
+            super(MyTest, self).setUp()
             # Add following statement just for get debug information
             self.debug_level = 2
             # keep data after tests
@@ -40,7 +40,7 @@ Your python test file have to contain some following example lines:
             self.setup_env()                # Create test environment
 
         def tearDown(self):
-            super().tearDown()
+            super(MyTest, self).tearDown()
 
         def test_mytest(self):
             _logger.info(
@@ -210,7 +210,7 @@ following example:
     class MyTest(SingleTransactionCase):
 
         def setUp(self):
-            super().setUp()
+            super(MyTest, self).setUp()
             self.debug_level = 2
             self.setup_env()                # Create base test environment
 
@@ -534,17 +534,22 @@ except ImportError:
     except ImportError:
         release = None
 if release:
-    if int(release.major_version.split(".")[0]) < 10:
+    if int(release.major_version.split(".")[0]) < 10:  # pragma: no cover
         if int(release.major_version.split(".")[0]) > 7:
             from openerp import api  # noqa: F401
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
         from openerp.modules.module import get_module_resource  # noqa: F401
-    else:
+    elif int(release.major_version.split(".")[0]) < 17:  # pragma: no cover
         from odoo import api  # noqa: F401
         import odoo.tests.common as test_common
         from odoo.modules.module import get_module_resource  # noqa: F401
         from odoo.tools.safe_eval import safe_eval
+    else:
+        from odoo import api  # noqa: F401
+        import odoo.tests.common as test_common
+        from odoo.tools.safe_eval import safe_eval
+        from odoo.tools.misc import file_path
 
 import python_plus
 from z0bug_odoo import z0bug_odoo_lib
@@ -978,7 +983,8 @@ class MainTest(test_common.TransactionCase):
         )
 
     def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
-        def get_default_data_dir():
+
+        def _get_default_data_dir16():
             for data_dir in (
                 get_module_resource(self.module.name, "tests", "data"),
                 get_module_resource(self.module.name, "data"),
@@ -987,6 +993,21 @@ class MainTest(test_common.TransactionCase):
                 if data_dir and os.path.isdir(data_dir):
                     return data_dir
             return None
+
+        def _get_default_data_dir17():
+            for data_dir in (
+                file_path(os.path.join(self.module.name, "tests", "data")),
+                file_path(os.path.join(self.module.name, "data")),
+                file_path(os.path.join(self.module.name, "tests",)),
+            ):
+                if data_dir and os.path.isdir(data_dir):
+                    return data_dir
+            return None
+
+        def get_default_data_dir():
+            if self.odoo_major_version < 17:
+                return _get_default_data_dir16()
+            return _get_default_data_dir17()
 
         if merge not in ("local", "zerobug"):  # pragma: no cover
             self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
@@ -1062,20 +1083,21 @@ class MainTest(test_common.TransactionCase):
         field = self.childs_name[resource]
         if values.get(field):
             return values
-            childs_resource = self.childs_resource[resource]
-            for child_xref in self.get_resource_data_list(childs_resource, group=group):
-                if child_xref.startswith(xref):
-                    record = self.resource_browse(
-                        child_xref,
-                        raise_if_not_found=False,
-                        resource=childs_resource,
-                        group=group,
-                        no_warning=True,
-                    )
-                    if record:
-                        values[field].append((1, record.id, child_xref))
-                    else:
-                        values[field].append((0, 0, child_xref))
+        values[field] = []
+        childs_resource = self.childs_resource[resource]
+        for child_xref in self.get_resource_data_list(childs_resource, group=group):
+            if child_xref.startswith(xref):
+                record = self.resource_browse(
+                    child_xref,
+                    raise_if_not_found=False,
+                    resource=childs_resource,
+                    group=group,
+                    no_warning=True,
+                )
+                if record:
+                    values[field].append((1, record.id, child_xref))
+                else:
+                    values[field].append((0, 0, child_xref))
         if (
             self.odoo_major_version >= 13
             and resource == "account.move"
@@ -1128,16 +1150,19 @@ class MainTest(test_common.TransactionCase):
         module, name = xref.split(".", 1)
         if module == "external":
             return False
-        ir_model = self.env["ir.model.data"]
+        if self.odoo_major_version < 11:
+            IrModelData = self.env["ir.model.data"]
+        else:
+            IrModelData = self.env["ir.model.data"].sudo()
         values = {
             "module": module,
             "name": name,
             "model": resource,
             "res_id": xid,
         }
-        xrefs = ir_model.search([("module", "=", module), ("name", "=", name)])
+        xrefs = IrModelData.search([("module", "=", module), ("name", "=", name)])
         if not xrefs:
-            return ir_model.create(values)
+            return IrModelData.create(values)
         xrefs[0].write(values)  # pragma: no cover
         return xrefs[0]  # pragma: no cover
 
@@ -1167,6 +1192,10 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def _get_model_of_xref(self, xref):
+        if self.odoo_major_version <= 14:
+            xmlid_2_res_model_id = self.env["ir.model.data"].xmlid_to_res_model_res_id
+        else:
+            xmlid_2_res_model_id = self.env["ir.model.data"]._xmlid_to_res_model_res_id
         resource = name = ln = None
         if xref in self.setup_xrefs:
             group, resource = self.setup_xrefs[xref]
@@ -1176,13 +1205,9 @@ class MainTest(test_common.TransactionCase):
                 group, resource = self.setup_xrefs[name]
                 resource = self.childs_resource.get(resource, resource)
         if not resource:
-            resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
-                xref, raise_if_not_found=False
-            )
+            resource, res_id = xmlid_2_res_model_id(xref, raise_if_not_found=False)
             if not resource and name and ln:
-                resource, res_id = self.env["ir.model.data"].xmlid_to_res_model_res_id(
-                    name, raise_if_not_found=False
-                )
+                resource, res_id = xmlid_2_res_model_id(name, raise_if_not_found=False)
                 resource = self.childs_resource.get(resource, resource)
             if resource:
                 self.setup_xrefs[xref] = (None, resource)
@@ -1648,7 +1673,7 @@ class MainTest(test_common.TransactionCase):
             items = []
         for item in items:
             if isinstance(item, basestring):
-                # xref (exists)           -> (6,0,[id])       / [id]
+                # xref (exists)           -> (4,[id])         / [id]
                 # xref (not exists)       -> (0,0,dict)       / dict
                 xid = self._get_xref_id(child_resource, item, fmt=fmt, group=group)
                 if not xid and self.get_resource_data(child_resource, item):
@@ -1663,7 +1688,7 @@ class MainTest(test_common.TransactionCase):
                 elif xid == item and fmt:  # pragma: no cover
                     self.raise_error("Unknown value %s of %s" % (item, items))
                 elif xid:
-                    res.append((6, 0, [xid]) if fmt == "cmd" else xid)
+                    res.append((4, xid) if fmt == "cmd" else xid)
                 is_cmd = True
                 levl = 0
             elif isinstance(item, dict):
@@ -1674,9 +1699,9 @@ class MainTest(test_common.TransactionCase):
                 is_cmd = True
                 levl = 0
             elif isinstance(item, (list, tuple)) and levl == 0:
-                # [xref] (exists)         -> (6,0,[id])       / [id]
+                # [xref] (exists)         -> (4,[id])       / [id]
                 # [xref] (not exists)     -> (0,0,dict)       / dict
-                # [xref,...] (exists)     -> (6,0,[ids])      / [ids]
+                # [xref,...] (exists)     -> (4,[ids])      / [ids]
                 # [xref,...] (not exists) -> (0,0,dict),(...) / dict,...
                 res.append(
                     self._cast_2many(
@@ -1684,7 +1709,7 @@ class MainTest(test_common.TransactionCase):
                     )
                 )
             elif isinstance(item, (list, tuple)) and levl > 0:
-                # '(6,0,ids)'         -> ids
+                # '(4,ids)'         -> ids
                 res.append(
                     self._cast_2many(
                         resource, field, item, group=group, fmt="id", levl=levl + 1
@@ -2403,7 +2428,11 @@ class MainTest(test_common.TransactionCase):
 
     @api.model
     def default_company(self):
-        return self.env.user.company_id
+        return (
+            self.env.user.company_id
+            if self.odoo_major_version < 14
+            else self.env.company
+        )
 
     def compute_date(self, date, refdate=None):
         """Compute date against reference date or today
@@ -2989,8 +3018,12 @@ class MainTest(test_common.TransactionCase):
                 "account.data_account_type_liquidity",
                 "bank_account_code_prefix",
             )
-        if self.env.user.company_id != company:
-            self.env.user.company_id = company  # pragma: no cover
+        if self.odoo_major_version < 14:
+            if self.env.user.company_id != company:
+                self.env.user.company_id = company  # pragma: no cover
+        else:
+            if self.env.company != company:
+                self.env.company = company  # pragma: no cover
         return self.default_company()
 
     def setup_env(
@@ -3040,7 +3073,8 @@ class MainTest(test_common.TransactionCase):
                 self.raise_error("No data supplied for %s" % resource)
 
         if not hasattr(self, "module"):
-            raise EnvironmentError("super().setUp() not called before test!")
+            raise EnvironmentError(
+                "super(MyTest, self).setUp() not called before test!")
         self.set_datadir(data_dir=data_dir, merge=merge)
         ix = found = False
         for ix in range(10):
@@ -3062,7 +3096,7 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.23 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.24 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(

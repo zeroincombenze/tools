@@ -292,7 +292,7 @@ from subprocess import PIPE, Popen
 
 standard_library.install_aliases()  # noqa: E402
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

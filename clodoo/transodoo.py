@@ -55,7 +55,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 VERSIONS = [
     "6.1",
     "7.0",
@@ -129,7 +129,7 @@ def is_hash(name):
 
 def set_hash(ttype, name, ver_names):
     if ttype == "name":
-        return name.upper()
+        return name.upper() if name else ""
     key = name if ttype in ("value", "valuetnl") else ""
     for item in ver_names:
         if key:
@@ -381,7 +381,7 @@ def previous_ver_name(ver_name, orig_name):
                 version,
                 ver_name[x.end():],
             )
-        if "6.0" in ver_name:
+        if "6.0" in ver_name and "16.0" not in ver_name:
             ver_name = ver_name.replace("6.0", "6.1")
     return ver_name
 
@@ -831,7 +831,8 @@ def main(cli_args=None):
         "-f", "--from-branch", action="store", dest="oe_from_ver", default=""
     )
     parser.add_argument(
-        "-k", "--kind", action="store", dest="opt_kind", default="field"
+        "-k", "--kind", action="store", dest="opt_kind", default="field",
+        help="field|action|xref|model|module|merge|value|valuetnl"
     )
     parser.add_argument(
         "-l", "--language", action="store", dest="opt_lang", default="it_IT"
