@@ -540,11 +540,16 @@ if release:
         import openerp.tests.common as test_common
         from openerp import workflow  # noqa: F401
         from openerp.modules.module import get_module_resource  # noqa: F401
-    else:
+    elif int(release.major_version.split(".")[0]) < 17:  # pragma: no cover
         from odoo import api  # noqa: F401
         import odoo.tests.common as test_common
         from odoo.modules.module import get_module_resource  # noqa: F401
         from odoo.tools.safe_eval import safe_eval
+    else:
+        from odoo import api  # noqa: F401
+        import odoo.tests.common as test_common
+        from odoo.tools.safe_eval import safe_eval
+        from odoo.tools.misc import file_path
 
 import python_plus
 from z0bug_odoo import z0bug_odoo_lib
@@ -978,7 +983,8 @@ class MainTest(test_common.TransactionCase):
         )
 
     def set_datadir(self, data_dir=None, merge="local", raise_if_not_found=True):
-        def get_default_data_dir():
+
+        def _get_default_data_dir16():
             for data_dir in (
                 get_module_resource(self.module.name, "tests", "data"),
                 get_module_resource(self.module.name, "data"),
@@ -987,6 +993,21 @@ class MainTest(test_common.TransactionCase):
                 if data_dir and os.path.isdir(data_dir):
                     return data_dir
             return None
+
+        def _get_default_data_dir17():
+            for data_dir in (
+                file_path(os.path.join(self.module.name, "tests", "data")),
+                file_path(os.path.join(self.module.name, "data")),
+                file_path(os.path.join(self.module.name, "tests",)),
+            ):
+                if data_dir and os.path.isdir(data_dir):
+                    return data_dir
+            return None
+
+        def get_default_data_dir():
+            if self.odoo_major_version < 17:
+                return _get_default_data_dir16()
+            return _get_default_data_dir17()
 
         if merge not in ("local", "zerobug"):  # pragma: no cover
             self.raise_error("Invalid value %s ('zerobug' or 'local')" % merge)
