@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Usage &#8212; tools 2.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css?v=8fc2db88" />
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=44352c91"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 2.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
+</section>
+<section id="module-usage">
+<h1>Module usage<a class="headerlink" href="#module-usage" title="Permalink to this heading"></a></h1>
+<section id="gen-readme-py-usage">
+<h2>gen_readme.py usage<a class="headerlink" href="#gen-readme-py-usage" title="Permalink to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">ODOO_VID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">B</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">G</span> <span class="n">GIT_ORGID</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">OPT_GPL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">ODOO_LAYER</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">L</span> <span class="n">LANG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MODULE_NAME</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">M</span> <span class="n">FORCE_MATURITY</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT_FILE</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">P</span> <span class="n">PRODUCT_DOC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH_NAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">R</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">REPOS_NAME</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TEMPLATE_NAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">T</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">W</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="p">]</span>
+
+<span class="n">Generate</span> <span class="n">README</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">b</span> <span class="n">ODOO_VID</span><span class="p">,</span> <span class="o">--</span><span class="n">odoo</span><span class="o">-</span><span class="n">branch</span> <span class="n">ODOO_VID</span>
+  <span class="o">-</span><span class="n">B</span><span class="p">,</span> <span class="o">--</span><span class="n">debug</span><span class="o">-</span><span class="n">template</span>
+  <span class="o">-</span><span class="n">G</span> <span class="n">GIT_ORGID</span><span class="p">,</span> <span class="o">--</span><span class="n">git</span><span class="o">-</span><span class="n">org</span> <span class="n">GIT_ORGID</span>
+  <span class="o">-</span><span class="n">g</span> <span class="n">OPT_GPL</span><span class="p">,</span> <span class="o">--</span><span class="n">gpl</span><span class="o">-</span><span class="n">info</span> <span class="n">OPT_GPL</span>
+  <span class="o">-</span><span class="n">H</span><span class="p">,</span> <span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="n">index_html</span>
+  <span class="o">-</span><span class="n">l</span> <span class="n">ODOO_LAYER</span><span class="p">,</span> <span class="o">--</span><span class="n">layer</span> <span class="n">ODOO_LAYER</span>
+                        <span class="n">ocb</span><span class="o">|</span><span class="n">module</span><span class="o">|</span><span class="n">repository</span>
+  <span class="o">-</span><span class="n">L</span> <span class="n">LANG</span><span class="p">,</span> <span class="o">--</span><span class="n">lang</span> <span class="n">LANG</span>  <span class="n">iso</span> <span class="n">code</span>
+  <span class="o">-</span><span class="n">m</span> <span class="n">MODULE_NAME</span><span class="p">,</span> <span class="o">--</span><span class="n">module</span><span class="o">-</span><span class="n">name</span> <span class="n">MODULE_NAME</span>
+                        <span class="n">filename</span>
+  <span class="o">-</span><span class="n">M</span> <span class="n">FORCE_MATURITY</span><span class="p">,</span> <span class="o">--</span><span class="n">force</span><span class="o">-</span><span class="n">maturity</span> <span class="n">FORCE_MATURITY</span>
+                        <span class="n">Alfa</span><span class="p">,</span><span class="n">Beta</span><span class="p">,</span><span class="n">Mature</span><span class="p">,</span><span class="n">Production</span><span class="o">/</span><span class="n">stable</span>
+  <span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span>         <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT_FILE</span><span class="p">,</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">file</span> <span class="n">OUTPUT_FILE</span>
+                        <span class="n">filename</span>
+  <span class="o">-</span><span class="n">P</span> <span class="n">PRODUCT_DOC</span><span class="p">,</span> <span class="o">--</span><span class="n">product</span><span class="o">-</span><span class="n">doc</span> <span class="n">PRODUCT_DOC</span>
+                        <span class="n">may</span> <span class="n">be</span> <span class="n">odoo</span> <span class="ow">or</span> <span class="n">pypi</span>
+  <span class="o">-</span><span class="n">p</span> <span class="n">PATH_NAME</span><span class="p">,</span> <span class="o">--</span><span class="n">path</span><span class="o">-</span><span class="n">name</span> <span class="n">PATH_NAME</span>
+                        <span class="n">pathname</span>
+  <span class="o">-</span><span class="n">q</span><span class="p">,</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">silent</span> <span class="n">mode</span>
+  <span class="o">-</span><span class="n">R</span><span class="p">,</span> <span class="o">--</span><span class="n">rewrite</span><span class="o">-</span><span class="n">manifest</span>
+  <span class="o">-</span><span class="n">r</span> <span class="n">REPOS_NAME</span><span class="p">,</span> <span class="o">--</span><span class="n">repos_name</span> <span class="n">REPOS_NAME</span>
+                        <span class="n">dirname</span>
+  <span class="o">-</span><span class="n">t</span> <span class="n">TEMPLATE_NAME</span><span class="p">,</span> <span class="o">--</span><span class="n">template_name</span> <span class="n">TEMPLATE_NAME</span>
+                        <span class="n">filename</span>
+  <span class="o">-</span><span class="n">T</span><span class="p">,</span> <span class="o">--</span><span class="n">trace</span><span class="o">-</span><span class="n">file</span>
+  <span class="o">-</span><span class="n">V</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">verbose</span> <span class="n">mode</span>
+  <span class="o">-</span><span class="n">W</span><span class="p">,</span> <span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="n">authinfo</span>
+  <span class="o">-</span><span class="n">w</span><span class="p">,</span> <span class="o">--</span><span class="n">suppress</span><span class="o">-</span><span class="n">warning</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update Odoo module documentation</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">odoo_12</span><span class="o">/</span><span class="n">l10n</span><span class="o">-</span><span class="n">italy</span><span class="o">/</span><span class="n">l10n_it_balance</span> <span class="c1"># Odoo project directory</span>
+<span class="nb">dir</span> <span class="n">egg</span><span class="o">-</span><span class="n">info</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">authors</span><span class="o">.</span><span class="n">txt</span> <span class="n">contributors</span><span class="o">.</span><span class="n">txt</span> <span class="n">description</span><span class="o">.</span><span class="n">rst</span> <span class="fm">__init__</span><span class="o">.</span><span class="n">txt</span> <span class="n">known_issues</span><span class="o">.</span><span class="n">rst</span>
+<span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span>                           <span class="c1"># Generate README.rst of project</span>
+<span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">H</span>                        <span class="c1"># Generate index.html of project</span>
+
+<span class="c1"># Create index.rst of pypi module</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">dev</span><span class="o">/</span><span class="n">pypi</span><span class="o">/</span><span class="n">devel_tools</span><span class="o">/</span><span class="n">devel_tools</span><span class="o">/</span><span class="n">docs</span>
+<span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">t</span> <span class="n">module_index</span><span class="o">.</span><span class="n">rst</span> <span class="o">-</span><span class="n">o</span> <span class="n">index</span><span class="o">.</span><span class="n">rst</span> <span class="o">-</span><span class="n">B</span>
+
+<span class="c1"># Create README.rst of pypi module</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">dev</span><span class="o">/</span><span class="n">pypi</span><span class="o">/</span><span class="n">devel_tools</span><span class="o">/</span><span class="n">devel_tools</span>
+<span class="n">gen_readme</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</section>
+<section id="files-and-directories">
+<h2>Files and directories<a class="headerlink" href="#files-and-directories" title="Permalink to this heading"></a></h2>
+<p>Document structure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docs                              (1)
+┣━ index rst
+┣━ logozero_180x46.png
+┗━ rtd*  #                        (2)
+
+egg-info                          (3)
+┣━ __init__.txt
+┣━ description.rst
+┣━ descrizione.rst
+┣━ features.rst
+┣━ oca_diff.rst
+┣━ certifications.rst
+┣━ prerequisites.rst
+┣━ installation.rst
+┣━ configuration.rst
+┣━ upgrade.rst
+┣━ support.rst
+┣━ usage.rst
+┣━ maintenance.rst
+┣━ troubleshooting.rst
+┣━ known_issues.rst
+┣━ proposals_for_enhancement.rst
+┣━ history.rst
+┣━ faq.rst
+┣━ sponsor.rst
+┣━ copyright_notes.rst
+┣━ available_addons.rst
+┣━ contact_us.rst
+┣━ authors.txt
+┣━ contributors.txt
+┣━ translators.txt
+┗━ acknowledges.txt
+
+readme                            (4)
+┣━ CONTRIBUTORS.rst
+┣━ DESCRIPTION.rst
+┗━ *.rst  # (Other OCA docs)      (5)
+
+Notes:
+(1) Directory for Sphynx (PYPI projects)
+(2) Files generated from egg-info directory
+(3) Zeroincombenze document root
+(4) Oca document root
+(5) See OCA documentation
+</pre></div>
+</div>
+<p>Predefined template structure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>templates
+    ┣━ Odoo
+    ┃    ┣━ contact_us.rst
+    ┃    ┣━ default_authors.txt
+    ┃    ┣━ default_contributors.txt
+    ┃    ┣━ default_copyright_notes.rst
+    ┃    ┣━ default_description.rst
+    ┃    ┣━ default_descrizione.rst
+    ┃    ┣━ default_installation.rst
+    ┃    ┣━ default_maintenance.rst
+    ┃    ┣━ default_oca_diff.rst
+    ┃    ┣━ default_proposals_for_enhancement.rst
+    ┃    ┣━ default_quality
+    ┃    ┣━ endorsement.rst
+    ┃    ┣━ default_support.rst
+    ┃    ┣━ default_troubleshooting.rst
+    ┃    ┣━ default_upgrade.rst
+    ┃    ┣━ header_acknowledges.txt
+    ┃    ┣━ header_troubleshooting.rst
+    ┃    ┣━ ocb_description.rst
+    ┃    ┣━ ocb_descrizione.rst
+    ┃    ┣━ readme_footer.rst
+    ┃    ┣━ readme_header.rst
+    ┃    ┣━ readme_index.html
+    ┃    ┣━ readme_main_module.rst
+    ┃    ┣━ readme_main_ocb.rst
+    ┃    ┣━ readme_main_repository.rst
+    ┃    ┗━ readme_manifest.rst
+    ┃
+    ┗━ pypi
+         ┣━ default_contributors.txt
+         ┣━ default_installation.rst
+         ┣━ module_index.rst
+         ┣━ module_mainpage.rst
+         ┣━ readme_footer.rst
+         ┣━ readme_header.rst
+         ┣━ readme_main_module.rst
+         ┣━ readme_main_repository.rst
+         ┗━ repository_mainpage.rst
+</pre></div>
+</div>
+</section>
+<section id="statements">
+<h2>Statements<a class="headerlink" href="#statements" title="Permalink to this heading"></a></h2>
+<p>Every document or template can contains some control statement.
+A statement starts with “.. $” (dot dot space and dollar).</p>
+<p>Current supported statements are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.. $if CONDITION
+.. $elif CONDITION
+.. $else
+.. $fi
+
+.. $include FILENAME
+.. $set VAR EXPRESSION
+.. $merge_docs
+</pre></div>
+</div>
+<p>Notes: MACRO and VAR are the same object.
+In this documentation VAR means the name of the macro while MACRO is the name of the macro enclosed by doubel bracets.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>i.e.  .. $if branch == &#39;12.0&#39;
+      Current branch is 2.0
+</pre></div>
+</div>
+<p>In above example then word branch after statement $if ia the VAR branch.
+The word branch in the second line is a text. The item 2.0 is the macro, replaced by the value of varaibale branch.</p>
+<p>CONDITION may be a python condition or one of follow special condition:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>VAR in LIST
+where VAR is a variable to test and LIST is value list space separated
+i.e.
+.. $if branch in &#39;10.0&#39; &#39;11.0&#39; &#39;12.0&#39;
+</pre></div>
+</div>
+<p>FILE may be a file name. Supported file types are .rst and .csv</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>i.e.
+    .. $include my_description.rst
+    .. $include my_table.csv
+</pre></div>
+</div>
+</section>
+<section id="macro">
+<h2>Macro<a class="headerlink" href="#macro" title="Permalink to this heading"></a></h2>
+<p>Macro currently supported:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>acknowledges</p></td>
+<td><p>Acknowledges list</p></td>
+</tr>
+<tr class="row-even"><td><p>authors</p></td>
+<td><p>Authors list</p></td>
+</tr>
+<tr class="row-odd"><td><p>available_addons</p></td>
+<td><p>N/D</p></td>
+</tr>
+<tr class="row-even"><td><p>branch</p></td>
+<td><p>Odoo version for this repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>certifications</p></td>
+<td><p>Certificates list</p></td>
+</tr>
+<tr class="row-even"><td><p>contact_us</p></td>
+<td><p>Contact informations</p></td>
+</tr>
+<tr class="row-odd"><td><p>contributors</p></td>
+<td><p>Contributors list</p></td>
+</tr>
+<tr class="row-even"><td><p>configuration</p></td>
+<td><p>How to configure</p></td>
+</tr>
+<tr class="row-odd"><td><p>copyright_notes</p></td>
+<td><p>Copyright notes</p></td>
+</tr>
+<tr class="row-even"><td><p>description</p></td>
+<td><p>English description of the repository/module (mandatory)</p></td>
+</tr>
+<tr class="row-odd"><td><p>descrizione</p></td>
+<td><p>Descrizione modulo/progetto in italiano (obbligatoria)</p></td>
+</tr>
+<tr class="row-even"><td><p>doc-URL</p></td>
+<td><p>URL for button documentation</p></td>
+</tr>
+<tr class="row-odd"><td><p>faq</p></td>
+<td><p>Frequently asked questions</p></td>
+</tr>
+<tr class="row-even"><td><p>features</p></td>
+<td><p>Features of the repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPL</p></td>
+<td><p>same of gpl</p></td>
+</tr>
+<tr class="row-even"><td><p>git_orgid</p></td>
+<td><p>Git organization</p></td>
+</tr>
+<tr class="row-odd"><td><p>gpl</p></td>
+<td><p>License name: may be A-GPL or L-GPL</p></td>
+</tr>
+<tr class="row-even"><td><p>grymb_image_*</p></td>
+<td><p>Symbol imagae (suffix is a supported symbol name)</p></td>
+</tr>
+<tr class="row-odd"><td><p>help-URL</p></td>
+<td><p>URL for button help</p></td>
+</tr>
+<tr class="row-even"><td><p>history</p></td>
+<td><p>Changelog history</p></td>
+</tr>
+<tr class="row-odd"><td><p>known_issues</p></td>
+<td><p>Known issues</p></td>
+</tr>
+<tr class="row-even"><td><p>include</p></td>
+<td><p>files included (space separated) to read before writing document</p></td>
+</tr>
+<tr class="row-odd"><td><p>installation</p></td>
+<td><p>How to install</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>Module name (must be a python name)</p></td>
+</tr>
+<tr class="row-odd"><td><p>now</p></td>
+<td><p>Create timestamp</p></td>
+</tr>
+<tr class="row-even"><td><p>maintenance</p></td>
+<td><p>Maintenance information</p></td>
+</tr>
+<tr class="row-odd"><td><p>maturity</p></td>
+<td><p>Maturity status (alpha, beta, etc.)</p></td>
+</tr>
+<tr class="row-even"><td><p>module_name</p></td>
+<td><p>Module name</p></td>
+</tr>
+<tr class="row-odd"><td><p>OCA-URL</p></td>
+<td><p>URL to the same repository/module of OCA in github.com</p></td>
+</tr>
+<tr class="row-even"><td><p>oca_diff</p></td>
+<td><p>OCA comparation</p></td>
+</tr>
+<tr class="row-odd"><td><p>odoo_fver</p></td>
+<td><p>Odoo full version (deprecated)</p></td>
+</tr>
+<tr class="row-even"><td><p>odoo_majver</p></td>
+<td><p>Odoo major version; internal use to set some values</p></td>
+</tr>
+<tr class="row-odd"><td><p>odoo_layer</p></td>
+<td><p>Document layer, may be: ocb, module or repository</p></td>
+</tr>
+<tr class="row-even"><td><p>prerequisites</p></td>
+<td><p>Installation prerequisites</p></td>
+</tr>
+<tr class="row-odd"><td><p>prior_branch</p></td>
+<td><p>Previous Odoo version of this repository/module</p></td>
+</tr>
+<tr class="row-even"><td><p>prior2_branch</p></td>
+<td><p>Previous Odoo version of previous repository/module</p></td>
+</tr>
+<tr class="row-odd"><td><p>proposals_for_enhancement</p></td>
+<td><p>Proposals for enhancement text</p></td>
+</tr>
+<tr class="row-even"><td><p>pypi_modules</p></td>
+<td><p>pypi module list (may be set in __manifest__.rst)</p></td>
+</tr>
+<tr class="row-odd"><td><p>pypi_sects</p></td>
+<td><p>pypi section names to import (may be set in __manifest__.rst)</p></td>
+</tr>
+<tr class="row-even"><td><p>repos_name</p></td>
+<td><p>Repository/project name</p></td>
+</tr>
+<tr class="row-odd"><td><p>sponsor</p></td>
+<td><p>Sponsors list</p></td>
+</tr>
+<tr class="row-even"><td><p>sommario</p></td>
+<td><p>Traduzione italiana di summary</p></td>
+</tr>
+<tr class="row-odd"><td><p>submodules</p></td>
+<td><p>Sub module list (space separated) to document (only in pypi projects)</p></td>
+</tr>
+<tr class="row-even"><td><p>summary</p></td>
+<td><p>Repository/module summary (CR are translated into spaces)</p></td>
+</tr>
+<tr class="row-odd"><td><p>support</p></td>
+<td><p>Support informations</p></td>
+</tr>
+<tr class="row-even"><td><p>today</p></td>
+<td><p>Create date</p></td>
+</tr>
+<tr class="row-odd"><td><p>translators</p></td>
+<td><p>Translators list</p></td>
+</tr>
+<tr class="row-even"><td><p>troubleshooting</p></td>
+<td><p>Troubleshooting information</p></td>
+</tr>
+<tr class="row-odd"><td><p>try_me-URL</p></td>
+<td><p>URL for button try-me</p></td>
+</tr>
+<tr class="row-even"><td><p>upgrade</p></td>
+<td><p>How to upgrade</p></td>
+</tr>
+<tr class="row-odd"><td><p>usage</p></td>
+<td><p>How to usage</p></td>
+</tr>
+</tbody>
+</table>
+<p>Documentation may contains some graphical symbols in format |symbol|.
+Currently follows symbols are supported:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>check</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>DesktopTelematico</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md"><img alt="DesktopTelematico" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png" /></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>en</p></td>
+<td><p><a class="reference external" href="https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/"><img alt="en" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png" /></a></p></td>
+</tr>
+<tr class="row-even"><td><p>exclamation</p></td>
+<td><p><img alt="exclamation" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>FatturaPA</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md"><img alt="FatturaPA" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png" /></a></p></td>
+</tr>
+<tr class="row-even"><td><p>halt</p></td>
+<td><p><img alt="halt" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>info</p></td>
+<td><p><img alt="info" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>it</p></td>
+<td><p><a class="reference external" href="https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/"><img alt="it" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png" /></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>late</p></td>
+<td><p><img alt="late" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>menu</p></td>
+<td><p><img alt="menu" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>no_check</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>right_do</p></td>
+<td><p><img alt="right_do" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>same</p></td>
+<td><p><img alt="same" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>warning</p></td>
+<td><p><img alt="warning" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>xml_schema</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md"><img alt="xml_schema" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png" /></a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="macro-used-in-documentation-templates">
+<h2>Macro used in documentation templates<a class="headerlink" href="#macro-used-in-documentation-templates" title="Permalink to this heading"></a></h2>
+<p>Following macroes may be declared in package documentation, mainly in __init__.txt or in __manifest__.rst file with $set statement.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>include</p></td>
+<td><p>Document to include</p></td>
+</tr>
+<tr class="row-even"><td><p>no_pypi</p></td>
+<td><p>Value 1 means module is not a pypi package</p></td>
+</tr>
+<tr class="row-odd"><td><p>no_section_oca_diff</p></td>
+<td><p>If value is 1 the section oca_diff is skipped</p></td>
+</tr>
+<tr class="row-even"><td><p>submodules</p></td>
+<td><p>Declare sub-documents</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="odoo-dependecies-py-usage">
+<h2>odoo_dependecies.py usage<a class="headerlink" href="#odoo-dependecies-py-usage" title="Permalink to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">odoo_dependencies</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">A</span> <span class="p">{</span><span class="n">dep</span><span class="p">,</span><span class="n">help</span><span class="p">,</span><span class="n">jrq</span><span class="p">,</span><span class="n">mod</span><span class="p">,</span><span class="n">rev</span><span class="p">,</span><span class="n">tree</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">b</span> <span class="n">version</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">B</span> <span class="n">DEPENDS_BY</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">D</span> <span class="n">file</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">E</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">M</span> <span class="n">MODULES_TO_MATCH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">N</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">P</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">R</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">S</span> <span class="n">SEP_LIST</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">V</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                            <span class="p">[</span><span class="o">-</span><span class="n">x</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="p">[</span><span class="n">path_list</span> <span class="p">[</span><span class="n">path_list</span> <span class="o">...</span><span class="p">]]</span>
+
+<span class="n">Odoo</span> <span class="n">dependencies</span> <span class="n">management</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">path_list</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">A</span> <span class="p">{</span><span class="n">dep</span><span class="p">,</span><span class="n">help</span><span class="p">,</span><span class="n">jrq</span><span class="p">,</span><span class="n">mod</span><span class="p">,</span><span class="n">rev</span><span class="p">,</span><span class="n">tree</span><span class="p">},</span> <span class="o">--</span><span class="n">action</span> <span class="p">{</span><span class="n">dep</span><span class="p">,</span><span class="n">help</span><span class="p">,</span><span class="n">jrq</span><span class="p">,</span><span class="n">mod</span><span class="p">,</span><span class="n">rev</span><span class="p">,</span><span class="n">tree</span><span class="p">}</span>
+  <span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="o">--</span><span class="ow">and</span><span class="o">-</span><span class="nb">list</span>
+  <span class="o">-</span><span class="n">b</span> <span class="n">version</span><span class="p">,</span> <span class="o">--</span><span class="n">branch</span> <span class="n">version</span>
+                        <span class="n">Odoo</span> <span class="n">branch</span>
+  <span class="o">-</span><span class="n">B</span> <span class="n">DEPENDS_BY</span><span class="p">,</span> <span class="o">--</span><span class="n">depends</span><span class="o">-</span><span class="n">by</span> <span class="n">DEPENDS_BY</span>
+  <span class="o">-</span><span class="n">c</span> <span class="n">file</span><span class="p">,</span> <span class="o">--</span><span class="n">config</span> <span class="n">file</span>
+                        <span class="n">configuration</span> <span class="n">command</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">D</span> <span class="n">file</span><span class="p">,</span> <span class="o">--</span><span class="n">dbname</span> <span class="n">file</span>
+                        <span class="n">DB</span> <span class="n">name</span>
+  <span class="o">-</span><span class="n">E</span><span class="p">,</span> <span class="o">--</span><span class="n">only</span><span class="o">-</span><span class="n">missed</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">external</span><span class="o">-</span><span class="n">dependencies</span>
+  <span class="o">-</span><span class="n">H</span><span class="p">,</span> <span class="o">--</span><span class="n">action</span><span class="o">-</span><span class="n">help</span>
+  <span class="o">-</span><span class="n">M</span> <span class="n">MODULES_TO_MATCH</span><span class="p">,</span> <span class="o">--</span><span class="n">modules</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">match</span> <span class="n">MODULES_TO_MATCH</span>
+  <span class="o">-</span><span class="n">m</span><span class="p">,</span> <span class="o">--</span><span class="n">action</span><span class="o">-</span><span class="n">modules</span>
+  <span class="o">-</span><span class="n">N</span><span class="p">,</span> <span class="o">--</span><span class="n">only</span><span class="o">-</span><span class="n">count</span>
+  <span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="o">--</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span>         <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="ow">or</span><span class="o">-</span><span class="nb">list</span>
+  <span class="o">-</span><span class="n">P</span><span class="p">,</span> <span class="o">--</span><span class="n">pure</span><span class="o">-</span><span class="nb">list</span>
+  <span class="o">-</span><span class="n">q</span><span class="p">,</span> <span class="o">--</span><span class="n">quiet</span>           <span class="n">silent</span> <span class="n">mode</span>
+  <span class="o">-</span><span class="n">R</span><span class="p">,</span> <span class="o">--</span><span class="n">recurse</span>
+  <span class="o">-</span><span class="n">S</span> <span class="n">SEP_LIST</span><span class="p">,</span> <span class="o">--</span><span class="n">sep</span><span class="o">-</span><span class="nb">list</span> <span class="n">SEP_LIST</span>
+  <span class="o">-</span><span class="n">V</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>         <span class="n">verbose</span> <span class="n">mode</span>
+  <span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="o">--</span><span class="n">external</span><span class="o">-</span><span class="nb">bin</span><span class="o">-</span><span class="n">dependencies</span>
+  <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">depth</span>
+</pre></div>
+</div>
+</section>
+<section id="topep8-usage">
+<h2>topep8 usage<a class="headerlink" href="#topep8-usage" title="Permalink to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Usage</span><span class="p">:</span> <span class="n">topep8</span> <span class="p">[</span><span class="o">-</span><span class="n">haAB</span><span class="p">][</span><span class="o">-</span><span class="n">b</span> <span class="n">version</span><span class="p">][</span><span class="o">-</span><span class="n">c</span><span class="p">][</span><span class="o">-</span><span class="n">C</span> <span class="n">org</span><span class="p">][</span><span class="o">-</span><span class="n">Dde</span><span class="p">][</span><span class="o">-</span><span class="n">F</span> <span class="n">ver</span><span class="p">][</span><span class="o">-</span><span class="n">f</span><span class="p">][</span><span class="o">-</span><span class="n">G</span> <span class="n">gpl</span><span class="p">][</span><span class="o">-</span><span class="n">iLnN</span><span class="p">][</span><span class="o">-</span><span class="n">o</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">O</span><span class="p">][</span><span class="o">-</span><span class="n">R</span> <span class="n">file</span><span class="p">][</span><span class="o">-</span><span class="n">quVvXx01</span><span class="p">]</span> <span class="n">fullname</span>
+<span class="n">PEP8</span> <span class="n">source</span> <span class="n">python</span> <span class="n">file</span>
+<span class="n">full</span> <span class="n">path</span> <span class="n">name</span> <span class="n">maybe</span> <span class="n">supplied</span> <span class="ow">or</span> <span class="n">a</span> <span class="n">single</span> <span class="n">file</span>
+
+ <span class="o">-</span><span class="n">h</span>                   <span class="n">this</span> <span class="n">help</span>
+ <span class="o">-</span><span class="n">a</span>                   <span class="n">enable</span> <span class="n">non</span><span class="o">-</span><span class="n">whitespace</span> <span class="n">changes</span> <span class="p">(</span><span class="n">may</span> <span class="n">issue</span> <span class="n">multiple</span> <span class="o">-</span><span class="n">a</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">A</span>                   <span class="n">do</span> <span class="ow">not</span> <span class="n">execute</span> <span class="n">autoflake</span> <span class="p">(</span><span class="o">-</span><span class="n">A</span><span class="p">)</span> <span class="n">neither</span> <span class="n">autopep8</span> <span class="p">(</span><span class="o">-</span><span class="n">AA</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">B</span>                   <span class="n">activate</span> <span class="n">debug</span> <span class="n">statements</span>
+ <span class="o">-</span><span class="n">b</span> <span class="n">version</span>           <span class="n">odoo</span> <span class="n">branch</span><span class="p">;</span> <span class="n">may</span> <span class="n">be</span> <span class="mf">6.1</span> <span class="mf">7.0</span> <span class="mf">8.0</span> <span class="mf">9.0</span> <span class="mf">10.0</span> <span class="mf">11.0</span> <span class="mf">12.0</span> <span class="ow">or</span> <span class="mf">13.0</span>
+ <span class="o">-</span><span class="n">c</span>                   <span class="n">change</span> <span class="k">class</span> <span class="nc">name</span> <span class="n">to</span> <span class="n">CamelCase</span>
+ <span class="o">-</span><span class="n">C</span> <span class="n">org</span>               <span class="n">add</span> <span class="n">developers</span> <span class="n">Copyright</span> <span class="p">(</span><span class="n">comma</span> <span class="n">separated</span><span class="p">,</span> <span class="k">def</span> <span class="nf">zero</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">D</span>                   <span class="n">show</span> <span class="n">debug</span> <span class="n">informations</span>
+ <span class="o">-</span><span class="n">d</span>                   <span class="n">show</span> <span class="n">diff</span>
+ <span class="o">-</span><span class="n">e</span>                   <span class="n">do</span> <span class="ow">not</span> <span class="n">apply</span> <span class="n">enhance</span> <span class="n">update</span>
+ <span class="o">-</span><span class="n">F</span> <span class="n">ver</span>               <span class="kn">from</span> <span class="nn">odoo</span> <span class="n">branch</span><span class="p">,</span> <span class="n">value</span> <span class="n">like</span> <span class="o">-</span><span class="n">b</span> <span class="n">switch</span>
+ <span class="o">-</span><span class="n">f</span>                   <span class="n">futurize</span>
+ <span class="o">-</span><span class="n">G</span> <span class="n">gpl</span>               <span class="n">Write</span> <span class="n">GPL</span> <span class="n">info</span> <span class="n">into</span> <span class="n">header</span> <span class="p">(</span><span class="n">agpl</span><span class="p">,</span><span class="n">lgpl</span><span class="p">,</span><span class="n">gpl</span><span class="p">,</span><span class="n">opl</span><span class="p">,</span><span class="n">oee</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">i</span>                   <span class="n">sort</span> <span class="kn">import</span> <span class="nn">statements</span>
+ <span class="o">-</span><span class="n">L</span>                   <span class="nb">set</span> <span class="n">file</span> <span class="n">excluded</span> <span class="n">by</span> <span class="n">lint</span> <span class="n">parse</span>
+ <span class="o">-</span><span class="n">n</span>                   <span class="n">do</span> <span class="n">nothing</span> <span class="p">(</span><span class="n">dry</span><span class="o">-</span><span class="n">run</span><span class="p">)</span>
+ <span class="o">-</span><span class="n">N</span>                   <span class="n">do</span> <span class="ow">not</span> <span class="n">add</span> <span class="n">newline</span> <span class="n">at</span> <span class="n">the</span> <span class="n">EOF</span>
+ <span class="o">-</span><span class="n">o</span> <span class="n">file</span>              <span class="n">output</span> <span class="n">filename</span><span class="p">,</span> <span class="n">leave</span> <span class="n">source</span> <span class="n">unchanged</span> <span class="n">rather</span> <span class="n">than</span> <span class="n">source</span> <span class="n">becomes</span> <span class="o">.</span><span class="n">bak</span>
+ <span class="o">-</span><span class="n">O</span>                   <span class="n">change</span> <span class="n">copyright</span> <span class="kn">from</span> <span class="nn">openerp</span> <span class="n">to</span> <span class="n">odoo</span>
+ <span class="o">-</span><span class="n">R</span> <span class="n">file</span>              <span class="n">use</span> <span class="n">specific</span> <span class="n">rule</span> <span class="n">file</span>
+ <span class="o">-</span><span class="n">q</span>                   <span class="n">silent</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">u</span>                   <span class="n">use</span> <span class="n">old</span> <span class="n">api</span> <span class="n">odoo</span><span class="o">&lt;</span><span class="mf">8.0</span> <span class="ow">or</span> <span class="n">create</span> <span class="n">yaml</span> <span class="n">old</span> <span class="n">style</span>
+ <span class="o">-</span><span class="n">V</span>                   <span class="n">show</span> <span class="n">version</span>
+ <span class="o">-</span><span class="n">v</span>                   <span class="n">verbose</span> <span class="n">mode</span>
+ <span class="o">-</span><span class="n">X</span>                   <span class="n">make</span> <span class="n">file</span><span class="o">.</span><span class="n">py</span> <span class="n">executable</span>
+ <span class="o">-</span><span class="n">x</span>                   <span class="nb">format</span> <span class="n">lines</span>
+ <span class="o">-</span><span class="mi">0</span>                   <span class="n">create</span> <span class="n">yaml</span> <span class="n">file</span> <span class="kn">from</span> <span class="nn">zero</span>
+ <span class="o">-</span><span class="mi">1</span>                   <span class="n">do</span> <span class="ow">not</span> <span class="n">recurse</span> <span class="n">travese</span> <span class="n">directories</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This module is part of tools project.</p>
+<p>Last Update / Ultimo aggiornamento: 2023-04-14</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logozero_180x46.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Usage</a></li>
+<li><a class="reference internal" href="#module-usage">Module usage</a><ul>
+<li><a class="reference internal" href="#gen-readme-py-usage">gen_readme.py usage</a></li>
+<li><a class="reference internal" href="#files-and-directories">Files and directories</a></li>
+<li><a class="reference internal" href="#statements">Statements</a></li>
+<li><a class="reference internal" href="#macro">Macro</a></li>
+<li><a class="reference internal" href="#macro-used-in-documentation-templates">Macro used in documentation templates</a></li>
+<li><a class="reference internal" href="#odoo-dependecies-py-usage">odoo_dependecies.py usage</a></li>
+<li><a class="reference internal" href="#topep8-usage">topep8 usage</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pypi_wok_code/rtd_usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">tools 2.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2015-20, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    </div>
+  </body>
+</html>

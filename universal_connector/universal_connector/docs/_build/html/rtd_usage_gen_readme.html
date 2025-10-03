@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Digest of gen_readme &#8212; wok_code 2.0.22 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=7318b3e0"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Digest of gen_readme_sym" href="rtd_usage_gen_readme_sym.html" />
+    <link rel="prev" title="Digest of gen_readme" href="rtd_description_gen_readme.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_gen_readme_sym.html" title="Digest of gen_readme_sym"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description_gen_readme.html" title="Digest of gen_readme"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 2.0.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Digest of gen_readme</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="digest-of-gen-readme">
+<h1>Digest of gen_readme<a class="headerlink" href="#digest-of-gen-readme" title="Link to this heading"></a></h1>
+<section id="gen-readme-py-usage">
+<h2>gen_readme.py usage<a class="headerlink" href="#gen-readme-py-usage" title="Link to this heading"></a></h2>
+<p>gen_readme.py makes easy to create high quality documentation, mainly
+README.rst, index.html and index.rst for Odoo modules and python packages.</p>
+<p>Documentation process is based on templates which include source files with
+documentation fragments: see below “Files and directories” chapter.</p>
+<p>Source files uses the reStructuredText markup language by default, which have
+functionality for complex documentation to make straightforward and powerful to use.</p>
+<p>Features:</p>
+<ul class="simple">
+<li><p>Output formats: HTML and RST</p></li>
+<li><p>Cross-references</p></li>
+<li><p>Hierarchical structure</p></li>
+<li><p>Automatic indices</p></li>
+<li><p>Code handling</p></li>
+</ul>
+</section>
+<section id="predefined-sections">
+<h2>Predefined sections<a class="headerlink" href="#predefined-sections" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>changelog</p></li>
+<li><p>description</p></li>
+<li><p>features</p></li>
+<li><p>oca_diff</p></li>
+<li><p>certifications</p></li>
+<li><p>prerequisites</p></li>
+<li><p>installation</p></li>
+<li><p>configuration</p></li>
+<li><p>upgrade</p></li>
+<li><p>support</p></li>
+<li><p>usage</p></li>
+<li><p>maintenance</p></li>
+<li><p>troubleshooting</p></li>
+<li><p>known_issues</p></li>
+<li><p>proposals_for_enhancement</p></li>
+<li><p>faq</p></li>
+<li><p>authors</p></li>
+<li><p>contributors</p></li>
+<li><p>translators</p></li>
+<li><p>acknowledges</p></li>
+<li><p>maintainer</p></li>
+<li><p>sponsor</p></li>
+<li><p>copyright_notes</p></li>
+<li><p>available_addons</p></li>
+<li><p>contact_us</p></li>
+</ul>
+</section>
+<section id="files-and-directories">
+<h2>Files and directories<a class="headerlink" href="#files-and-directories" title="Link to this heading"></a></h2>
+<p>Document structure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docs                              (1)
+┣━ index rst
+┣━ logozero_180x46.png
+┗━ rtd*                           (2)
+
+egg-info                          (3)
+readme                            (4)
+┣━ __manifest__.rst
+┣━ ACKNOWLEDGES.rst               (7)
+┣━ AUTHORS.rst                    (6)
+┣━ CERTIFICATIONS.rst             (7)
+┣━ CHANGELOG.rst
+┣━ CONFIGURATION.rst
+┣━ CONTACT_US.rst
+┣━ CONTRIBUTORS.rst
+┣━ COPYRIGHT_NOTES.rst
+┣━ DESCRIPTION.rst
+┣━ FAQ.rst
+┣━ FEATURES.rst
+┣━ KNOWN_ISSUES.rst
+┣━ INSTALLATION.rst
+┣━ OCA_DIFF.rst                   (7)
+┣━ MAINTENANCE.rst
+┣━ PREREQUISITES.rst              (7)
+┣━ PROPOSALS_FOR_ENHANCEMENT.rst
+┣━ SPONSOR.rst
+┣━ SUPPORT.rst
+┣━ TRANSLATORS.rst                (7)
+┣━ TROUBLESHOOTING.rst
+┣━ UPGRADE.rst
+┣━ USAGE.rst
+┗━ *.rst  # (Other OCA docs)      (5)
+
+Notes:
+(1) Directory for Sphynx (only PYPI projects)
+(2) Files generated from egg-info directory
+(3) Zeroincombenze root
+(4) Oca document root
+(5) See OCA documentation
+(6) Matched with __manifest__.py in Odoo projects
+(7) Not managed by OCA tools
+</pre></div>
+</div>
+<p>Predefined template structure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>templates
+    ┣━ Odoo
+    ┃    ┣━ contact_us.rst
+    ┃    ┣━ default_authors.rst
+    ┃    ┣━ default_contributors.rst
+    ┃    ┣━ default_copyright_notes.rst
+    ┃    ┣━ default_description.rst
+    ┃    ┣━ default_descrizione.rst
+    ┃    ┣━ default_installation.rst
+    ┃    ┣━ default_maintainer.rst
+    ┃    ┣━ default_maintenance.rst
+    ┃    ┣━ default_oca_diff.rst
+    ┃    ┣━ default_proposals_for_enhancement.rst
+    ┃    ┣━ default_quality_endorsement.rst
+    ┃    ┣━ default_support.rst
+    ┃    ┣━ default_troubleshooting.rst
+    ┃    ┣━ default_upgrade.rst
+    ┃    ┣━ header_acknowledges.rst
+    ┃    ┣━ header_troubleshooting.rst
+    ┃    ┣━ ocb_description.rst
+    ┃    ┣━ ocb_descrizione.rst
+    ┃    ┣━ readme_footer.rst
+    ┃    ┣━ readme_header.rst
+    ┃    ┣━ readme_index.html
+    ┃    ┣━ readme_main_module.rst
+    ┃    ┣━ readme_main_ocb.rst
+    ┃    ┣━ readme_main_repository.rst
+    ┃    ┗━ readme_manifest.rst
+    ┃
+    ┗━ pypi
+         ┣━ default_authors.rst
+         ┣━ default_contributors.rst
+         ┣━ default_installation.rst
+         ┣━ default_prerequisites.rst
+         ┣━ default_upgrade.rst
+         ┣━ module_index.rst
+         ┣━ module_mainpage.rst
+         ┣━ pypi_index.rst
+         ┣━ readme_footer.rst
+         ┣━ readme_header.rst
+         ┣━ readme_main_module.rst
+         ┣━ readme_main_repository.rst
+         ┣━ rtd_template.rst
+         ┗━ rtd_template_automodule.rst
+</pre></div>
+</div>
+</section>
+<section id="rst-syntax">
+<h2>RST syntax<a class="headerlink" href="#rst-syntax" title="Link to this heading"></a></h2>
+<p>Source file may be in html format or reStructuredText (reST) format, that is the default
+plaintext markup language.</p>
+<p>Source document contains documentation text, inline markup and directives.</p>
+<p>A directive is a generic block of explicit markup. Directives begin with an explicit
+markup start (two periods and a space), followed by the directive type and two colons.
+Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">directive</span> <span class="p">::</span> <span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+   <span class="n">directive</span> <span class="n">body</span>
+</pre></div>
+</div>
+<p>A directive may be e preprocessor statement too. Preprocesso begins with markup start,
+followed by “$” (dollar) and statement. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.. $if CONDITION
+</pre></div>
+</div>
+</section>
+<section id="rst-statement">
+<h2>RST statement<a class="headerlink" href="#rst-statement" title="Link to this heading"></a></h2>
+<p>Current supported statements are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.. $if CONDITION
+.. $elif CONDITION
+.. $else
+.. $fi
+.. $include FILENAME
+.. $block BLOCKNAME
+.. $set VAR EXPRESSION
+</pre></div>
+</div>
+</section>
+<section id="rst-directives">
+<h2>RST directives<a class="headerlink" href="#rst-directives" title="Link to this heading"></a></h2>
+<p>gen_readme supports following rst directives:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">figure</span>
+<span class="o">..</span> <span class="n">image</span>
+</pre></div>
+</div>
+</section>
+<section id="rst-inline-markup">
+<h2>RST inline markup<a class="headerlink" href="#rst-inline-markup" title="Link to this heading"></a></h2>
+<p>The standard reST inline markup to visual <em>italic</em>, <strong>boldface</strong>
+and <code class="docutils literal notranslate"><span class="pre">code</span> <span class="pre">text</span></code> is quite simple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>use one asterisk: *text* for emphasis (italics),
+two asterisks: **text** for strong emphasis (boldface)
+backquotes: ``text`` for code samples.
+</pre></div>
+</div>
+</section>
+<section id="rst-lists">
+<h2>RST lists<a class="headerlink" href="#rst-lists" title="Link to this heading"></a></h2>
+<p>Lists and Quote-like blocks:
+just place an asterisk at the start of a paragraph and indent properly.
+The same goes for numbered lists; they can also be autonumbered using a #. sign:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*</span> <span class="nb">list</span> <span class="n">item</span> <span class="n">A</span>
+<span class="o">*</span> <span class="nb">list</span> <span class="n">item</span> <span class="n">B</span>
+<span class="o">*</span> <span class="nb">list</span> <span class="n">item</span> <span class="n">C</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#. list item 1</span>
+<span class="c1">#. list item 2</span>
+<span class="c1">#. list item 3</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<ul class="simple">
+<li><p>list item A</p></li>
+<li><p>list item B</p></li>
+<li><p>list item C</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p>list item 1</p></li>
+<li><p>list item 2</p></li>
+<li><p>list item 3</p></li>
+</ol>
+</section>
+<section id="rst-table">
+<h2>RST table<a class="headerlink" href="#rst-table" title="Link to this heading"></a></h2>
+<p>They look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+------------------------+------------+----------+----------+</span>
+<span class="o">|</span> <span class="n">Header</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span> <span class="mi">1</span>   <span class="o">|</span> <span class="n">Header</span> <span class="mi">2</span>   <span class="o">|</span> <span class="n">Header</span> <span class="mi">3</span> <span class="o">|</span> <span class="n">Header</span> <span class="mi">4</span> <span class="o">|</span>
+<span class="o">|</span> <span class="p">(</span><span class="n">header</span> <span class="n">rows</span> <span class="n">optional</span><span class="p">)</span> <span class="o">|</span>            <span class="o">|</span>          <span class="o">|</span>          <span class="o">|</span>
+<span class="o">+========================+============+==========+==========+</span>
+<span class="o">|</span> <span class="n">body</span> <span class="n">row</span> <span class="mi">1</span><span class="p">,</span> <span class="n">column</span> <span class="mi">1</span>   <span class="o">|</span> <span class="n">column</span> <span class="mi">2</span>   <span class="o">|</span> <span class="n">column</span> <span class="mi">3</span> <span class="o">|</span> <span class="n">column</span> <span class="mi">4</span> <span class="o">|</span>
+<span class="o">+------------------------+------------+----------+----------+</span>
+<span class="o">|</span> <span class="n">body</span> <span class="n">row</span> <span class="mi">2</span>             <span class="o">|</span> <span class="o">...</span>        <span class="o">|</span> <span class="o">...</span>      <span class="o">|</span>          <span class="o">|</span>
+<span class="o">+------------------------+------------+----------+----------+</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Header row, column 1</p></th>
+<th class="head"><p>Header 2</p></th>
+<th class="head"><p>Header 3</p></th>
+<th class="head"><p>Header 4</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>body row 1, column 1</p></td>
+<td><p>column 2</p></td>
+<td><p>column 3</p></td>
+<td><p>column 4</p></td>
+</tr>
+<tr class="row-odd"><td><p>body row 2</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Tables are automatically created from .csv files. See below “gen_reame symbols”</p>
+</div>
+</section>
+<section id="rst-sections">
+<h2>RST sections<a class="headerlink" href="#rst-sections" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">=======</span>
+<span class="n">TITLE</span> <span class="mi">1</span>
+<span class="o">=======</span>
+
+<span class="n">Title</span> <span class="mi">2</span>
+<span class="o">=======</span>
+
+<span class="n">Title</span> <span class="mi">3</span>
+<span class="o">-------</span>
+
+<span class="n">Title</span> <span class="mi">4</span>
+<span class="o">~~~~~~~</span>
+</pre></div>
+</div>
+</section>
+<section id="gen-readme-symbols">
+<h2>gen_readme symbols<a class="headerlink" href="#gen-readme-symbols" title="Link to this heading"></a></h2>
+<p>gen_readme provides some no standard features.</p>
+<p>Graphical button (only for Odoo documentation):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Click</span> <span class="n">on</span> <span class="p">[</span><span class="n">Button</span><span class="p">]</span> <span class="n">to</span> <span class="n">do</span> <span class="n">something</span>
+</pre></div>
+</div>
+Click on <span style="color:white;background-color:#7C7BAD">Button</span> to do something<p>Page tabbed (only for Odoo documentation):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Click on [`Tabbed`] to see other information
+</pre></div>
+</div>
+Click on <span style="border-style:solid;border-width:1px 1px 0px 1px">Tabbed</span> to see other information<p>Other predefined symbols are:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>check</p></td>
+<td><p><img alt="check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>DesktopTelematico</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/Desktoptelematico.md"><img alt="DesktopTelematico" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/DesktopTelematico.png" /></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>en</p></td>
+<td><p><a class="reference external" href="https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/"><img alt="en" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png" /></a></p></td>
+</tr>
+<tr class="row-even"><td><p>exclamation</p></td>
+<td><p><img alt="exclamation" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/exclamation.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>FatturaPA</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md"><img alt="FatturaPA" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/ade/icons/fatturapa.png" /></a></p></td>
+</tr>
+<tr class="row-even"><td><p>halt</p></td>
+<td><p><img alt="halt" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/halt.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>info</p></td>
+<td><p><img alt="info" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/info.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>it</p></td>
+<td><p><a class="reference external" href="https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/"><img alt="it" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png" /></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>late</p></td>
+<td><p><img alt="late" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/late.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>menu</p></td>
+<td><p><img alt="menu" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/menu.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>no_check</p></td>
+<td><p><img alt="no_check" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/no_check.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>right_do</p></td>
+<td><p><img alt="right_do" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/right_do.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>same</p></td>
+<td><p><img alt="same" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/same.png" /></p></td>
+</tr>
+<tr class="row-even"><td><p>warning</p></td>
+<td><p><img alt="warning" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/warning.png" /></p></td>
+</tr>
+<tr class="row-odd"><td><p>xml_schema</p></td>
+<td><p><a class="reference external" href="https://github.com/zeroincombenze/grymb/blob/master/certificates/iso/scope/xml-schema.md"><img alt="xml_schema" src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/certificates/iso/icons/xml-schema.png" /></a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="macro">
+<h2>Macro<a class="headerlink" href="#macro" title="Link to this heading"></a></h2>
+<p>Text macro is replaced by macro contents. For current version 2.0.22 of
+gen_readme.py, macro is enclosed by double braces.</p>
+For current version &lbrace;&lbrace;branch}} of gen_readme.py</section>
+<section id="capture-command-output">
+<h2>Capture command output<a class="headerlink" href="#capture-command-output" title="Link to this heading"></a></h2>
+<p>You can add command output of a chell command in your documentation.
+The syntax is the same of bash:</p>
+&dollar;(COMMAND ARGUMENTS)<p>Example:</p>
+Here the output of the help of bash Linux command <b>true</b>:<br/><br/>
+&dollar;(man true)<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>TRUE(1)                                             User Commands                                             TRUE(1)
+
+NAME
+       true - do nothing, successfully
+
+SYNOPSIS
+       true [ignored command line arguments]
+       true OPTION
+
+DESCRIPTION
+       Exit with a status code indicating success.
+
+       --help display this help and exit
+
+       --version
+              output version information and exit
+
+       NOTE:  your  shell  may  have  its  own  version of true, which usually supersedes the version described here.
+       Please refer to your shell&#39;s documentation for details about the options it supports.
+
+AUTHOR
+       Written by Jim Meyering.
+
+REPORTING BUGS
+       GNU coreutils online help: &lt;https://www.gnu.org/software/coreutils/&gt;
+       Report true translation bugs to &lt;https://translationproject.org/team/&gt;
+
+COPYRIGHT
+       Copyright  ©  2018  Free  Software  Foundation,  Inc.   License  GPLv3+:  GNU   GPL   version   3   or   later
+       &lt;https://gnu.org/licenses/gpl.html&gt;.
+       This  is  free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent per‐
+       mitted by law.
+
+SEE ALSO
+       Full documentation at: &lt;https://www.gnu.org/software/coreutils/true&gt;
+       or available locally via: info &#39;(coreutils) true invocation&#39;
+
+GNU coreutils 8.30                                  September 2019                                            TRUE(1)
+</pre></div>
+</div>
+</section>
+<section id="gen-readme-py-command-line">
+<h2>gen_readme.py command line<a class="headerlink" href="#gen-readme-py-command-line" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-D PATH] [-F FROM_VERSION] [-f]
+                     [-G GIT_ORGID] [-g OPT_GPL] [-H] [-l ODOO_LAYER]
+                     [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n] [-O]
+                     [-o OUTPUT_FILE] [-P PRODUCT_DOC] [-p PATH_NAME] [-q]
+                     [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME]
+                     [-T] [-V] [-v] [-W] [-w] [-X] [-Y]
+
+Generate README
+
+options:
+  -h, --help            show this help message and exit
+  -b ODOO_VID, --odoo-branch ODOO_VID
+  -B, --debug-template
+  -D PATH, --home-devel PATH
+                        Home devel directory
+  -F FROM_VERSION, --from-version FROM_VERSION
+  -f, --force           force creating documentation even if doc dirs do not
+                        exit
+  -G GIT_ORGID, --git-org GIT_ORGID
+  -g OPT_GPL, --gpl-info OPT_GPL
+  -H, -I, --write-index
+                        write index.html rather than README.rst
+  -l ODOO_LAYER, --layer ODOO_LAYER
+                        ocb|module|repository
+  -L LANG, --lang LANG  iso code
+  -m MODULE_NAME, --module-name MODULE_NAME
+                        filename
+  -M FORCE_MATURITY, --force-maturity FORCE_MATURITY
+                        Alfa,Beta,Mature,Production/stable
+  -n, --dry-run         do nothing (dry-run)
+  -O, --odoo_marketplace
+                        create index.html with Odoo marketplace rules
+  -o OUTPUT_FILE, --output-file OUTPUT_FILE
+                        filename
+  -P PRODUCT_DOC, --product-doc PRODUCT_DOC
+                        may be odoo or pypi
+  -p PATH_NAME, --path-name PATH_NAME
+                        pathname
+  -q, --quiet           silent mode
+  -R, --rewrite-manifest
+  -r REPOS_NAME, --repos_name REPOS_NAME
+                        dirname
+  -Q QUOTE_WITH, --quote-with QUOTE_WITH
+                        CHAR
+  -t TEMPLATE_NAME, --template_name TEMPLATE_NAME
+                        filename
+  -T, --trace-file
+  -V, --version         show program&#39;s version number and exit
+  -v, --verbose         verbose mode
+  -W, --write-authinfo
+  -w, --suppress-warning
+  -X, --write-office    write openoffice/libreoffic fragment help
+  -Y, --write-man-page
+
+© 2018-2025 by SHS-AV s.r.l.
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of wok_code"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Digest of gen_readme</a><ul>
+<li><a class="reference internal" href="#gen-readme-py-usage">gen_readme.py usage</a></li>
+<li><a class="reference internal" href="#predefined-sections">Predefined sections</a></li>
+<li><a class="reference internal" href="#files-and-directories">Files and directories</a></li>
+<li><a class="reference internal" href="#rst-syntax">RST syntax</a></li>
+<li><a class="reference internal" href="#rst-statement">RST statement</a></li>
+<li><a class="reference internal" href="#rst-directives">RST directives</a></li>
+<li><a class="reference internal" href="#rst-inline-markup">RST inline markup</a></li>
+<li><a class="reference internal" href="#rst-lists">RST lists</a></li>
+<li><a class="reference internal" href="#rst-table">RST table</a></li>
+<li><a class="reference internal" href="#rst-sections">RST sections</a></li>
+<li><a class="reference internal" href="#gen-readme-symbols">gen_readme symbols</a></li>
+<li><a class="reference internal" href="#macro">Macro</a></li>
+<li><a class="reference internal" href="#capture-command-output">Capture command output</a></li>
+<li><a class="reference internal" href="#gen-readme-py-command-line">gen_readme.py command line</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description_gen_readme.html"
+                          title="previous chapter">Digest of gen_readme</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rtd_usage_gen_readme_sym.html"
+                          title="next chapter">Digest of gen_readme_sym</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rtd_usage_gen_readme.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rtd_usage_gen_readme_sym.html" title="Digest of gen_readme_sym"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description_gen_readme.html" title="Digest of gen_readme"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">wok_code 2.0.22 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Digest of gen_readme</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2019-24, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

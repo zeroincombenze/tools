@@ -37,14 +37,14 @@ else:
         "odoorpc<0.10.0",
         "oerplib",
         "psycopg2-binary",
-        "python-plus",
+        "python-plus>=2.0.19",
         "unidecode==1.2.0",
-        "z0lib>=2.0.11",
+        "z0lib>=2.1.0",
     ]
 
 setup(
     name=name,
-    version="2.0.16",
+    version="2.0.17",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     classifiers=[

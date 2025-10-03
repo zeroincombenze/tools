@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Zar &#8212; tools 2.0.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=722443bc"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Zerobug" href="pypi_zerobug.html" />
+    <link rel="prev" title="Z0Lib" href="pypi_z0lib.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pypi_zerobug.html" title="Zerobug"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pypi_z0lib.html" title="Z0Lib"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Zar</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="zar">
+<h1>Zar<a class="headerlink" href="#zar" title="Link to this heading"></a></h1>
+<section id="zeroincombenze-archive-replica">
+<h2>Zeroincombenze® Archive Replica<a class="headerlink" href="#zeroincombenze-archive-replica" title="Link to this heading"></a></h2>
+<p>ZAR stand for Zeroincombenze® Archive Replica.
+It is a tool kit to backup, restore, replicate files and/or database.</p>
+<p>ZAR manages easily backup for Odoo database, keeps last nth copies and purges oldest copies.</p>
+<p>zar should be execute by postgres user</p>
+<p>Execute zar_upd to install and configure.
+Configuration file is zar.conf
+Execute zar_bck to do backup or restore, based on host role
+Execute zar_rest to do restore</p>
+<p>To execute in cron, use zar_bck -k</p>
+<p>There are avaiable two postgresql facilities:</p>
+<ul class="simple">
+<li><p>pg_db_active</p></li>
+<li><p>pg_db_reassign owner</p></li>
+</ul>
+<p><cite>pg_db_active</cite> show and kill postgres session. It can kill oldest session out of pool.</p>
+<p><cite>pg_db_reassign_owner</cite> can reassign owner to database. It reassign the ownership of all objects.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of tools"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Zar</a><ul>
+<li><a class="reference internal" href="#zeroincombenze-archive-replica">Zeroincombenze® Archive Replica</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="pypi_z0lib.html"
+                          title="previous chapter">Z0Lib</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pypi_zerobug.html"
+                          title="next chapter">Zerobug</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pypi_zar.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pypi_zerobug.html" title="Zerobug"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pypi_z0lib.html" title="Z0Lib"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Zar</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2015-25, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

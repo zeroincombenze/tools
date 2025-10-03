@@ -78,6 +78,7 @@ check_for_modules() {
     [[ -n "$2" ]] && mods="$2" || mods="$opt_modules"
     if [[ $mods == "all" ]]; then
         OPTU="-uall"
+    else
         mods=${mods//,/ }
         for m in $mods; do
             r=$($PSQL $db -tc "select state from ir_module_module where name='$m'" 2>/dev/null)
@@ -538,7 +539,6 @@ fi
 SCOPE="gnu"
 [[ -z $opt_odir && $(basename $(dirname $PWD)) == "marketplace" ]] && SCOPE="marketplace"
 [[ -n $opt_odir && $(basename $(dirname $opt_odir)) == "marketplace" ]] && SCOPE="marketplace"
-# [[ $SCOPE == "marketplace" ]] && GIT_ORGID="oca"
 CONFN=""
 opaths=""
 odoo_root=""
@@ -637,8 +637,6 @@ TEST_VDIR=""
 if [[ -n $opt_venv ]]; then
     export TEST_VDIR="$opt_venv"
 else
-    # [[ $SCOPE == "marketplace" ]] && p=$(dirname $(dirname $PWD)) && x=$(echo $p|grep -Eo "[0-9]+"|head -n1) && export TEST_VDIR="$(dirname $p)/oca$x/venv_odoo"
-    # [[ $SCOPE != "marketplace" ]] && export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
     export TEST_VDIR=$(build_odoo_param VDIR "$odoo_root")
     if [[ $SCOPE == "marketplace" ]]; then
       p=$(dirname $(dirname $PWD))

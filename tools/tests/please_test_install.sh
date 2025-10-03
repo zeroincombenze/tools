@@ -1,3 +1,4 @@
+# please_test_install.sh [OPTS] [VENV]
 RED="\e[31m"
 GREEN="\e[32m"
 CLR="\e[0m"
@@ -51,8 +52,8 @@ for pkg in odoorc odoo_dependencies.py zerobug clodoo odoo_score; do
     if_standalone && echo "Testing file $pkg .."
     [[ ! -f $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit 1
 done
-for pkg in cvt_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
-    [[ ( $1 =~ ^-.*t || $PYVER -eq 2 ) && $pkg =~ ^(black|odooctl|pre-commit)$ ]] && continue
+for pkg in cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do
+    [[ ( $1 =~ ^-.*t || $1 =~ ^-.*O || $PYVER -eq 2 ) && $pkg =~ ^(black|odooctl|pre-commit)$ ]] && continue
     if_inside && echo -n "."
     if_standalone && echo "Testing $pkg --version .."
     [[ ! -f $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit 1
@@ -74,8 +75,8 @@ for pkg in babel lxml python-magic pyyaml z0lib z0bug-odoo zerobug; do
     x=$($VEM $LOCAL_VENV info $pkg 2>/dev/null|grep  --color=never -E "^Location: .*")
     [[ -z "$x" ]] && echo -e "\n${RED}Incomplete installation! Package $pkg non installed in $LOCAL_VENV!!${CLR}" && exit 1
 done
-if [[ ! $1 =~ ^-.*t && $PYVER -eq 3 ]]; then
-    for pkg in oca-gen-addon-readme; do
+if [[ ! $1 =~ ^-.*t && $1 =~ ^-.*O && $PYVER -eq 3 ]]; then
+    for pkg in oca-gen-addon-readme oca-towncrier; do
         if_inside && echo -n ".."
         if_standalone && echo "Testing command $pkg installation .."
         x=$(which $pkg)

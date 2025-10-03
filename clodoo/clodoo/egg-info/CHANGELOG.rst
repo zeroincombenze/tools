@@ -1,8 +1,15 @@
+2.0.17 (2025-10-01)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] transodoo xref
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.16 (2025-09-22)
 ~~~~~~~~~~~~~~~~~~~
 
 * [FIX] Installation trouble
 * [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.15 (2025-08-28)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -117,4 +124,3 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Stable version
-

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Clodoo &#8212; tools 2.0.8 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
+    <script src="_static/jquery.js?v=5d32c60e"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="_static/documentation_options.js?v=722443bc"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Lisa" href="pypi_lisa.html" />
+    <link rel="prev" title="Overview" href="rtd_description.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pypi_lisa.html" title="Lisa"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clodoo</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<section id="clodoo">
+<h1>Clodoo<a class="headerlink" href="#clodoo" title="Link to this heading"></a></h1>
+<p>Clodoo is a set of tools to manage to manage multiple Odoo installations with many DBs.</p>
+<p>With clodoo you can do massive operations on 1 or more Odoo databases based on
+different Odoo versions. Main operation are:</p>
+<ul class="simple">
+<li><p>create consistent database to run tests</p></li>
+<li><p>repeat consistent action on many db with same or different Odoo version</p></li>
+<li><p>repeat above actions on every new database</p></li>
+</ul>
+<p>clodoo is also a PYPI package to simplify RPC connection to Odoo.
+The PYPI package is a hub to oerplib and odoorpc packages, so generic python client
+can execute any command to any Odoo version server (from 6.1 to 13.0)</p>
+<section id="odoorc-general-purpose-bash-library">
+<h2>odoorc: general purpose bash library<a class="headerlink" href="#odoorc-general-purpose-bash-library" title="Link to this heading"></a></h2>
+<p>The bash file odoorc is a general purpose Odoo library. It supplies some Odoo values from odoo_vid or from odoo directory.
+Some values may depends by environment:</p>
+<ul class="simple">
+<li><p>ODOO_DB_USER is the rule to return db username (def odoo%(MAJVER)s)</p></li>
+<li><p>ODOO_GIT_HOSTNAME is the git hostname (def github.com)</p></li>
+<li><p>ODOO_GIT_SHORT -&gt; regex of git organizzations with vid short name (def /(oca)/, see odoo-vid)</p></li>
+</ul>
+<p>Usage:</p>
+<blockquote>
+<div><p>. odoorc
+RES=$(build_odoo_param PARAM odoo_vid [(search|DEBUG|default|tree|SERVER|&lt;rptname&gt;|&lt;modname&gt;)] [oca|zero|zero-http|zero-git|librerp|flectra] [(search|DEBUG|default|tree|SERVER)])</p>
+</div></blockquote>
+<p>where:</p>
+<blockquote>
+<div><p>PARAM is one of (ALL|BIN|CONFN|DB_USER|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VDIR|VENV)</p>
+</div></blockquote>
+</section>
+</section>
+<section id="digest-of-features">
+<h1>Digest of features<a class="headerlink" href="#digest-of-features" title="Link to this heading"></a></h1>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Function</p></td>
+<td><p>Note</p></td>
+</tr>
+<tr class="row-even"><td><p>Add new repository</p></td>
+<td><p>odoo_install_repository</p></td>
+</tr>
+<tr class="row-odd"><td><p>Update paid invoice</p></td>
+<td><p>inv2draft_n_restore.py</p></td>
+</tr>
+<tr class="row-even"><td><p>List requirement of Odoo</p></td>
+<td><p>list_requirements.py</p></td>
+</tr>
+<tr class="row-odd"><td><p>Create full configurated Odoo DB</p></td>
+<td><p>manage_db</p></td>
+</tr>
+<tr class="row-even"><td><p>Manage Odoo installation</p></td>
+<td><p>manage_odoo</p></td>
+</tr>
+<tr class="row-odd"><td><p>Set Odoo Skin (backoffice)</p></td>
+<td><p>odoo_skin.sh</p></td>
+</tr>
+<tr class="row-even"><td><p>Run Odoo instance to debug</p></td>
+<td><p>run_odoo_debug</p></td>
+</tr>
+<tr class="row-odd"><td><p>Manage version depending names</p></td>
+<td><p>transodoo.py</p></td>
+</tr>
+<tr class="row-even"><td><p>General Purpose RPC</p></td>
+<td><p>clodoo.py</p></td>
+</tr>
+<tr class="row-odd"><td><p>Export Odoo model to test file</p></td>
+<td><p>export_db_model.py</p></td>
+</tr>
+<tr class="row-even"><td><p>Migrate Odoo</p></td>
+<td><p>migrate_odoo.py (deprecated)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Examples</p></td>
+<td><p>example*.py</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="digest-of-transodoo">
+<h1>Digest of transodoo<a class="headerlink" href="#digest-of-transodoo" title="Link to this heading"></a></h1>
+<p>Translate Odoo entity name across versions.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logozero_180x46.png" alt="Logo of tools"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Clodoo</a><ul>
+<li><a class="reference internal" href="#odoorc-general-purpose-bash-library">odoorc: general purpose bash library</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#digest-of-features">Digest of features</a></li>
+<li><a class="reference internal" href="#digest-of-transodoo">Digest of transodoo</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rtd_description.html"
+                          title="previous chapter">Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pypi_lisa.html"
+                          title="next chapter">Lisa</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pypi_clodoo.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pypi_lisa.html" title="Lisa"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rtd_description.html" title="Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">tools 2.0.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Clodoo</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2015-25, SHS-AV s.r.l..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

@@ -8,6 +8,8 @@
 * [IMP] New function split_n_rm_comment_lines
 * [IMP] Best Odoo version recognition
 * [QUA] Test coverage 65% (871: 306+565) [0 TestPoints] - quality rating 38 (target 100)2.1.0 (2025-09-05)
+
+2.1.0 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] New class Package
@@ -138,4 +140,3 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring for shell scripts
-
