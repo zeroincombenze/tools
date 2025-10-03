@@ -1,3 +1,37 @@
 include_odoo_xml_new_api:
   ctx: 'final'
   include: 'odoo_xml_new_api'
+context_id:
+  search: 'context=".*\bid\b"'
+  do:
+    - action: 's'
+      args:
+        - '\bid'
+        - 'active_id'
+cvt_attrs_formula:
+  search: '(invisible|readonly)=".*?"'
+  do:
+    - action: '$'
+      args:
+        - 'cvt_formula_attrs'
+app_settings_block:
+  search: '<app'
+  do:
+    - action: 's'
+      args:
+        - '<app'
+        - '<div class="app_settings_block"'
+o_settings_container:
+  search: '<block'
+  do:
+    - action: 's'
+      args:
+        - '<block'
+        - '<div class="o_settings_container"'
+o_setting_box:
+  search: '<setting'
+  do:
+    - action: 's'
+      args:
+        - '<setting'
+        - '<div class="o_setting_box"'

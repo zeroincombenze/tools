@@ -168,5 +168,5 @@ autosummary_generate = True
 autodoc_default_options = {
     # "members": "Z0test, Z0testOdoo",
     "undoc-members": True,
-    # "exclude-members": "Macro, SanityTest",
+    "exclude-members": "Macro, SanityTest",
 }

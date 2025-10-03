@@ -1,5 +1,5 @@
 ============================
-|Zeroincombenze| tools 2.0.6
+|Zeroincombenze| tools 2.0.8
 ============================
 
 |license gpl|
@@ -113,6 +113,211 @@ Current version via Git
 ChangeLog History
 -----------------
 
+z0lib: 2.0.17 (2025-08-29)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Sometime is_pypi fails inside travis emulator
+
+
+z0lib: 2.0.16 (2025-08-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Local package automatic recognition
+* [FIX] License declaration compatible with pypi
+* [IMP] python 3.11 is certificated programming language
+* [FIX] print_flush
+* [QUA] Test coverage 71% (380: 110+270) [0 TestPoints] - quality rating 41 (target 100)
+
+
+clodoo: 2.0.15 (2025-08-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc: integrated findpkg
+* [FIX] clodoo.py
+* [FIX] python 3.11
+
+
+travis_emulator: 2.0.11 (2025-08-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.12 is certificated programming language
+
+
+arcangelo: 2.1.1 (2025-06-28)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New trigger search rather than match in rules
+* [IMP] Two passes parsing
+* [IMP] New pass1 context
+* [IMP] Set trigger with parameters
+* [FIX] New rule parsing algorithm
+
+
+arcangelo: 2.1.0 (2025-06-15)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Split from wok_code
+* [IMP] Graphical files are copied only if they does not exist on target
+* [IMP] Before migration warns on different base name
+* [FIX] If target directory does not exist, will be create
+
+
+zerobug: 2.0.20 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+
+
+z0bug_odoo: 2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+* [FIX] testenv.py with Odoo 16.0+
+* [IMP] python 3.11
+
+
+wok_code: 2.0.23 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] arcangelo became a pypi package
+* [IMP] please install python: now can install python 3.12
+* [FIX] please version does not add line at the end of file
+* [FIX] please: best recognition of read-only repositories
+* [FIX] please test: check on templates to use
+* [FIX] No crash if invalid modules declaration
+* [FIX] License declaration compatible with pypi
+
+
+python_plus: 2.0.18 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] bstring and unicode now work deeply
+* [FIX] License declaration compatible with pypi
+* [FIX] list_requirements: twine version
+* [IMP] list_requirements.py: package versions improvements
+* [IMP] New function cstrings
+
+
+odoo_score: 2.0.11 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] License declaration compatible with pypi
+* [IMP] Python 3.10
+* [IMP] Odoo 18.0
+
+
+clodoo: 2.0.14 (2025-06-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc: new option NOLINK
+* [IMP] odoorc: Odoo 17.0 and 18.0
+* [IMP] powerp is not more a default gitorg
+* [FIX] License declaration compatible with pypi
+
+
+wok_code: 2.0.22 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] arcangelo: sometimes wrong format .rst files
+* [FIX] please translate: new algorithm
+* [FIX] lint_2_compare: minor bug fixing
+* [IMP] lint_2_compare: automatic detecting version from source path
+* [IMP] run_odoo_debug: new -A switch
+* [IMP] deploy_odoo: minor improvements
+* [UPD] Esteem quality rate: new algorithm
+
+
+universal_connector: 1.3.16 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [REF] Refactoring
+
+
+arcangelo: 2.0.22 (2025-05-31)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] arcangelo: sometimes wrong format .rst files
+
+
+
+zar: 2.0.8 (2025-04-27)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Compress tar w/o filestore
+* [IMP] python 3.11 is certificated programming language
+
+
+lisa: 2.0.8 (2025-04-27)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements improvements
+
+
+wok_code: 2.0.21 (2025-04-26)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] please translation: modified algorithm
+* [FIX] run_odoo_debug: module replacements
+
+
+lisa: 2.0.7 (2025-04-26)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] lisa_bld_ods: module replacements
+
+
+travis_emulator: 2.0.10 (2025-03-22)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.11 is certificated programming language
+
+
+z0bug_odoo: 2.0.22 (2025-03-21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Lint tests
+* [IMP] Lint configuration
+
+
+zerobug: 2.0.18 (2025-03-14)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] flake8 configuration
+* [IMP] pylint configuration
+* [IMP] travis_run_pypi_tests searches for virtual environment
+* [IMP] build_odoo_env, parameter ctx deprecated
+* [IMP] Some function now are move in z0lib>=2.0.12
+* [IMP] build_odoo_env does not require ctx
+* [IMP] Python 3.6 deprecated
+* [IMP] pylint configuration files
+
+
+wok_code: 2.0.19 (2025-03-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [FIX] please python 3.9+
+* [FIX] install_python_3_from_source.sh: fix bugs and improvements
+* [FIX] ssh.py: store encrypted password
+* [IMP] run_odoo_debug: now can replace modules
+* [IMP] cvt_script executable
+* [IMP] deploy_odooo: more improvements
+* [IMP] please: minor improvements
+* [IMP] please clen db: remove filestore directories too
+
+
+z0lib: 2.0.15 (2025-01-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] simulate get_metadat in test environment
+
+
+travis_emulator: 2.0.10 (2025-01-18)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Minor improvements
+* [IMP] Python 3.10
+
+
 z0lib: 2.0.14 (2025-01-16)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -131,7 +336,7 @@ python_plus: 2.0.16 (2025-01-16)
 oerplib3: 1.0.0 (2025-01-04)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [FIX] Python 3.12 porting
+* [FIX] Python 3.9+ porting
 
 
 zar: 2.0.7 (2024-12-30)
@@ -160,56 +365,6 @@ python_plus: 2.0.15 (2024-10-02)
 * [IMP] list_requirements.py: package versions improvements
 
 
-z0lib: 2.0.12 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] os_system with verbose
-
-
-wok_code: 2.0.19 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please python 3.9+
-* [FIX] install_python_3_from_source.sh: fix bugs and improvements
-* [FIX] ssh.py: store encrypted password
-* [IMP] run_odoo_debug: now can replace modules
-* [IMP] cvt_script executable
-* [IMP] deploy_odooo: more improvements
-* [IMP] please: minor improvements
-* [IMP] please clen db: remove filestore directories too
-
-
-travis_emulator: 2.0.11 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Minor improvements
-
-
-clodoo: 2.0.13 (2024-08-22)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Depends on z0lib>=2.0.11
-
-
-zerobug: 2.0.18 (2024-08-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Some function now are move in z0lib>=2.0.12
-* [IMP] Python 3.6 deprecated
-
-
-zar: 2.0.6 (2024-08-21)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] pg_db_active with port for postgresql multi-version
-
-
-z0bug_odoo: 2.0.21 (2024-08-21)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Depends on z0lib>=2.0.11
-
-
 oerplib3: 0.8.5 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -220,282 +375,6 @@ odoo_score: 2.0.10 (2024-08-21)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Depends on z0lib>=2.0.11
-
-
-lisa: 2.0.5 (2024-08-18)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: module replacements
-
-
-lisa: 2.0.4 (2024-08-12)
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
-
-
-z0lib: 2.0.11 (2024-07-13)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New function os_system
-* [IMP] New function print_flush
-
-
-z0bug_odoo: 2.0.20 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Offical _check4deps_.py
-* [FIX] No more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-wok_code: 2.0.18 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] please python 3.9+
-* [FIX] deploy_odoo update addons_path in config file
-* [FIX] deploy_odoo update that requires checkout, requires -f switch
-* [FIX] deploy_odoo default branch from repo in actions different from clone
-* [IMP] deploy_odoo new action merge
-* [IMP] deploy_odoo new action new-branch
-* [IMP] deploy_odoo: new features on status
-* [FIX] gen_readme now check for images value for marketplace
-* [IMP] gen_readme now can use .jpg and .gif images
-* [IMP] new pg_requirements.py
-* [IMP] run_odoo_debug checks fro pg_requirements from __manifest__.rst
-* [FIX] No more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-travis_emulator: 2.0.9 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] It does no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-odoo_score: 2.0.9 (2024-07-10)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] It does no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-python_plus: 2.0.14 (2024-07-08)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: package versions improvements
-* [IMP] Python 3.6 deprecated
-
-
-zerobug: 2.0.17 (2024-07-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] z0testlib: no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-z0lib: 2.0.10 (2024-07-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_traced improvements
-* [IMP] Python 3.6 deprecated
-
-
-clodoo: 2.0.12 (2024-07-03)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Rpc with odoo < 10.0
-* [IMP] It does no more depends on os0
-* [IMP] Python 3.6 deprecated
-
-
-zar: 2.0.5 (2024-05-22)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] zar_upd
-
-
-zerobug: 2.0.16 (2024-05-14)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] z0testlib: no crash without coverage
-
-~~~~~~~~~~~~~~~~~~~
-
-* [FIX] build_cmd: command not in scripts directory
-
-
-z0bug_odoo: 2.0.19 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Colored test results
-
-
-wok_code: 2.0.17 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoo_translate.py various fixes
-* [IMP] Log file of daemon process of test in tests/logs
-* [IMP] run_odoo_debug: OCB repository does not search for other repositories
-* [IMP] deploy_odoo now download empy repositories (to compatibility use --clean-empy-repo)
-
-
-python_plus: 2.0.13 (2024-05-11)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: package versions improvements
-* [FIX] list_requirements.py: in some rare cases wrong version to apply (factur-x)
-* [IMP] vem: now pip<23 and setuptools<58 are applied just if neeeded
-* [IMP] vem: pip is always updated to last version
-
-
-z0bug_odoo: 2.0.18 (2024-04-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: no data loaded in some cases
-* [FIX[ TestEnv: resource_edit manage read-only fields
-* [QUA] TestEnv coverage 93% by test_test_env in https://github.com/zeroincombenze/zerobug-test
-
-
-clodoo: 2.0.11 (2024-03-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Parameters review
-* [FIX] No file during pip install
-* [FIX] Call with context Odoo 10.0+
-
-
-wok_code: 2.0.16 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoo_translation.py: case correction
-* [FIX] run_odoo_debug: sometimes crashes on OCB/addons modules
-* [FIX] gen_readme.py: Odoo repository documentation
-* [FIX] gen_readme.py: thumbnail figure
-* [FIX] please docs: count assertions
-* [FIX] please test: switch -K --no-ext-test
-* [FIX] deploy_odoo: crash when clone existing directory
-* [IMP] deploy_odoo: new switch --continue-after-error
-* [FIX] deploy_odoo/wget_odoo_repositories: store github query in cache
-
-
-odoo_score: 2.0.8 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] set_workers: no automatic discover for odoo multi
-* [IMP] Purged old unused code
-* [IMP] New odooctl command
-
-
-clodoo: 2.0.10 (2024-03-26)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] Partial refactoring
-
-
-python_plus: 2.0.12 (2024-02-29)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] New function str2bool()
-
-
-z0bug_odoo: 2.0.17 (2024-02-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: minor improvements
-* [FIX] TestEnv: crash if no account.journal in data
-* [IMP] Data with date range 2024
-
-
-z0bug_odoo: 2.0.16 (2024-02-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: nested +multi fields with Odoo cmd
-
-
-wok_code: 2.0.15 (2024-02-17)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] do_git_checkout_new_branch: ignore symbolic links
-* [FIX] deploy_odoo: minor fixes
-* [IMP] do_git_checkout_new_branch: oddo 17.0
-* [IMP] deploy_odoo: new action amend
-* [IMP] deploy_odoo: new switch to link repositories
-* [IMP] deploy_odoo: removed deprecated switches
-* [IMP] New repositories selection
-* [IMP] arcangelo improvements: new tests odoo from 8.0 to 17.0
-* [IMP] arcangelo improvements: test odoo from 8.0 to 17.0
-* [IMP] arcangelo switch -lll
-* [IMP] arcaneglo: rules reorganization
-* [IMP] arcangelo: trigger management and new param ctx
-* [IMP] arcangelo: new switch -R to select rules to apply
-
-
-wok_code: 2.0.14 (2024-02-07)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Quality rating formula
-* [FIX] please install python --python=3.7
-* [IMP] please publish marketplace
-* [IMP] read-only repository
-* [IMP] arcangelo improvements
-* [IMP] gen_readme.py manifest rewrite improvements
-* [IMP] cvt_csv_coa.py improvements
-* [IMP] please test with new switch -D
-* [IMP] run_odoo_debug improvements
-
-
-python_plus: 2.0.11 (2024-02-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: show right python version if 3.10+
-* [IMP] list_requirements.py improvements
-* [IMP] new python version assignment from odoo version
-
-
-odoo_score: 2.0.7 (2024-02-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [REF] set_workers refactoring
-
-
-clodoo: 2.0.9 (2024-02-02)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc improvements
-
-
-z0lib: 2.0.9 (2024-02-01)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Internal metadata
-
-
-zerobug: 2.0.14 (2024-01-31)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] build_cmd: enable coverage on sub process
-* [FIX] Re-enable coverage statistics
-* [FIX] Printing message: right sequence
-
-
-z0bug_odoo: 2.0.15 (2024-01-27)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Documentation typo corrections
-* [IMP] Date range file .xlsx for TestEnv
-* [IMP] TestEnv: local data dir new rules
-* [FIX] TestEnv: 3 level xref, sometime fails with "_" in module name
-* [FIX] TestEnv: caller environment more than 1 level
-* [FIX] TestEnv: sometime is_action() fails
-* [FIX] TestEnv: wizard active model
-* [FIX] TestEnv: wizard module name is current module under test
-* [IMP] TestEnv: binding model in view for Odoo 11.0+
-* [IMP] TestEnv: write with xref can update xref id
-* [IMP] TestEnv: warning if no setUp() declaration
-* [IMP] TestEnv: resource_download, now default filed name is "data"
-
 
 
 os0: 2.0.1 (2022-10-20)
@@ -546,10 +425,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.6/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.8/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.6/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.8/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -16,6 +16,7 @@ except IOError:
 
 install_requires = [
     "python_plus>=2.0.19",
+    "z0lib>=2.1.1",
     "clodoo",
     "future",
 ]

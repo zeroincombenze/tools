@@ -263,7 +263,7 @@ Example:
 +------------------------+------------+----------+----------+
 
 .. important::
-    Tables are automatically created from .csv files. See below "gen_reame symbols"
+    Tables are automatically created from .csv files. See below "gen_readme symbols"
 
 RST sections
 ~~~~~~~~~~~~

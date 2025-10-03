@@ -1,3 +1,17 @@
 include_odoo_xml_new_api:
   ctx: 'final'
   include: 'odoo_xml_new_api'
+tag_t_out:
+  search: '<t-raw'
+  do:
+    - action: 's'
+      args:
+        - '<t-raw'
+        - '<t-out'
+tag_t_out_2:
+  search: '<t-esc'
+  do:
+    - action: 's'
+      args:
+        - '<t-esc'
+        - '<t-out'

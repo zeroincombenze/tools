@@ -6,9 +6,31 @@ no_view_type:
   do:
     - action: 'd'
 binding_model:
-  match: '.*src_model="([^"]*)"'
+  search: 'src_model="([^"]*)"'
   do:
     - action: 's'
       args:
       - 'src_model="([^"]*)"'
       - 'binding_model="\1"'
+not_key2_multi:
+  search: 'key2="([^"]*)"'
+  do:
+    - action: 's'
+      args:
+      - 'key2="([^"]*)"'
+      - '<!-- key2="\1" -->'
+button_string_title:
+  search: '<button .*?>'
+  do:
+    - action: 's'
+      args:
+        - 'title='
+        - 'string='
+ir_actions_sudo:
+  search: 'self\.env\[["'']ir\.actions.*?["''].sudo\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.actions.*?)["''].sudo\(\)'
+        - 'self.env["\1"]'

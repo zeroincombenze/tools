@@ -4,3 +4,11 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final or migrate_multi'
   include: 'odoo_python_no_api_multi'
+self_env_company:
+  search: 'self\.env\.company'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\.company'
+        - 'self.env.user.company_id'

@@ -27,7 +27,14 @@ complete &>/dev/null && COMPLETE="complete" || COMPLETE="# complete"
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 ME=$(readlink -e $0)
-opts=$(echo $1 $2 $3 $4 $5 $6 $7 $8 $9 .)
+opts="-"
+REQ_PYVER=""
+while [[ -n $1 ]]; do
+  [[ $1 =~ ^- ]] && opts="$opts${1:1}"
+  [[ ! $1 =~ ^- ]] && REQ_PYVER="$1"
+  shift
+done
+
 if [[ $opts =~ ^-.*h ]]; then
     echo "$THIS [-h][-d][-f][-n][-p][-P][-q][-t][-U][-v][-V] [PYTHON_VERSION]"
     echo "  -h  this help"
@@ -38,6 +45,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -G  remove hooks from git projects"
     echo "  -k  keep current virtual environment if exists"
     echo "  -n  dry-run"
+    echo "  -O  do not load OCA maintainer tools"
     echo "  -p  mkdir $HOME/devel if does not exist"
     echo "  -P  permanent environment (update ~/.bash_profile)"
     echo "  -q  quiet mode"
@@ -117,12 +125,14 @@ build_tools_base() {
 }
 
 install_from_source() {
-    local o
+    local o sts
     srcpath="$SRCPATH/$pfn"
     [[ ! $opts =~ ^-.*v ]] && o="-q"
     [[ $opts =~ ^-.*vv ]] && o="-v"
     run_traced "$VEM install $srcpath $o"
-    [[ ! -d $PYLIB/$pfn ]] && echo "FAILED: local path $PYLIB/$pfn not found!" && exit 1
+    sts=$?
+    [[ $sts -ne 0 ]] && echo -e "# ${RED}FAILED: package $srcpath not installed!${CLR}" && exit 1
+    [[ ! -d $PYLIB/$pfn ]] && echo -e "# ${RED}FAILED: local path $PYLIB/$pfn not found!${CLR}" && exit 1
     if [[ $pkg =~ (python-plus|python_plus) ]]; then
         [[ -x $PYLIB/$pfn/scripts/vem.sh ]] && VEM="$PYLIB/$pfn/scripts/vem.sh"
     elif [[ $pkg == "zerobug" ]]; then
@@ -131,8 +141,12 @@ install_from_source() {
       set_shebang $PYLIB/$pfn/travis
     fi
     if [[ -n $(which ${pkg}-info 2>/dev/null) ]]; then
-        [[ $opts =~ ^-.*v ]] && run_traced "${pkg}-info --copy-pkg-data -v"
-        [[ ! $opts =~ ^-.*v ]] && run_traced "${pkg}-info --copy-pkg-data"
+        # Unwilled behavior: package name still use prior virtual env python
+        # x=$(which ${pkg} 2>/dev/null)
+        # [[ -n $x ]] && set_shebang $x
+        run_traced "${pkg}-info --copy-pkg-data $o"
+        sts=$?
+        [[ $sts -ne 0 ]] && echo -e "# ${RED}FAILED: package $srcpath not configured!${CLR}" && exit 1
     fi
 }
 
@@ -193,7 +207,7 @@ build_activate_tools() {
 install_oca_tools() {
     run_traced "cd $DSTPATH"
     [[ $opts =~ ^-.*v ]] && x="" || x="--quiet"
-    if [[ ! $opts =~ ^-.*t ]]; then
+    if [[ ! $opts =~ ^-.*t && ! $opts =~ ^-.*O ]]; then
         if [[ $opts =~ ^-.*f ]]; then
             run_traced "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash"
             run_traced "unset npm_config_prefix"
@@ -202,20 +216,27 @@ install_oca_tools() {
             echo ""
         fi
         [[ -d $DSTPATH/maintainer-tools ]] && rm -fR $DSTPATH/maintainer-tools
-        run_traced "git clone https://github.com/OCA/maintainer-tools.git"
-        if [[ -d $DSTPATH/maintainer-tools ]]; then
-            run_traced "pip install $DSTPATH/maintainer-tools $popts"
-            for pkg in black pre-commit pyupgrade flake8-bugbear; do
-                run_traced "pip install $pkg $popts"
-            done
-        fi
+        # run_traced "git clone https://github.com/OCA/maintainer-tools.git"
+        # run_traced "pip install $DSTPATH/maintainer-tools $popts"
+        run_traced "pip install git+https://github.com/OCA/maintainer-tools"
+        for pkg in black pre-commit pyupgrade flake8-bugbear; do
+            run_traced "pip install $pkg $popts"
+        done
         run_traced "git clone $x https://github.com/OCA/odoo-module-migrator.git"
         for pkg in sphinx sphinx_rtd_theme; do
             run_traced "pip install $pkg $popts"
         done
         run_traced "nvm install v20.18.0"
+        x=$(which node)
+        if [[ -z $x ]]; then
+          echo "Node v20.18.0 not installed: some package like prettier cannot run!"
+        # else
+          # run_traced "ln -s $x $DSTPATH/venv/bin"
+          # [[ -d $HOME/.local/bin ]] && run_traced "ln -s $x $HOME/.local/bin"
+        fi
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
-        run_traced "npm audit fix"
+        run_traced "npm audit fix --force"
+        run_traced "npm install npx"
         run_traced "npm -g install --save-dev --save-exact prettier@2.1.2"
         run_traced "npm -g install --save-dev --save-exact @prettier/plugin-xml@0.12.0"
     fi
@@ -334,19 +355,14 @@ PYVER=$(python3 --version 2>&1 | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $PYVER && $opts =~ ^-.*2 ]] && PYVER=$(python2 --version 2>&1 | grep --color=never -Eo "2\.[0-9]+" | head -n1)
 OLD_PYVER=""
 [[ -x $LOCAL_VENV/bin/python ]] && OLD_PYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
-REQ_PYVER=""
-if [[ $opts =~ ^-.*t && $TRAVIS_PYTHON_VERSION ]]; then
-    REQ_PYVER="$TRAVIS_PYTHON_VERSION"
-else
-    [[ $opts =~ 3\.(12|11|10|9|8|7) ]] && REQ_PYVER=$(echo $opts|grep --color=never -Eo "3\.(12|11|10|9|8|7)" | head -n1)
-fi
 [[ $opts =~ ^-.*2 ]] && REQ_PYVER="2.7"
-# [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.12 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ $opts =~ ^-.*t && $TRAVIS_PYTHON_VERSION ]] && REQ_PYVER="$TRAVIS_PYTHON_VERSION"
+[[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.12 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.9 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.8 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
-[[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER && -n $PYVER ]] && REQ_PYVER=$PYVER
 [[ -z $REQ_PYVER ]] && echo "No python not found in path!" && exit 1
 if [[ ! $REQ_PYVER =~ ^3\.(7|8|9|10|11|12)$ && $REQ_PYVER != "2.7" ]]; then
@@ -355,9 +371,9 @@ if [[ ! $REQ_PYVER =~ ^3\.(7|8|9|10|11|12)$ && $REQ_PYVER != "2.7" ]]; then
         echo "Please, use python version $PYVER "
         exit 1
     fi
-    echo "Please install python 3.11 typing following command:"
+    echo "Please install python 3.12 typing following command:"
     echo ""
-    echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.11"
+    echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.12"
     echo ""
     exit 1
 fi
@@ -373,6 +389,7 @@ if [[ $OLD_PYVER != $REQ_PYVER ]]; then
     done
 fi
 if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $REQ_PYVER != $OLD_PYVER ]]; then
+    [[ -L $HOME/.local/bin/node ]] && run_traced "rm -f $HOME/.local/bin/node"
     x="-iDBB"
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
@@ -398,6 +415,7 @@ PYTHON3=""
 PLEASE_CMDS=""
 TRAVIS_CMDS=""
 LOCAL_PKGS="z0lib python-plus arcangelo clodoo lisa odoo_score travis_emulator wok_code zerobug z0bug-odoo zar"
+NO_TEST_PKGS="(lisa|odoo_score|travis_emulator|wok_code|zar)"
 BINPATH="$LOCAL_VENV/bin"
 PIP=$(which pip)
 [[ -z $PIP ]] && echo -e "${RED}# command pip not found! Please run something like:${CLR} sudo apt install python3-pip!" && exit 1
@@ -418,8 +436,8 @@ mkdir -p $LOCAL_VENV/tmp
 [[ $PYVER -eq 2 ]] && run_traced "$VEM install future"
 
 if [[ ! $opts =~ ^-.*k ]]; then
-# set -x  #debug
     for pkg in $LOCAL_PKGS tools; do
+        [[ $opts =~ ^-.*t && $pkg =~ ^$NO_TEST_PKGS\$ ]] && exit
         [[ $pkg =~ (python-plus|z0bug-odoo) ]] && pfn=${pkg/-/_} || pfn=$pkg
         [[ $opts =~ ^-.*q ]] || echo -e "# ====[$pkg]===="
         if [[ $pkg == "tools" ]]; then
@@ -434,8 +452,6 @@ if [[ ! $opts =~ ^-.*k ]]; then
         fi
         install_from_source
     done
-# set +x  #debug
-# read -p "press RET ..."   #debug
 fi
 
 [[ ! $opts =~ ^-.*k && -d "$DSTPATH/_travis" ]] && run_traced "rm -fR $DSTPATH/_travis"

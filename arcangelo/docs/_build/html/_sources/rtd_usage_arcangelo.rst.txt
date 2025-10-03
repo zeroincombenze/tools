@@ -11,7 +11,7 @@ Digest of arcangelo
                         [-F FROM_VERSION] [-f] [-G GIT_ORGID]
                         [--git-merge-conflict left|right] [--ignore-pragma] [-i]
                         [-j PYTHON] [-l] [--list-syntax] [-n] [-o OUTPUT]
-                        [-P PACKAGE_NAME] [-R RULES] [-S]
+                        [--no-output] [-P PACKAGE_NAME] [-R RULES] [-S]
                         [--test-res-msg TEST_RES_MSG]
                         [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
                         [-y] [--add-rule-group ADD_RULE_GROUP]
@@ -49,6 +49,7 @@ Digest of arcangelo
       --list-syntax         list language syntax rules
       -n, --dry-run         do nothing (dry-run)
       -o OUTPUT, --output OUTPUT
+      --no-output
       -P PACKAGE_NAME, --package-name PACKAGE_NAME
       -R RULES, --rules RULES
                             Rules (comma separated) to parse (use - for removing)

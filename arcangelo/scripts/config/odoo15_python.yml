@@ -4,3 +4,43 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final'
   include: 'odoo_python_no_api_multi'
+_fields:
+  search: '\b_fields\b'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+      - '_fields'
+      - 'fields_get()'
+fields_keys:
+  search: '\bfields.keys()'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\b_fields.keys()'
+        - 'fields_get_keys()'
+fields_get_keys:
+  search: '\bget_views\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\bget_views\(\)'
+        - 'fields_get_keys()'
+ir_model_sudo:
+  search: 'self\.env\[["'']ir\.model.*?["'']'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.model.*?)["'']'
+        - 'self.env["\1"].sudo()'
+xmlid_to_res_model_res_id(:
+  search: '\bxmlid_to_res_model_res_id\('
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\bxmlid_to_res_model_res_id\('
+        - '\b_xmlid_to_res_model_res_id('

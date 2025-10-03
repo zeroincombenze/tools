@@ -1,3 +1,10 @@
 include_odoo_xml_new_api:
   ctx: 'final'
   include: 'odoo_xml_new_api'
+tag_list:
+  search: '(</?)tree'
+  do:
+    - action: 's'
+      args:
+        - '(</?)tree'
+        - '\1list'

@@ -4,3 +4,27 @@ include_odoo_python_new_api:
 include_odoo_no_api_multi:
   ctx: 'final'
   include: 'odoo_python_no_api_multi'
+ir_model_sudo:
+  search: 'self\.env\[["'']ir\.model.*?["'']\.sudo\(\)'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\[["''](ir\.model.*?)["''].sudo\(\)'
+        - 'self.env["\1"]'
+self_env_company:
+  search: 'self\.env\.user\.company_id'
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - 'self\.env\.user\.company_id'
+        - 'self.env.company'
+xmlid_to_res_model_res_id(:
+  search: '\b_xmlid_to_res_model_res_id\('
+  prio: '9'
+  do:
+    - action: 's'
+      args:
+        - '\b_xmlid_to_res_model_res_id\('
+        - '\bxmlid_to_res_model_res_id('
