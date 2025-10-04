@@ -5,6 +5,12 @@ ChangeLog History
 =================
 
 
+2.1.2 (2025-10-01)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Invalid log dir
+* [QUA]
+
 2.1.1 (2025-09-23)
 ~~~~~~~~~~~~~~~~~~
 
@@ -15,7 +21,9 @@ ChangeLog History
 * [IMP] New function split_n_rm_comment_lines
 * [IMP] Best Odoo version recognition
 * [QUA] Test coverage 65% (871: 306+565) [0 TestPoints] - quality rating 38 (target 100)2.1.0 (2025-09-05)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+2.1.0 (2025-09-05)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] New class Package
 * [IMP] python 3.12 is certificated programming language
@@ -119,16 +127,6 @@ ChangeLog History
 
 * [FIX] run_traced: wrong execution for "cd <path>; ..."
 * [IMP] CFG_init 'ALL': set ODOO_ROOT
-
-2.0.0.4 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] python2 tests
-
-2.0.0.3 (2022-09-30)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced return code
 
 |
 |

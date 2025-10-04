@@ -505,12 +505,12 @@ set_log_dir() {
         [[ -n $TRAVIS_SAVED_HOME ]] && home="$TRAVIS_SAVED_HOME" || home="$HOME"
         [[ -n $TRAVIS_SAVED_PKGPATH && -d $TRAVIS_SAVED_PKGPATH/tests ]] && testdir="$TRAVIS_SAVED_PKGPATH/tests"
         [[ -z $testdir && -n $TESTDIR ]] && testdir="$TESTDIR"
-        [[ -z $testdir ]] && testdir="$PKGPATH/tests"
+        [[ -z $testdir && -n $PKGPATH ]] && testdir="$PKGPATH/tests"
       fi
       [[ $ro -ne 0 ]] && LOGDIR="$home/travis_log"
-      [[ $ro -eq 0 ]] && LOGDIR="$testdir/logs"
+      [[ $ro -eq 0 && -n $testdir ]] && LOGDIR="$testdir/logs"
     fi
-    [[ ${opt_dry_run:-0} -eq 0 && ! -d $LOGDIR ]] && mkdir $LOGDIR
+    [[ ${opt_dry_run:-0} -eq 0 && -n $LOGDIR && ! -d $LOGDIR ]] && mkdir $LOGDIR
     export LOGDIR
 }
 export -f set_log_dir
@@ -551,16 +551,23 @@ set_log_filename() {
       [[ -n $3 ]] && v="$3"
       [[ $3 == "-" ]] && v=""
       [[ -z $LOGDIR ]] && set_log_dir "$1" "$2"
-      get_uniqid "$PKGPATH" "$v" "." "$REPOSNAME"
-      printf -v x "%s+%05d" "$(date +%Y%m%d)" "$(($(date +%s)-$(date -d "00:00:00" +%s)))"
-      LOGFILE="$LOGDIR/${UMLI}-$x.log"
-      DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup-$x.log"
+      if [[ -n $LOGDIR ]]; then
+        get_uniqid "$PKGPATH" "$v" "." "$REPOSNAME"
+        printf -v x "%s+%05d" "$(date +%Y%m%d)" "$(($(date +%s)-$(date -d "00:00:00" +%s)))"
+        LOGFILE="$LOGDIR/${UMLI}-$x.log"
+        DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup-$x.log"
+      else
+        LOGFILE=""
+        DAEMON_LOGFILE=""
+      fi
     fi
-    [[ ${opt_dry_run:-0} -eq 0 && ! -d $LOGDIR ]] && mkdir $LOGDIR
-    [[ ${opt_dry_run:-0} -eq 0 && ! -f $LOGFILE ]] && touch $LOGFILE
-    export LOGDIR
-    export LOGFILE
-    export DAEMON_LOGFILE
+    if [[ -n $LOGFILE ]]; then
+      [[ ${opt_dry_run:-0} -eq 0 && ! -d $LOGDIR ]] && mkdir $LOGDIR
+      [[ ${opt_dry_run:-0} -eq 0 && ! -f $LOGFILE ]] && touch $LOGFILE
+      export LOGDIR
+      export LOGFILE
+      export DAEMON_LOGFILE
+    fi
 }
 export -f set_log_filename
 

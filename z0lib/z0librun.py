@@ -1053,8 +1053,11 @@ class Package(object):
             testdir = self.testdir
             if not testdir:
                 testdir = pthuser(pth.join(self.rundir, "tests"))
-            logdir = pth.join(testdir, "logs")
-            self.log_dir = logdir
+            if testdir:
+                logdir = pth.join(testdir, "logs")
+                self.log_dir = logdir
+            else:
+                logdir = ""
         return logdir
 
     def get_log_filename(self, fqn=None):
@@ -1070,15 +1073,18 @@ class Package(object):
             log_daemon_fqn = self.log__daemon_fqn
         else:
             logdir = self.get_log_dir()
-            udi, umli = self.get_uniqid()
-            today = datetime.now()
-            today = datetime(today.year, today.month, today.day)
-            suffix = "%s+%05d.log" % (datetime.strftime(today, "%Y%m%d"),
-                                      (datetime.now() - today).seconds)
-            log_fqn = pth.join(logdir, "%s-%s" % (umli, suffix))
-            log_daemon_fqn = pth.join(logdir, "%s_nohup-%s" % (umli, suffix))
-            self.log_fqn = log_fqn
-            self.log__daemon_fqn = log_daemon_fqn
+            if logdir:
+                udi, umli = self.get_uniqid()
+                today = datetime.now()
+                today = datetime(today.year, today.month, today.day)
+                suffix = "%s+%05d.log" % (datetime.strftime(today, "%Y%m%d"),
+                                          (datetime.now() - today).seconds)
+                log_fqn = pth.join(logdir, "%s-%s" % (umli, suffix))
+                log_daemon_fqn = pth.join(logdir, "%s_nohup-%s" % (umli, suffix))
+                self.log_fqn = log_fqn
+                self.log__daemon_fqn = log_daemon_fqn
+            else:
+                logdir = log_fqn = log_daemon_fqn = ""
         return logdir, log_fqn, log_daemon_fqn
 
     def list_log_filename(self, all_version=True):
