@@ -1,9 +1,111 @@
-.. toctree::
-   :maxdepth: 2
+===========
+z0lib 2.1.1
+===========
+
+
+
+|Maturity| |license gpl|
+
+
+
+Overview
+========
+
+z0lib is a simple bash and python library.
+
+It was created to give support to bash and python software.
+The package has both bash version and both python version of functions.
+Since 2022, bash development was abandoned and only python code is still upgraded.
+
+.. important::
+
+    However, most functions are still available for bash scripts.
+
+The available libraries are:
+
+* z0librc: bash version library
+* z0librun.py: python version library
+
+
+
+Features
+--------
+
++--------------+------+--------+-----------------------------------------------------------------+
+| Description  | bash | python | Note(s)                                                         |
++--------------+------+--------+-----------------------------------------------------------------+
+| run_traced   | ✅   | ✅     | Run os command with trace                                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| xuname       | ✅   | ❌     | OS indentity (python has native function)                       |
++--------------+------+--------+-----------------------------------------------------------------+
+| parseoptargs | ✅   | ❌     | Command line parser (python has native function)                |
++--------------+------+--------+-----------------------------------------------------------------+
+| link_cfg     | ✅   | ❌     | Get values from configuration file (python has native function) |
++--------------+------+--------+-----------------------------------------------------------------+
+
+
+
+Getting started
+===============
+
+
+Prerequisites
+-------------
+
+Zeroincombenze(R) tools requires:
+
+* Linux Centos 7/8 or Debian 9/10/11 or Ubuntu 16/18/20/22/24
+* python 2.7+, some tools require python 3.7+, best python 3.9+
+* bash 5.0+
+
+
+
+Installation
+------------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install z0lib
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd $HOME
+    [[ ! -d ./tools ]] && git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+
+
+Upgrade
+-------
+
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    pip install --upgrade z0lib
+
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    cd ./tools
+    ./install_tools.sh -pUT
+    source $HOME/devel/activate_tools
+
+
 
 ChangeLog History
-=================
-
+-----------------
 
 2.1.2 (2025-10-01)
 ~~~~~~~~~~~~~~~~~~
@@ -127,6 +229,30 @@ ChangeLog History
 
 * [FIX] run_traced: wrong execution for "cd <path>; ..."
 * [IMP] CFG_init 'ALL': set ODOO_ROOT
+
+
+
+Credits
+=======
+
+Copyright
+---------
+
+SHS-AV s.r.l. <https://www.shs-av.com/>
+
+
+Authors
+-------
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+
+
+
+Contributors
+------------
+
+* `Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>`__
+
 
 |
 |
