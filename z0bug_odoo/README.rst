@@ -2146,7 +2146,7 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.24 (2025-09-29)
+2.0.24 (2025-10-24)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] testenv.py with Odoo 18.0
@@ -2327,11 +2327,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~~~
 
 * [REF] clone_oca_dependencies.py
-
-2.0.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
 
 
 

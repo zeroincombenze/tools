@@ -17,7 +17,7 @@ except IOError:
 install_requires = [
     "python_plus>=2.0.19",
     "z0lib>=2.1.1",
-    "clodoo",
+    "clodoo>=2.0.17",
     "future",
 ]
 # if sys.version_info >= (3, 0):
@@ -64,6 +64,7 @@ setup(
     package_data={
         "": [
             "scripts/config/*",
+            "scripts/config/languages/*",
             "scripts/cvt_script.sh",
         ]
     },

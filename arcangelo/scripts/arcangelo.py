@@ -19,8 +19,10 @@ try:
     from . import license_mgnt
 except ImportError:  # pragma: no cover
     import license_mgnt
-
-from .arcangelo_syntax import Syntax, get_config_path
+try:
+    from .arcangelo_syntax import Syntax, get_config_path
+except ImportError:  # pragma: no cover
+    from arcangelo_syntax import Syntax, get_config_path
 
 __version__ = "2.1.1"
 

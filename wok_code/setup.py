@@ -17,8 +17,16 @@ except IOError:
     long_description = ""
 
 install_requires = [
-    "arcangelo>=2.1.1", "clodoo", "z0lib>=2.1.0", "python_plus>=2.0.19",
-    "future", "Babel", "lxml", "openpyxl", "pyyaml", "six",
+    "arcangelo>=2.1.1",
+    "clodoo",
+    "z0lib>=2.1.1",
+    "python_plus>=2.0.19",
+    "future",
+    "Babel",
+    "lxml",
+    "openpyxl",
+    "pyyaml",
+    "six",
 ]
 if sys.version_info >= (3, 0):
     install_requires.append("translators")
