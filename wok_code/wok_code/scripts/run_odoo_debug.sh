@@ -143,26 +143,6 @@ coverage_report() {
     fi
 }
 
-#set_log_filename() {
-#    # UDI (Unique DB Identifier): format "{pkgname}_{git_org}{major_version}"
-#    # UMLI (Unique Module Log Identifier): format "{git_org}{major_version}.{repos}.{pkgname}"
-#    local ro home testdir
-#    # [[ ! $PRJNAME == "Odoo" && -z $GIT_ORGID ]] && GIT_ORGID="zero"
-#    [[ -z $GIT_ORGID ]] && GIT_ORGID="$(build_odoo_param GIT_ORGID \"$PKGPATH\")"
-#    [[ $SCOPE == "marketplace" || $REPOSNAME =~ ^(marketplace|OCB)$ || $GIT_ORGID == "oca" ]] && ro=1 || ro=0
-#    get_uniqid "$PKGPATH" "${odoo_maj}" "$GIT_ORGID" "$REPOSNAME"
-#    [[ -n $TRAVIS_SAVED_HOME ]] && home="$TRAVIS_SAVED_HOME" || home="$HOME"
-#    [[ -n $TRAVIS_SAVED_PKGPATH && -d $TRAVIS_SAVED_PKGPATH/tests ]] && testdir="$TRAVIS_SAVED_PKGPATH/tests" || testdir="$TESTDIR"
-#    [[ $ro -ne 0 ]] && LOGDIR="$home/travis_log"
-#    [[ $ro -eq 0 ]] && LOGDIR="$testdir/logs"
-#    [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
-#    LOGFILE="$LOGDIR/${UMLI}_$(date +%Y%m%d)"
-#    DAEMON_LOGFILE="$LOGDIR/${UMLI}_nohup_$(date +%Y%m%d)"
-#    LOGFILE="$LOGFILE.log"
-#    export LOGDIR
-#    export LOGFILE
-#    export DAEMON_LOGFILE
-#}
 
 check_path_n_branch() {
     # check_path_n_branch(path branch)
@@ -500,7 +480,7 @@ OPTHELP=("this help"
   "import translation (conflict with -e -u -I -T)"
   "install module (conflict with -e -i -u -T)"
   "load language (default='it_IT')"
-  "set log level: may be info or debug"
+  "set log level: may be info, debug, debug_sql or debug_rpc"
   "modules to test, translate or upgrade"f
   "multi-version odoo environment"
   "do nothing (dry-run)"
@@ -1007,16 +987,18 @@ if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
         sts=$?
         [[ $sts -eq 0 ]] && coverage_report | tee -a $LOGFILE
         [[ $sts -eq 0 ]] && do_clean_log
-        echo "please test|$sts|$(date '+%F %T')" >> "$LOGDIR/.run.log"
-        do_summary_header | tee -a $LOGFILE
-        while IFS="#" read -r lne r || [[ -n "$lne" ]]; do
-            k=$(echo $lne | cut -d"|" -f1)
-            s=$(echo $lne | cut -d"|" -f2)
-            d=$(echo $lne | cut -d"|" -f3)
-            do_summary_line "$k" "${opt_modules}" "${odoo_fver}" "$s" "$d" | tee -a $LOGFILE
-        done < "$LOGDIR/.run.log"
-        do_summary_footer | tee -a $LOGFILE
-        rm -f $LOGDIR/.run.log
+        if [[ -d $LOGDIR ]]; then
+          echo "please test|$sts|$(date '+%F %T')" >> "$LOGDIR/.run.log"
+          do_summary_header | tee -a $LOGFILE
+          while IFS="#" read -r lne r || [[ -n "$lne" ]]; do
+              k=$(echo $lne | cut -d"|" -f1)
+              s=$(echo $lne | cut -d"|" -f2)
+              d=$(echo $lne | cut -d"|" -f3)
+              do_summary_line "$k" "${opt_modules}" "${odoo_fver}" "$s" "$d" | tee -a $LOGFILE
+          done < "$LOGDIR/.run.log"
+          do_summary_footer | tee -a $LOGFILE
+          rm -f $LOGDIR/.run.log
+        fi
     else
         run_traced "coverage_report | tee -a $LOGFILE"
     fi

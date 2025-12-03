@@ -1,5 +1,5 @@
 =============
-clodoo 2.0.17
+clodoo 2.0.18
 =============
 
 
@@ -123,6 +123,12 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.18 (2025-12-03)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Odoo flags customer and supplier in res.partner
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.17 (2025-10-01)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -214,21 +220,6 @@ ChangeLog History
 
 * [FIX] odoorc: GIT_BRANCH sometimes fails
 
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: GITORGID and other value, sometimes are wrong
-
-2.0.1.1 (2022-10-15)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] Minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
 
 
 Credits
@@ -266,10 +257,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.17/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.17/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

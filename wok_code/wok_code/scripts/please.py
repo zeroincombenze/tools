@@ -987,7 +987,7 @@ class Please(object):
         if manifest:
             dt_limit = datetime.strftime(datetime.now() - timedelta(365), "%Y-%m-%d")
             cmd = "git log --date=iso --since=%s -- %s" % (dt_limit, manifest)
-            sts, stdout, stderr = z0lib.os_system_traced(cmd)
+            sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
             if sts == 0:
                 for ln in stdout.split("\n"):
                     if ln.startswith("Date"):

@@ -64,6 +64,7 @@ setup(
     package_data={
         "": [
             "scripts/config/*",
+            "scripts/config/languages/*",
             "scripts/cvt_script.sh",
         ]
     },

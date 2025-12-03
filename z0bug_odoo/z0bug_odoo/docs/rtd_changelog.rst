@@ -5,7 +5,7 @@ ChangeLog History
 =================
 
 
-2.0.24 (2025-09-29)
+2.0.24 (2025-11-13)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] testenv.py with Odoo 18.0
@@ -181,16 +181,6 @@ ChangeLog History
 
 * [FIX] Automatic conversion of integer into string for 'char' fields
 * [IMP] TestEnv
-
-2.0.1.1 (2022-11-03)
-~~~~~~~~~~~~~~~~~~~~
-
-* [REF] clone_oca_dependencies.py
-
-2.0.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
 
 |
 |

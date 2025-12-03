@@ -91,16 +91,6 @@ ChangeLog History
 
 * [IMP] Clearing code
 
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
 |
 |
 

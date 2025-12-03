@@ -434,11 +434,6 @@ ChangeLog History
 
 * [IMP] Clearing code
 
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] minor improvements
-
 
 
 Credits

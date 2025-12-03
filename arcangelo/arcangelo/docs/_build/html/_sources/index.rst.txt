@@ -1,5 +1,5 @@
 .. arcangelo documentation master file, created by
-   gen_readme.py on 2025-09-27 20:45:55
+   gen_readme.py on 2025-10-11 20:03:17
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
