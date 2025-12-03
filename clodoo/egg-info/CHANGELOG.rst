@@ -1,3 +1,9 @@
+2.0.18 (2025-12-03)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] Odoo flags customer and supplier in res.partner
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.17 (2025-10-01)
 ~~~~~~~~~~~~~~~~~~~
 
