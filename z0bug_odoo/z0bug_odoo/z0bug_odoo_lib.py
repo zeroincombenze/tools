@@ -23,7 +23,7 @@ from openpyxl import load_workbook
 
 from python_plus import unicodes
 
-__version__ = "2.0.24"
+__version__ = "2.0.25"
 
 
 class Z0bugOdoo(object):

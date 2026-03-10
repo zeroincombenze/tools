@@ -5,6 +5,12 @@ ChangeLog History
 =================
 
 
+2.0.25 (2026-03-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] testenv.py with Odoo 18.0
+* [QUA] Test coverage 22% (1037: 812+225) [0 TestPoints] - quality rating 16 (target 100)
+
 2.0.24 (2025-11-13)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -133,55 +139,6 @@ ChangeLog History
 * [IMP] TestEnv: the field <description> is not mode key (only acount.tax)
 * [IMP] TestEnv: 3th level xref may be a many2one field type
 
-2.0.6 (2023-02-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: _get_xref_id recognize any group
-* [FIX] TestEnv: datetime field more precise (always with time)
-* [FIX] TestEnv: resource_make / resource_write fall in crash if repeated on headr/detail models
-* [NEW] TestEnv: 2many fields accepts more xref values
-* [IMP] TestEnv: debug message with more icons and more readable
-* [IMP] TestEnv: cast_types with formatting for python objects
-* [IMP] TestEnv: validate_record now uses intelligent algorithm to match pattern templates and records
-
-2.0.5 (2023-01-25)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: in some rare cases, wizard crashes
-* [NEW] TestEnv: get_records_from_act_windows()
-* [IMP] TestEnv: resource_make now capture demo record if available
-* [IMP] TestEnv: resource is not required for declared xref
-* [IMP] TestEnv: self.module has all information about current testing module
-* [IMP] TestEnv: conveyance functions for all fields (currenly just for account.payment.line)
-* [IMP] TestEnv: fields many2one accept object as value
-* [IMP] TestEnv: function validate_records() improvements
-* [FIX] TestEnv: company_setup, now you can declare bank account
-* [IMP] TestEnv: minor improvements
-
-2.0.4 (2023-01-13)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: resource_create does not duplicate record
-* [FIX] TestEnv: resource_write after save calls write() exactly like Odoo behavior
-* [NEW] TestEnv: new function field_download()
-* [NEW] TestEnv: new function validate_records()
-* [IMP] TestEnv: convert_to_write convert binary fields too
-* [IMP] TestEnv: minor improvements
-
-2.0.3 (2022-12-29)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: more debug messages
-* [IMP] TestEnv: more improvements
-* [FIX] TestEnv: sometime crashes if default use context
-* [FIX] TestEnv: bug fixes
-
-2.0.2 (2022-12-09)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Automatic conversion of integer into string for 'char' fields
-* [IMP] TestEnv
-
 |
 |
 
@@ -195,10 +152,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.24/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.25/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.24/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.25/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

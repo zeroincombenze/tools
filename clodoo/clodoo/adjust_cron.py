@@ -1,4 +1,21 @@
 #! /usr/bin/python3
+"""
+Adjust cron next call
+Since odoo12.0, cron model changed: function was replaced by action_server
+id / id
+function / ir_actions_server_id
+name / cron_name
+args /
+user_id / user_id
+active / active
+numbercall / numbercall
+nextcall / nextcall
+priority / priority
+interval_type / interval_type
+do_all / do_all
+model /
+
+"""
 from datetime import datetime, timedelta, timezone
 from subprocess import PIPE, Popen
 import sys
@@ -17,7 +34,7 @@ def os_system(cmd):
 
 
 def extr_values(ln):
-    # id,name,interval_type,nextcall,priority,doall,interval_number,mode
+    # id,name/cron_name,interval_type,nextcall,priority,doall,interval_number,model/
     res = ln.split("|")
     id = int(res[0])
     name = res[1]
@@ -49,8 +66,10 @@ def eval_nextcall(name, minutes, next_ts):
 
 
 def main(cli_args=[]):
-    dry_run = force = help = False
+    dry_run = force = help = port = False
+    odoo_ver = "7"
     db = "cscs2016"
+    param = ""
     for arg in cli_args:
         if arg.startswith("-"):
             if "f" in arg:
@@ -59,20 +78,35 @@ def main(cli_args=[]):
                 dry_run = True
             if "h" in arg:
                 help = True
+            if "p" in arg:
+                param = "port"
+            if "o" in arg:
+                param = "odoo_ver"
+        elif param:
+            if param == "port":
+                port = arg
+            elif param == "odoo_ver":
+                odoo_ver = arg.split(".")[0]
         else:
             db = arg
     if help:
-        print("usage: cron_cscs [-f][-n][DBNAME]")
+        print("usage: cron_cscs [-f][-n][-o OVERSION][-p PORT][DBNAME]")
         exit(0)
-    sql = ("select id,name,interval_type,nextcall,priority,doall,interval_number,model"
-           " from ir_cron where active=true order by nextcall")
-    cmd = ["psql", db,  "-Atc", sql]
+    # utc=pytz.timezone("utc")
+    if int(odoo_ver) < 12:
+        fields = "id,name,interval_type,nextcall,priority,doall,interval_number,model"
+    else:
+        fields = "id,cron_name,interval_type,nextcall,priority,doall,interval_number"
+    sql = "select %s from ir_cron where active=true order by nextcall" % fields
+    cmd = ["psql"] if not port else ["psql", "-p", port]
+    cmd = cmd + ["-Atc", sql, db]
+    print(" ".join(cmd))
     sts, out, err = os_system(cmd)
     print(datetime.now(timezone.utc))
     print("cmd %s (%d)" % (" ".join(cmd), sts))
     if sts:
-        print("Error")
-        return sts
+         print("Error")
+         return sts
     for ln in out.split("\n"):
         if not ln:
             continue
@@ -87,7 +121,9 @@ def main(cli_args=[]):
             continue
         sql = "update ir_cron set nextcall='%s' where id=%d" % (
             next_ts.strftime("%Y-%m-%d %H:%M:%S"), id)
-        cmd = ["psql", db,  "-c", sql]
+        cmd = ["psql"] if not port else ["psql", "-p", port]
+        cmd = cmd + ["-c", sql, db]
+        print(" ".join(cmd))
         sts, out, err = os_system(cmd)
         if sts:
             print("cmd <<<%s>>> failed" % " ".join(cmd))
@@ -96,3 +132,4 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))
+

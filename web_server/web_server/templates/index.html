@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flask + Vue + Bulma</title>
+
+    <!-- Bulma CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    >
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+<section class="section">
+    <div class="container" id="app">
+        <h1 class="title">Flask Web Server Example</h1>
+
+        <button class="button is-primary" @click="loadMessage">
+            Call API
+        </button>
+
+        <div class="notification is-info mt-4" v-if="message">
+            {{ message }}
+        </div>
+    </div>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -22,7 +22,7 @@ import os.path as pth
 import sys
 
 
-__version__ = "2.0.24"
+__version__ = "2.0.25"
 
 PKG_FILES = (
     "bck_filestore.sh",

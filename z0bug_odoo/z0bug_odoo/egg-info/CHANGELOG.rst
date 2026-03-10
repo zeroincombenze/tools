@@ -1,3 +1,9 @@
+2.0.25 (2026-03-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] testenv.py with Odoo 18.0
+* [QUA] Test coverage 22% (1037: 812+225) [0 TestPoints] - quality rating 16 (target 100)
+
 2.0.24 (2025-11-13)
 ~~~~~~~~~~~~~~~~~~~
 

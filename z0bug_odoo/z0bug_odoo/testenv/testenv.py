@@ -1,6 +1,6 @@
 # pylint: skip-file
 # -*- coding: utf-8 -*-
-"""Test Environment v2.0.24
+"""Test Environment v2.0.25
 
 You can locate the recent testenv.py in testenv directory of module
 https://github.com/zeroincombenze/tools/tree/master/z0bug_odoo/testenv
@@ -995,10 +995,11 @@ class MainTest(test_common.TransactionCase):
             return None
 
         def _get_default_data_dir17():
+            module_root = file_path(self.module.name)
             for data_dir in (
-                file_path(os.path.join(self.module.name, "tests", "data")),
-                file_path(os.path.join(self.module.name, "data")),
-                file_path(os.path.join(self.module.name, "tests",)),
+                os.path.join(module_root, "tests", "data"),
+                os.path.join(module_root, "data"),
+                os.path.join(module_root, "tests"),
             ):
                 if data_dir and os.path.isdir(data_dir):
                     return data_dir
@@ -3096,7 +3097,7 @@ class MainTest(test_common.TransactionCase):
         setup_list = setup_list or self.get_resource_list(group=group)
         if not self.title_logged:
             self._logger.info(
-                "🎺🎺🎺 Starting test v2.0.24 (debug_level=%s, commit=%s)"
+                "🎺🎺🎺 Starting test v2.0.25 (debug_level=%s, commit=%s)"
                 % (self.debug_level, getattr(self, "odoo_commit_test", False))
             )
             self._logger.info(

@@ -426,10 +426,6 @@ FORCE_ALIAS_OS = {
     "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
     "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
 }
-FORCE_ALIAS_OS = {
-    "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
-    "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
-}
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
     "cryptography",
