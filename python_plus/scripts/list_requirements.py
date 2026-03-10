@@ -426,10 +426,6 @@ FORCE_ALIAS_OS = {
     "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
     "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
 }
-FORCE_ALIAS_OS = {
-    "wkhtmltopdf==0.12.4": "wkhtmltopdf==0.12.6",
-    "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
-}
 PIP_SECURE_PACKAGES = [
     "urllib3[secure]",
     "cryptography",
@@ -440,12 +436,11 @@ PIP_SECURE_PACKAGES = [
     "pyasn1",
 ]
 PIP2_TEST_PACKAGES = [
+    "arcangelo",
     "astroid",
     "Click",
     "configparser",
-    # "codecov",
     "coverage",
-    # "coveralls",
     "docopt",
     "docutils",
     "flake8",
@@ -486,12 +481,11 @@ PIP2_TEST_PACKAGES = [
     "zerobug",
 ]
 PIP3_TEST_PACKAGES = [
+    "arcangelo",
     "astroid",
     "Click",
     "configparser",
-    # "codecov",
     "coverage",
-    # "coveralls",
     "docopt",
     "docutils",
     "flake8",
@@ -550,7 +544,6 @@ PIP_BASE_PACKAGES = [
     "configparser",
     "decorator",
     "docutils",
-    # "feedparser",
     "future",
     "gdata",
     "gevent",
@@ -572,8 +565,6 @@ PIP_BASE_PACKAGES = [
     "simplejson",
     "six",
     "python-stdnum",
-    # "vatnumber",
-    # "wheel",
 ]
 PIP3_BASE_PACKAGES = []
 PIP_ODOO_BASE_PACKAGES = [

@@ -1,5 +1,5 @@
 ==================
-python_plus 2.0.18
+python_plus 2.0.19
 ==================
 
 
@@ -306,6 +306,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.19 (2025-09-04)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] list_requirements.py: package versions improvements
+
 2.0.18 (2025-06-14)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -390,52 +395,6 @@ ChangeLog History
 * [IMP] list_requirements.py: best resolution when versions conflict
 * [IMP] vem: set list_requirements.py executable
 
-2.0.5 (2022-12-23)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: refactoring version control
-* [IMP] vem: now amend can check current version (with -f switch)
-
-2.0.4 (2022-12-15)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Package version adjustment
-* [IMP] vem: amend show current package version
-* [IMP] vem: no python2 warning in linux kernel 3
-* [FIX] vem: best recognition of python version
-
-2.0.3 (2022-11-08)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-* [IMP] compute_date: refdate may be a string
-
-2.0.2.1 (2022-11-01)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Ensure coverage 5.0+
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: wrong behavior with > o < in version
-* [IMP] list_requirements.py: "Crypto.Cipher": "pycrypto"
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.3 (2022-09-14)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: install package with list_requirements.py
-
-2.0.0.2 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] vem: no input inquire
-
 
 
 Credits
@@ -474,10 +433,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.19/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.19/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

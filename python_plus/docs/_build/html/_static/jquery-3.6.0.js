@@ -10009,7 +10009,7 @@ jQuery.ajaxTransport( function( options ) {
 					}
 				}
 
-				// Override mime type if needed
+				// Override language type if needed
 				if ( options.mimeType && xhr.overrideMimeType ) {
 					xhr.overrideMimeType( options.mimeType );
 				}
