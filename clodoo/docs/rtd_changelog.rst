@@ -97,11 +97,6 @@ ChangeLog History
 * [IMP] odoorc: test for Odoo 16.0
 * [IMP] transodoo.py: minor improvements
 
-2.0.3 (2022-12-09)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] odoorc: GIT_BRANCH sometimes fails
-
 |
 |
 
