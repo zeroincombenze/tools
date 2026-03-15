@@ -12,7 +12,7 @@ numbercall / numbercall
 nextcall / nextcall
 priority / priority
 interval_type / interval_type
-do_all / do_all
+do_all /
 model /
 
 """
@@ -34,7 +34,7 @@ def os_system(cmd):
 
 
 def extr_values(ln):
-    # id,name/cron_name,interval_type,nextcall,priority,doall,interval_number,model/
+    # id,name/cron_name,interval_type,nextcall,priority,interval_number,model/
     res = ln.split("|")
     id = int(res[0])
     name = res[1]
@@ -42,11 +42,11 @@ def extr_values(ln):
     next = pytz.utc.localize(datetime.strptime(res[3][:19], "%Y-%m-%d %H:%M:%S"))
     prio = int(res[4])
     if intv_type == "minutes":
-        minutes = int(res[6])
+        minutes = int(res[5])
     elif intv_type == "days":
-        minutes = int(res[6]) * 60 * 24
+        minutes = int(res[5]) * 60 * 24
     elif intv_type == "weeks":
-        minutes = int(res[6]) * 60 * 24 * 7
+        minutes = int(res[5]) * 60 * 24 * 7
     else:
         minutes = 0
     return (id, name, intv_type, next, prio, minutes)
@@ -65,10 +65,18 @@ def eval_nextcall(name, minutes, next_ts):
     return next_ts
 
 
+def cmd_root(port, db_user):
+    cmd = ["psql"] if not port else ["psql", "-p", port]
+    if db_user:
+        cmd.append("-U")
+        cmd.append(db_user)
+    return cmd
+
+
 def main(cli_args=[]):
-    dry_run = force = help = port = False
+    dry_run = force = help = port = db_user = False
     odoo_ver = "7"
-    db = "cscs2016"
+    db = ""
     param = ""
     for arg in cli_args:
         if arg.startswith("-"):
@@ -82,23 +90,26 @@ def main(cli_args=[]):
                 param = "port"
             if "o" in arg:
                 param = "odoo_ver"
+            if "u" in arg:
+                param = "db_user"
         elif param:
             if param == "port":
                 port = arg
+            elif param == "db_user":
+                db_user = arg
             elif param == "odoo_ver":
                 odoo_ver = arg.split(".")[0]
         else:
             db = arg
-    if help:
-        print("usage: cron_cscs [-f][-n][-o OVERSION][-p PORT][DBNAME]")
+    if help or not db:
+        print("usage: adjust_cron [-f][-n][-o OVERSION][-p PORT][-u DB_USER] DBNAME")
         exit(0)
-    # utc=pytz.timezone("utc")
     if int(odoo_ver) < 12:
-        fields = "id,name,interval_type,nextcall,priority,doall,interval_number,model"
+        fields = "id,name,interval_type,nextcall,priority,interval_number,model"
     else:
-        fields = "id,cron_name,interval_type,nextcall,priority,doall,interval_number"
+        fields = "id,cron_name,interval_type,nextcall,priority,interval_number"
     sql = "select %s from ir_cron where active=true order by nextcall" % fields
-    cmd = ["psql"] if not port else ["psql", "-p", port]
+    cmd = cmd_root(port, db_user)
     cmd = cmd + ["-Atc", sql, db]
     print(" ".join(cmd))
     sts, out, err = os_system(cmd)
@@ -121,7 +132,7 @@ def main(cli_args=[]):
             continue
         sql = "update ir_cron set nextcall='%s' where id=%d" % (
             next_ts.strftime("%Y-%m-%d %H:%M:%S"), id)
-        cmd = ["psql"] if not port else ["psql", "-p", port]
+        cmd = cmd_root(port, db_user)
         cmd = cmd + ["-c", sql, db]
         print(" ".join(cmd))
         sts, out, err = os_system(cmd)
