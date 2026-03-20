@@ -116,8 +116,8 @@ def main(cli_args=[]):
     print(datetime.now(timezone.utc))
     print("cmd %s (%d)" % (" ".join(cmd), sts))
     if sts:
-         print("Error")
-         return sts
+        print("Error")
+        return sts
     for ln in out.split("\n"):
         if not ln:
             continue
@@ -143,4 +143,3 @@ def main(cli_args=[]):
 
 if __name__ == "__main__":
     exit(main(sys.argv[1:]))
-
