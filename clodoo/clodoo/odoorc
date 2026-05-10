@@ -311,7 +311,9 @@ build_odoo_param() {
     [[ -z "$ODOO_GIT_HOSTNAME" ]] && ODOO_GIT_HOSTNAME="(github.com)"
     [[ -z "$ODOO_DB_USER" ]] && ODOO_DB_USER="odoo%(MAJVER)s"
     [[ $3 =~ ^((DEBUG|default|search|SERVER|tree|odoo|short),?)+$ ]] && spec=$3 || REPOS=$3
-    [[ $5 =~ ^((DEBUG|default|search|SERVER|tree|odoo|short|MULTI|NOLINK),?)+$ ]] && spec=$5
+    [[ $5 =~ ^((DEBUG|default|search|SERVER|tree|odoo|short|MULTI|NOLINK),?)+$ ]] && x=$5 || x=""
+    [[ -n $spec && -n $x ]] && spec="$spec,$x"
+    [[ -z $spec && -n $x ]] && spec=$x
     if [[ $spec =~ NOLINK && -n $(which realpath 2>/dev/null) ]]; then
         REALPATH="realpath -s"
         REALPATHM="realpath -sm"

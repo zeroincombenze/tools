@@ -1,3 +1,9 @@
+2.0.19 (2026-05-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc with multiple specs
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.18 (2025-12-03)
 ~~~~~~~~~~~~~~~~~~~
 
