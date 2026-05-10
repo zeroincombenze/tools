@@ -553,8 +553,8 @@ elif [[ -n $opt_odir ]]; then
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=""
-    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+    [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     if [[ ! $opt_odir =~ ^$odoo_root ]]; then
@@ -565,8 +565,8 @@ elif [[ -n $opt_odir ]]; then
           p=$(dirname $p)
         done
         GIT_ORGID=$(build_odoo_param GIT_ORGID "$odoo_root")
-        CONFN=""
-        [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+        CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+        [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
         [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
         [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     fi
@@ -584,8 +584,8 @@ elif [[ -n $opt_modules || -n $opt_branch ]]; then
     PKGPATH="$opt_odir"
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=""
-    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+    [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
@@ -599,8 +599,8 @@ else
     PKGPATH=$(build_odoo_param PKGPATH "$PWD")
     REPOSNAME=$(build_odoo_param REPOS "$PWD")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$PWD")
-    CONFN=""
-    [[ $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
+    CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+    [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
     [[ -f $CONFN ]] && opaths="$(grep ^addons_path $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')" || opaths="$odoo_root"
@@ -806,7 +806,7 @@ else
     replace_restore_modules $z0_repl
 fi
 
-if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 || -n $opt_lang ]]; then
+if [[ -n "$opt_modules" || $opt_upd -ne 0 || $opt_xtl -ne 0 || $opt_exp -ne 0 || $opt_imp -ne 0 ]]; then
     if [[ -z "$opt_db" ]]; then
         opt_db="$MQT_TEST_DB"
         [[ $opt_stop -gt 0 && $opt_keep -eq 0 ]] && drop_db=1
@@ -844,7 +844,12 @@ sts=0
 [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
 OPT_LLEV=
 [[ $opt_test -ne 0 ]] && export TEST_CONFN="$LOGDIR/${UMLI}.conf" || export TEST_CONFN="$ve_root/$LCONFN"
-[[ $opt_test -gt 1 ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
+if [[ $opt_test -gt 1 ]]; then
+  TEST_CONFN=""
+  [[ -f  $ve_root/pycharm_odoo-ee.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ee.conf"
+  [[ -z $TEST_CONFN && -f  $ve_root/pycharm_odoo-ce.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ce.conf"
+  [[ -z $TEST_CONFN ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
+fi
 OPT_CONF="--config=$TEST_CONFN"
 if [[ $opt_dry_run -eq 0 ]]; then
     for f in .openerp_serverrc .odoorc; do
@@ -978,7 +983,6 @@ if [[ -n "$TEST_VDIR" ]]; then
     [[ $opt_verbose -gt 0 && opt_debug -le 1 ]] && log_mesg "$x $$ DAEMON $opt_db $(basename $0): deactivate"
     [[ $opt_dry_run -eq 0 ]] && deactivate
 fi
-# [[ $opt_test -ne 0 && $opt_keep -eq 0 && -f $TEST_CONFN ]] && rm -f $TEST_CONFN
 [[ -n $ODOO_COMMIT_TEST ]] && unset ODOO_COMMIT_TEST
 
 if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then

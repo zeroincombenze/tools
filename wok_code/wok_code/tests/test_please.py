@@ -103,7 +103,7 @@ class RegressionTest:
         #              <SCRIPT> = ~/VENV_*/build/local/wok_code/scripts
         #              <TMODARS> = -m test_module -b 12.0
         #              <DBARGS> = -c /etc/odoo/odoo12.conf -d test_test_module_12):
-        # 0 EROR
+        # 0 ERROR
         # 1 "> git add ./"
         # 2 "> pre-commit run"
         # 3 "> <SCRIPT>/please.sh lint -vfn"

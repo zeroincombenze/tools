@@ -466,7 +466,6 @@ class PleaseZ0bug(object):
         sts = please.chain_python_cmd(
             "run_odoo_debug.py", args, verbose=True, rtime=True
         )
-        sts = 0  # debug
         if please.is_fatal_sts(sts) or please.opt_args.debug:
             return sts
         if not please.opt_args.no_verify:
