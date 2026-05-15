@@ -123,6 +123,12 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.0.19 (2026-05-10)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] odoorc with multiple specs
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.0.18 (2025-12-03)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -201,19 +207,6 @@ ChangeLog History
 * [IMP] Incorporated new pypi oerlib3
 * [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
 * [IMP] New param IS_MULTI
-
-2.0.5 (2023-05-08)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] clodoo.py: minor fixes
-* [IMP] odoorc: odoo version 16.0
-
-2.0.4 (2023-03-29)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoorc: minor improvements
-* [IMP] odoorc: test for Odoo 16.0
-* [IMP] transodoo.py: minor improvements
 
 
 

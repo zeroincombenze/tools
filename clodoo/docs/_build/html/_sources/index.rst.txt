@@ -1,5 +1,5 @@
 .. clodoo documentation master file, created by
-   gen_readme.py on 2026-03-20 14:53:51
+   gen_readme.py on 2026-05-10 13:56:53
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

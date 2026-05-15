@@ -257,16 +257,19 @@ def show_help():
     print("ssh.py -[n]s[prvz] source [user@]host:destination    # scp")
     print("ssh.py -[n]m|x[pvz] [user@]host:source destination   # rsync")
     print("ssh.py -[n]m|x[pvz] source [user@]host:destination   # rsync")
+    print("ssh.py -[n]c[pvz] source command                     # command")
     print("ssh.py -[aglwY] [user@][host]                        # utilities")
     print("ssh.py -e [pwd]                                      # utilities")
     print("")
     print("  -a show aliases")
+    print("  -c execute command on remote host")
     print("  -d show remote dir")
     print("  -e encrypy password")
     print("  -g list global hosts")
     print("  -l list user hosts")
     print("  -m do mirror (rsync with --delete)")
     print("  -p prefer password")
+    print("  -N show actual remote URL")
     print("  -n dry-run")
     print("  -r recurse (scp)")
     print("  -s do scp")
@@ -358,6 +361,7 @@ def main():
     scp = False
     rsync = 0
     sh_alias = False
+    sh_rurl = False
     do_dir = False
     do_tunnel = False
     do_encrypt = False
@@ -366,6 +370,8 @@ def main():
     glob = False
     host_side = ""
     via_pwd = False
+    exec_cmd = False
+    rcmd = ""
     if not sys.argv[1:]:
         show_help()
         exit(0)
@@ -376,6 +382,8 @@ def main():
                 exit(0)
             if "a" in arg:
                 sh_alias = True
+            if "c" in arg:
+                exec_cmd = True
             if "d" in arg:
                 do_dir = True
             if "e" in arg:
@@ -387,6 +395,8 @@ def main():
                 list_host = True
             if "m" in arg:
                 rsync = 2
+            if "N" in arg:
+                sh_rurl = True
             if "n" in arg:
                 dry_run = True
             if "p" in arg:
@@ -412,6 +422,7 @@ def main():
         elif do_encrypt and not passwd:
             passwd = arg
         else:
+            # Parse current arg
             if not host and not ruser:
                 host, arg = spit_host_param(host, arg)
                 ruser, host = split_user_host(ruser, host)
@@ -421,6 +432,8 @@ def main():
                 arg = get_remote_path(arg)
             if not source:
                 source = arg
+            elif exec_cmd and not rcmd:
+                rcmd = arg
             elif not dest:
                 dest = arg
             elif not host:
@@ -486,6 +499,9 @@ def main():
     if os.environ["USER"] not in CONF["RUSER"][host][ruser].get("users"):
         print("No valid connection parameter between current and remote user!")
         exit(1)
+    if sh_rurl:
+        print(build_raw_cmd(CONF, "", host, ruser))
+        exit(0)
 
     vpn_name = get_vpn_name(CONF, host, ruser)
     if vpn_name:
@@ -494,6 +510,10 @@ def main():
         source = get_remote_path(source)
         cmd = get_cmd(CONF, host, ruser, via=via_pwd)
         cmd = "%s dir '%s'" % (cmd, source)
+    elif exec_cmd:
+        source = get_remote_path(source)
+        cmd = get_cmd(CONF, host, ruser, via=via_pwd)
+        cmd = "%s '%s'" % (cmd, rcmd)
     elif scp or rsync:
         if not source and dest:
             source = get_remote_path(source)
