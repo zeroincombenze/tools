@@ -211,6 +211,8 @@ echo "Install python $1 on $(xuname -a) (brief $DISTID)"
 [[ -z $(which wget 2>/dev/null) ]] && echo "Please install wget" && exit 1
 DEFPYVER=$(python3 --version 2>&1 | grep "Python" | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ $1 == $DEFPYVER ]] && echo "You are trying to install default python version" && exit 1
+UBUNTU_RELEASE=$(xuname -v|cut -d. -f1)
+
 pyver="$1"
 [[ $1 == "3.14" ]] && pyver="$1.5"
 [[ $1 == "3.13" ]] && pyver="$1.13"
@@ -225,7 +227,11 @@ pyver="$1"
 [[ $1 == "3.4" ]] && pyver="$1.10"
 [[ $1 == "2.7" ]] && pyver="$1.18"
 
-OSPKGS="(libssl-dev|libffi-dev|libncurses5-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev)"
+if [[ $UBUNTU_RELEASE -le 20 ]]; then
+    OSPKGS="(libssl-dev|libffi-dev|libncurses5-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev)"
+else
+    OSPKGS="(libssl-dev|libffi-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libpcap-dev|libbz2-dev)"
+fi
 ADD_REPO=$(which add-apt-repository)
 installed=$(apt list --installed 2>/dev/null|grep -E "$OSPKGS")
 pkgs_list=${OSPKGS:1: -1}
@@ -254,6 +260,9 @@ else
   echo "example:"
   echo "    $0 $1 'apt install $APT_XTL' 'wget --no-check-certificate https://www.openssl.org/source/openssl-1.1.0e.tar.gz' '--with-openssl=DIR'    # Via source"
 fi
+echo ""
+echo "You are hint to execute:"
+echo "    add-apt-repository ppa:deadsnakes/ppa"
 echo ""
 echo "OS Packages needed are:"
 for p in $pkgs_list; do

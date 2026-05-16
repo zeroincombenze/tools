@@ -473,7 +473,7 @@ purge_unused_files
 # Final test to validate environment
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-[[ ! $opts =~ ^-.*t && -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
+# [[ ! $opts =~ ^-.*t && -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
 # [[ -f $BINPATH/list_requirements.py ]] && run_traced "chmod +x $BINPATH/list_requirements.py"
 $BINPATH/please_test_install.sh "$opts" "$VEM"
 run_traced "deactivate"

@@ -426,10 +426,12 @@ gen_readme.py command line
 
 ::
 
-    usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-D PATH] [-F FROM_VERSION] [-f] [-G GIT_ORGID] [-g OPT_GPL] [-H]
-                         [-l ODOO_LAYER] [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n] [-O] [-o OUTPUT_FILE]
-                         [-P PRODUCT_DOC] [-p PATH_NAME] [-q] [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME] [-T]
-                         [-V] [-v] [-W] [-w] [-X] [-Y]
+    usage: gen_readme.py [-h] [-b ODOO_VID] [-B] [-D PATH] [-F FROM_VERSION] [-f]
+                         [-G GIT_ORGID] [-g OPT_GPL] [-H] [-l ODOO_LAYER]
+                         [-L LANG] [-m MODULE_NAME] [-M FORCE_MATURITY] [-n] [-O]
+                         [-o OUTPUT_FILE] [-P PRODUCT_DOC] [-p PATH_NAME] [-q]
+                         [-R] [-r REPOS_NAME] [-Q QUOTE_WITH] [-t TEMPLATE_NAME]
+                         [-T] [-V] [-v] [-W] [-w] [-X] [-Y]
     
     Generate README
     
@@ -440,7 +442,8 @@ gen_readme.py command line
       -D PATH, --home-devel PATH
                             Home devel directory
       -F FROM_VERSION, --from-version FROM_VERSION
-      -f, --force           force creating documentation even if doc dirs do not exit
+      -f, --force           force creating documentation even if doc dirs do not
+                            exit
       -G GIT_ORGID, --git-org GIT_ORGID
       -g OPT_GPL, --gpl-info OPT_GPL
       -H, -I, --write-index
