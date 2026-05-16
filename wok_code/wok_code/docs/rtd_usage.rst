@@ -17,10 +17,10 @@ Usage
     
     options:
       -h, --help            show this help message and exit
-      -H PATH, --home-devel PATH
+      -H, --home-devel PATH
                             Home devel directory
       -n, --dry-run         do nothing (dry-run)
-      -Q FILE, --tools-config FILE
+      -Q, --tools-config FILE
                             Configuration file
       -q, --quiet           silent mode
       -v, --verbose         verbose mode
@@ -123,10 +123,10 @@ Action is one of:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.23/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.23/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

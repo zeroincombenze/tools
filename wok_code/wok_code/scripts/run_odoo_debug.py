@@ -81,6 +81,12 @@ class RunOdoo(object):
         )
         parser.add_argument("-d", "--database", metavar="NAME", help="Database name")
         parser.add_argument(
+            "-E",
+            "--ignore-enterprise",
+            action="store_true",
+            help="Ignore Odoo Enterprise in test",
+        )
+        parser.add_argument(
             "-e",
             "--export-i18n",
             action="store_true",
@@ -319,6 +325,8 @@ class RunOdoo(object):
             opts += "C"
         if self.opt_args.daemon:
             opts += "D"
+        if self.opt_args.ignore_enterprise:
+            opts += "E"
         if self.opt_args.export_i18n:
             opts += "e"
         if self.opt_args.force:

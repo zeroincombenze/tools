@@ -459,12 +459,12 @@ exec_before() {
 }
 
 
-OPTOPTS=(h        A       B         b          c        C           d        D       e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
-OPTLONG=(help     assets  debug     branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_ast opt_debug opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
-OPTACTI=("+"      1       "+"       "=>"       "=>"     1           "="      1       1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
-OPTDEFL=(1        0       0         ""         ""       0           ""       0       0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
-OPTMETA=("help"   ""      ""        "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
+OPTOPTS=(h        A       B         b          c        C           d        D       E         e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     assets  debug     branch     config   no-coverage database daemon  ignore-ee export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_ast opt_debug opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_igee  opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      1       "+"       "=>"       "=>"     1           "="      1       1          1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       0         ""         ""       0           ""       0       0          0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      ""        "version"  "fname"  ""          "name"   ""      ""         ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
   "reset assets if GUI troubles (require -um web)"
   "debug mode (-BB debug via pycharm)"
@@ -473,6 +473,7 @@ OPTHELP=("this help"
   "no use coverage to run test"
   "db name to test,translate o upgrade (require -m switch)"
   "run odoo as daemon"
+  "ignore Odoo EE in test"
   "export translation (conflict with -i -u -I -T)"
   "force update or install modules or default parameters or create db template"
   "do not run external test (tests/concurrent_test/test_*.py)"
@@ -553,7 +554,7 @@ elif [[ -n $opt_odir ]]; then
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+    [[ $opt_opt_igee -eq 0 ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI) || CONFN=""
     [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
@@ -951,7 +952,7 @@ if [[ $create_db -gt 0 ]]; then
     fi
 fi
 
-[[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
+[[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
 check_for_modules "$opt_db" "$depmods"
 if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"

@@ -16,7 +16,7 @@ pRED = "\x1b" + bRED
 pGREEN = "\x1b" + bGREEN
 pCLR = "\x1b" + bCLR
 
-PKG_LIST = ("clodoo", "os0", "lisa", "odoo_score", "oerplib3", "python_plus",
+PKG_LIST = ("arcangelo", "clodoo", "lisa", "odoo_score", "python_plus",
             "travis_emulator", "wok_code", "z0bug_odoo", "z0lib", "zar", "zerobug")
 ERROR_LOG = ""
 
@@ -55,11 +55,11 @@ def test_sh_pylint(fd):
 
 
 def test_sh_python(fd, python_ver):
-    write_test_line(fd, "which python")
-    write_test_line(fd, "python --version")
+    write_test_line(fd, "which python%s" % python_ver)
+    write_test_line(fd, "python%s --version" % python_ver)
     write_test_line(
-        fd, "PYVER=$(python --version 2>&1 | grep \"Python\" |"
-            " grep --color=never -Eo \"[23]\.[0-9]+\" | head -n1)")
+        fd, "PYVER=$(python%s --version 2>&1 | grep \"Python\" |"
+            " grep --color=never -Eo \"[23]\.[0-9]+\" | head -n1)" % python_ver)
     write_test_line(
         fd,
         "[[ $PYVER != \"" + python_ver + "\" ]] && "
@@ -72,7 +72,7 @@ def parse_opts(cli_args=[]):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Tools install test.",
         epilog=(
-            "© 2022-2025 by SHS-AV s.r.l.\n"
+            "© 2022-2026 by SHS-AV s.r.l.\n"
             "Author: antoniomaria.vigliotti@gmail.com\n"
             "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
         ),
@@ -161,9 +161,9 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
         srcdir = pth.join(pypidir, pkg)
         cmd = "cp %s/setup.py %s/%s" % (srcdir, toolsdir, pkg)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
-        if pkg != "oerplib3":
-            cmd = "cp %s/setup.py %s/%s/scripts/setup.info" % (srcdir, toolsdir, pkg)
-            run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
+        # if pkg != "oerplib3":
+        #     cmd = "cp %s/setup.py %s/%s/scripts/setup.info" % (srcdir, toolsdir, pkg)
+        #     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
         cmd = "cp %s/README.rst %s/%s" % (srcdir, toolsdir, pkg)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
     for fn in ("install_tools.sh", "odoo_template_tnl.xlsx"):
@@ -225,7 +225,7 @@ def main(cli_args=[]):
             test_sh_flake8(fd)
             test_sh_pylint(fd)
             write_test_line(fd, "cd %s" % toolsdir)
-            write_test_line(fd, "./install_tools.sh %sptT" % verbose_switch(opt_args))
+            write_test_line(fd, "./install_tools.sh %spt" % verbose_switch(opt_args))
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "deactivate")
             write_test_line(fd, "echo PATH=\"$PATH\"")
