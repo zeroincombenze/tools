@@ -3,7 +3,7 @@
 import sys
 from clodoo import internal_main, clodoo_main
 
-__version__ = "2.0.18"
+__version__ = "2.1.0"
 
 
 def version():

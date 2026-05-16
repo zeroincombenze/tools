@@ -79,8 +79,10 @@ def expand_macro(line, section, ctx):
 def get_pyver_4_odoo(odoo_major):
     if odoo_major <= 10:
         pyver = "2.7"
-    else:
+    elif odoo_major <= 14:
         pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
+    else:
+        pyver = "3.%d" % (odoo_major - 6)
     return pyver
 
 

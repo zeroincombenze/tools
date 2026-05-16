@@ -1,5 +1,5 @@
 ===========
-z0lib 2.1.1
+z0lib 2.1.3
 ===========
 
 
@@ -33,8 +33,6 @@ Features
 
 +--------------+------+--------+-----------------------------------------------------------------+
 | Description  | bash | python | Note(s)                                                         |
-+--------------+------+--------+-----------------------------------------------------------------+
-| run_traced   | ✅   | ✅     | Run os command with trace                                       |
 +--------------+------+--------+-----------------------------------------------------------------+
 | xuname       | ✅   | ❌     | OS indentity (python has native function)                       |
 +--------------+------+--------+-----------------------------------------------------------------+
@@ -106,6 +104,12 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.1.3 (2026-05-15)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Certified for python 3.13 and 3.14
+* [QUA]
 
 2.1.2 (2025-10-01)
 ~~~~~~~~~~~~~~~~~~
@@ -194,42 +198,6 @@ ChangeLog History
 * [IMP] run_traced: new rtime parameter to show rtime output
 * [IMP] New main
 
-2.0.5 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Sometime configuration init fails
-* [IMP] Configuration name LOCAL_PKGS read real packages
-* [IMP] is_pypi function more precise
-
-2.0.4 (2023-04-10)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced: cd does not work w/o alias
-* [IMP] coveralls and codecov are not more dependencies
-
-2.0.3 (2022-12-22)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced: --switch sometime crashes
-* [FIX] run_traced: alias function
-
-2.0.2 (2022-12-07)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] best recognition of python version
-* [FIX] run_traced: fail with python 2
-
-2.0.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-2.0.0.4.1 (2022-10-20)
-~~~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_traced: wrong execution for "cd <path>; ..."
-* [IMP] CFG_init 'ALL': set ODOO_ROOT
-
 
 
 Credits
@@ -267,10 +235,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

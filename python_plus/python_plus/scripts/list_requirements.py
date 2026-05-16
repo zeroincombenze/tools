@@ -27,7 +27,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.0.19"
+__version__ = "2.1.0"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -799,7 +799,9 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-    if (odoo_ver or pyver) and with_version:
+            if pyver and int(pyver.split(".")[1]) > 8 and item.startswith("jsonlib"):
+                item = full_item = ""
+    if item and (odoo_ver or pyver) and with_version:
         def_v = "0" if "0" in REQVERSION.get(item, {}) else False
         if item in REQVERSION:
             min_v = False
@@ -859,23 +861,24 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
                     "%s%s" % (item, REQVERSION[item][def_v]),
                     ignore_error=True)
 
-    item = python_plus.qsplit(item)[0].strip()
-    full_item = python_plus.qsplit(full_item)[0].strip()
-    full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
-    if pyver and pyver.startswith("2"):
-        if full_item in FORCE_ALIAS2:
-            full_item = FORCE_ALIAS2[full_item]
+    if item:
+        item = python_plus.qsplit(item)[0].strip()
+        full_item = python_plus.qsplit(full_item)[0].strip()
+        full_item = re.sub(' *([<=>]+) *', r'\1', full_item.strip())
+        if pyver and pyver.startswith("2"):
+            if full_item in FORCE_ALIAS2:
+                full_item = FORCE_ALIAS2[full_item]
+            else:
+                full_item = FORCE_ALIAS2.get(full_item, full_item)
         else:
-            full_item = FORCE_ALIAS2.get(full_item, full_item)
-    else:
-        if full_item in FORCE_ALIAS_OS:
-            full_item = FORCE_ALIAS_OS[full_item]
-        elif full_item in FORCE_ALIAS3:
-            full_item = FORCE_ALIAS3[full_item]
-        else:
-            full_item = FORCE_ALIAS3.get(item, full_item)
-    if not re.search("[<=>]+", full_item):
-        full_item = ""
+            if full_item in FORCE_ALIAS_OS:
+                full_item = FORCE_ALIAS_OS[full_item]
+            elif full_item in FORCE_ALIAS3:
+                full_item = FORCE_ALIAS3[full_item]
+            else:
+                full_item = FORCE_ALIAS3.get(item, full_item)
+        if not re.search("[<=>]+", full_item):
+            full_item = ""
     return item, full_item
 
 
@@ -1062,23 +1065,24 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None, pyver=Non
         item, full_item = name_n_version(
             item, with_version=with_version, odoo_ver=odoo_ver, pyver=pyver
         )
-        if (
-            item in BIN_PACKAGES
-            or item in BIN_BASE_PACKAGES
-            or item in BIN_TEST_PACKAGES
-        ):
-            kw = "bin"
+        if item:
+            if (
+                item in BIN_PACKAGES
+                or item in BIN_BASE_PACKAGES
+                or item in BIN_TEST_PACKAGES
+            ):
+                kw = "bin"
 
-        if item not in deps_list[kw]:
-            deps_list[kw].append(item)
-            if kw == "python":
-                deps_list = add_full_item(deps_list, kw, with_version, full_item)
-                if not ignore_deps:
-                    deps_list = add_dependencies(
-                        deps_list, item,
-                        with_version=with_version, odoo_ver=odoo_ver, pyver=pyver)
-            elif kw == "bin":
-                deps_list = add_full_item(deps_list, kw, with_version, full_item)
+            if item not in deps_list[kw]:
+                deps_list[kw].append(item)
+                if kw == "python":
+                    deps_list = add_full_item(deps_list, kw, with_version, full_item)
+                    if not ignore_deps:
+                        deps_list = add_dependencies(
+                            deps_list, item,
+                            with_version=with_version, odoo_ver=odoo_ver, pyver=pyver)
+                elif kw == "bin":
+                    deps_list = add_full_item(deps_list, kw, with_version, full_item)
 
     return deps_list
 
@@ -1254,11 +1258,13 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
 
 
 def get_pyver_4_odoo(odoo_ver):
-    odoo_major = get_odoo_majver(odoo_ver)
+    odoo_major = int(odoo_ver.split(".")[0])
     if odoo_major <= 10:
         pyver = "2.7"
-    else:
+    elif odoo_major <= 14:
         pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
+    else:
+        pyver = "3.%d" % (odoo_major - 6)
     return pyver
 
 

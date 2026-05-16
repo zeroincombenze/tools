@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2025 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2026 Zeroincombenze s.r.l.s (<http://www.zeroincombenze.it>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -49,7 +49,7 @@ class RegressionTest:
                 "%d.%d" % (sys.version_info[0], sys.version_info[1]))
 
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2026 by Zeroincombenze s.r.l.s", version=__version__
         )
         parser.add_argument("-h")
         parser.add_argument("-n")
@@ -61,7 +61,7 @@ class RegressionTest:
 
     def test_02(self):
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2026 by Zeroincombenze s.r.l.s", version=__version__
         )
         parser.add_argument("-h")
         parser.add_argument("-n")
@@ -88,7 +88,7 @@ class RegressionTest:
         self.assertEqual("mytarget", ctx["mytarget"], msg_info="cmd mytarget")
 
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2026 by Zeroincombenze s.r.l.s", version=__version__
         )
         parser.add_argument("-h")
         parser.add_argument("-n")
@@ -108,7 +108,7 @@ class RegressionTest:
         self.assertEqual(0, ctx["opt_verbose"], msg_info="cmd mytarget -q")
 
         parser = z0lib.parseoptargs(
-            "Unit Test", "© 2015-2025 by SHS-AV s.r.l.", version=__version__
+            "Unit Test", "© 2015-2026 by Zeroincombenze s.r.l.s", version=__version__
         )
         parser.add_argument("-h")
         parser.add_argument("-n")

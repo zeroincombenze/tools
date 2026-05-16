@@ -43,10 +43,14 @@ from past.builtins import basestring
 
 from python_plus import bstrings, unicodes
 
-try:
-    import jsonlib
-except ImportError:
-    pass
+if sys.version_info < (3, 8):
+    try:
+        import jsonlib
+    except ImportError:
+        pass
+else:
+    import json
+
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
@@ -55,7 +59,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "2.0.18"
+__version__ = "2.1.0"
 VERSIONS = [
     "6.1",
     "7.0",
@@ -99,6 +103,13 @@ CVT_ACC_TYPE_NEW_OLD = {
     "Prepayments": "Expense",
     "Current Year Earnings": "Expense",
 }
+
+
+def json_print(info):
+    if sys.version_info < (3, 8):
+        print(jsonlib.write(info, indent="    "))
+    else:
+        print(json.dumps(info, indent=4))
 
 
 def natstr(s):
@@ -775,7 +786,7 @@ def transodoo_list(ctx):
             if ctx["odoo_ver"]:
                 print("  - Odoo version: %s" % ctx["odoo_ver"])
     if info:
-        print(jsonlib.write(info, indent="    "))
+        json_print(info)
 
 
 def transodoo(ctx=None):

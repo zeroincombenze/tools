@@ -62,7 +62,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.19
+__version__=2.1.0
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -495,15 +495,19 @@ pip_install() {
     pkg=$(basename ${pkgpath//-/_})
 
     PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
-    if [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 23 ]]; then
+    if [[ $pkg =~ $USE2TO3_PKGS && $PIPVER -ge 22 ]]; then
       echo -e "${RED}Warning! Package $pkg requires 'setuptools<58.0'!${CLR}"
-      run_traced "$PIP install 'pip<23.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
+      run_traced "$PIP install 'pip<22.0' -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
       x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
-      [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install \"setuptools<58.0\" -Uq"
-    elif [[ ! $pkg =~ $USE2TO3_PKGS && $PIPVER -lt 23 && $opt_pyver =~ ^3 ]]; then
+      [[ $x -ge 58 ]] && run_traced "$PIP --disable-pip-version-check install --force-reinstall --no-build-isolation \"setuptools<58.0\" -Uq"
+      x=$(pip show wheel 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+      [[ $x -ge 38 ]] && run_traced "$PIP --disable-pip-version-check install --force-reinstall \"wheel<38.0\" -Uq"
+    elif [[ ! $pkg =~ $USE2TO3_PKGS && $PIPVER -lt 22 && $opt_pyver =~ ^3 ]]; then
       run_traced "$PIP install pip -Uq" && PIPVER=$($PIP --version | grep --color=never -Eo "[0-9]+" | head -n1)
       x=$(pip show setuptools 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
       [[ $x -lt 58 ]] && run_traced "$PIP --disable-pip-version-check install setuptools -Uq"
+      x=$(pip show wheel 2>/dev/null|grep -E '^Version'|grep -Eo "[0-9]+"|head -n1)
+      [[ $x -lt 38 ]] && run_traced "$PIP --disable-pip-version-check install wheel -Uq"
     fi
 
     [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
