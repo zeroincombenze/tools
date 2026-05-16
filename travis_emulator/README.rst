@@ -191,7 +191,7 @@ Travis emulator usage
                           file yaml to process (def .travis.yml)
      -Z --zero            use local zero-tools
     
-    © 2015-2025 by zeroincombenze®
+    © 2015-2026 by zeroincombenze®
     https://zeroincombenze-tools.readthedocs.io/
     Author: antoniomaria.vigliotti@gmail.com
     
