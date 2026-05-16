@@ -1,15 +1,13 @@
+2.1.0 (2026-05-16)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Python 3.13 + 3.14
+
 2.0.11 (2026-03-17)
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] Python 3.12
 * [QUA] Test coverage 67% (261: 87+174) [0 TestPoints] - quality rating 40 (target 100)
-* [IMP] Odoo 18.0
-
-2.0.11 (2025-08-31)
-~~~~~~~~~~~~~~~~~~~
-
-* [FIX] License declaration compatible with pypi
-* [IMP] Python 3.10
 * [IMP] Odoo 18.0
 
 2.0.10 (2024-08-21)

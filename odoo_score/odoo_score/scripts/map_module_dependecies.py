@@ -12,7 +12,7 @@ import argparse
 import ast
 from python_plus import unicodes
 
-__version__ = "2.0.11"
+__version__ = "2.1.0"
 
 
 class OdooMap(object):

@@ -54,7 +54,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.11
+__version__=2.1.0
 
 OPTOPTS=(h        b          C        c      D          K        H        L          M       m         n           N          p          S          t         V           v)
 OPTDEST=(opt_help opt_branch opt_cpu  confn  max_dbconn opt_cw   opt_huge opt_lpport opt_mem opt_multi opt_dry_run no_workers opt_nopsql opt_sparse opt_ltime opt_version opt_verbose)

@@ -31,7 +31,7 @@ except ImportError:
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.11'
+__version__ = '2.1.0'
 
 
 MAX_DEEP = 20
@@ -377,6 +377,7 @@ def main(cli_args=[]):
             if invoice_ids:
                 invoice = clodoo.browseL8(ctx, _AI, invoice_ids[0])
                 if invoice.state == "draft":
+                    clodoo.executeL8(ctx, _AI, "compute_taxes", invoice.id)
                     clodoo.executeL8(ctx, _AI, "action_invoice_open", invoice.id)
                 pay_amount = invoice.amount_total - invoice.withholding_tax_amount
                 clodoo.writeL8(ctx, _AP, payment_id, {

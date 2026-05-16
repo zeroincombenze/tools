@@ -31,7 +31,7 @@ except ImportError:
 standard_library.install_aliases()  # noqa: E402
 
 
-__version__ = '2.0.11'
+__version__ = '2.1.0'
 
 
 MAX_DEEP = 20
@@ -143,15 +143,16 @@ def main(cli_args=[]):
     if not cli_args:
         cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
-        "Odoo test environment", "© 2017-2021 by SHS-AV s.r.l.", version=__version__
+        "Resolve row without tax code", "© 2017-2026 by SHS-AV s.r.l.",
+        version=__version__
     )
     parser.add_argument('-h')
     parser.add_argument(
         "-A",
         "--action",
-        help="internal action to execute",
-        dest="function",
-        metavar="python_name",
+        help="Actions to run:"
+             " dup_addr,inv_no_tax,so_no_tax,wrong_delivery"
+             ",equal_delivery,unmatch_delivery_partner,q2so",
         default='',
     )
     parser.add_argument(
@@ -170,222 +171,393 @@ def main(cli_args=[]):
         metavar="file",
         default='',
     )
+    parser.add_argument(
+        "-f",
+        "--from-date",
+    )
+    parser.add_argument(
+        "-l",
+        "--invoice-list",
+        help="invoice list",
+    )
+    parser.add_argument(
+        "-o",
+        "--order-list",
+        help="order list",
+    )
+    parser.add_argument(
+        "-s",
+        "--send-mail",
+        action='store_true',
+        help="Activate send mail",
+    )
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-V')
     parser.add_argument('-v')
-    parser.add_argument(
-        "-w",
-        "--src-config",
-        help="Source DB configuration file",
-        dest="from_confn",
-        metavar="file",
-    )
-    parser.add_argument(
-        "-z",
-        "--src-db_name",
-        help="Source database name",
-        dest="from_dbname",
-        metavar="name",
-    )
-    parser.add_argument(
-        "-1", "--param-1", help="value to pass to called function", dest="param_1"
-    )
-    parser.add_argument(
-        "-2", "--param-2", help="value to pass to called function", dest="param_2"
-    )
-    parser.add_argument(
-        "-3", "--param-3", help="value to pass to called function", dest="param_3"
-    )
-    parser.add_argument(
-        "-4", "--param-4", help="value to pass to called function", dest="param_4"
-    )
-    parser.add_argument(
-        "-5", "--param-5", help="value to pass to called function", dest="param_5"
-    )
-    parser.add_argument(
-        "-6", "--param-6", help="value to pass to called function", dest="param_6"
-    )
 
     ctx = parser.parseoptargs(cli_args, apply_conf=False)
     uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'], db=ctx['db_name'], ctx=ctx)
+    ctx["action"] = ctx["action"].split(",") if ctx["action"] else False
 
-    _AA = "account.account"
-    _AFR = "account.full.reconcile"
-    _APR = "account.partial.reconcile"
     _AI = "account.invoice"
-    _AM = "account.move"
-    _AML = "account.move.line"
-    _AP = "account.payment"
-    _AUR = "account.unreconcile"
+    _AIL = "account.invoice.line"
+    _AT = "account.tax"
+    _DDT = "stock.picking.package.preparation"
     _RP = "res.partner"
-    print("Searching for supplier")
-    supplier_id = 4747
-    payable_acc_id = 1010
+    _SM = "stock.move"
+    _SO = "sale.order"
+    _SOL = "sale.order.line"
+    _SP = "stock.picking"
+
     company_id = 3
-    supplier = clodoo.browseL8(ctx, _RP, supplier_id)
-    contacts_ids = clodoo.searchL8(ctx, _RP, [("parent_id", "=", supplier_id)])
-    all_suppliers = contacts_ids + [supplier_id]
-    print("Supplier = ", supplier_id, supplier.name)
-    for id in all_suppliers:
-        print("Contact: ", id, clodoo.browseL8(ctx, _RP, id).name)
-    print("Payable Account = ", payable_acc_id, clodoo.browseL8(
-        ctx, _AA, payable_acc_id).name)
-    journals = clodoo.searchL8(
-        ctx, "account.journal", [("type", "=", "purchase"),
-                                 ("company_id", "=", company_id)]
-    )
-    print("Journal IDs = ", journals)
+    tax_id = clodoo.searchL8(ctx, _AT,
+                             [("amount", "=", 22),
+                              ("company_id", "=", company_id)])[0]
+    from_date = ctx["from_date"] or "2026-03-30"
+    to_send_mail = ctx["send_mail"]
 
-    print("Searching for supplier move lines")
-    partner_line_ids = clodoo.searchL8(
-        ctx,
-        _AML,
-        [
-            ("account_id", "=", payable_acc_id),
-            ("partner_id", "in", all_suppliers),
-        ],
-    )
-    print('Partner line IDs = ', partner_line_ids)
-    for line_id in partner_line_ids:
-        line = clodoo.browseL8(ctx, _AML, line_id)
-        for reconcile_id in [x.id for x in line.matched_credit_ids] + [
-                x.id for x in line.matched_debit_ids]:
-            clodoo.unlinkL8(ctx, _APR, reconcile_id)
-        reconcile_id = clodoo.searchL8(
-            ctx,
-            _AFR,
-            [
-                ("reconciled_line_ids", "=", line_id),
-            ],
-        )
-        if reconcile_id:
-            move_line_ids = [
-                x.id
-                for x in clodoo.browseL8(ctx, _AFR, reconcile_id[0]).reconciled_line_ids
-                if x.reconciled]
-            for line_id in move_line_ids:
-                line = clodoo.browseL8(ctx, _AML, line_id)
-                invoice = clodoo.searchL8(
-                    ctx, _AI, [("move_id", "=", line.move_id.id)])
-                if invoice:
-                    break
-            try:
-                context = {
-                    "active_ids": move_line_ids,
-                }
-                if invoice:
-                    context["invoice_id"] = invoice.id
-                clodoo.executeL8(
-                    ctx, _AUR, "trans_unrec", None, context
-                )
-            except BaseException:
-                print("!!Moves %s unreconciliable!" % move_line_ids)
 
-    print("Set all invoices to draft")
-    invoice_ids = clodoo.searchL8(ctx, _AI,
-                                  [("partner_id", "in", all_suppliers),
-                                   ("journal_id", "in", journals)])
-    for invoice_id in invoice_ids:
-        invoice = clodoo.browseL8(ctx, _AI, invoice_id)
-        if invoice.state != "draft":
-            clodoo.executeL8(ctx, _AI, 'action_invoice_cancel', invoice_id)
-            clodoo.executeL8(ctx, _AI, 'action_invoice_draft', invoice_id)
-        if invoice.partner_id != supplier_id:
-            clodoo.writeL8(ctx, _AI, invoice_id, {"partner_id": supplier_id})
-        if clodoo.browseL8(ctx, _AI, invoice_id).state != "draft":
-            print(">>> Invoice %s: invalid state" % invoice_id)
+    ###########################################################################
+    if not ctx["action"] or "dup_addr" in ctx["action"]:
+        print("Searching for duplicate addresses")
+        trace = ""
+        ctr = 0
+        splash = 32
+        for partner in clodoo.browseL8(
+                ctx, _RP, clodoo.searchL8(
+                    ctx, _RP, [("type", "in", ["delivery", "invoice"])])):
+            msg_burst("  ... %s" % partner.name)
+            if not partner.parent_id:
+                vg7_id = partner.vg7_id
+                if vg7_id > 100000000:
+                    parent_id = clodoo.searchL8(
+                        ctx, _RP, [("vg7_id", "=", vg7_id - 100000000)])
+                    if not parent_id:
+                        ctr += 1
+                        clodoo.writeL8(ctx, _RP, partner.id, {"active": False})
+                        continue
+                    clodoo.writeL8(
+                        ctx, _RP, partner.id, {"parent_id": parent_id[0]})
+            parent = clodoo.browseL8(ctx, _RP, partner.parent_id.id)
+            if (
+                parent.street == partner.street
+                and parent.city == partner.city
+                and parent.zip == partner.zip
+            ):
+                ctr += 1
+                clodoo.writeL8(ctx, _RP, partner.id, {"active": False})
+                continue
 
-    print("Set all payments to draft")
-    payment_ids = clodoo.searchL8(ctx, _AP, [("partner_id", "in", all_suppliers)])
-    for payment_id in payment_ids:
-        payment = clodoo.browseL8(ctx, _AP, payment_id)
-        if payment.state != "draft":
-            clodoo.executeL8(ctx, _AP, 'cancel', payment_id)
-            if clodoo.browseL8(ctx, _AP, payment_id).state != "draft":
-                print(">>> Payment %s: invalid state" % payment_id)
-        if payment.partner_id != supplier_id:
-            clodoo.writeL8(ctx, _AP, payment_id, {"partner_id": supplier_id})
-
-    partner_line_ids = clodoo.searchL8(
-        ctx,
-        _AML,
-        [
-            ("account_id", "=", payable_acc_id),
-            ("partner_id", "in", all_suppliers),
-        ],
-    )
-    for line_id in partner_line_ids:
-        line = clodoo.browseL8(ctx, _AML, line_id)
-        move = clodoo.browseL8(ctx, _AM, line.move_id.id)
-        if move.state != "draft":
-            clodoo.executeL8(ctx, _AM, "button_cancel", move.id)
-
-    print("Check for all draft invoices and payments")
-    input("Press Enter to continue...")
-
-    parsed_invoices = []
-    while True:
-        payment_ids = clodoo.searchL8(
-            ctx, _AP,
-            [("partner_id", "in", all_suppliers), ("state", "=", "draft")],
-            order="payment_date")
         print("")
-        invalid = False
-        for payment_id in payment_ids:
-            payment = clodoo.browseL8(ctx, _AP, payment_id)
-            for invoice in payment.invoice_ids:
-                if invoice.id in parsed_invoices:
-                    print("Duplicate payment")
-                    clodoo.writeL8(ctx, _AP, payment_id,
-                                   {"invoice_ids": [(6, 0, [])]})
-                    break
-                parsed_invoices.append(invoice.id)
-                print("Invoice %s, sts=%s, amt=%s, wht=%s, net_pay=%s"
-                      % (invoice.id, invoice.state, invoice.amount_total,
-                         invoice.withholding_tax_amount, invoice.amount_net_pay))
-                pay_amount = invoice.amount_total - invoice.withholding_tax_amount
-                if round(pay_amount, 2) == round(payment.amount, 2):
-                    print("Pay for %s" % payment.amount)
-                else:
-                    print("*** Payment %s assigned=%s, due=%s ***"
-                          % (payment.id, payment.amount, pay_amount))
-                    invalid = True
-                    clodoo.writeL8(ctx, _AP, payment_id, {"amount": pay_amount})
-                clodoo.executeL8(ctx, _AI, "action_invoice_open", invoice.id)
-                clodoo.executeL8(ctx, _AP, "post", payment_id)
-        if not invalid:
-            break
-        print("Please correct payments")
-        input("Press Enter to continue...")
+        print("")
+        print("%s partners updated" % ctr)
+        print("")
+        print(trace)
 
-    # import pdb; pdb.set_trace()
-    print("Check for payments and invoices unreconciled")
-    ctr = 2
-    while ctr > 0:
-        ctr -= 1
-        payment_ids = clodoo.searchL8(
-            ctx, _AP,
-            [("partner_id", "in", all_suppliers), ("state", "=", "draft")],
-            order="payment_date")
-        for payment_id in payment_ids:
-            invoice_ids = clodoo.searchL8(ctx, _AI,
-                                          [("partner_id", "in", all_suppliers),
-                                           ("journal_id", "in", journals),
-                                           ("id", "not in", parsed_invoices),
-                                           ("state", "!=", "paid")], order="date")
-            if invoice_ids:
-                invoice = clodoo.browseL8(ctx, _AI, invoice_ids[0])
-                if invoice.state == "draft":
-                    clodoo.executeL8(ctx, _AI, "action_invoice_open", invoice.id)
-                pay_amount = invoice.amount_total - invoice.withholding_tax_amount
-                clodoo.writeL8(ctx, _AP, payment_id, {
-                    "invoice_ids": [(6, 0, [invoice_ids[0]])],
-                    "amount": pay_amount,
-                    # "partner_id": supplier_id,
-                })
-                parsed_invoices.append(invoice.id)
-                clodoo.executeL8(ctx, _AP, "post", payment_id)
+    ###########################################################################
+    if not ctx["action"] or "inv_no_tax" in ctx["action"]:
+        print("Searching for invoice lines without tax code")
+        trace = ""
+        if ctx["invoice_list"]:
+            lines = []
+            orders = []
+            for inv_num in ctx["invoice_list"].split(","):
+                invoice_id = clodoo.searchL8(
+                    ctx, _AI, [("number", "=", inv_num)])
+                if not invoice_id:
+                    print("Invalid invoice number %s" % inv_num)
+                    return 1
+                orders.append(invoice_id[0])
+        else:
+            lines = clodoo.browseL8(
+                ctx, _AIL,
+                clodoo.searchL8(
+                    ctx, _AIL,
+                    [("invoice_id.type", "in", ("out_invoice", "out_refund")),
+                     ("invoice_id.date_invoice", ">=", from_date),
+                     ("company_id", "=", company_id),
+                     ("invoice_line_tax_ids", "=", False)]
+                )
+            )
+
+            print("Retrieving invoices")
+            orders = []
+            for line in lines:
+                msg_burst("  ... %s" % line.name[:40])
+                if line.invoice_id.id not in orders:
+                    orders.append(line.invoice_id.id)
+
+        print("Set invoices to draft")
+        for invoice_id in orders:
+            invoice = clodoo.browseL8(ctx, _AI, invoice_id)
+            msg_burst("  ... %s" % invoice.number)
+            if invoice.state != "draft":
+                try:
+                    clodoo.executeL8(
+                        ctx, _AI, 'action_invoice_cancel', invoice_id)
+                    clodoo.executeL8(
+                        ctx, _AI, 'action_invoice_draft', invoice_id)
+                except BaseException as e:
+                    print("Invoice %s - error %s" % (invoice.number, e))
+            if clodoo.browseL8(ctx, _AI, invoice_id).state != "draft":
+                print(">>> Invoice %s: invalid state" % invoice.number)
+            trace += "Fattura %s\n" % invoice.number
+
+        print("Set invoice line with tax code")
+        for line in lines:
+            msg_burst("  ... %s" % line.name[:40])
+            clodoo.writeL8(
+                ctx, _AIL, line.id, {"invoice_line_tax_ids": [(6, 0, [tax_id])]})
+
+        print("Set invoice to open")
+        for invoice_id in orders:
+            invoice = clodoo.browseL8(ctx, _AI, invoice_id)
+            clodoo.executeL8(ctx, _AI, "compute_taxes", invoice.id)
+            if to_send_mail:
+                clodoo.writeL8(
+                    ctx, _AI, invoice.id,{"to_send_mail": to_send_mail})
+            if invoice.state == "draft":
+                clodoo.executeL8(
+                    ctx, _AI, "action_invoice_open", invoice.id)
+
+        print("")
+        print("")
+        print("%s invoice updated" % len(orders))
+        print("")
+        print(trace)
+
+    ###########################################################################
+    if not ctx["action"] or "so_no_tax" in ctx["action"]:
+        print("Searching for sale lines without tax code")
+        trace = ""
+        if ctx["order_list"]:
+            lines = []
+            orders = []
+            for inv_num in ctx["order_list"].split(","):
+                order_id = clodoo.searchL8(ctx, _SO, [("name", "=", inv_num)])
+                if not order_id:
+                    print("Invalid sale order %s" % inv_num)
+                    return 1
+                orders.append(order_id[0])
+        else:
+            lines = clodoo.browseL8(
+                ctx, _SOL,
+                clodoo.searchL8(
+                    ctx, _SOL,
+                    [("order_id.date_order", ">=", from_date),
+                     ("company_id", "=", company_id),
+                     ("tax_id", "=", False)]
+                )
+            )
+
+            print("Retrieving orders")
+            orders = []
+            for line in lines:
+                if line.order_id.id not in orders:
+                    orders.append(line.order_id.id)
+
+        for order_id in orders:
+            order = clodoo.browseL8(ctx, _SO, order_id)
+            trace += "Order %s\n" % order.name
+
+        print("Set order line with tax code")
+        for line in lines:
+            clodoo.writeL8(ctx, _SOL, line.id, {"tax_id": [(6, 0, [tax_id])]})
+
+        print("")
+        print("")
+        print("%s order updated" % len(orders))
+        print("")
+        print(trace)
+
+    ###########################################################################
+    if not ctx["action"] or "wrong_delivery" in ctx["action"]:
+        print("Searching for sale with wrong delivery address")
+        trace = ""
+        if ctx["order_list"]:
+            orders = []
+            for inv_num in ctx["order_list"].split(","):
+                order_id = clodoo.searchL8(ctx, _SO, [("name", "=", inv_num)])
+                if not order_id:
+                    print("Invalid sale order %s" % inv_num)
+                    return 1
+                orders.append(order_id[0])
+        else:
+            orders = clodoo.browseL8(
+                ctx, _SO,
+                clodoo.searchL8(
+                    ctx, _SO,
+                    [("partner_shipping_id.vg7_id", "<", 100000000),
+                     ("company_id", "=", company_id),
+                     ("date_order", ">=", from_date),]
+                )
+            )
+        ctr = 0
+        for order in orders:
+            vg7_id = order.partner_shipping_id.vg7_id
+            if vg7_id > 100000000 or order.partner_id == order.partner_shipping_id:
+                continue
+            ctr += 1
+            vg7_id += 100000000
+            partner_id = clodoo.searchL8(ctx, _RP, [("vg7_id", "=", vg7_id)])
+            if partner_id:
+                clodoo.writeL8(
+                    ctx, _SO,  order.id, {"partner_shipping_id": partner_id[0]}
+                )
+                trace += "Order %s correct\n" % order.name
+            else:
+                clodoo.writeL8(
+                    ctx, _SO,  order.id,
+                    {"partner_shipping_id": order.partner_id.id}
+                )
+                trace += "Order %s forced\n" % order.name
+        print("")
+        print("")
+        print("%s order updated" % ctr)
+        print("")
+        print(trace)
+
+    ###########################################################################
+    if not ctx["action"] or "equal_delivery" in ctx["action"]:
+        print("Searching for sale with delivery address equal to partner")
+        trace = ""
+        if ctx["order_list"]:
+            orders = []
+            for inv_num in ctx["order_list"].split(","):
+                order_id = clodoo.searchL8(ctx, _SO, [("name", "=", inv_num)])
+                if not order_id:
+                    print("Invalid sale order %s" % inv_num)
+                    return 1
+                orders.append(order_id[0])
+        else:
+            orders = clodoo.browseL8(
+                ctx, _SO,
+                clodoo.searchL8(
+                    ctx, _SO,
+                    [("partner_shipping_id.active", "=", False),
+                     ("company_id", "=", company_id),
+                     ("date_order", ">=", from_date),]
+                )
+            )
+        ctr = 0
+        for order in orders:
+            ctr += 1
+            clodoo.writeL8(
+                ctx, _SO,  order.id,
+                {"partner_shipping_id": order.partner_id.id}
+            )
+            trace += "Order %s forced\n" % order.name
+        print("")
+        print("")
+        print("%s order updated" % ctr)
+        print("")
+        print(trace)
+
+    ###########################################################################
+    if not ctx["action"] or "unmatch_delivery_partner" in ctx["action"]:
+        print("Searching for delivery partner unmatched with order")
+        trace = ""
+        ctr = 0
+        if ctx["order_list"]:
+            orders = []
+            for inv_num in ctx["order_list"].split(","):
+                order_id = clodoo.searchL8(ctx, _SO, [("name", "=", inv_num)])
+                if not order_id:
+                    print("Invalid sale order %s" % inv_num)
+                    return 1
+                orders.append(order_id[0])
+        else:
+            orders = clodoo.browseL8(
+                ctx, _SO,
+                clodoo.searchL8(
+                    ctx, _SO,
+                    [("company_id", "=", company_id),
+                     ("date_order", ">=", from_date),]
+                )
+            )
+        for order in orders:
+            for picking in order.picking_ids:
+                if picking.partner_id != order.partner_shipping_id:
+                    clodoo.writeL8(
+                        ctx, _SP, picking.id,
+                        {"partner_id": order.partner_shipping_id.id})
+                    trace += "Delivery %s\n" % picking.name
+                    ctr += 1
+                for move in picking.move_lines:
+                    if move.partner_id != order.partner_shipping_id:
+                        clodoo.writeL8(
+                            ctx, _SM, move.id,
+                            {"partner_id": order.partner_shipping_id.id})
+                        trace += "Move %s\n" % move.name[:16]
+                        ctr += 1
+            for ddt in order.ddt_ids:
+                if ddt.partner_shipping_id != order.partner_shipping_id:
+                    clodoo.writeL8(
+                        ctx, _DDT, ddt.id,
+                        {"partner_shipping_id": order.partner_shipping_id.id})
+                    trace += "DdT %s\n" % ddt.ddt_number
+                    ctr += 1
+        print("")
+        print("")
+        print("%s order updated" % ctr)
+        print("")
+        print(trace)
+
+    ###########################################################################
+    if "q2so" in ctx["action"]:
+        print("Validate quotation")
+        trace = ""
+        ctr = 0
+
+        if ctx["order_list"]:
+            orders = []
+            for inv_num in ctx["order_list"].split(","):
+                order_id = clodoo.searchL8(ctx, _SO, [("name", "=", inv_num)])
+                if not order_id:
+                    print("Invalid sale order %s" % inv_num)
+                    return 1
+                orders.append(order_id[0])
+        else:
+            orders = clodoo.browseL8(
+                ctx, _SO,
+                clodoo.searchL8(
+                    ctx, _SO,
+                    [("state", "=", "draft"),
+                     ("company_id", "=", company_id),
+                     ("date_order", ">=", from_date),]
+                )
+            )
+        for order in orders:
+            if not order.order_line:
+                try:
+                    clodoo.executeL8(
+                        ctx, "ir.model.synchro",
+                        'trigger_one_record', "orders", "vg7", order.vg7_id)
+                except BaseException as e:
+                    print("Sale order %s - error %s" % (order.name, e))
+                    continue
+                order = clodoo.browseL8(ctx, _SO, order.id)
+                if order.state == "sale":
+                    trace += "Order %s\n" % order.name
+                    ctr += 1
+                    continue
+            try:
+                clodoo.executeL8(
+                    ctx, _SO, 'action_confirm', order.id)
+            except BaseException as e:
+                print("Sale order %s - error %s" % (order.name, e))
+            trace += "Order %s\n" % order.name
+            ctr += 1
+
+        print("")
+        print("")
+        print("%s order updated" % ctr)
+        print("")
+        print(trace)
+
+    return 0
+
 
 
 if __name__ == "__main__":
