@@ -8,6 +8,7 @@ ChangeLog History
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] jsonlib-python3 is not more default package
 * [IMP] Python 3.13 and 3.14
 
 2.0.19 (2025-09-04)

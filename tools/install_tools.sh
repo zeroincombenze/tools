@@ -231,9 +231,6 @@ install_oca_tools() {
         x=$(which node)
         if [[ -z $x ]]; then
           echo "Node v20.18.0 not installed: some package like prettier cannot run!"
-        # else
-          # run_traced "ln -s $x $DSTPATH/venv/bin"
-          # [[ -d $HOME/.local/bin ]] && run_traced "ln -s $x $HOME/.local/bin"
         fi
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
         run_traced "npm audit fix --force"

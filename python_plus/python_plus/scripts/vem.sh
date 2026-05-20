@@ -486,6 +486,7 @@ pip_install() {
     [[ ! -d $tmpdir ]] && run_traced "mkdir $tmpdir"
 
     pkg=$(get_actual_pkg "$pkg")
+    [[ $pkg == "jsonlib-python3" && ( -z $opt_pyver || $opt_pyver =~ ^3.1 ) ]] && return 0
     pkgpath=$(get_pkg_wo_version "$pkg")
     x="-qP"
     [[ -n "$opt_pyver" ]] && x="$x -y$opt_pyver"
@@ -1368,7 +1369,8 @@ do_venv_create() {
     # --version from virtualenv is: virtualenv xx.y from /usr/local/lib/python3.10
     if [[ -z "$venvexe" || $($venvexe --version | grep --color=never -Eo "python[23]") != "python${opt_pyver:0:1}" ]]; then
       [[ $opt_pyver =~ ^3 ]] && run_traced "$PYTHON -m pip install virtualenv -Iq --user" || run_traced "$PYTHON -m pip install virtualenv -Iq"
-      venvexe=$(which virtualenv 2>/dev/null)
+      venvexe=$HOME//.local/bin/virtualenv
+      [[ ! -x $venvexe ]] && venvexe=$(which virtualenv 2>/dev/null)
     fi
     if [[ -z "$venvexe" ]]; then
       echo -e "${RED}No virtualenv / venv package found!${CLR}"

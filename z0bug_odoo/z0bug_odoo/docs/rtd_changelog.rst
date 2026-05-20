@@ -126,19 +126,6 @@ ChangeLog History
 * [FIX] TestEnv: record not found for xref of other group
 * [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
 
-2.0.8 (2023-04-26)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: multiple action on the same records
-
-2.0.7 (2023-04-08)
-~~~~~~~~~~~~~~~~~~
-
-* [NEW] TestEnv: assertion counter
-* [IMP] TestEnv: is_xref recognizes dot name, i.e "zobug.external.10"
-* [IMP] TestEnv: the field <description> is not mode key (only acount.tax)
-* [IMP] TestEnv: 3th level xref may be a many2one field type
-
 |
 |
 

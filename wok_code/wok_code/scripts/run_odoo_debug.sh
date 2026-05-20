@@ -309,7 +309,10 @@ set_confn() {
         run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="--http-port=$RPCPORT"
     fi
-    if [[ $odoo_maj -ge 10 ]]; then
+    if [[ $odoo_maj -ge 16 ]]; then
+        run_traced_debug "sed -e \"s|^gevent_port *=.*|gevent_port = $LPPORT|\" -i $TEST_CONFN"
+        OPT_CONFPORT="$OPT_OPT_CONFPORT --gevent_port=$LPPORT"
+    elif [[ $odoo_maj -ge 10 ]]; then
         run_traced_debug "sed -e \"s|^longpolling_port *=.*|longpolling_port = $LPPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="$OPT_OPT_CONFPORT --longpolling_port=$LPPORT"
     fi
@@ -510,7 +513,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug" \
-        "(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2026 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -682,11 +685,12 @@ elif [[ -f $CONFN ]]; then
     DB_PORT=$(grep ^db_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ $DB_PORT == "False" ]] && unset DB_PORT
 fi
+# pg2_opts used for pg_db_active, pg1_opts for all other commands
 if [[ -n "$DB_PORT" ]]; then
     pg1_opts="-U$DB_USER -p$DB_PORT"
     pg2_opts="-U$DB_USER -P$DB_PORT"
 else
-    pg2_opts="-U$DB_USER"
+    pg1_opts="-U$DB_USER"
     pg2_opts="-U$DB_USER"
 fi
 PSQL="psql $pg1_opts"

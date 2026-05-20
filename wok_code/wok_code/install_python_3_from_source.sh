@@ -194,6 +194,36 @@ install_from_source() {
     echo ""
 }
 
+install_from_source_27() {
+    echo "\$ cd /tmp"
+    cd /tmp
+    [[ -f Python-$pyver.tgz ]] && echo "File Python-$pyver.tgz already downloaded"
+    [[ ! -f Python-$pyver.tgz ]] && echo "\$ wget $WGET_OPTS https://www.python.org/ftp/python/$pyver/Python-$pyver.tgz"
+    [[ ! -f Python-$pyver.tgz ]] && wget $WGET_OPTS https://www.python.org/ftp/python/$pyver/Python-$pyver.tgz
+    [[ ! -f Python-$pyver.tgz ]] && echo "No file Python-$pyver.tgz downloaded!" && exit 2
+    [[ -d Python-$pyver ]] && rm -fR Python-$pyver
+    echo "\$ tar -xf Python-$pyver.tgz"
+    tar -xzf Python-$pyver.tgz
+    cd Python-$pyver
+    echo ""
+    echo "### WARNING:          you can meet some warnings and errora during compilation ###"
+    echo "### Moreover some tests can fail. Please do not interrupt, wait for completing ###"
+    echo ""
+    echo "\$ ./configure --prefix=/usr/local/python2.7 --enable-optimizations CFLAGS=\"-std=c11\" $CONFIG_OPTS"
+    read -p "Press RET to configure and install ..."
+    ./configure --prefix=/usr/local/python2.7 --enable-optimizations CFLAGS="-std=c11" $CONFIG_OPTS
+    echo "\$ make"
+    make
+    echo "\$ make install"
+    make install
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2.7"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2.7
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python
+}
+
 set_hashbang() {
 # set_hashbang(file fqn_python)
     local p f
@@ -226,6 +256,8 @@ pyver="$1"
 [[ $1 == "3.5" ]] && pyver="$1.10"
 [[ $1 == "3.4" ]] && pyver="$1.10"
 [[ $1 == "2.7" ]] && pyver="$1.18"
+py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
+[[ $1 != $py ]] && echo "Invalid python version $1" && exit 1
 
 if [[ $UBUNTU_RELEASE -le 20 ]]; then
     OSPKGS="(libssl-dev|libffi-dev|libncurses5-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev)"
@@ -279,11 +311,14 @@ APT_XTL="$2"
 WGET_OPTS="$3"
 CONFIG_OPTS="$4"
 [[ -n "$APT_XTL" ]] && echo "\$ $APT_XTL" && $APT_XTL
-if [[ $DIST == "Ubuntu" && -n $ADD_REPO ]]; then
+if [[ $1 == "2.7" ]]; then
+    install_from_source_27
+elif [[ $DIST == "Ubuntu" && -n $ADD_REPO ]]; then
     install_via_apt $1
 else
     install_from_source $1
 fi
+
 PIP=$(which pip3)
 if [[ -z $PIP ]]; then
     echo "\$ " apt install -y python3-pip
@@ -291,16 +326,18 @@ if [[ -z $PIP ]]; then
     echo "\$ " pip3 install pip -U
     pip3 install pip -U
 fi
-py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
+
 if [[ $py != $DEFPYVER ]]; then
-    echo "\$ " apt install .y python$py-distutils
-    apt install -y python$py-distutils
-    echo "\$ " apt install -y python$py-setuptools
-    apt install -y python$py-setuptools
-    echo "\$ " apt install -y python$py-dev
-    apt install -y python$py-dev
-    echo "\$ " apt install -y python$py-venv
-    apt install -y python$py-venv
+    if [[ $py != "2,7" ]]; then
+      echo "\$ " apt install .y python$py-distutils
+      apt install -y python$py-distutils
+      echo "\$ " apt install -y python$py-setuptools
+      apt install -y python$py-setuptools
+      echo "\$ " apt install -y python$py-dev
+      apt install -y python$py-dev
+      echo "\$ " apt install -y python$py-venv
+      apt install -y python$py-venv
+    fi
     echo "\$ " cd /tmp
     cd /tmp
     echo "\$ " wget $WGET_OPTS https://bootstrap.pypa.io/pip/$py/get-pip.py
@@ -323,6 +360,8 @@ if [[ $py != $DEFPYVER ]]; then
         else
             echo "\$ " python$py get-pip.py
             python$py get-pip.py
+            echo "\$ ln -s /usr/local/python2.7/bin/pip2.7 /usr/local/bin/"
+            ln -s /usr/local/python2.7/bin/pip2.7 /usr/local/bin/
             rm -f get-pip.py
             echo "\$ " python$py -m pip install pip
             python$py -m pip install pip
@@ -353,3 +392,5 @@ echo ""
 echo ""
 pip$py --version
 echo ""
+
+}

@@ -799,7 +799,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-            if pyver and int(pyver.split(".")[1]) > 8 and item.startswith("jsonlib"):
+            if item.startswith("jsonlib") and not (pyver or int(pyver.split(".")[1]) > 8):
                 item = full_item = ""
     if item and (odoo_ver or pyver) and with_version:
         def_v = "0" if "0" in REQVERSION.get(item, {}) else False

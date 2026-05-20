@@ -61,28 +61,24 @@ Usage
       -f, --failfast        Stop on first fail or error
       -J                    load travisrc (deprecated)
       -k, --keep            keep current logfile (deprecated)
-      -l file, --logname file
-                            set logfile name (deprecated)
+      -l, --logname file    set logfile name (deprecated)
       -N, --new             create new logfile (deprecated)
       -n, --dry-run         count and display # unit tests (deprecated)
       -O                    load odoorc (deprecated)
-      -p file_list, --search-pattern file_list
+      -p, --search-pattern file_list
                             Pattern to match tests, comma separated ('test*.py'
                             default)
       -Q, --count           count # unit tests (deprecated)
       -q, --quiet           run tests without output (quiet mode, deprecated)
       -R, --run-inner       inner mode w/o final messages
-      -r number, --restart number
-                            restart count next to number
-      -s number, --start number
-                            deprecated
+      -r, --restart number  restart count next to number
+      -s, --start number    deprecated
       -V, --version         show program's version number and exit
       -v, --verbose         verbose mode
       -x, --qsanity         like -X but run silently (deprecated)
       -X, --esanity         execute test library sanity check and exit
                             (deprecated)
-      -z number, --end number
-                            display total # tests when execute them
+      -z, --end number      display total # tests when execute them
       -0, --no-count        no count # unit tests (deprecated)
     
     © 2015-2025 by SHS-AV s.r.l. - https://zeroincombenze-
@@ -235,64 +231,6 @@ ChangeLog History
 * [IMP] zerobug implementation with unittest
 * [FIX] z0testlib.py: build_odoo_env, odoo-bin / openerp-server are executable
 * [FIX] z0testlib.py: minor fixes
-
-2.0.7 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_run_pypi_tests: new switch -p PATTERN
-
-2.0.6 (2023-05-08)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Now all_tests is ignored
-* [IMP] Build Odoo environment for Odoo 16.0
-
-2.0.5 (2023-03-24)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis_install_env: ensure list_requirements is executable
-* [IMP] flake8 configuration
-* [IMP] coveralls and codecov are not more dependencies
-* [IMP] Test for Odoo 16.0
-
-2.0.4 (2022-12-08)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_pypi_test: best recognition of python version
-* [FIX] build_cmd: best recognition of python version
-* [FIX] travis_install_env: ensure coverage version
-* [IMP] odoo environment to test more precise
-
-2.0.3 (2022-11-08)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-
-2.0.2.1 (2022-10-31)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] Odoo 11.0+
-* [FIX] Ensure coverage 5.0+
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
-
-2.0.1.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] minor improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.2 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis_install_env: python2 tests
 
 
 

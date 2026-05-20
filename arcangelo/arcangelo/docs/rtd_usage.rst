@@ -28,31 +28,29 @@ Usage
       -a, --lint-anyway     set to True when migrate software
       -B, --debug           add comment with applied rule: do not use in
                             production
-      -b TO_VERSION, --to-version TO_VERSION
-      -C RULE_GROUPS, --rule-groups RULE_GROUPS
+      -b, --to-version TO_VERSION
+      -C, --rule-groups RULE_GROUPS
                             Rule groups (comma separated) to parse (use + for
                             adding, - for removing) use switch -l to see default
                             groups list
       -c, --copyright-check
-      -F FROM_VERSION, --from-version FROM_VERSION
+      -F, --from-version FROM_VERSION
       -f, --force           Parse file even containing '# flake8: noqa' or '#
                             pylint: skip-file'
-      -G GIT_ORGID, --git-org GIT_ORGID
+      -G, --git-org GIT_ORGID
       --git-merge-conflict left|right
                             Keep left or right side code after git merge conflict
       --ignore-pragma       ignore coding utf-8 declaration
       -i, --in-place
-      -j PYTHON, --python PYTHON
-                            python version, format #.##, 2+3 use future
+      -j, --python PYTHON   python version, format #.##, 2+3 use future
       -l, --list-rules      list rule groups (-ll list with rules too, -lll full
                             list)
       --list-syntax         list language syntax rules
       -n, --dry-run         do nothing (dry-run)
-      -o OUTPUT, --output OUTPUT
+      -o, --output OUTPUT
       --no-output
-      -P PACKAGE_NAME, --package-name PACKAGE_NAME
-      -R RULES, --rules RULES
-                            Rules (comma separated) to parse (use - for removing)
+      -P, --package-name PACKAGE_NAME
+      -R, --rules RULES     Rules (comma separated) to parse (use - for removing)
                             use switch -ll to see default rules list
       -S, --string-normalization
                             force double quote enclosing strings

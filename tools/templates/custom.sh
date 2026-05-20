@@ -33,11 +33,17 @@ if [ -n "$PS1" ]; then
   fi
 fi
 
-alias psql-9.5='psql -p5437'
+# Postgres / odoo mapping
+# Odoo 6.1 - 7.0 -> psql-9.5: 5435
+# Odoo 7.0 - 10.0 -> psql-10: 5433
+# Odoo 10.0 - 15.0 -> psql-12: 5434
+# Odoo 16.0 - 19.0 -> psql-16: 5436
+# Odoo 18-0 - 19.0 -> psql-18: 5432 *
+alias psql-9.5='psql -p5435'
 alias psql-10='psql -p5433'
-alias psql-14='psql -p5434'
-alias psql-15='psql -p5435'
+alias psql-12='psql -p5434'
 alias psql-16='psql -p5436'
+alias psql-18='psql -p5432'
 
 # User specific environment
 for path in $HOME/.local/bin $HOME/bin; do
@@ -65,4 +71,3 @@ export ODOO_GIT_ORGID="(librerp|zero)"
 export ODOO_GIT_SHORT="(oca|librerp)"
 export npm_config_prefix="$HOME/.local"
 umask 002
-

@@ -41,10 +41,10 @@ Usage
     
     options:
       -h, --help            show this help message and exit
-      -H PATH, --home-devel PATH
+      -H, --home-devel PATH
                             Home devel directory
       -n, --dry-run         do nothing (dry-run)
-      -Q FILE, --tools-config FILE
+      -Q, --tools-config FILE
                             Configuration file
       -q, --quiet           silent mode
       -v, --verbose         verbose mode
@@ -187,6 +187,7 @@ ChangeLog History
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~
 
+* [FIX] gevent_port in run_odoo_debug.sh for Odoo 16+
 * [IMP] Quality message on pypi packages
 
 2.0.24 (2025-09-04)

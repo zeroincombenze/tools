@@ -380,7 +380,7 @@ Example:
 
 ::
 
-    TRUE(1)                                              User Commands                                              TRUE(1)
+    TRUE(1)                                               User Commands                                               TRUE(1)
     
     NAME
            true - do nothing, successfully
@@ -397,8 +397,8 @@ Example:
            --version
                   output version information and exit
     
-           Your  shell may have its own version of true, which usually supersedes the version described here.  Please refer
-           to your shell's documentation for details about the options it supports.
+           Your shell may have its own version of true, which usually supersedes the version described here.  Please refer to
+           your shell's documentation for details about the options it supports.
     
     AUTHOR
            Written by Jim Meyering.
@@ -417,7 +417,7 @@ Example:
            This is free software: you are free to change and redistribute it.
            There is NO WARRANTY, to the extent permitted by law.
     
-    GNU coreutils 9.7                                     January 2026                                              TRUE(1)
+    GNU coreutils 9.7                                      January 2026                                               TRUE(1)
     
 
 
@@ -437,40 +437,40 @@ gen_readme.py command line
     
     options:
       -h, --help            show this help message and exit
-      -b ODOO_VID, --odoo-branch ODOO_VID
+      -b, --odoo-branch ODOO_VID
       -B, --debug-template
-      -D PATH, --home-devel PATH
+      -D, --home-devel PATH
                             Home devel directory
-      -F FROM_VERSION, --from-version FROM_VERSION
+      -F, --from-version FROM_VERSION
       -f, --force           force creating documentation even if doc dirs do not
                             exit
-      -G GIT_ORGID, --git-org GIT_ORGID
-      -g OPT_GPL, --gpl-info OPT_GPL
+      -G, --git-org GIT_ORGID
+      -g, --gpl-info OPT_GPL
       -H, -I, --write-index
                             write index.html rather than README.rst
-      -l ODOO_LAYER, --layer ODOO_LAYER
+      -l, --layer ODOO_LAYER
                             ocb|module|repository
-      -L LANG, --lang LANG  iso code
-      -m MODULE_NAME, --module-name MODULE_NAME
+      -L, --lang LANG       iso code
+      -m, --module-name MODULE_NAME
                             filename
-      -M FORCE_MATURITY, --force-maturity FORCE_MATURITY
+      -M, --force-maturity FORCE_MATURITY
                             Alfa,Beta,Mature,Production/stable
       -n, --dry-run         do nothing (dry-run)
       -O, --odoo_marketplace
                             create index.html with Odoo marketplace rules
-      -o OUTPUT_FILE, --output-file OUTPUT_FILE
+      -o, --output-file OUTPUT_FILE
                             filename
-      -P PRODUCT_DOC, --product-doc PRODUCT_DOC
+      -P, --product-doc PRODUCT_DOC
                             may be odoo or pypi
-      -p PATH_NAME, --path-name PATH_NAME
+      -p, --path-name PATH_NAME
                             pathname
       -q, --quiet           silent mode
       -R, --rewrite-manifest
-      -r REPOS_NAME, --repos_name REPOS_NAME
+      -r, --repos_name REPOS_NAME
                             dirname
-      -Q QUOTE_WITH, --quote-with QUOTE_WITH
+      -Q, --quote-with QUOTE_WITH
                             CHAR
-      -t TEMPLATE_NAME, --template_name TEMPLATE_NAME
+      -t, --template_name TEMPLATE_NAME
                             filename
       -T, --trace-file
       -V, --version         show program's version number and exit
