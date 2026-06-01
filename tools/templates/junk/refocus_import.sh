@@ -1,36 +1,92 @@
-# Import data from refocus using no odoo user
-[[ -z $1 || $1 == -h || $1 == --help ]] && echo "$0 date # $(date +%Y%m%d)" && exit 1
+#! /bin/bash
+# Import data from refocus (Refocus)
+[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--reset-pwd ]\n[--remote-psql-port=PORT]\n date # $(date +%Y%m%d)" && exit 1
 [[ $1 == -V ]] && echo "2.0.0" && exit 1
-DB="refocus18"
-CONFN="/etc/odoo/odoo18.conf"
-PSQL_PORT=$(grep db_port $CONFN | sed "s/False/5432/" | cut -d= -f2 | tr -d " ")
-SERVICE="odoo18"
-REMOTE_HOST="refocus"
-REMOTE_DB="odoo18"
 
-echo ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump --no-owner -Fp -v -f $DB-$1.sql $REMOTE_HOST"
-ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump --no-owner -Fp -v -f $DB-$1.sql $REMOTE_HOST"
-echo -e "\n"
-echo ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$1.sql ./"
-ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$1.sql ./"
-echo -e "\n"
-echo ssh.py -s $REMOTE_HOST:~/$DB-$1.sql $HOME
-ssh.py -s $REMOTE_HOST:~/$DB-$1.sql $HOME
-echo sudo chown postgres:postgres $HOME/$DB-$1.sql
-sudo chown postgres:postgres $HOME/$DB-$1.sql
-echo sudo mv $HOME/$DB-$1.sql /var/lib/postgresql/
-sudo sudo mv $HOME/$DB-$1.sql /var/lib/postgresql/
+param=""
+sts=0
+while [[ -n "$1" ]]; do
+    [[ -z $1 ]] &&  sts=1
+    [[ $sts -eq 0 && -n $param ]] && eval $param="$1" && param="" && sts=1
+    [[ $sts -eq 0 && $1 =~ --conf= ]] && x=$(echo $1|cut -d= -f2) && CONFN="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --conf ]] && param="CONFN" && sts=1
+    [[ $sts -eq 0 && $1 =~ --cont ]] && CONT=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ --dry-run ]] && DRY_RUN=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ --db-user= ]] && x=$(echo $1|cut -d= -f2) && DB_USER="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --db-user ]] && param="DB_USER" && sts=1
+    [[ $sts -eq 0 && $1 =~ --host= ]] && x=$(echo $1|cut -d= -f2) && REMOTE_HOST="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --host ]] && param="REMOTE_HOST" && sts=1
+    [[ $sts -eq 0 && $1 =~ --remote-db= ]] && x=$(echo $1|cut -d= -f2) && REMOTE_DB="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --remote-db ]] && param="REMOTE_DB" && sts=1
+    [[ $sts -eq 0 && $1 =~ --remote-psql-port= ]] && x=$(echo $1|cut -d= -f2) && REMOTE_PSQL_PORT="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --remote-psql-port ]] && param="REMOTE_PSQL_PORT" && sts=1
+    [[ $sts -eq 0 && $1 =~ --reset-pwd ]] && RESET_PWD=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*c ]] && param="CONFN" && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*d ]] && param="DB" && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*k ]] && KEEP_DB=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*n ]] && DRY_RUN=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*p ]] && param="PSQL_PORT" && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*v ]] && VERBOSE="-v" && sts=1
+    [[ $sts -eq 0 && $1 =~ [0-9]{8} ]] && DATE="$1" && sts=1
+    [[ $sts -eq 0 ]] && echo "Unknow value $1"
+    shift
+    sts=0
+done
+
+# Custom values
+[[ -z $DATE ]] && DATE=$(date +%Y%m%d)
+[[ -z $DB ]] && DB="refocus18"
+[[ -z $DB_USER ]] && DB_USER="odoo18"
+[[ -z $CONFN ]] && CONFN="/etc/odoo/odoo18.conf"
+[[ -z $PSQL_PORT ]] && PSQL_PORT=$(sudo grep db_port $CONFN | sed "s/False/5432/" | cut -d= -f2 | tr -d " ")
+[[ -z $SERVICE ]] && SERVICE="odoo18"
+[[ -z $REMOTE_HOST ]] && REMOTE_HOST="refocus"
+[[ -z $REMOTE_DB ]] && REMOTE_DB="refocus18"
+[[ -z $REMOTE_PSQL_PORT ]] && REMOTE_PSQL_PORT=5434
+[[ -z $DRY_RUN ]] && DRY_RUN=0
+[[ -z $KEEP_DB ]] && KEEP_DB=0
+[[ -z $RESET_PWD ]] && RESET_PWD=0
+
+[[ CONT -eq 0 ]] && echo "$(basename $0): import from $REMOTE_HOST/$REMOTE_DB:$REMOTE_PSQL_PORT"
+[[ CONT -ne 0 ]] && echo "$(basename $0)"
+echo "Build $DB-$DATE.sql for service $SERVICE:$PSQL_PORT with $CONFN:$DB_USER"
+[[ $KEEP_DB -ne 0 ]] && echo "DB is not deleted"
+[[ $DRY_RUN -ne 0 ]] && echo "Warning: no execution (dry-run)"
+echo ""
+
+if [[ ! -f $HOME/$DB-$DATE.sql && $CONT -eq 0 ]]; then
+    [[ -n $REMOTE_PSQL_PORT ]] && opts="-p $REMOTE_PSQL_PORT --no-owner $VERBOSE" || opts="--no-owner $VERBOSE"
+    echo ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
+    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
+    [[ -n $VERBOSE ]] && echo -e "\n"
+    echo ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
+    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
+    [[ -n $VERBOSE ]] && echo -e "\n"
+    echo ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
+    [[ $DRY_RUN -eq 0 ]] && ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
+    echo sudo chown postgres:postgres $HOME/$DB-$DATE.sql
+    [[ $DRY_RUN -eq 0 ]] && sudo chown postgres:postgres $HOME/$DB-$DATE.sql
+fi
+echo ""
+if [[ $CONT -eq 0 ]]; then
+    [[ $DRY_RUN -eq 0 ]] && echo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
+    [[ $DRY_RUN -eq 0 ]] && sudo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
+fi
 echo systemctl stop $SERVICE
-systemctl stop $SERVICE
-echo sudo -i -upostgres build_db.sh $DB $1 no-ask
-sudo -i -upostgres build_db.sh $DB $1 no-ask
-echo "sudo -i -uodoo run_odoo_debug -c $CONFN -usm all -d $DB -v"
-sudo -i -uodoo run_odoo_debug -c $CONFN -usm all -d $DB -v
-# echo "psql -p$PSQL_PORT -Uodoo18 $DB -c \"update res_users set password='admin' where id=2\""
-# psql -p$PSQL_PORT -Uodoo18 $DB -c "update res_users set password='admin' where id=2"
-# echo "psql -p$PSQL_PORT -Uodoo18 $DB -c \"update synchro_backend set exchange_path='/home/odoo/ridix' where id=9\""
-# psql -p$PSQL_PORT -Uodoo18 $DB -c "update synchro_backend set exchange_path='/home/odoo/ridix' where id=9"
+[[ $DRY_RUN -eq 0 ]] && systemctl stop $SERVICE
+echo sudo -i -upostgres build_db.sh $DB $DB_USER $DATE $PSQL_PORT no-ask
+[[ $DRY_RUN -eq 0 ]] && sudo -i -upostgres build_db.sh $DB $DB_USER $DATE $PSQL_PORT no-ask
+echo "sudo -i -uodoo run_odoo_debug -c $CONFN -usm all -d $DB $VERBOSE"
+[[ $DRY_RUN -eq 0 ]] && sudo -i -uodoo run_odoo_debug -c $CONFN -usm all -d $DB $VERBOSE
+if [[ $RESET_PWD -ne 0 ]]; then
+    echo "psql -p$PSQL_PORT -U$DB_USER $DB -c \"update res_users set password='admin' where id=2\""
+    [[ $DRY_RUN -eq 0 ]] && psql -p$PSQL_PORT -U$DB_USER $DB -c "update res_users set password='admin' where id=2"
+    echo "psql -p$PSQL_PORT -U$DB_USER $DB -c \"update synchro_backend set exchange_path='/home/odoo/ridix' where id=9\""
+    [[ $DRY_RUN -eq 0 ]] && psql -p$PSQL_PORT -U$DB_USER $DB -c "update synchro_backend set exchange_path='/home/odoo/ridix' where id=9"
+fi
 echo "systemctl start $SERVICE"
-systemctl start $SERVICE
-echo ssh.py $REMOTE_HOST -c "rm ~/$DB-$1.sql"
-ssh.py $REMOTE_HOST -c "rm ~/$DB-$1.sql"
+[[ $DRY_RUN -eq 0 ]] && systemctl start $SERVICE
+if [[ $KEEP_DB -eq 0 ]]; then
+    echo ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
+    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
+fi

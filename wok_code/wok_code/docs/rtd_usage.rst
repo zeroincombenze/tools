@@ -17,10 +17,10 @@ Usage
     
     options:
       -h, --help            show this help message and exit
-      -H, --home-devel PATH
+      -H PATH, --home-devel PATH
                             Home devel directory
       -n, --dry-run         do nothing (dry-run)
-      -Q, --tools-config FILE
+      -Q FILE, --tools-config FILE
                             Configuration file
       -q, --quiet           silent mode
       -v, --verbose         verbose mode

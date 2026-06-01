@@ -329,6 +329,7 @@ set_confn() {
         [[ $opt_verbose -lt 1 ]] && OPT_LLEV="--log-level=warn"
     fi
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
+    run_traced_debug "sed -e \"s|^max_cron_threads *=.*|max_cron_threads = 0|\" -i $TEST_CONFN"
     if [[ $REPOSNAME == "OCB" && $opt_dry_run -eq 0 ]]; then
       x=$(cat $TEST_CONFN | grep -Eo "^addons_path *=.*(/addons)")
       run_traced_debug "sed -e \"s|^addons_path *=.*|$x|\" -i $TEST_CONFN"
@@ -660,11 +661,19 @@ else
   elif [[ $opt_test -ne 0 ]]; then
       [[ opt_debug -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
   elif [[ -f $opt_conf ]]; then
-      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      if [[ $odoo_maj -ge 16 ]]; then
+        LPPORT=$(grep ^gevent_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      else
+        LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      fi
   elif [[ $opt_web -ne 0 ]]; then
       LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
   elif [[ -f $CONFN ]]; then
-      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      if [[ $odoo_maj -ge 16 ]]; then
+        LPPORT=$(grep ^gevent_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      else
+        LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      fi
   else
       LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
   fi
@@ -848,13 +857,17 @@ fi
 sts=0
 [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
 OPT_LLEV=
-[[ $opt_test -ne 0 ]] && export TEST_CONFN="$LOGDIR/${UMLI}.conf" || export TEST_CONFN="$ve_root/$LCONFN"
-if [[ $opt_test -gt 1 ]]; then
-  TEST_CONFN=""
-  [[ -f  $ve_root/pycharm_odoo-ee.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ee.conf"
-  [[ -z $TEST_CONFN && -f  $ve_root/pycharm_odoo-ce.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ce.conf"
-  [[ -z $TEST_CONFN ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
+if [[ $opt_test -eq 0 ]]; then
+  export TEST_CONFN="$ve_root/$LCONFN"
+else
+  export TEST_CONFN="$LOGDIR/${UMLI}.conf" ||
 fi
+PYCHARM_CONFN=""
+[[ $opt_opt_igee -eq 0 && CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ee.conf"
+[[ $opt_opt_igee -ne 0 || ! CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ce.conf"
+[[ -z $PYCHARM_CONFN ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo.conf"
+[[ $opt_test -eq 0 || opt_debug -gt 1 ]] && export TEST_CONFN="$PYCHARM_CONFN"
+
 OPT_CONF="--config=$TEST_CONFN"
 if [[ $opt_dry_run -eq 0 ]]; then
     for f in .openerp_serverrc .odoorc; do
@@ -876,8 +889,9 @@ if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
     run_traced "$SCRIPT -s --stop-after-init"
 fi
-
 set_confn
+[[ -n $PYCHARM_CONFN ]] && run_traced "cp $TEST_CONFN $PYCHARM_CONFN"
+
 if [[ -n "$TEST_VDIR" ]]; then
   coverage_set
   x=$(date +"%Y-%m-%d %H:%M:%S,000")

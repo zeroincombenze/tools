@@ -1,38 +1,59 @@
-[[ -z $1 ]] && echo "$0 date [-n] # dd-mm-yyyy -n -> No cloudpepper" && exit 1
-cd $(dirname $0)
-if [[ ! -d "/mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import Dati/OneDrive_1_$1" ]]; then
-    if [[ ! -d "/mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import Dati/OneDrive_1_${1}.zip" ]]; then
-        echo cd "/mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import Dati/"
-	cd "/mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import Dati/"
-        echo unzip OneDrive_1_${1}.zip -d OneDrive_1_${1}
-	unzip OneDrive_1_${1}.zip -d OneDrive_1_${1}
-    fi
-    [[ ! -d OneDrive_1_${1} ]]	&& echo "Data not found!" && exit 1
+#! /bin/bash
+# Zip data and export to cloudpepper (Ridix)
+[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-N][--no-cloudpepper][--source=SOURCE] date # $(date +%d-%m-%Y)" && exit 1
+[[ $1 == -V ]] && echo "2.0.0" && exit 1
+
+param=""
+sts=0
+while [[ -n "$1" ]]; do
+    [[ -z $1 ]] &&  sts=1
+    [[ $sts -eq 0 && -n $param ]] && eval $param="$1" && param="" && sts=1
+    [[ $sts -eq 0 && $1 =~ --dry-run ]] && DRY_RUN=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ --no-cloudpepper ]] && NO_CLOUDPEPPER=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ --source= ]] && x=$(echo $1|cut -d= -f2) && SOURCE="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --source ]] && param="SOURCE" && sts=1
+    [[ $sts -eq 0 && $1 =~ --target= ]] && x=$(echo $1|cut -d= -f2) && TARGET="$x" && sts=1
+    [[ $sts -eq 0 && $1 =~ --target ]] && param="TARGET" && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*n ]] && DRY_RUN=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*N ]] && NO_CLOUDPEPPER=1 && sts=1
+    [[ $sts -eq 0 && $1 =~ -.*v ]] && VERBOSE="-v" && sts=1
+    [[ $sts -eq 0 && $1 =~ [0-9\-]{10} ]] && DATE="$1" && sts=1
+    [[ $sts -eq 0 ]] && echo "Unknow value $1"
+    shift
+    sts=0
+done
+
+# Custom values
+[[ -z $DATE ]] && DATE=$(date +%d-%m-%Y)
+[[ -z $DRY_RUN ]] && DRY_RUN=0
+[[ -z $NO_CLOUD_PEPPER ]] && NO_CLOUDPEPPER=1 && sts=1
+[[ -z $SOURCE_PATH ]] && SOURCE_PATH="/home/antoniov/Scaricati"
+[[ -z $SOURCE ]] && SOURCE="$SOURCE_PATH/OneDrive_1_$DATE" && SOURCE_PATH=$(dirname $SOURCE)
+[[ -z $TARGET ]] && TARGET="/home/odoo/ridix"
+
+if [[ ! -d "$SOURCE" && -f "$SOURCE.zip" ]]; then
+	cd "$SOURCE_PATH/"
+  echo $SOURCE.zip.zip -d $SOURCE
+	[[ $DRY_RUN -ne 0 ]] && unzip $SOURCE.zip -d $SOURCE
 fi
-echo rm ~/ridix/*.csv
-rm ~/ridix/*.csv
-echo cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/OneDrive_1_$1/
-cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/OneDrive_1_$1/
-echo cp *.csv /home/odoo/ridix
-cp *.csv /home/odoo/ridix
-echo cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
-cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
-echo cp *.csv /home/odoo/ridix
-cp *.csv /home/odoo/ridix
-echo -e "\n"
-echo cd /home/odoo/ridix
-cd /home/odoo/ridix
-echo rm *:Zone.Identifier
-for f in *Zone.Identifier; do rm $f; done
+[[ ! -d $SOURCE ]]	&& echo "Data $SOURCE not found!" && exit 1
+
+[[ ! -d $TARGET ]]	&& echo "Directory $TARGET not found!" && exit 1
+cd $TARGET
+echo sudo rm *.csv
+[[ $DRY_RUN -ne 0 ]] && sudo rm *.csv
+echo sudo cp $SOURCE/*.csv ./
+[[ $DRY_RUN -ne 0 ]] && sudo cp cp $SOURCE/*.csv ./
+# echo cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
+# cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
 echo -e "\n"
 ls /home/odoo/ridix
 echo -e "\n"
-if [[ -z $2 ]]; then
+if [[ $NO_CLOUDPEPPER -eq 0 ]]; then
   echo ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
-  ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
+  [[ $DRY_RUN -ne 0 ]] && ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
   for fn in *.csv; do
     echo $fn
-    ssh.py -s $fn cloudpepper:/var/odoo/ridix
+    [[ $DRY_RUN -ne 0 ]] && ssh.py -s $fn cloudpepper:/var/odoo/ridix
   done
 fi
-

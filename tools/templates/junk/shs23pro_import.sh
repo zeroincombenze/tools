@@ -1,5 +1,5 @@
 #! /bin/bash
-# Import data from cloudpepper (Ridix)
+# Import data from  shs23pro (any DB)
 [[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--reset-pwd ]\n[--remote-psql-port=PORT]\n date # $(date +%Y%m%d)" && exit 1
 [[ $1 == -V ]] && echo "2.0.0" && exit 1
 
@@ -35,19 +35,19 @@ done
 
 # Custom values
 [[ -z $DATE ]] && DATE=$(date +%Y%m%d)
-[[ -z $DB ]] && DB="ridix18"
-[[ -z $DB_USER ]] && DB_USER="odoo18ee"
-[[ -z $CONFN ]] && CONFN="/etc/odoo/odoo18-ee.conf"
-[[ -z $PSQL_PORT ]] && PSQL_PORT=$(sudo grep db_port $CONFN | sed "s/False/5432/" | cut -d= -f2 | tr -d " ")
-[[ -z $SERVICE ]] && SERVICE="odoo18-ee"
-[[ -z $REMOTE_HOST ]] && REMOTE_HOST="cloudpepper"
-[[ -z $REMOTE_DB ]] && REMOTE_DB="202506-staging-ridix.cloudpepper.site"
-[[ -z $CONT ]] && CONT=0
-# [[ -z $REMOTE_PSQL_PORT ]] && REMOTE_PSQL_PORT=5432
+[[ -z $REMOTE_HOST ]] && REMOTE_HOST="shs23pro"
+[[ -z $REMOTE_PSQL_PORT ]] && REMOTE_PSQL_PORT=5432
 [[ -z $DRY_RUN ]] && DRY_RUN=0
 [[ -z $KEEP_DB ]] && KEEP_DB=0
-[[ -z $RESET_PWD ]] && RESET_PWD=1
-
+[[ -z $RESET_PWD ]] && RESET_PWD=0
+[[ -z $DB ]] && echo "Missing DB name" && exit 1
+[[ -z $REMOTE_DB ]] && REMOTE_DB="$DB"
+majver=$(echo $DB | grep -Eo "[0-9]+$")
+[[ -z $majver ]] && majver="10"
+[[ -z $DB_USER ]] && DB_USER="odoo$majver"
+[[ -z $CONFN ]] && CONFN="/etc/odoo/odoo$majver.conf"
+[[ -z $PSQL_PORT ]] && PSQL_PORT=$(sudo grep db_port $CONFN | sed "s/False/5433/" | cut -d= -f2 | tr -d " ")
+[[ -z $SERVICE ]] && SERVICE="odoo$majver"
 [[ CONT -eq 0 ]] && echo "$(basename $0): import from $REMOTE_HOST/$REMOTE_DB:$REMOTE_PSQL_PORT"
 [[ CONT -ne 0 ]] && echo "$(basename $0)"
 echo "Build $DB-$DATE.sql for service $SERVICE:$PSQL_PORT with $CONFN:$DB_USER"
@@ -57,22 +57,13 @@ echo ""
 
 if [[ ! -f $HOME/$DB-$DATE.sql && $CONT -eq 0 ]]; then
     [[ -n $REMOTE_PSQL_PORT ]] && opts="-p $REMOTE_PSQL_PORT --no-owner $VERBOSE" || opts="--no-owner $VERBOSE"
-    echo ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
-    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
+    echo sudo su - postgres -c "ssh.py $REMOTE_HOST -c \"pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB\""
+    [[ $DRY_RUN -eq 0 ]] && sudo su - postgres -c "ssh.py $REMOTE_HOST -c \"pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB\""
     [[ -n $VERBOSE ]] && echo -e "\n"
-    echo ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
-    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
-    [[ -n $VERBOSE ]] && echo -e "\n"
-    echo ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
-    [[ $DRY_RUN -eq 0 ]] && ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
-    echo sudo chown postgres:postgres $HOME/$DB-$DATE.sql
-    [[ $DRY_RUN -eq 0 ]] && sudo chown postgres:postgres $HOME/$DB-$DATE.sql
+    echo sudo su - postgres -c "ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql ./"
+    [[ $DRY_RUN -eq 0 ]] && sudo su - postgres -c "ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql ./"
 fi
 echo ""
-if [[ $CONT -eq 0 ]]; then
-    [[ $DRY_RUN -eq 0 ]] && echo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
-    [[ $DRY_RUN -eq 0 ]] && sudo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
-fi
 echo systemctl stop $SERVICE
 [[ $DRY_RUN -eq 0 ]] && systemctl stop $SERVICE
 echo sudo -i -upostgres build_db.sh $DB $DB_USER $DATE $PSQL_PORT no-ask
@@ -88,6 +79,6 @@ fi
 echo "systemctl start $SERVICE"
 [[ $DRY_RUN -eq 0 ]] && systemctl start $SERVICE
 if [[ $KEEP_DB -eq 0 ]]; then
-    echo ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
-    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
+    echo sudo -i -postgres ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
+    [[ $DRY_RUN -eq 0 ]] && sudo -i -postgres ssh.py $REMOTE_HOST -c "rm ~/$DB-$DATE.sql"
 fi

@@ -466,6 +466,10 @@ purge_unused_files
 
 # OCA tools
 [[ $PYVER -eq 3 ]] && install_oca_tools
+#if [[ -n $NVM_DIR && -f $HOME/.npmrc ]]; then
+#    run_traced "npm config delete prefix"
+#    run_traced "npm config set prefix $NVM_DIR/versions/node/v20.18.0"
+#fi
 
 # Final test to validate environment
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null

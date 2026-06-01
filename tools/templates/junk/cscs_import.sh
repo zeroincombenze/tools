@@ -1,5 +1,5 @@
 #! /bin/bash
-# Import data from cloudpepper (Ridix)
+# Import data from cscs (Cscs)
 [[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--reset-pwd ]\n[--remote-psql-port=PORT]\n date # $(date +%Y%m%d)" && exit 1
 [[ $1 == -V ]] && echo "2.0.0" && exit 1
 
@@ -35,18 +35,17 @@ done
 
 # Custom values
 [[ -z $DATE ]] && DATE=$(date +%Y%m%d)
-[[ -z $DB ]] && DB="ridix18"
-[[ -z $DB_USER ]] && DB_USER="odoo18ee"
-[[ -z $CONFN ]] && CONFN="/etc/odoo/odoo18-ee.conf"
-[[ -z $PSQL_PORT ]] && PSQL_PORT=$(sudo grep db_port $CONFN | sed "s/False/5432/" | cut -d= -f2 | tr -d " ")
-[[ -z $SERVICE ]] && SERVICE="odoo18-ee"
-[[ -z $REMOTE_HOST ]] && REMOTE_HOST="cloudpepper"
-[[ -z $REMOTE_DB ]] && REMOTE_DB="202506-staging-ridix.cloudpepper.site"
-[[ -z $CONT ]] && CONT=0
-# [[ -z $REMOTE_PSQL_PORT ]] && REMOTE_PSQL_PORT=5432
+[[ -z $DB ]] && DB="cscs16"
+[[ -z $DB_USER ]] && DB_USER="odoo7"
+[[ -z $CONFN ]] && CONFN="/etc/odoo/odoo7.conf"
+[[ -z $PSQL_PORT ]] && PSQL_PORT=$(sudo grep db_port $CONFN | sed "s/False/5433/" | cut -d= -f2 | tr -d " ")
+[[ -z $SERVICE ]] && SERVICE="odoo7"
+[[ -z $REMOTE_HOST ]] && REMOTE_HOST="cscs16-odoo"
+[[ -z $REMOTE_DB ]] && REMOTE_DB="cscs16"
+[[ -z $REMOTE_PSQL_PORT ]] && REMOTE_PSQL_PORT=5432
 [[ -z $DRY_RUN ]] && DRY_RUN=0
 [[ -z $KEEP_DB ]] && KEEP_DB=0
-[[ -z $RESET_PWD ]] && RESET_PWD=1
+[[ -z $RESET_PWD ]] && RESET_PWD=0
 
 [[ CONT -eq 0 ]] && echo "$(basename $0): import from $REMOTE_HOST/$REMOTE_DB:$REMOTE_PSQL_PORT"
 [[ CONT -ne 0 ]] && echo "$(basename $0)"

@@ -206,8 +206,10 @@ install_from_source_27() {
     tar -xzf Python-$pyver.tgz
     cd Python-$pyver
     echo ""
+    echo "##################################################################################"
     echo "### WARNING:          you can meet some warnings and errora during compilation ###"
     echo "### Moreover some tests can fail. Please do not interrupt, wait for completing ###"
+    echo "##################################################################################"
     echo ""
     echo "\$ ./configure --prefix=/usr/local/python2.7 --enable-optimizations CFLAGS=\"-std=c11\" $CONFIG_OPTS"
     read -p "Press RET to configure and install ..."
@@ -260,9 +262,9 @@ py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
 [[ $1 != $py ]] && echo "Invalid python version $1" && exit 1
 
 if [[ $UBUNTU_RELEASE -le 20 ]]; then
-    OSPKGS="(libssl-dev|libffi-dev|libncurses5-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev)"
+    OSPKGS="(build-essential|libssl-dev|zlib1g-dev|libffi-dev|libncursesw5-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev|llvm|xz-utils|tk-dev|liblzma-dev)"
 else
-    OSPKGS="(libssl-dev|libffi-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libpcap-dev|libbz2-dev)"
+    OSPKGS="(build-essential|libssl-dev|zlib1g-dev|libffi-dev|libncursesw5-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libpcap-dev|libbz2-dev|llvm|xz-utils)"
 fi
 ADD_REPO=$(which add-apt-repository)
 installed=$(apt list --installed 2>/dev/null|grep -E "$OSPKGS")
@@ -296,7 +298,7 @@ echo ""
 echo "You are hint to execute:"
 echo "    add-apt-repository ppa:deadsnakes/ppa"
 echo ""
-echo "OS Packages needed are:"
+echo "OS Packages needed are (libncurses-dev is replacement of libncursesw5-dev):"
 for p in $pkgs_list; do
     echo $installed | grep "$p" >/dev/null
     [[ $? -eq 0 ]] && echo "    Package $p installed [OK]" || echo "    Please install package $p!!! -> apt install $p"

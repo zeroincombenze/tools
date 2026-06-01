@@ -52,7 +52,7 @@ addons:
       # - libssl-dev
       # - nodejs                          # Pre-installed
       # - npm                             # Pre-installed
-      - python-dev
+      # - python-dev
       # - python-setuptools               # Pre-installed
       # - wkhtmltopdf                     # Pre-installed
       # - zlib1g

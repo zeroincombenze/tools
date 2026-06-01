@@ -22,12 +22,21 @@ ERROR_LOG = ""
 
 
 def run_traced(cmd, dry_run=False, rtime=False):
-    sts, stdout, stderr = z0lib.run_traced(
+    sts, stdout, stderr = z0lib.os_system_traced(
         cmd, verbose=2, dry_run=dry_run, rtime=rtime
     )
     if sts:
         print("Error %d in %s" % (sts, cmd))
     return sts, stdout, stderr
+
+
+def os_system(cmd, dry_run=False, rtime=False):
+    sts = z0lib.os_system(
+        cmd, verbose=2, dry_run=dry_run, rtime=rtime
+    )
+    if sts:
+        print("Error %d in %s" % (sts, cmd))
+    return sts
 
 
 def write_test_line(fd, ln, no_echo=False):
@@ -135,6 +144,9 @@ def get_odoo_values(opt_args):
 def create_venv(opt_args, venvdir, pypidir, toolsdir):
     print(pGREEN + ("# Starting create_venv(%s,%s, %s)"
                     % (venvdir, pypidir, toolsdir)) + pCLR)
+    cmd = "pip cache purge"
+    os_system(cmd)
+
     if opt_args.from_vme:
         if opt_args.branch:
             srcdir = pth.expanduser("~/VME/VME" + opt_args.branch)
@@ -152,15 +164,19 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
             cmd += (" -o %s" % odoo_path)
     cmd += " " + verbose_switch(opt_args)
     # Create Virtualenv by current test python and current test PYPIs
-    run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
+    sts = os_system(cmd, dry_run=opt_args.dry_run, rtime=True)
+    if sts:
+        print((pRED + "Error %d running %s" + pCLR) % (sts, cmd))
+        exit(1)
 
     script = "%s/test_install.sh" % venvdir
     with open(script, "w") as fd:
         write_test_line(fd, "#!/usr/bin/env bash")
-        write_test_line(fd, "echo ''")
+        # write_test_line(fd, "echo ''")
         write_test_line(
             fd, "echo -e '" + eGREEN + "# Test isolation of " + script + eCLR + "'")
         write_test_line(fd, "cd")
+        write_test_line(fd, "Current dir is $PWD")
         write_test_line(
             fd,
             "[[ $PWD == %s ]] && echo 'Test isolation passed'" % venvdir)
@@ -168,12 +184,17 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
             fd,
             (
                 "[[ $PWD != %s ]] && echo -e '" + eRED
-                + " Environmant not isolated" + eCLR + "'"
+                + " Environmant not isolated" + eCLR + "' && exit 2"
             ) % venvdir)
         write_test_line(fd, "echo ''")
     run_traced("chmod +x %s" % script, dry_run=opt_args.dry_run, rtime=True)
     # Check for isolation
-    os.system(script)
+    cmd = ("%s %s/python_plus/python_plus/scripts/vem.py %s exec %s"
+           % (sys.executable, pypidir, venvdir, script))
+    sts = os_system(cmd)
+    if sts:
+        print((pRED + "Error %d running %s" + pCLR) % (sts, cmd))
+        exit(1)
 
     # test_sh_python(fd, opt_args.python)
 

@@ -9,6 +9,8 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] gevent_port in run_odoo_debug.sh for Odoo 16+
+* [FIX] Sometimes wrong db user was used
+* [IMP] Install python2.7 in Ubuntu 26.04
 * [IMP] Quality message on pypi packages
 
 2.0.24 (2025-09-04)

@@ -61,24 +61,28 @@ Usage
       -f, --failfast        Stop on first fail or error
       -J                    load travisrc (deprecated)
       -k, --keep            keep current logfile (deprecated)
-      -l, --logname file    set logfile name (deprecated)
+      -l file, --logname file
+                            set logfile name (deprecated)
       -N, --new             create new logfile (deprecated)
       -n, --dry-run         count and display # unit tests (deprecated)
       -O                    load odoorc (deprecated)
-      -p, --search-pattern file_list
+      -p file_list, --search-pattern file_list
                             Pattern to match tests, comma separated ('test*.py'
                             default)
       -Q, --count           count # unit tests (deprecated)
       -q, --quiet           run tests without output (quiet mode, deprecated)
       -R, --run-inner       inner mode w/o final messages
-      -r, --restart number  restart count next to number
-      -s, --start number    deprecated
+      -r number, --restart number
+                            restart count next to number
+      -s number, --start number
+                            deprecated
       -V, --version         show program's version number and exit
       -v, --verbose         verbose mode
       -x, --qsanity         like -X but run silently (deprecated)
       -X, --esanity         execute test library sanity check and exit
                             (deprecated)
-      -z, --end number      display total # tests when execute them
+      -z number, --end number
+                            display total # tests when execute them
       -0, --no-count        no count # unit tests (deprecated)
     
     © 2015-2025 by SHS-AV s.r.l. - https://zeroincombenze-
