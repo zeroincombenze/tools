@@ -36,8 +36,9 @@ while [[ -n $1 ]]; do
 done
 
 if [[ $opts =~ ^-.*h ]]; then
-    echo "$THIS [-h][-d][-f][-n][-p][-P][-q][-t][-U][-v][-V] [PYTHON_VERSION]"
+    echo "$THIS [-h][-B][-d][-f][-n][-p][-P][-q][-t][-U][-v][-V] [PYTHON_VERSION]"
     echo "  -h  this help"
+    echo "  -B  debug mode"
     echo "  -d  use development branch not master"
     echo "  -D  create the development environment"
     echo "  -f  force creation of virtual environment even if exists"
@@ -55,7 +56,7 @@ if [[ $opts =~ ^-.*h ]]; then
     echo "  -v  more verbose"
     echo "  -V  show version and exit"
     echo "  -2  create virtual environment with python2"
-    echo -e "\n(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+    echo -e "\n(C) 2015-2026 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 elif [[ $opts =~ ^-.*V ]]; then
     echo $__version__
@@ -230,9 +231,6 @@ install_oca_tools() {
         x=$(which node)
         if [[ -z $x ]]; then
           echo "Node v20.18.0 not installed: some package like prettier cannot run!"
-        # else
-          # run_traced "ln -s $x $DSTPATH/venv/bin"
-          # [[ -d $HOME/.local/bin ]] && run_traced "ln -s $x $HOME/.local/bin"
         fi
         [[ ! -f package-lock.json ]] && run_traced "npm init -y"
         run_traced "npm audit fix --force"
@@ -357,6 +355,8 @@ OLD_PYVER=""
 [[ -x $LOCAL_VENV/bin/python ]] && OLD_PYVER=$($LOCAL_VENV/bin/python --version 2>&1 | grep "Python" | grep --color=never -Eo "[23]\.[0-9]+" | head -n1)
 [[ $opts =~ ^-.*2 ]] && REQ_PYVER="2.7"
 [[ $opts =~ ^-.*t && $TRAVIS_PYTHON_VERSION ]] && REQ_PYVER="$TRAVIS_PYTHON_VERSION"
+[[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.14 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
+[[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.13 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.12 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.11 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.10 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
@@ -365,15 +365,15 @@ OLD_PYVER=""
 [[ -z $REQ_PYVER ]] && REQ_PYVER=$(python3.7 --version 2>/dev/null | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ -z $REQ_PYVER && -n $PYVER ]] && REQ_PYVER=$PYVER
 [[ -z $REQ_PYVER ]] && echo "No python not found in path!" && exit 1
-if [[ ! $REQ_PYVER =~ ^3\.(7|8|9|10|11|12)$ && $REQ_PYVER != "2.7" ]]; then
+if [[ ! $REQ_PYVER =~ ^3\.(7|8|9|10|11|12|13|14)$ && $REQ_PYVER != "2.7" ]]; then
     echo "This tools are not tested with python $REQ_PYVER!"
-    if [[ $PYVER =~ ^3\.(7|8|9|10|11|12)$ || $PYVER == "2.7" ]]; then
+    if [[ $PYVER =~ ^3\.(7|8|9|10|11|12|13|14)$ || $PYVER == "2.7" ]]; then
         echo "Please, use python version $PYVER "
         exit 1
     fi
-    echo "Please install python 3.12 typing following command:"
+    echo "Please install python 3.14 typing following command:"
     echo ""
-    echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.12"
+    echo "$SRCPATH/wok_code/install_python_3_from_source.sh 3.14"
     echo ""
     exit 1
 fi
@@ -394,7 +394,8 @@ if [[ ( ! $opts =~ ^-.*k && $opts =~ ^-.*f ) || $REQ_PYVER != $OLD_PYVER ]]; the
     [[ $opts =~ ^-.*q ]] && x="-qiDBB"
     [[ $opts =~ ^-.*v ]] && x="-viDBB"
     [[ $opts =~ ^-.*vv ]] && x="-vviDBB"
-    [[ $opts =~ ^-.*d ]] && x="${x}B"
+    [[ $opts =~ ^-.*vvv ]] && x="-vvviDBB"
+    [[ $opts =~ ^-.*[Bd] ]] && x="${x}B"
     [[ $opts =~ ^-.*t || $TRAVIS =~ (true|false|emulate) ]] && x="${x}t"
     [[ $opts =~ ^-.*f || $REQ_PYVER != $OLD_PYVER ]] && x="${x}f"
     run_traced "$VEM create $LOCAL_VENV -p$REQ_PYVER $x"
@@ -465,11 +466,15 @@ purge_unused_files
 
 # OCA tools
 [[ $PYVER -eq 3 ]] && install_oca_tools
+#if [[ -n $NVM_DIR && -f $HOME/.npmrc ]]; then
+#    run_traced "npm config delete prefix"
+#    run_traced "npm config set prefix $NVM_DIR/versions/node/v20.18.0"
+#fi
 
 # Final test to validate environment
 [[ -n "${BASH-}" || -n "${ZSH_VERSION-}" ]] && hash -r 2>/dev/null
 [[ $opts =~ ^-.*q ]] || echo -e "# Check for $LOCAL_VENV"
-[[ ! $opts =~ ^-.*t && -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
+# [[ ! $opts =~ ^-.*t && -x $BINPATH/twine ]] && run_traced "pip install \"twine<6.0\" -U"
 # [[ -f $BINPATH/list_requirements.py ]] && run_traced "chmod +x $BINPATH/list_requirements.py"
 $BINPATH/please_test_install.sh "$opts" "$VEM"
 run_traced "deactivate"

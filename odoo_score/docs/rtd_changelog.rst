@@ -5,11 +5,16 @@ ChangeLog History
 =================
 
 
-2.0.11 (2025-06-14)
+2.1.0 (2026-05-16)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] Python 3.13 + 3.14
+
+2.0.11 (2026-03-17)
 ~~~~~~~~~~~~~~~~~~~
 
-* [FIX] License declaration compatible with pypi
-* [IMP] Python 3.10
+* [IMP] Python 3.12
+* [QUA] Test coverage 67% (261: 87+174) [0 TestPoints] - quality rating 40 (target 100)
 * [IMP] Odoo 18.0
 
 2.0.10 (2024-08-21)
@@ -35,61 +40,6 @@ ChangeLog History
 
 * [REF] set_workers refactoring
 
-2.0.6 (2023-04-16)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Import class models.Model
-
-2.0.5 (2023-03-23)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug.sh: moved to package wok_code
-
-2.0.4 (2023-01-13)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug.sh: test creates log
-
-2.0.3 (2022-11-11)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] odoo_score: implementation of models and fields for Odoo 8-0+ modules
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: test function improvements
-* [IMP] run_odoo_debug: ODOO_COMMIT_TEST
-
-2.0.1.1 (2022-10-13)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: python stub
-* [FIX] run_odoo_debug: crash in sime rare cases
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.3 (2022-10-05)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odoo_debug: test via pycharm
-* [FIX] run_odoo_debug: concurrent tests
-
-2.0.0.2 (2022-09-22)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] run_odo_debug: test with random rpcport for multiple tests
-* [IMP] odoo_shell.py: new actions
-
-2.0.0.1 (2022-09-07)
-~~~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odo_debug with debug
-* [IMP] run_odoo_debug: experimental debug via pycharm
-
 |
 |
 
@@ -103,10 +53,10 @@ ChangeLog History
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.11/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.11/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

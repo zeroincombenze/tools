@@ -73,9 +73,9 @@ class PleaseZ0bug(object):
         self.please.add_argument(parser, "-d")
         parser.add_argument(
             "-E",
-            "--no-savenv",
+            "--no-enterprise",
             action="store_true",
-            help="Do not save virtual environment into ~/VME/... if does not exist",
+            help="ignore Odoo EE in test",
         )
         parser.add_argument("-e", "--locale", metavar="ISO", help="use locale")
         self.please.add_argument(parser, "-f")
@@ -187,6 +187,9 @@ class PleaseZ0bug(object):
         if please.opt_args.database:
             args.append("-d")
             args.append(please.opt_args.database)
+        if please.opt_args.no_enterprise:
+            args.append("-E")
+            args.append(please.opt_args.no_enterprise)
         if please.opt_args.force:
             args.append("-f")
         if please.opt_args.no_ext_test:

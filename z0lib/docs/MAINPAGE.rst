@@ -171,7 +171,7 @@ Credits
 Copyright
 ---------
 
-SHS-AV s.r.l. <https://www.shs-av.com/>
+Zeroincombenze s.r.l.s <http://www.zeroincombenze.it>
 
 
 Contributors
@@ -247,5 +247,3 @@ Last Update / Ultimo aggiornamento: 2023-04-14
    :target: https://github.com/zeroincombenze/grymb/blob/master/certificates/ade/scope/fatturapa.md
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://t.me/Assitenza_clienti_powERP
-
-

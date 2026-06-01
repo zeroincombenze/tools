@@ -1,6 +1,6 @@
-=============
-clodoo 2.0.18
-=============
+============
+clodoo 2.1.0
+============
 
 
 
@@ -122,6 +122,13 @@ Current version via Git
 
 ChangeLog History
 -----------------
+
+2.1.0 (2026-05-16)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] Install with python 3.12
+* [IMP] Python 3.12, 3.13 and 3.14
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
 
 2.0.19 (2026-05-10)
 ~~~~~~~~~~~~~~~~~~~
@@ -245,10 +252,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.18/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.18/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

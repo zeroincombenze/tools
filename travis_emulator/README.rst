@@ -1,6 +1,6 @@
-======================
-travis_emulator 2.0.12
-======================
+=====================
+travis_emulator 2.1.0
+=====================
 
 
 
@@ -191,7 +191,7 @@ Travis emulator usage
                           file yaml to process (def .travis.yml)
      -Z --zero            use local zero-tools
     
-    © 2015-2025 by zeroincombenze®
+    © 2015-2026 by zeroincombenze®
     https://zeroincombenze-tools.readthedocs.io/
     Author: antoniomaria.vigliotti@gmail.com
     
@@ -313,6 +313,12 @@ Troubleshooting
 ChangeLog History
 -----------------
 
+2.0.14 (2026-05-15)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.13 is certificated programming language
+* [IMP] python 3.14 is certificated programming language
+
 2.0.13 (2025-09-08)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -362,59 +368,6 @@ ChangeLog History
 * [FIX] travis: check for dropped DB and abort if still exist
 * [IMP] travis: action show as alias of show-log for please integration
 
-2.0.5 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] New -p parameter to select specific test to execute
-* [IMP] Switch -M removed
-* [IMP] Switch -d set default "test" action
-* [IMP] Removes osx support
-
-2.0.4 (2023-03-24)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Added python 3.9 to test
-* [IMP] Detect python versions from setup.py
-* [IMP] Option switch for python version become -j
-* [IMP} make_travis recognizes verbose option
-
-2.0.3 (2022-12-09)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Best python version recognition
-
-2.0.2.2 (2022-11-08)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] npm management
-
-2.0.2.1 (2022-11-02)
-~~~~~~~~~~~~~~~~~~~~
-
-* [REF] travis: partial refactoring
-* [IMP] travis: recognition of local/librerp
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] database name: (test|template)_odoo
-* [IMP] With -k switch set ODOO_COMMIT_TEST
-
-2.0.1.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: change logfile name
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] stable version
-
-2.0.0.2 (2022-10-04)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] travis: python2 tests
-
 
 
 Credits
@@ -453,10 +406,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.12/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.12/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -792,7 +792,7 @@ class PleaseCwd(object):
     def do_replace(self):
         please = self.please
         please.log_warning("Deprecated action! Please use 'please commit'")
-        sts = 126
+        sts = 0 if (please.is_all_pypi and please.get_pkgname()[1] == "tools") else 126
         if please.is_pypi_pkg():
             sts = self.do_docs()
         if sts == 0:
@@ -868,7 +868,7 @@ class PleaseCwd(object):
                         if not pth.isfile(fn):
                             continue
                         sts = please.os_system(
-                            "cp %s %s" % (fn, pth.join(tgtdir, pkgname)), rtime=True
+                            "cp %s %s" % (fn, tgtdir), rtime=True
                         )
                         if sts:
                             break

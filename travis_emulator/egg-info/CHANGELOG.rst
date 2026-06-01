@@ -1,3 +1,9 @@
+2.0.14 (2026-05-15)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] python 3.13 is certificated programming language
+* [IMP] python 3.14 is certificated programming language
+
 2.0.13 (2025-09-08)
 ~~~~~~~~~~~~~~~~~~~
 
@@ -111,4 +117,3 @@
 ~~~~~~~~~~~~~~~~~~
 
 * [REF] Partial refactoring for shell scripts
-

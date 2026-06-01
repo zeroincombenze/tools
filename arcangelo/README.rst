@@ -1,5 +1,5 @@
 ===============
-arcangelo 2.1.1
+arcangelo 2.1.2
 ===============
 
 
@@ -26,7 +26,69 @@ Usage
 
 ::
 
-    $(arcangelo -h)
+    usage: arcangelo.py [-h] [-A] [-a] [-B] [-b TO_VERSION] [-C RULE_GROUPS] [-c]
+                        [-F FROM_VERSION] [-f] [-G GIT_ORGID]
+                        [--git-merge-conflict left|right] [--ignore-pragma] [-i]
+                        [-j PYTHON] [-l] [--list-syntax] [-n] [-o OUTPUT]
+                        [--no-output] [-P PACKAGE_NAME] [-R RULES] [-S]
+                        [--test-res-msg TEST_RES_MSG]
+                        [--test-res-msg-range TEST_RES_MSG_RANGE] [-v] [-V] [-w]
+                        [-y] [--add-rule-group ADD_RULE_GROUP]
+                        [path ...]
+    
+    Beautiful source file
+    
+    positional arguments:
+      path
+    
+    options:
+      -h, --help            show this help message and exit
+      -A, --analyze         analyze source file(s)
+      -a, --lint-anyway     set to True when migrate software
+      -B, --debug           add comment with applied rule: do not use in
+                            production
+      -b TO_VERSION, --to-version TO_VERSION
+      -C RULE_GROUPS, --rule-groups RULE_GROUPS
+                            Rule groups (comma separated) to parse (use + for
+                            adding, - for removing) use switch -l to see default
+                            groups list
+      -c, --copyright-check
+      -F FROM_VERSION, --from-version FROM_VERSION
+      -f, --force           Parse file even containing '# flake8: noqa' or '#
+                            pylint: skip-file'
+      -G GIT_ORGID, --git-org GIT_ORGID
+      --git-merge-conflict left|right
+                            Keep left or right side code after git merge conflict
+      --ignore-pragma       ignore coding utf-8 declaration
+      -i, --in-place
+      -j PYTHON, --python PYTHON
+                            python version, format #.##, 2+3 use future
+      -l, --list-rules      list rule groups (-ll list with rules too, -lll full
+                            list)
+      --list-syntax         list language syntax rules
+      -n, --dry-run         do nothing (dry-run)
+      -o OUTPUT, --output OUTPUT
+      --no-output
+      -P PACKAGE_NAME, --package-name PACKAGE_NAME
+      -R RULES, --rules RULES
+                            Rules (comma separated) to parse (use - for removing)
+                            use switch -ll to see default rules list
+      -S, --string-normalization
+                            force double quote enclosing strings
+      --test-res-msg TEST_RES_MSG
+      --test-res-msg-range TEST_RES_MSG_RANGE
+                            Date limit to join test result message
+      -v, --verbose
+      -V, --version         show program's version number and exit
+      -w, --no-parse-with-formatter
+                            do nor execute black or prettier on modified files
+      -y, --assume-yes      force target path creation with different base name
+      --add-rule-group ADD_RULE_GROUP
+                            Add rule group form file, default is .arcangelo.yml
+    
+    © 2021-2025 by SHS-AV s.r.l.
+    
+
 
 
 **arcangelo** is based on rules files located in config directory where arcangelo
@@ -323,7 +385,7 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.1.2 (2025-09-22)
+2.1.2 (2026-05-22)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] Quality message position
@@ -404,12 +466,6 @@ ChangeLog History
 * [IMP] arcangelo: refactoring to run inside pre-commit
 
 
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Clearing code
-
-
 
 Credits
 =======
@@ -446,10 +502,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

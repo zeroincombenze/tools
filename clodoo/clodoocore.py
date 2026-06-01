@@ -124,7 +124,7 @@ SUPPL_PARAMS = [
     "user"
 ]
 
-__version__ = "2.0.18"
+__version__ = "2.1.0"
 
 
 class Clodoo(object):

@@ -49,7 +49,7 @@ done
 #done
 for pkg in odoorc odoo_dependencies.py zerobug clodoo odoo_score; do
     if_inside && echo -n "."
-    if_standalone && echo "Testing file $pkg .."
+    if_standalone && echo "Testing executable file $pkg .."
     [[ ! -f $BINPATH/$pkg ]] && echo -e "\n${RED}Incomplete installation! File $pkg non found in $BINPATH!!${CLR}" && exit 1
 done
 for pkg in cvt_csv_2_rst.py cvt_csv_2_xml.py cvt_script deploy_odoo gen_readme.py lisa_bld_ods list_requirements.py odooctl odoo_dependencies.py odoo_shell.py odoo_translation.py please pylint transodoo.py travis twine vem wget_odoo_repositories.py black flake8 pre-commit; do

@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="odoo_score",
-    version="2.0.11",
+    version="2.1.0",
     description="Odoo super core",
     long_description="""
 Odoo supercore
@@ -19,8 +19,10 @@ and makes available a simple odoo shell.
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        # "Programming Language :: Python :: 3.11",
-        # "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Intended Audience :: Developers",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",

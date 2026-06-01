@@ -28,7 +28,7 @@ class RegressionTest:
 
     def setup(self):
         self.cache = odoo_score.SingletonCache()
-        self.db = "test"
+        self.db = "Test"
         self.model = "test.model"
         self.channel = 1
         self.values = {"a": "A"}
@@ -45,7 +45,8 @@ class RegressionTest:
         self.cache.del_struct_attr(self.db, "MALE")
         self.assertEqual(
             "",
-            self.cache.get_struct_attr(self.db, "MALE", default=""))
+            self.cache.get_struct_attr(self.db, "MALE", default=""),
+            msg="Undelete attribute")
 
     def test_02(self):
         self.cache.init_struct_model(self.db, self.model)
@@ -55,11 +56,13 @@ class RegressionTest:
         self.cache.set_struct_model_attr(self.db, self.model, "MALE", "XY")
         self.assertEqual(
             "XY",
-            self.cache.get_struct_model_attr(self.db, self.model, "MALE"))
+            self.cache.get_struct_model_attr(self.db, self.model, "MALE"),
+            msg="Wrong memory value")
         self.assertEqual(
             "XX",
             self.cache.get_struct_model_attr(
-                self.db, self.model, "FEMALE", default="XX"))
+                self.db, self.model, "FEMALE", default="XX"),
+            msg="Wrong default memory value")
 
         self.cache.reset_struct_cache(self.db, self.model)
         self.assertEqual(
@@ -68,7 +71,8 @@ class RegressionTest:
         self.assertEqual(
             "XX",
             self.cache.get_struct_model_attr(
-                self.db, self.model, "FEMALE", default="XX")
+                self.db, self.model, "FEMALE", default="XX"),
+            msg="Wrong default memory value"
         )
 
     def test_03(self):

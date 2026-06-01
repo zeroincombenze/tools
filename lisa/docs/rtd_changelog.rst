@@ -35,27 +35,6 @@ ChangeLog History
 
 * [FIX] lisa_bld_ods: fixes & improvements
 
-
-2.0.2 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
-
-2.0.1 (2022-10-12)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: stable version
-
-2.0.0.2 (2022-09-29)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] lisa_bld_ods: improvements
-
-2.0.0.1 (2022-09-10)
-~~~~~~~~~~~~~~~~~~~~
-
-* [IMP] wsl2-systemd: experimental systemd for wsl2
-
 |
 |
 

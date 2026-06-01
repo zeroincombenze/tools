@@ -194,6 +194,38 @@ install_from_source() {
     echo ""
 }
 
+install_from_source_27() {
+    echo "\$ cd /tmp"
+    cd /tmp
+    [[ -f Python-$pyver.tgz ]] && echo "File Python-$pyver.tgz already downloaded"
+    [[ ! -f Python-$pyver.tgz ]] && echo "\$ wget $WGET_OPTS https://www.python.org/ftp/python/$pyver/Python-$pyver.tgz"
+    [[ ! -f Python-$pyver.tgz ]] && wget $WGET_OPTS https://www.python.org/ftp/python/$pyver/Python-$pyver.tgz
+    [[ ! -f Python-$pyver.tgz ]] && echo "No file Python-$pyver.tgz downloaded!" && exit 2
+    [[ -d Python-$pyver ]] && rm -fR Python-$pyver
+    echo "\$ tar -xf Python-$pyver.tgz"
+    tar -xzf Python-$pyver.tgz
+    cd Python-$pyver
+    echo ""
+    echo "##################################################################################"
+    echo "### WARNING:          you can meet some warnings and errora during compilation ###"
+    echo "### Moreover some tests can fail. Please do not interrupt, wait for completing ###"
+    echo "##################################################################################"
+    echo ""
+    echo "\$ ./configure --prefix=/usr/local/python2.7 --enable-optimizations CFLAGS=\"-std=c11\" $CONFIG_OPTS"
+    read -p "Press RET to configure and install ..."
+    ./configure --prefix=/usr/local/python2.7 --enable-optimizations CFLAGS="-std=c11" $CONFIG_OPTS
+    echo "\$ make"
+    make
+    echo "\$ make install"
+    make install
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2.7"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2.7
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python2
+    echo "\$ ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python"
+    ln -s /usr/local/python2.7/bin/python2.7 /usr/local/bin/python
+}
+
 set_hashbang() {
 # set_hashbang(file fqn_python)
     local p f
@@ -203,7 +235,7 @@ set_hashbang() {
 }
 
 clear
-[[ ! $1 =~ ^(2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12) ]] && echo "$0 2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12" && exit 1
+[[ ! $1 =~ ^(2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12|3.13|3.14) ]] && echo "$0 2.7|3.5|3.6|3.7|3.8|3.9|3.10|3.11|3.12|3.13|3.14" && exit 1
 echo ""
 DISTID=$(xuname -d)$(xuname -v|grep -Eo "[0-9]+"|head -n1)
 echo "Install python $1 on $(xuname -a) (brief $DISTID)"
@@ -211,19 +243,29 @@ echo "Install python $1 on $(xuname -a) (brief $DISTID)"
 [[ -z $(which wget 2>/dev/null) ]] && echo "Please install wget" && exit 1
 DEFPYVER=$(python3 --version 2>&1 | grep "Python" | grep --color=never -Eo "3\.[0-9]+" | head -n1)
 [[ $1 == $DEFPYVER ]] && echo "You are trying to install default python version" && exit 1
+UBUNTU_RELEASE=$(xuname -v|cut -d. -f1)
+
 pyver="$1"
-[[ $1 == "3.12" ]] && pyver="$1.11"
-[[ $1 == "3.11" ]] && pyver="$1.13"
-[[ $1 == "3.10" ]] && pyver="$1.18"
-[[ $1 == "3.9" ]] && pyver="$1.23"
+[[ $1 == "3.14" ]] && pyver="$1.5"
+[[ $1 == "3.13" ]] && pyver="$1.13"
+[[ $1 == "3.12" ]] && pyver="$1.13"
+[[ $1 == "3.11" ]] && pyver="$1.15"
+[[ $1 == "3.10" ]] && pyver="$1.20"
+[[ $1 == "3.9" ]] && pyver="$1.25"
 [[ $1 == "3.8" ]] && pyver="$1.20"
 [[ $1 == "3.7" ]] && pyver="$1.17"
 [[ $1 == "3.6" ]] && pyver="$1.15"
 [[ $1 == "3.5" ]] && pyver="$1.10"
 [[ $1 == "3.4" ]] && pyver="$1.10"
 [[ $1 == "2.7" ]] && pyver="$1.18"
+py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
+[[ $1 != $py ]] && echo "Invalid python version $1" && exit 1
 
-OSPKGS="(libssl-dev|libffi-dev|libncurses5-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev)"
+if [[ $UBUNTU_RELEASE -le 20 ]]; then
+    OSPKGS="(build-essential|libssl-dev|zlib1g-dev|libffi-dev|libncursesw5-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libdb4o-cil-dev|libpcap-dev|libbz2-dev|llvm|xz-utils|tk-dev|liblzma-dev)"
+else
+    OSPKGS="(build-essential|libssl-dev|zlib1g-dev|libffi-dev|libncursesw5-dev|libncurses-dev|libsqlite3-dev|libreadline-dev|libtk8.6|libgdm-dev|libpcap-dev|libbz2-dev|llvm|xz-utils)"
+fi
 ADD_REPO=$(which add-apt-repository)
 installed=$(apt list --installed 2>/dev/null|grep -E "$OSPKGS")
 pkgs_list=${OSPKGS:1: -1}
@@ -253,7 +295,10 @@ else
   echo "    $0 $1 'apt install $APT_XTL' 'wget --no-check-certificate https://www.openssl.org/source/openssl-1.1.0e.tar.gz' '--with-openssl=DIR'    # Via source"
 fi
 echo ""
-echo "OS Packages needed are:"
+echo "You are hint to execute:"
+echo "    add-apt-repository ppa:deadsnakes/ppa"
+echo ""
+echo "OS Packages needed are (libncurses-dev is replacement of libncursesw5-dev):"
 for p in $pkgs_list; do
     echo $installed | grep "$p" >/dev/null
     [[ $? -eq 0 ]] && echo "    Package $p installed [OK]" || echo "    Please install package $p!!! -> apt install $p"
@@ -268,11 +313,14 @@ APT_XTL="$2"
 WGET_OPTS="$3"
 CONFIG_OPTS="$4"
 [[ -n "$APT_XTL" ]] && echo "\$ $APT_XTL" && $APT_XTL
-if [[ $DIST == "Ubuntu" && -n $ADD_REPO ]]; then
+if [[ $1 == "2.7" ]]; then
+    install_from_source_27
+elif [[ $DIST == "Ubuntu" && -n $ADD_REPO ]]; then
     install_via_apt $1
 else
     install_from_source $1
 fi
+
 PIP=$(which pip3)
 if [[ -z $PIP ]]; then
     echo "\$ " apt install -y python3-pip
@@ -280,16 +328,18 @@ if [[ -z $PIP ]]; then
     echo "\$ " pip3 install pip -U
     pip3 install pip -U
 fi
-py=$(echo $pyver | grep -Eo "[0-9]+\.[0-9]+" | head -n1)
+
 if [[ $py != $DEFPYVER ]]; then
-    echo "\$ " apt install .y python$py-distutils
-    apt install -y python$py-distutils
-    echo "\$ " apt install -y python$py-setuptools
-    apt install -y python$py-setuptools
-    echo "\$ " apt install -y python$py-dev
-    apt install -y python$py-dev
-    echo "\$ " apt install -y python$py-venv
-    apt install -y python$py-venv
+    if [[ $py != "2,7" ]]; then
+      echo "\$ " apt install .y python$py-distutils
+      apt install -y python$py-distutils
+      echo "\$ " apt install -y python$py-setuptools
+      apt install -y python$py-setuptools
+      echo "\$ " apt install -y python$py-dev
+      apt install -y python$py-dev
+      echo "\$ " apt install -y python$py-venv
+      apt install -y python$py-venv
+    fi
     echo "\$ " cd /tmp
     cd /tmp
     echo "\$ " wget $WGET_OPTS https://bootstrap.pypa.io/pip/$py/get-pip.py
@@ -302,16 +352,18 @@ if [[ $py != $DEFPYVER ]]; then
     if [[ ! -f get-pip.py ]]; then
         echo "Warning! pip no installed!"
     else
-        if [[ $py =~ ^(3.9|3.10|3.11|3.12) ]]; then
+        if [[ $py =~ ^(3.9|3.10|3.11|3.12|3.13|3.14) ]]; then
             echo "\$ python$py -m ensurepip --upgrade"
             python$py -m ensurepip --upgrade
-            if [[ $py == "3.12" ]]; then
+            if [[ $py =~ ^(3.12|3.13|3.14) ]]; then
                 echo "\$ python$py -m pip install --upgrade \"setuptools>=75.0.1\""
                 python$py -m pip install --upgrade "setuptools>=75.0.1"
             fi
         else
             echo "\$ " python$py get-pip.py
             python$py get-pip.py
+            echo "\$ ln -s /usr/local/python2.7/bin/pip2.7 /usr/local/bin/"
+            ln -s /usr/local/python2.7/bin/pip2.7 /usr/local/bin/
             rm -f get-pip.py
             echo "\$ " python$py -m pip install pip
             python$py -m pip install pip
@@ -342,3 +394,5 @@ echo ""
 echo ""
 pip$py --version
 echo ""
+
+}

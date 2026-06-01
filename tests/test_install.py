@@ -16,18 +16,27 @@ pRED = "\x1b" + bRED
 pGREEN = "\x1b" + bGREEN
 pCLR = "\x1b" + bCLR
 
-PKG_LIST = ("clodoo", "os0", "lisa", "odoo_score", "oerplib3", "python_plus",
+PKG_LIST = ("arcangelo", "clodoo", "lisa", "odoo_score", "python_plus",
             "travis_emulator", "wok_code", "z0bug_odoo", "z0lib", "zar", "zerobug")
 ERROR_LOG = ""
 
 
 def run_traced(cmd, dry_run=False, rtime=False):
-    sts, stdout, stderr = z0lib.run_traced(
+    sts, stdout, stderr = z0lib.os_system_traced(
         cmd, verbose=2, dry_run=dry_run, rtime=rtime
     )
     if sts:
         print("Error %d in %s" % (sts, cmd))
     return sts, stdout, stderr
+
+
+def os_system(cmd, dry_run=False, rtime=False):
+    sts = z0lib.os_system(
+        cmd, verbose=2, dry_run=dry_run, rtime=rtime
+    )
+    if sts:
+        print("Error %d in %s" % (sts, cmd))
+    return sts
 
 
 def write_test_line(fd, ln, no_echo=False):
@@ -55,11 +64,11 @@ def test_sh_pylint(fd):
 
 
 def test_sh_python(fd, python_ver):
-    write_test_line(fd, "which python")
-    write_test_line(fd, "python --version")
+    write_test_line(fd, "which python%s" % python_ver)
+    write_test_line(fd, "python%s --version" % python_ver)
     write_test_line(
-        fd, "PYVER=$(python --version 2>&1 | grep \"Python\" |"
-            " grep --color=never -Eo \"[23]\.[0-9]+\" | head -n1)")
+        fd, "PYVER=$(python%s --version 2>&1 | grep \"Python\" |"
+            " grep --color=never -Eo \"[23]\.[0-9]+\" | head -n1)" % python_ver)
     write_test_line(
         fd,
         "[[ $PYVER != \"" + python_ver + "\" ]] && "
@@ -72,7 +81,7 @@ def parse_opts(cli_args=[]):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Tools install test.",
         epilog=(
-            "© 2022-2025 by SHS-AV s.r.l.\n"
+            "© 2022-2026 by SHS-AV s.r.l.\n"
             "Author: antoniomaria.vigliotti@gmail.com\n"
             "Full documentation at: https://zeroincombenze-tools.readthedocs.io/\n"
         ),
@@ -135,6 +144,9 @@ def get_odoo_values(opt_args):
 def create_venv(opt_args, venvdir, pypidir, toolsdir):
     print(pGREEN + ("# Starting create_venv(%s,%s, %s)"
                     % (venvdir, pypidir, toolsdir)) + pCLR)
+    cmd = "pip cache purge"
+    os_system(cmd)
+
     if opt_args.from_vme:
         if opt_args.branch:
             srcdir = pth.expanduser("~/VME/VME" + opt_args.branch)
@@ -143,7 +155,7 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
         cmd = ("%s %s/python_plus/python_plus/scripts/vem.py cp %s %s"
                % (sys.executable, pypidir, srcdir, venvdir))
     else:
-        cmd = ("%s %s/python_plus/python_plus/scripts/vem.py create %s -D"
+        cmd = ("%s %s/python_plus/python_plus/scripts/vem.py create %s -DI"
                % (sys.executable, pypidir, venvdir))
         if opt_args.issue_pyver:
             cmd += (" -p %s" % opt_args.python)
@@ -151,7 +163,41 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
             odoo_majver, odoo_path, odoo_bin, addons = get_odoo_values(opt_args)
             cmd += (" -o %s" % odoo_path)
     cmd += " " + verbose_switch(opt_args)
-    run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
+    # Create Virtualenv by current test python and current test PYPIs
+    sts = os_system(cmd, dry_run=opt_args.dry_run, rtime=True)
+    if sts:
+        print((pRED + "Error %d running %s" + pCLR) % (sts, cmd))
+        exit(1)
+
+    script = "%s/test_install.sh" % venvdir
+    with open(script, "w") as fd:
+        write_test_line(fd, "#!/usr/bin/env bash")
+        # write_test_line(fd, "echo ''")
+        write_test_line(
+            fd, "echo -e '" + eGREEN + "# Test isolation of " + script + eCLR + "'")
+        write_test_line(fd, "cd")
+        write_test_line(fd, "Current dir is $PWD")
+        write_test_line(
+            fd,
+            "[[ $PWD == %s ]] && echo 'Test isolation passed'" % venvdir)
+        write_test_line(
+            fd,
+            (
+                "[[ $PWD != %s ]] && echo -e '" + eRED
+                + " Environmant not isolated" + eCLR + "' && exit 2"
+            ) % venvdir)
+        write_test_line(fd, "echo ''")
+    run_traced("chmod +x %s" % script, dry_run=opt_args.dry_run, rtime=True)
+    # Check for isolation
+    cmd = ("%s %s/python_plus/python_plus/scripts/vem.py %s exec %s"
+           % (sys.executable, pypidir, venvdir, script))
+    sts = os_system(cmd)
+    if sts:
+        print((pRED + "Error %d running %s" + pCLR) % (sts, cmd))
+        exit(1)
+
+    # test_sh_python(fd, opt_args.python)
+
     cmd = "mkdir %s" % toolsdir
     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
     for pkg in PKG_LIST:
@@ -161,9 +207,9 @@ def create_venv(opt_args, venvdir, pypidir, toolsdir):
         srcdir = pth.join(pypidir, pkg)
         cmd = "cp %s/setup.py %s/%s" % (srcdir, toolsdir, pkg)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
-        if pkg != "oerplib3":
-            cmd = "cp %s/setup.py %s/%s/scripts/setup.info" % (srcdir, toolsdir, pkg)
-            run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
+        # if pkg != "oerplib3":
+        #     cmd = "cp %s/setup.py %s/%s/scripts/setup.info" % (srcdir, toolsdir, pkg)
+        #     run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
         cmd = "cp %s/README.rst %s/%s" % (srcdir, toolsdir, pkg)
         run_traced(cmd, dry_run=opt_args.dry_run, rtime=True)
     for fn in ("install_tools.sh", "odoo_template_tnl.xlsx"):
@@ -193,7 +239,7 @@ def main(cli_args=[]):
             else:
                 opt_args.python = "3.%d" % (int((odoo_majver - 9) / 2) + 6)
         else:
-            opt_args.python = "3.9"
+            opt_args.python = "3.10"
         print(pGREEN + "Python %s will be used!" % opt_args.python + pCLR)
         opt_args.issue_pyver = False
     venvdir = pth.expanduser("~/VENV_0" + opt_args.python.replace(".", ""))
@@ -217,17 +263,24 @@ def main(cli_args=[]):
             write_test_line(fd, "echo ''")
             write_test_line(
                 fd, "echo -e '" + eGREEN + "# Starting " + script + eCLR + "'")
+            write_test_line(
+                fd,
+                "echo 'Purpose: install tools in isolated fresh virtual environment'")
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "cd %s" % venvdir)
             write_test_line(fd, "source bin/activate")
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             test_sh_python(fd, opt_args.python)
             test_sh_flake8(fd)
             test_sh_pylint(fd)
             write_test_line(fd, "cd %s" % toolsdir)
-            write_test_line(fd, "./install_tools.sh %sptT" % verbose_switch(opt_args))
+            write_test_line(fd, "./install_tools.sh %spt" % verbose_switch(opt_args))
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "deactivate")
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "echo ''")
         run_traced("chmod +x %s" % script, dry_run=opt_args.dry_run, rtime=True)
@@ -246,10 +299,12 @@ def main(cli_args=[]):
             write_test_line(
                 fd, "echo -e '" + eGREEN + "# Starting " + script + eCLR + "'")
             write_test_line(fd, "SAVED_PATH=\"$PATH\"")
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             write_test_line(fd, "cd %s" % venvdir)
             write_test_line(fd, "source bin/activate")
             write_test_line(fd, "source %s/devel/activate_tools" % venvdir)
+            write_test_line(fd, "echo HOME=\"$HOME\"")
             write_test_line(fd, "echo PATH=\"$PATH\"")
             test_sh_python(fd, opt_args.python)
             write_test_line(fd, "which vem")

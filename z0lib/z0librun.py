@@ -60,7 +60,7 @@ OE_CONF = False
 DEFDCT = {}
 RMODE = "rU" if sys.version_info[0] == 2 else "r"
 
-__version__ = "2.1.1"
+__version__ = "2.1.3"
 
 
 def os_env(key, default=None):

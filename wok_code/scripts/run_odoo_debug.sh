@@ -309,7 +309,10 @@ set_confn() {
         run_traced_debug "sed -e \"s|^http_port *=.*|http_port = $RPCPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="--http-port=$RPCPORT"
     fi
-    if [[ $odoo_maj -ge 10 ]]; then
+    if [[ $odoo_maj -ge 16 ]]; then
+        run_traced_debug "sed -e \"s|^gevent_port *=.*|gevent_port = $LPPORT|\" -i $TEST_CONFN"
+        OPT_CONFPORT="$OPT_OPT_CONFPORT --gevent_port=$LPPORT"
+    elif [[ $odoo_maj -ge 10 ]]; then
         run_traced_debug "sed -e \"s|^longpolling_port *=.*|longpolling_port = $LPPORT|\" -i $TEST_CONFN"
         OPT_CONFPORT="$OPT_OPT_CONFPORT --longpolling_port=$LPPORT"
     fi
@@ -326,6 +329,7 @@ set_confn() {
         [[ $opt_verbose -lt 1 ]] && OPT_LLEV="--log-level=warn"
     fi
     run_traced_debug "sed -e \"s|^workers *=.*|workers = 0|\" -i $TEST_CONFN"
+    run_traced_debug "sed -e \"s|^max_cron_threads *=.*|max_cron_threads = 0|\" -i $TEST_CONFN"
     if [[ $REPOSNAME == "OCB" && $opt_dry_run -eq 0 ]]; then
       x=$(cat $TEST_CONFN | grep -Eo "^addons_path *=.*(/addons)")
       run_traced_debug "sed -e \"s|^addons_path *=.*|$x|\" -i $TEST_CONFN"
@@ -459,12 +463,12 @@ exec_before() {
 }
 
 
-OPTOPTS=(h        A       B         b          c        C           d        D       e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
-OPTLONG=(help     assets  debug     branch     config   no-coverage database daemon  export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
-OPTDEST=(opt_help opt_ast opt_debug opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
-OPTACTI=("+"      1       "+"       "=>"       "=>"     1           "="      1       1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
-OPTDEFL=(1        0       0         ""         ""       0           ""       0       0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
-OPTMETA=("help"   ""      ""        "version"  "fname"  ""          "name"   ""      ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
+OPTOPTS=(h        A       B         b          c        C           d        D       E         e       f         K       k        i       I       l         L        m           M         n           o         p        P         q           S        s        T        U          u       V           v           W        w       X         x           Z)
+OPTLONG=(help     assets  debug     branch     config   no-coverage database daemon  ignore-ee export  force     no-ext  keep     import  install lang      lint-lev modules     multi     dry-run     ""        path     psql-port quiet       stat     stop     test     db-user    update  version     verbose     venv     web     lp-port   xmlrpc-port zero-replacement)
+OPTDEST=(opt_help opt_ast opt_debug opt_branch opt_conf opt_nocov   opt_db   opt_dae opt_igee  opt_exp opt_force opt_nox opt_keep opt_imp opt_xtl opt_lang  opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_qport opt_verbose opt_stat opt_stop opt_test opt_dbuser opt_upd opt_version opt_verbose opt_venv opt_web opt_lport opt_rport   z0_repl)
+OPTACTI=("+"      1       "+"       "=>"       "=>"     1           "="      1       1          1       1         1       1        1       1       "="       "="      "="         1         1           "="       "="      "="       0           1        1        1        "="        1       "*>"        "+"         "="      1       "="       "="         1)
+OPTDEFL=(1        0       0         ""         ""       0           ""       0       0          0       0         0       0        0       0       "it_IT"   ""       ""          -1        0           ""        ""       ""        0           0        0        0        ""         0       ""          -1          ""       0       ""        ""          0)
+OPTMETA=("help"   ""      ""        "version"  "fname"  ""          "name"   ""      ""         ""      ""        ""      ""       ""      ""      "iso lang" "level"  "modules"   ""        "no op"     "file"    "dir"    "port"    ""          ""       ""       ""       "user"     ""      "version"   "verbose"   "path"   0       "port"    "port"      "")
 OPTHELP=("this help"
   "reset assets if GUI troubles (require -um web)"
   "debug mode (-BB debug via pycharm)"
@@ -473,6 +477,7 @@ OPTHELP=("this help"
   "no use coverage to run test"
   "db name to test,translate o upgrade (require -m switch)"
   "run odoo as daemon"
+  "ignore Odoo EE in test"
   "export translation (conflict with -i -u -I -T)"
   "force update or install modules or default parameters or create db template"
   "do not run external test (tests/concurrent_test/test_*.py)"
@@ -509,7 +514,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
     print_help "Run odoo for debug" \
-        "(C) 2015-2025 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
+        "(C) 2015-2026 by zeroincombenze®\nhttps://zeroincombenze-tools.readthedocs.io/\nAuthor: antoniomaria.vigliotti@gmail.com"
     exit 0
 fi
 
@@ -553,7 +558,7 @@ elif [[ -n $opt_odir ]]; then
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI)
+    [[ $opt_opt_igee -eq 0 ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI) || CONFN=""
     [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
@@ -656,11 +661,19 @@ else
   elif [[ $opt_test -ne 0 ]]; then
       [[ opt_debug -gt 1 ]] && LPPORT=$(build_odoo_param LPPORT $odoo_fver DEBUG) || LPPORT=$(((RPCPORT-1)))
   elif [[ -f $opt_conf ]]; then
-      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      if [[ $odoo_maj -ge 16 ]]; then
+        LPPORT=$(grep ^gevent_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      else
+        LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      fi
   elif [[ $opt_web -ne 0 ]]; then
       LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
   elif [[ -f $CONFN ]]; then
-      LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      if [[ $odoo_maj -ge 16 ]]; then
+        LPPORT=$(grep ^gevent_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      else
+        LPPORT=$(grep ^longpolling_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
+      fi
   else
       LPPORT=$(build_odoo_param LPPORT $odoo_fver $GIT_ORGID)
   fi
@@ -681,11 +694,12 @@ elif [[ -f $CONFN ]]; then
     DB_PORT=$(grep ^db_port $CONFN | awk -F= '{gsub(/^ */,"",$2); print $2}')
     [[ $DB_PORT == "False" ]] && unset DB_PORT
 fi
+# pg2_opts used for pg_db_active, pg1_opts for all other commands
 if [[ -n "$DB_PORT" ]]; then
     pg1_opts="-U$DB_USER -p$DB_PORT"
     pg2_opts="-U$DB_USER -P$DB_PORT"
 else
-    pg2_opts="-U$DB_USER"
+    pg1_opts="-U$DB_USER"
     pg2_opts="-U$DB_USER"
 fi
 PSQL="psql $pg1_opts"
@@ -843,13 +857,17 @@ fi
 sts=0
 [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
 OPT_LLEV=
-[[ $opt_test -ne 0 ]] && export TEST_CONFN="$LOGDIR/${UMLI}.conf" || export TEST_CONFN="$ve_root/$LCONFN"
-if [[ $opt_test -gt 1 ]]; then
-  TEST_CONFN=""
-  [[ -f  $ve_root/pycharm_odoo-ee.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ee.conf"
-  [[ -z $TEST_CONFN && -f  $ve_root/pycharm_odoo-ce.conf ]] && export TEST_CONFN="$ve_root/pycharm_odoo-ce.conf"
-  [[ -z $TEST_CONFN ]] && export TEST_CONFN="$ve_root/pycharm_odoo.conf"
+if [[ $opt_test -eq 0 ]]; then
+  export TEST_CONFN="$ve_root/$LCONFN"
+else
+  export TEST_CONFN="$LOGDIR/${UMLI}.conf" ||
 fi
+PYCHARM_CONFN=""
+[[ $opt_opt_igee -eq 0 && CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ee.conf"
+[[ $opt_opt_igee -ne 0 || ! CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ce.conf"
+[[ -z $PYCHARM_CONFN ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo.conf"
+[[ $opt_test -eq 0 || opt_debug -gt 1 ]] && export TEST_CONFN="$PYCHARM_CONFN"
+
 OPT_CONF="--config=$TEST_CONFN"
 if [[ $opt_dry_run -eq 0 ]]; then
     for f in .openerp_serverrc .odoorc; do
@@ -871,8 +889,9 @@ if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     [[ $opt_dry_run -eq 0 ]] && source ./bin/activate
     run_traced "$SCRIPT -s --stop-after-init"
 fi
-
 set_confn
+[[ -n $PYCHARM_CONFN ]] && run_traced "cp $TEST_CONFN $PYCHARM_CONFN"
+
 if [[ -n "$TEST_VDIR" ]]; then
   coverage_set
   x=$(date +"%Y-%m-%d %H:%M:%S,000")
@@ -951,7 +970,7 @@ if [[ $create_db -gt 0 ]]; then
     fi
 fi
 
-[[ $opt_keep -ne 0 && -z $ext_test ]] && export ODOO_COMMIT_TEST="1"
+[[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
 check_for_modules "$opt_db" "$depmods"
 if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"

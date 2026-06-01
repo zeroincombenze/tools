@@ -24,7 +24,7 @@ try:
 except ImportError:  # pragma: no cover
     from arcangelo_syntax import Syntax, get_config_path
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -128,8 +128,10 @@ class MigrateMeta(object):
         odoo_major = int(odoo_ver.split(".")[0])
         if odoo_major <= 10:
             pyver = "2.7"
-        else:
+        elif odoo_major <= 14:
             pyver = "3.%d" % (int((odoo_major - 9) / 2) + 6)
+        else:
+            pyver = "3.%d" % (odoo_major - 6)
         return pyver
 
     def populate_default_rule_categ(self, language):

@@ -285,11 +285,11 @@ class Please(object):
             self.cls.action_opts(sub_parser.add_parser(param))
         return parser
 
-    def os_system(self, cmd, verbose=None, rtime=None, with_shell=None):
+    def os_system(self, cmd, dry_run=None, verbose=None, rtime=None, with_shell=None):
         return z0lib.os_system(
             cmd,
             verbose=verbose if verbose is not None else self.opt_args.verbose,
-            dry_run=self.opt_args.dry_run,
+            dry_run=dry_run or self.opt_args.dry_run,
             rtime=rtime if rtime is not None else (verbose and verbose > 1),
             with_shell=with_shell,
         )

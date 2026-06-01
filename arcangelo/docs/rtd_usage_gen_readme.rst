@@ -354,7 +354,7 @@ Other predefined symbols are:
 Macro
 ~~~~~
 
-Text macro is replaced by macro contents. For current version 2.1.1 of
+Text macro is replaced by macro contents. For current version 2.1.2 of
 gen_readme.py, macro is enclosed by double braces.
 
 .. raw:: html
@@ -380,7 +380,7 @@ Example:
 
 ::
 
-    TRUE(1)                                             User Commands                                             TRUE(1)
+    TRUE(1)                                                         User Commands                                                        TRUE(1)
     
     NAME
            true - do nothing, successfully
@@ -397,27 +397,27 @@ Example:
            --version
                   output version information and exit
     
-           NOTE:  your  shell  may  have  its  own  version of true, which usually supersedes the version described here.
-           Please refer to your shell's documentation for details about the options it supports.
+           Your shell may have its own version of true, which usually supersedes the version described here.  Please refer to your shell's docu‐
+           mentation for details about the options it supports.
     
     AUTHOR
            Written by Jim Meyering.
     
     REPORTING BUGS
            GNU coreutils online help: <https://www.gnu.org/software/coreutils/>
-           Report true translation bugs to <https://translationproject.org/team/>
-    
-    COPYRIGHT
-           Copyright  ©  2018  Free  Software  Foundation,  Inc.   License  GPLv3+:  GNU   GPL   version   3   or   later
-           <https://gnu.org/licenses/gpl.html>.
-           This  is  free software: you are free to change and redistribute it.  There is NO WARRANTY, to the extent per‐
-           mitted by law.
+           Report any translation bugs to <https://translationproject.org/team/>
     
     SEE ALSO
-           Full documentation at: <https://www.gnu.org/software/coreutils/true>
+           Full documentation <https://www.gnu.org/software/coreutils/true>
            or available locally via: info '(coreutils) true invocation'
     
-    GNU coreutils 8.30                                  September 2019                                            TRUE(1)
+           Packaged by Ubuntu (9.7-3ubuntu2)
+           Copyright © 2025 Free Software Foundation, Inc.
+           License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+           This is free software: you are free to change and redistribute it.
+           There is NO WARRANTY, to the extent permitted by law.
+    
+    GNU coreutils 9.7                                               January 2026                                                         TRUE(1)
     
 
 
@@ -496,10 +496,10 @@ gen_readme.py command line
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

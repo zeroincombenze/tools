@@ -113,11 +113,13 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.0.8 (2025-04-27)
+2.0.8 (2025-09-05)
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] Compress tar w/o filestore
+* [FIX] pg_db_active with no odoo user
 * [IMP] python 3.11 is certificated programming language
+* [IMP] python 3.12 is certificated programming language
 
 2.0.7 (2024-12-30)
 ~~~~~~~~~~~~~~~~~~
@@ -144,21 +146,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [FIX] DB name with hyphen (-)
-
-2.0.2 (2023-05-14)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] reassing_owner accept db_port
-
-2.0.1 (2023-02-25)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Remote bckdir different from local
-
-2.0.0 (2022-10-20)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Stable version
 
 
 
