@@ -1,3 +1,5 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-sudo systemctl "$@"
+[[ ! $1 =~ ^(start|stop|restart|status)$ ]] && echo "Invalid directive: use one of start stop restart status" && exit 1
+[[ ! $2 =~ ^odoo(7|10|12|14|16|18|18-ee)$ ]] && echo "Invalid service: use one of odoo7 odoo10 odoo12 odoo14 odoo16 odoo18 odoo18-ee" && exit 1
+sudo /usr/bin/systemctl $1 $2

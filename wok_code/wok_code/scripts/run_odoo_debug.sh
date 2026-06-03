@@ -558,7 +558,7 @@ elif [[ -n $opt_odir ]]; then
     PKGPATH=$(build_odoo_param PKGPATH "$opt_odir")
     REPOSNAME=$(build_odoo_param REPOS "$opt_odir")
     [[ -z $GIT_ORGID ]] && GIT_ORGID=$(build_odoo_param GIT_ORGID "$opt_odir")
-    [[ $opt_opt_igee -eq 0 ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI) || CONFN=""
+    [[ $opt_igee -eq 0 ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "ee" MULTI) || CONFN=""
     [[ ! -f $CONFN && $GIT_ORGID == "odoo" ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "oca" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "$GIT_ORGID" MULTI)
     [[ ! -f $CONFN ]] && CONFN=$(build_odoo_param CONFN "$odoo_root" search "" MULTI)
@@ -857,16 +857,20 @@ fi
 sts=0
 [[ -n "$TEST_VDIR" ]] && ve_root=$TEST_VDIR || ve_root=$HOME
 OPT_LLEV=
-if [[ $opt_test -eq 0 ]]; then
-  export TEST_CONFN="$ve_root/$LCONFN"
-else
-  export TEST_CONFN="$LOGDIR/${UMLI}.conf" ||
-fi
 PYCHARM_CONFN=""
-[[ $opt_opt_igee -eq 0 && CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ee.conf"
-[[ $opt_opt_igee -ne 0 || ! CONFN =~ "-ee.conf" ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo-ce.conf"
-[[ -z $PYCHARM_CONFN ]] && export PYCHARM_CONFN="$ve_root/pycharm_odoo.conf"
-[[ $opt_test -eq 0 || opt_debug -gt 1 ]] && export TEST_CONFN="$PYCHARM_CONFN"
+[[ $CONFN =~ "-ee.conf" ]] && PYCHARM_CONFN="$ve_root/pycharm-odoo-ee.conf"
+[[ ! $CONFN =~ "-ee.conf" ]] && PYCHARM_CONFN="$ve_root/pycharm-odoo-ce.conf"
+[[ -z $PYCHARM_CONFN || opt_debug -gt 1 ]] && PYCHARM_CONFN="$ve_root/pycharm-odoo.conf"
+if [[ $opt_test -eq 0 ]]; then
+    export TEST_CONFN="$ve_root/$LCONFN"
+    export PYCHARM_CONFN
+elif [[ opt_debug -gt 1 ]]; then
+    export TEST_CONFN="$PYCHARM_CONFN"
+    export PYCHARM_CONFN
+else
+    export TEST_CONFN="$LOGDIR/${UMLI}.conf"
+    unset PYCHARM_CONFN
+fi
 
 OPT_CONF="--config=$TEST_CONFN"
 if [[ $opt_dry_run -eq 0 ]]; then
@@ -890,7 +894,7 @@ if [[ ! -f "$CONFN" && $opt_force -ne 0 ]]; then
     run_traced "$SCRIPT -s --stop-after-init"
 fi
 set_confn
-[[ -n $PYCHARM_CONFN ]] && run_traced "cp $TEST_CONFN $PYCHARM_CONFN"
+[[ -n $PYCHARM_CONFN && $TEST_CONFN != $PYCHARM_CONFN ]] && run_traced "cp $TEST_CONFN $PYCHARM_CONFN"
 
 if [[ -n "$TEST_VDIR" ]]; then
   coverage_set
@@ -990,7 +994,7 @@ elif [[ opt_debug -gt 1 ]]; then
     log_mesg "        \e[33mself.env.cr.commit()\e[0m  # pylint: disable=invalid-commit"
     echo ""
     echo "you can browse test database from:"
-    log_mesg "\e[33mhttp://localhost:8069\e[0m or \e[33mhttp://localhost:$(build_odoo_param RPCPORT $odoo_fver)\e[0m"
+    log_mesg "\e[33mhttp://localhost:$RPCPORT\e[0m"
     log_mesg "DB=\e[31m$opt_db\e[0m login: admin/admin"
     echo ""
 else
