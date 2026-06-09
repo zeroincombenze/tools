@@ -437,8 +437,8 @@ git_clone() {
 prepare_env_travis() {
   local action="$1"
   local v x
-  NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-  export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
+  # NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+  # export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
   export BRANCH
   [[ -z "$VERSION" ]] && export VERSION=$BRANCH
   if [[ $action == "force-lint" ]]; then
@@ -490,7 +490,7 @@ conf_default() {
   [[ -z $(get_cfg_value "" "ME_BOS") ]] && CFG_set "ME_BOS" "test_nightly .test_nightly.conf.sample"
   [[ -z $(get_cfg_value "" "Environment") ]] && CFG_set "Environment" "bash"
   [[ -z $(get_cfg_value "" "virtualenv_opts") ]] && CFG_set "virtualenv_opts" ""
-  [[ -z $(get_cfg_value "" "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
+  # [[ -z $(get_cfg_value "" "NPM_CONFIG_PREFIX") ]] && CFG_set "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
   [[ -z $(get_cfg_value "" "PYTHON_MATRIX") ]] && CFG_set "PYTHON_MATRIX" "(3.14|3.13|3.12|3.11|3.10|3.9|3.8|3.7|3.6|2.7)"
   [[ -z $(get_cfg_value "" "LOGDIR") ]] && CFG_set "LOGDIR" "$HOME/travis_log"
   # Test disabled by default: they are added to EXCLUDE parameter

@@ -13,6 +13,7 @@ import ast
 import os
 import re
 import sys
+import platform
 from subprocess import PIPE, Popen
 
 try:
@@ -699,6 +700,21 @@ def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', python_plus.qsplit(pkg)[0])[0].strip()
 
 
+def get_numpy_cpu_requirements():
+    cpu_flags = set()
+    if platform.system() == "Linux":
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.startswith("flags"):
+                    cpu_flags = set(line.strip().split(":")[1].split())
+                    break
+    x86_v2 = {"sse", "sse2", "sse3", "pni", "ssse3", "sse4_1", "sse4_2", "popcnt"}
+    missing = x86_v2 - cpu_flags
+    if missing in ({"sse3"}, {"pni"}):
+        missing = set()
+    return missing
+
+
 def get_odoo_majver(odoo_ver):
     return int(odoo_ver.split(".")[0]) if odoo_ver else 0
 
@@ -798,6 +814,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     if "openupgradelib" not in item_l and item_l in ALIAS:
         full_item = full_item.replace(item, ALIAS[item_l])
         item = ALIAS[item_l]
+    if item_l == "numpy" and get_numpy_cpu_requirements():
+        full_item = item + "<2.0"
     if get_odoo_majver(odoo_ver) > 10:
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])

@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~
 
 * [IMP] jsonlib-python3 is not more default package
+* [IMP] numpy version is CPU depending
 * [IMP] Python 3.13 and 3.14
 
 2.0.19 (2025-09-04)

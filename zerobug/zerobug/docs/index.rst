@@ -1,5 +1,5 @@
 .. zerobug documentation master file, created by
-   gen_readme.py on 2026-06-02 08:57:49
+   gen_readme.py on 2026-06-09 20:11:44
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
