@@ -1,3 +1,8 @@
+2.1.1 (2026-07-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: disable test on depending modules
+
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~
 

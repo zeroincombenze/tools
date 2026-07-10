@@ -769,6 +769,7 @@ if [[ -n "$opt_modules" ]]; then
         OPTDB=""
         [[ $opt_test -ne 0 && $odoo_maj -gt 6 ]] && OPTS="$OPTS --test-enable"
         [[ $opt_test -eq 0 && $odoo_maj -eq 6 ]] && OPTS="$OPTS --test-disable"
+        [[ $opt_test -ne 0 && $odoo_maj -ge 12 ]] && OPTS="$OPTS --test-tags"
     else
         check_for_modules
         OPTSIU="$OPTI $OPTU"
@@ -799,15 +800,18 @@ if [[ -n "$opt_modules" ]]; then
         elif [[ $opt_upd -ne 0 && $opt_xtl -ne 0 ]]; then
             OPTS="$OPTSIU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
+            [[ $opt_test -ne 0 && $odoo_maj -ge 12 ]] && OPTS="$OPTS --test-tags"
         elif [[ $opt_upd -ne 0 ]]; then
             OPTS="$OPTU"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
+            [[ $opt_test -ne 0 && $odoo_maj -ge 12 ]] && OPTS="$OPTS --test-tags"
             [[ $opt_ast -ne 0 ]] && OPTS="$OPTS --load=web --dev=all"
             [[ -n $OPTI && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be installed before\n$OPTI"
             [[ -z $OPTU ]] && log_mesg "No module found to update" && exit 1
         elif [[ $opt_xtl -ne 0 ]]; then
             OPTS="$OPTI"
             [[ $opt_test -ne 0 ]] && OPTS="$OPTS --test-enable"
+            [[ $opt_test -ne 0 && $odoo_maj -ge 12 ]] && OPTS="$OPTS --test-tags"
             [[ -n $OPTU && $opt_verbose -ne 0 ]] && log_mesg "Warning: some modules must be updated\n$OPTU"
             [[ -z $OPTI ]] && log_mesg "No module found to install" && exit 1
         else

@@ -184,6 +184,11 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.1.1 (2026-07-10)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: disable test on depending modules
+
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~
 
@@ -348,36 +353,6 @@ ChangeLog History
 * [FIX] deploy_odoo: minor fixes
 * [FIX] odoo_translation: sometime did not translate
 * [IMP] odoo_translation: best performance
-
-2.0.10 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
-* [IMP] please replace now do "please docs" before
-* [IMP] please docs now do "please clean" after
-* [IMP] please lint and zerobug now do "pre-commit run" before (--no-verify)
-* [IMP] please test and zerobug now do "please translate" after (--no-translate)
-* [IMP] please update: new switches --vme --odoo-venv
-* [IMP] please clean db: new action replace old wep-db
-* [IMP] please version: new interface
-* [IMP] please show docs: new interface
-* [REF] run_odoo_debug: partial refactoring
-* [IMP] run_odoo_debug: new switch --daemon
-* [IMP] arcangelo: new swicth --string-normalization
-* [FIX] please test / run_odoo_debug: minor fixes
-
-2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
-* [FIX] run_odoo_debug: check for dropped DB and abort if still exist
-* [REF] odoo_translation: refactoring
-* [REF] please: refactoring
-* [IMP] deploy_odoo: new brief for status
-* [IMP] deploy_odoo: new action unstaged e new status format
-* [IMP] do_migrate renamed to arcangelo
-* [IMP] gen_readme.py: manage CHANGELOG.rst too
-* [IMP] argangelo: refactoring to run inside pre-commit
 
 
 
