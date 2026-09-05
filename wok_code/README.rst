@@ -1,5 +1,5 @@
 ==============
-wok_code 2.1.0
+wok_code 2.1.1
 ==============
 
 
@@ -335,25 +335,6 @@ ChangeLog History
 * [FIX] run_odoo_debug: path with heading space
 * [IMP] please test now can update account.account.xlsx
 
-2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py: minor fixes
-* [IMP] gen_readme.py: manifest author priority
-* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
-* [IMP] gen_readme.py: link to authors on README.rst and index.html
-* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
-* [FIX] license_mgnt: best organization recognition
-* [IMP] license_mgnt: powerp renamed to librerp
-* [FIX] run_odoo_debug: no doc neither translate after test error
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-* [FIX] deploy_odoo: minor fixes
-* [FIX] odoo_translation: sometime did not translate
-* [IMP] odoo_translation: best performance
-
 
 
 Credits
@@ -391,10 +372,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
