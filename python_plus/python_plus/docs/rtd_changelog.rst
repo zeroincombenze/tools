@@ -72,20 +72,6 @@ ChangeLog History
 * [IMP] list_requirements.py improvements
 * [IMP] new python version assignment from odoo version
 
-2.0.10 (2023-07-18)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: werkzeug for Odoo 16.0
-* [FIX] vem create: sometimes "virtualenv create" fails for python 2.7
-* [IMP] pip install packages with use2to3 is backupgrdae to < 23
-
-2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] list_requirements.py: werkzeug for Odoo 16.0
-* [IMP] list_requirements.py: best recognize mixed version odoo/python
-* [FIX] vem: commands return application status
-
 |
 |
 

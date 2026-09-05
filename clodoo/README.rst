@@ -208,13 +208,6 @@ ChangeLog History
 
 * [FIX] Some fixes due old wrong code (id -> name)
 
-2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] Incorporated new pypi oerlib3
-* [IMP] Discriminate http_port and xmlrpc_port to avoid mistake
-* [IMP] New param IS_MULTI
-
 
 
 Credits

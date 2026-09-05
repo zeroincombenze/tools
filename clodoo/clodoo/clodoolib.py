@@ -207,7 +207,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 #############################################################################
@@ -873,20 +873,22 @@ def build_odoo_param(
         )
     odoorc = os.path.join(os.path.dirname(__file__), "odoorc")
     if multi:
-        cmd = 'opt_multi=1 %s %s "%s" "%s" "%s"' % (
+        cmd = 'opt_multi=1 %s %s "%s" "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
-            suppl or "",
+            "",
             git_org or "",
+            suppl or "",
         )
     else:
-        cmd = '%s %s "%s" "%s" "%s"' % (
+        cmd = '%s %s "%s" "%s" "%s" "%s"' % (
             odoorc,
             item,
             odoo_vid,
-            suppl or "",
+            "",
             git_org or "",
+            suppl or "",
         )
     out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True).communicate()
     if not out:

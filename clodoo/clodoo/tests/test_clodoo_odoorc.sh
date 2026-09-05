@@ -57,7 +57,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.9
+__version__=2.1.1
 # VERSIONS_TO_TEST="14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 # MAJVERS_TO_TEST="14 13 12 11 10 9 8 7 6"
 VERSIONS_TO_TEST="16.0 14.0 12.0 10.0 8.0 7.0 6.1"
@@ -83,7 +83,7 @@ test_01() {
         test_result "bash 1a.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r10 odoo12-r20.0; do
+    for v in odoo12 odoo_12 VENV_123-odoo12 odoo-12-devel odoo12-main odoo12-r10 odoo12-r22.0; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
         test_result "bash 1b.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -105,15 +105,15 @@ test_01() {
         test_result "bash 1c.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "OCA" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in librerp12 odoo12-librerp odoo_12-librerp VENV-odoo12-librerp VENV_123-odoo12-librerp; do
+    for v in essetech12 odoo12-essetech odoo_12-essetech VENV-odoo12-essetech VENV_123-odoo12-essetech; do
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $v)
         test_result "bash 1d.${opt_multi}> build_odoo_param FULLVER '$v'" "12.0" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGID $v)
-        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "librerp" "$RES"
+        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGID '$v'" "essetech" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param GIT_ORGNM $v)
-        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "LibrERP-network" "$RES"
+        test_result "bash 1d.${opt_multi}> build_odoo_param GIT_ORGNM '$v'" "DueEsseTi" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in librerp6 odoo6-librerp VENV-librerp6 VENV_123-librerp6; do
@@ -140,7 +140,7 @@ test_02() {
     for v in $MAJVERS_TO_TEST; do
         [[ "$v" == "6" ]] && TRES="$v.1" || TRES="$v.0"
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6) ]] && continue
             [[ $x == "devel" ]] && continue
             w="$x$v"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULLVER $w)
@@ -192,9 +192,9 @@ test_02() {
         m=$(echo $v|awk -F. '{print $1}')
         TRES=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param MAJVER $w)
             test_result "bash 2g.${opt_multi}> build_odoo_param MAJVER '$w'" "$TRES" "$RES"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -295,9 +295,9 @@ test_03() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             TRES="/etc/odoo/odoo.conf"
             [[ "$v" =~ (9.0|8.0|7.0) ]] && TRES="/etc/odoo/odoo-server.conf"
             [[ "$v" == "6.1" ]] && TRES="/etc/odoo/openerp-server.conf"
@@ -310,6 +310,7 @@ test_03() {
             [[ "$v" =~ (9.0|8.0|7.0) ]] && TRES="/var/log/odoo/odoo-server.log"
             [[ "$v" == "6.1" ]] && TRES="/var/log/odoo/openerp-server.log"
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/var/log/odoo/openerp-server.log"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FLOG $w)
             test_result "bash 3b.${opt_multi}> build_odoo_param FLOG '$w'" "$TRES" "$RES"
@@ -319,6 +320,7 @@ test_03() {
             [[ "$v" =~ (9.0|8.0|7.0) ]] && TRES="/var/run/odoo/odoo-server.pid"
             [[ "$v" == "6.1" ]] && TRES="/var/run/odoo/openerp-server.pid"
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/var/run/odoo/openerp-server.pid"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FPID $w)
             test_result "bash 3c.${opt_multi}> build_odoo_param FPID '$w'" "$TRES" "$RES"
@@ -328,6 +330,7 @@ test_03() {
             [[ "$v" =~ (9.0|8.0|7.0) ]] && TRES="/etc/init.d/odoo-server"
             [[ "$v" == "6.1" ]] && TRES="/etc/init.d/openerp-server"
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             [[ $w =~ (v|V)(7|6) ]] && TRES="/etc/init.d/openerp-server"
             [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param FULL_SVCNAME $w)
             test_result "bash 3d.${opt_multi}> build_odoo_param FULL_SVCNAME '$w'" "$TRES" "$RES"
@@ -350,9 +353,9 @@ test_04() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             o=""
             [[ $x == "OCB-" ]] && o="-oca"
             [[ $x =~ (oca|librerp|devel) ]] && o="-${x}"
@@ -376,7 +379,7 @@ test_04() {
             fi
 
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             o=""
             [[ $x == "OCB-" ]] && o="-oca"
             [[ $x == "devel" ]] && o="-${x}"
@@ -401,7 +404,7 @@ test_04() {
             fi
 
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             o=""
             [[ $x == "OCB-" ]] && o="-oca"
             [[ $x == "devel" ]] && o="-${x}"
@@ -426,7 +429,7 @@ test_04() {
             fi
 
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             o=""
             [[ $x == "OCB-" ]] && o="-oca"
             [[ $x == "devel" ]] && o="-${x}"
@@ -469,9 +472,9 @@ test_05() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
 
             export opt_multi=0
             TRES="$HOME/$w/odoo-bin"
@@ -517,7 +520,7 @@ test_05() {
             fi
             export opt_multi=1
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
             [[ $x =~ ^VENV ]] && TRES="$HOME/$w/odoo/odoo-bin" || TRES="$HOME/$w/odoo-bin"
             [[ $w =~ (9|8|7) ]] && TRES="$(dirname $TRES)/openerp-server"
             [[ $w =~ (v|V)(7|6) ]] && TRES="$(dirname $TRES)/server/openerp-server"
@@ -726,9 +729,9 @@ test_06() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            [[ $x =~ (oca|librerp) ]] && w="$x$m"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
 
             opt_multi=0
             [ $m -le 7 ] && TRES="$HOME/$w/openerp/filestore" || TRES="$HOME/.local/share/Odoo"
@@ -755,9 +758,9 @@ test_07() {
     for v in $VERSIONS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for g in "" $SUB_TO_TEST; do
-            [[ $g == "librerp" && ! $v =~ (14.0|12.0|6.1) ]] && continue
+            [[ $g == "librerp" && ! $v =~ (6.1) ]] && continue
             [[ $g == "devel" ]] && w="${v}-$g" || w="$g$v"
-            [[ $g =~ (oca|librerp) ]] && w="$g$m"
+            [[ $g =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$g$m"
             for z in "OCB" "l10n-italy"; do
                 # TODO>
                 [[ $z == "OCB" && $v == "6.1" ]] && continue
@@ -766,7 +769,6 @@ test_07() {
                 [[ $g =~ ^(odoo|ODOO) && ! $z == "OCB" ]] && continue
                 [[ $g == "librerp" && $v == "6.1" && $z == "l10n-italy" ]] && continue
                 [[ $g =~ ^(oca|OCB) ]] && TRES="https://github.com/OCA/${z}.git"
-                [[ ( -z $g || $g =~ (v|V|VENV-|VENV_123-|devel|librerp) ) && $v =~ (14.0|12.0) && $z == "l10n-italy" ]] && TRES="git@github.com:LibrERP-network/${z}.git"
                 [[ $g == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hgn/server.git"
                 # [[ ${opt_dry_run:-0} -eq 0 && $z == "OCB" ]] && set -x && build_odoo_param GIT_URL $w $z && set +x    #debug
                 [[ ${opt_dry_run:-0} -eq 0 ]] && RES=$(build_odoo_param GIT_URL $w $z)
@@ -782,7 +784,6 @@ test_07() {
                 [[ $g =~ (odoo|odoo_|ODOO) ]] && TRES="https://github.com/odoo/odoo.git" || TRES="https://github.com/OCA/${z}.git"
                 [[ $v == "6.1" ]] && TRES="git@github.com:zeroincombenze/${z}.git"
                 [[ $g == "librerp" && $v == "6.1" ]] && TRES="git@github.com:iw3hxn/server.git"
-                [[ $g == "librerp" && $v =~ (14.0|12.0) ]] && continue
                 [ ${opt_dry_run:-0} -eq 0 ] && RES=$(build_odoo_param RUPSTREAM $w $z)
                 test_result "bash 7c.${opt_multi}> build_odoo_param RUPSTREAM '$w' '$z'" "$TRES" "$RES"
                 s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -868,6 +869,22 @@ Z0BUG_build_module_path() {
 }
 
 
+Z0BUG_safe_remove_os_tree() {
+    # Z0BUG_remove_os_tree() resolves an absolute entry literally and rm -fR it,
+    # so a "$HOME/<vid>" target would wipe a real Odoo root. Drop anything that
+    # is not a plain name relative to $Z0BUG_root.
+    local p keep=""
+    for p in ${1//,/ }; do
+        case "$p" in
+            /*|~*|.*|*/../*|*/..) echo "$THIS: refused removal outside \$Z0BUG_root: $p" >&2 ;;
+            *) keep="$keep $p" ;;
+        esac
+    done
+    [[ -n "$keep" ]] && Z0BUG_remove_os_tree "$keep"
+    return 0
+}
+
+
 Z0BUG_setup() {
 # Modules Tree for tests
 # l10n-italy/l10n_it_base
@@ -887,21 +904,22 @@ Z0BUG_setup() {
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            OS_TREE="$OS_TREE $w $HOME/$w"
             [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
-            OS_TREE="$OS_TREE $w $HOME/$w"
+            OS_TREE="$OS_TREE $w"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
+            OS_TREE="$OS_TREE $w"
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
-            OS_TREE="$OS_TREE $w $HOME/$w"
+            OS_TREE="$OS_TREE $w"
             if [[ $x == "odoo" ]]; then
                 for o in "-oca" "-zero" "-devel"; do
-                    OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
+                    OS_TREE="$OS_TREE $x${m}${o}"
                 done
             fi
         done
     done
-    Z0BUG_remove_os_tree "$OS_TREE"
+    Z0BUG_safe_remove_os_tree "$OS_TREE"
 }
 
 __Z0BUG_teardown() {
@@ -910,21 +928,22 @@ __Z0BUG_teardown() {
     for v in $VERSIONS_TO_TEST $MAJVERS_TO_TEST; do
         m=$(echo $v|awk -F. '{print $1}')
         for x in "" $SUB_TO_TEST; do
-            [[ $x == "librerp" && ! $v =~ (14|12|6) ]] && continue
+            [[ $x == "librerp" && ! $v =~ (6) ]] && continue
             [[ $x == "devel" ]] && w="${v}-$x" || w="$x$v"
-            OS_TREE="$OS_TREE $w $HOME/$w"
             [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
-            OS_TREE="$OS_TREE $w $HOME/$w"
+            OS_TREE="$OS_TREE $w"
+            [[ $x =~ (odoo|odoo_|ODOO|oca|librerp) ]] && w="$x$m"
+            OS_TREE="$OS_TREE $w"
             [[ $x =~ (oca|librerp) ]] && w="odoo${m}-$x"
-            OS_TREE="$OS_TREE $w $HOME/$w"
+            OS_TREE="$OS_TREE $w"
             if [[ $x == "odoo" ]]; then
                 for o in "-oca" "-zero" "-devel"; do
-                    OS_TREE="$OS_TREE $x${m}${o} $HOME/$x${m}${o}"
+                    OS_TREE="$OS_TREE $x${m}${o}"
                 done
             fi
         done
     done
-    Z0BUG_remove_os_tree "$OS_TREE"
+    Z0BUG_safe_remove_os_tree "$OS_TREE"
 }
 
 

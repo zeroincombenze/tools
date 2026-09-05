@@ -117,7 +117,7 @@ REQVERSION = {
         "12.0": "PYVER",
         "3.6": "==2.10.1",
         "3.8": ">=2.11.2,<=2.11.3",
-        "3.10": "==3.1.2",
+        "3.9": "==3.1.2",
     },
     "jupyter-server": {"0": "<1.20.0"},
     "lessc": {"0": ">=3.0.0"},
@@ -146,7 +146,7 @@ REQVERSION = {
         "14.0": "==1.1.0",
         "15.0": "PYVER",
         "3.8":  ">=1.1.0,<=1.1.1",
-        "3.10":  "==2.1.2",
+        "3.9":  "==2.1.2",
         "3.12":  "==2.1.5",
     },  # Tested 1.0
     "matplotlib": {
@@ -323,7 +323,8 @@ REQVERSION = {
         "15.0": "PYVER",
         "3.7": ">=2.0.0,<2.3.0",
         "3.8": ">=2.0.0,<3.1.0",
-        "3.9": ">=2.0.0",  # Odoo ==2.0.2
+        "3.9": ">=2.0.0,<3.1.0",
+        "3.10": ">=2.0.0",  # Odoo ==2.0.2
     },
     "wkhtmltopdf": {"6.1": "==0.12.1", "10.0": "==0.12.4", "12.0": "==0.12.5"},
     "wok_code": {"6.1": "<2.0.6", "10.0": ">=2.0.0"},
@@ -820,7 +821,10 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-            if item.startswith("jsonlib") and not (pyver or int(pyver.split(".")[1]) > 8):
+            if (
+                    item.startswith("jsonlib")
+                    and not (pyver or int(pyver.split(".")[1]) > 8)
+            ):
                 item = full_item = ""
     if item and (odoo_ver or pyver) and with_version:
         def_v = "0" if "0" in REQVERSION.get(item, {}) else False

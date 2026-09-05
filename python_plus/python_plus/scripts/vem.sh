@@ -511,6 +511,7 @@ pip_install() {
       [[ $x -lt 38 ]] && run_traced "$PIP --disable-pip-version-check install wheel -Uq"
     fi
 
+    [[ $pkg == "lxml" && $opt_pyver =~ ^2 ]] && popts="--only-binary :all:"
     [[ $opt_alone -ne 0 && ! $pkg =~ $UNISOLATED_PKGS ]] && popts="--isolated --disable-pip-version-check --no-cache-dir" || popts="--disable-pip-version-check"
     [[ $pkgpath =~ "\-e " ]] && x=$(echo "$pkgpath" | awk -F "-e " '{print $2}') && popts="$popts --editable=$x"
     [[ $pkgpath =~ "\-e " ]] && x=$(echo "$pkgpath" | awk -F "-e " '{print $1}') && pkgpath="$x"
