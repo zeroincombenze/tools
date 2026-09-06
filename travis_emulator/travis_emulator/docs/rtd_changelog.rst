@@ -5,20 +5,12 @@ ChangeLog History
 =================
 
 
-2.0.14 (2026-05-15)
-~~~~~~~~~~~~~~~~~~~
+2.1.0 (2026-05-15)
+~~~~~~~~~~~~~~~~~~
 
 * [IMP] python 3.13 is certificated programming language
 * [IMP] python 3.14 is certificated programming language
-
-2.0.13 (2025-09-08)
-~~~~~~~~~~~~~~~~~~~
-
 * [FIX] Invalid python version return errorcode 126
-
-2.0.12 (2025-09-03)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] clean deprecated code
 
 2.0.11 (2025-08-10)
@@ -53,12 +45,6 @@ ChangeLog History
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] Automatic python version for Odoo
-
-2.0.6 (2023-07-10)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] travis: check for dropped DB and abort if still exist
-* [IMP] travis: action show as alias of show-log for please integration
 
 |
 |

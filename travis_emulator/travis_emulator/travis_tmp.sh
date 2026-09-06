@@ -14,14 +14,14 @@ cd $V
 rm -f $V/*.log
 for v in 19.0 18.0 17.0 16.0 15.0 14.0 13.0 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
   m=$(echo $v|grep --color=never -Eo '[0-9]+'|head -n1)
-  for x in '' VENV OCB oca odoo ODOO v V powerp librerp; do
+  for x in '' VENV OCB oca odoo ODOO v V librerp; do
     [[ -d $V/${x}$v ]] && rm -fR $V/${x}$v
     [[ -d $V/${x}$m ]] && rm -fR $V/${x}$m
     [[ -d $V/${x}-$v ]] && rm -fR $V/${x}-$v
     [[ -d $V/${x}-$m ]] && rm -fR $V/${x}-$m
     [[ -d $V/${x}_$v ]] && rm -fR $V/${x}_$v
     [[ -d $V/${x}_$m ]] && rm -fR $V/${x}_$m
-    for y in odoo oca zero powerp devel; do
+    for y in odoo oca zero devel; do
       [[ -d $V/${x}$v-$y ]] && rm -fR $V/${x}$v-$y
       [[ -d $V/${x}$m-$y ]] && rm -fR $V/${x}$m-$y
     done
