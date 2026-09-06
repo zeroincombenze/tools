@@ -380,7 +380,7 @@ Example:
 
 ::
 
-    TRUE(1)                                                         User Commands                                                        TRUE(1)
+    TRUE(1)                                              User Commands                                              TRUE(1)
     
     NAME
            true - do nothing, successfully
@@ -397,8 +397,8 @@ Example:
            --version
                   output version information and exit
     
-           Your shell may have its own version of true, which usually supersedes the version described here.  Please refer to your shell's docu‐
-           mentation for details about the options it supports.
+           Your  shell may have its own version of true, which usually supersedes the version described here.  Please refer
+           to your shell's documentation for details about the options it supports.
     
     AUTHOR
            Written by Jim Meyering.
@@ -411,13 +411,13 @@ Example:
            Full documentation <https://www.gnu.org/software/coreutils/true>
            or available locally via: info '(coreutils) true invocation'
     
-           Packaged by Ubuntu (9.7-3ubuntu2)
+           Packaged by Ubuntu (9.7-3ubuntu2.1)
            Copyright © 2025 Free Software Foundation, Inc.
            License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
            This is free software: you are free to change and redistribute it.
            There is NO WARRANTY, to the extent permitted by law.
     
-    GNU coreutils 9.7                                               January 2026                                                         TRUE(1)
+    GNU coreutils 9.7                                     August 2026                                               TRUE(1)
     
 
 

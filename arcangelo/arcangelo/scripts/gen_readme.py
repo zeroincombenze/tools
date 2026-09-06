@@ -137,8 +137,7 @@ RMODE = "rU" if sys.version_info[0] == 2 else "r"
 GIT_USER = {
     "zero": "zeroincombenze",
     "oca": "OCA",
-    "librerp": "LibrERP-network",
-    "powerp": "PowERP-cloud",
+    "librerp": "iw3hxn",
     "didotech": "didotech",
 }
 DEFINED_SECTIONS = [
@@ -417,9 +416,6 @@ def __init__(ctx):
         REV_SHORT_NAMES = {
             "zeroincombenze": "zero",
             "OCA": "oca",
-            "LibrERP-network": "librerp",
-            "LibrERP": "librerp",
-            "powerp1": "librerp",
             "iw3hxn": "librerp",
         }
         read_only = True
@@ -519,7 +515,7 @@ def __init__(ctx):
                 )
         ctx["odoo_majver"] = int(ctx["branch"].split(".")[0])
 
-    # if ctx["git_orgid"] not in ("zero", "oca", "powerp", "librerp", "didotech"):
+    # if ctx["git_orgid"] not in ("zero", "oca", "librerp", "didotech"):
     #     ctx["read_only"] = True
     #     if not ctx["suppress_warning"] and ctx["product_doc"] != "pypi":
     #         print_red_message(

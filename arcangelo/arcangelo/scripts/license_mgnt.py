@@ -80,8 +80,6 @@ ALIAS = {
     "zeroincombenze": "zero",
     "odooitaliancommunity": "odoo-italia",
     "odooitaliaassociazione": "odoo-italia",
-    # "powerp": "librerp",
-    # "powerp.it": "librerp",
     "Agile Business Group": "agilebg.com",
     "openerp": "odoo",
     "openerpsa": "odoo",
@@ -428,7 +426,6 @@ class License:
         else:
             if "oca" in self.org_ids:
                 license = "lgpl"
-            # elif "powerp" in self.org_ids:
             #     license = "opl"
             else:
                 license = "lgpl"
