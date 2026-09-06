@@ -19,6 +19,7 @@ setup(
     version="2.1.0",
     description="python useful function",
     long_description=long_description,
+    long_description_content_type="text/x-rst",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Operating System :: POSIX",
