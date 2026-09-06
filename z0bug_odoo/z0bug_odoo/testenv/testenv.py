@@ -691,7 +691,7 @@ class MainTest(test_common.TransactionCase):
         self.uninstallable_modules = []
         self.convey_record = {}
         # Enable commit data
-        self.odoo_commit_test = True
+        self.odoo_commit_test = False
         self.module = None
         for item in self.__module__.split("."):
             if item not in ("odoo", "openerp", "addons"):

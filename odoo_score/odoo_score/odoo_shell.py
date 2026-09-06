@@ -2150,7 +2150,7 @@ def set_comment_on_invoice(ctx):
         model = 'account.invoice'
         date_field = 'date_invoice'
         name_field = 'number'
-    date_ids = param_date(ctx['param_1'], model=model, date_field=date_field, ctx=ctx)
+    date_ids = param_date(ctx['param_1'])
     if ctx['param_2'] and ctx['param_2'].startswith('A'):
         comment = input('Text to insert on invoice comment: ')
     else:
@@ -2592,13 +2592,7 @@ def revalidate_invoice(ctx):
         print('revalidate_invoice from_date|ids')
         return
     model = 'account.invoice'
-    rec_ids = param_date(
-        ctx['param_1'],
-        model=model,
-        date_field='date',
-        domain=[('state', '=', 'open')],
-        ctx=ctx,
-    )
+    rec_ids = param_date(ctx['param_1'])
     ctr_read = ctr_err = ctr_upd = 0
     for rec_id in rec_ids:
         ctr_read += 1
@@ -2645,17 +2639,7 @@ def reconcile_invoice(ctx):
     journals = clodoo.searchL8(
         ctx, 'account.journal', [('type', 'in', ('sale', 'purchase'))]
     )
-    rec_ids = param_date(
-        ctx['param_1'],
-        model=model,
-        date_field='date',
-        domain=[
-            ('user_type_id', 'in', acctype),
-            ('journal_id', 'in', journals),
-            ('reconciled', '=', False),
-        ],
-        ctx=ctx,
-    )
+    rec_ids = param_date(ctx['param_1'])
     ctr_read = ctr_err = ctr_upd = 0
     for line in clodoo.browseL8(ctx, model, rec_ids):
         ctr_read += 1
