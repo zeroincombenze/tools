@@ -67,24 +67,6 @@ ChangeLog History
 
 * [IMP] arcangelo: new python version assignment from odoo version
 
-2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-
-2.0.10 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] arcangelo: new switch --string-normalization
-
-2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~
-
-* [IMP] arcangelo: refactoring to run inside pre-commit
-
 |
 |
 

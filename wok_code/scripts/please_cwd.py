@@ -22,7 +22,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.0.23"
+__version__ = "2.1.0"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"
@@ -143,7 +143,7 @@ class PleaseCwd(object):
         rpcport = ""
         if not self.config:  # pylint: disable=access-member-before-definition
             self.config = self.please.opt_args.odoo_config or build_odoo_param(
-                "CONFN", odoo_vid=".", multi=True
+                "CONFN", odoo_vid=".", suppl="search", multi=True
             )
         if not pth.isfile(self.config):
             self.please.log_error("No configuration file %s found!" % self.config)
@@ -196,8 +196,8 @@ class PleaseCwd(object):
             dbname=db_name or self.db_name,
             user=db_user or self.db_user,
             password=db_pwd or self.db_pwd,
-            host=db_host or self.db_host,
-            port=db_port or self.db_port,
+            host=db_host or self.db_host or None,
+            port=db_port or self.db_port or None,
         )
         self.create_sql_cursor()
 

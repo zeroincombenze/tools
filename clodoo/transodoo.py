@@ -59,7 +59,7 @@ except ImportError:
     except ImportError:
         import z0lib
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 VERSIONS = [
     "6.1",
     "7.0",

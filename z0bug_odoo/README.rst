@@ -1,5 +1,5 @@
 =================
-z0bug_odoo 2.0.25
+z0bug_odoo 2.0.26
 =================
 
 
@@ -817,7 +817,7 @@ Requirements
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package 2.0.25
+* z0bug_odoo PYPI package 2.0.26
 * python 2.7 / 3.6 / 3.7 / 3.8
 
 TestEnv is full integrated with Zeroincombenze® tools.
@@ -917,7 +917,7 @@ self.odoo_commit_data = True and you have to set global bash environment
 Ths TestEnv software requires:
 
 * python_plus PYPI package
-* z0bug_odoo PYPI package version 2.0.25
+* z0bug_odoo PYPI package version 2.0.26
 * python 2.7 / 3.6 / 3.7 / 3.8 / 3.9 / 3.10
 
 
@@ -2252,21 +2252,6 @@ ChangeLog History
 
 * [FIX] TestEnv: validate_records with 2 identical template records
 
-2.0.10 (2023-07-02)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] TestEnv: new feature, external reference with specific field value
-* [REF] TestEnv: tomany casting refactoring
-
-2.0.9 (2023-06-24)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] TestEnv: sometimes, validate_records does not match many2one fields
-* [FIX[ TestEnv: sometime crash in wizard on Odoo 11.0+ due inexistent ir.default
-* [FIX] TestEnv: default value in wizard creation, overlap default function
-* [FIX] TestEnv: record not found for xref of other group
-* [IMP] TestEnv: resource_bind is not more available: it is replaced by resource_browse
-
 
 
 Credits
@@ -2305,10 +2290,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.25/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.26/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.25/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.26/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

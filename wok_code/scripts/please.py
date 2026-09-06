@@ -66,7 +66,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.0.23"
+__version__ = "2.1.0"
 
 KNOWN_ACTIONS = [
     "help",
@@ -944,7 +944,7 @@ class Please(object):
                     params["uncover"] = int(items[-2])
                     params["cover"] = int(items[-3]) - int(items[-2])
             if "SUCCESSFULLY completed" in ln:
-                x = re.search("[0-9]+ tests", ln)
+                x = re.search("[0-9]+ assertions", ln)
                 if x:
                     items = ln[x.start(): x.end()].split()
                     params["testpoints"] += int(items[0])
@@ -957,7 +957,7 @@ class Please(object):
                 contents = fd.read()
             for ln in contents.split("\n"):
                 if "SUCCESSFULLY completed" in ln:
-                    x = re.search("[0-9]+ tests", ln)
+                    x = re.search("[0-9]+ assertions", ln)
                     if x:
                         items = ln[x.start(): x.end()].split()
                         params["testpoints"] += int(items[0])

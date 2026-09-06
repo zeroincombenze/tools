@@ -5,17 +5,14 @@ ChangeLog History
 =================
 
 
-2.1.0 (2026-05-16)
+2.1.0 (2026-07-10)
 ~~~~~~~~~~~~~~~~~~
 
+* [IMP] run_odoo_debug: disable test on depending modules
 * [FIX] gevent_port in run_odoo_debug.sh for Odoo 16+
 * [FIX] Sometimes wrong db user was used
 * [IMP] Install python2.7 in Ubuntu 26.04
 * [IMP] Quality message on pypi packages
-
-2.0.24 (2025-09-04)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] Quality message on pypi packages
 
 2.0.23 (2025-08-14)
@@ -150,55 +147,6 @@ ChangeLog History
 * [FIX] odoo_translation.py: cache file format is Excel
 * [FIX] run_odoo_debug: path with heading space
 * [IMP] please test now can update account.account.xlsx
-
-2.0.12 (2023-08-29)
-~~~~~~~~~~~~~~~~~~~
-
-* [FIX] gen_readme.py: minor fixes
-* [IMP] gen_readme.py: manifest author priority
-* [FIX] gen_readme.py: coverage in CHANGELOG.rst"
-* [IMP] gen_readme.py: link to authors on README.rst and index.html
-* [IMP] gen_readme.py: history tailoring keeps minimal 2 items
-* [FIX] license_mgnt: best organization recognition
-* [IMP] license_mgnt: powerp renamed to librerp
-* [FIX] run_odoo_debug: no doc neither translate after test error
-* [IMP] arcangelo: new rules
-* [IMP] arcangelo: new git conflict selection
-* [IMP] arcangelo: merge gen_readme.py formatting
-* [IMP] arcangelo: new switch --string-normalization
-* [FIX] deploy_odoo: minor fixes
-* [FIX] odoo_translation: sometime did not translate
-* [IMP] odoo_translation: best performance
-
-2.0.10 (2023-07-10)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] gen_readme.py: do not create .bak file; now it can be used in pre-commit process
-* [IMP] please replace now do "please docs" before
-* [IMP] please docs now do "please clean" after
-* [IMP] please lint and zerobug now do "pre-commit run" before (--no-verify)
-* [IMP] please test and zerobug now do "please translate" after (--no-translate)
-* [IMP] please update: new switches --vme --odoo-venv
-* [IMP] please clean db: new action replace old wep-db
-* [IMP] please version: new interface
-* [IMP] please show docs: new interface
-* [REF] run_odoo_debug: partial refactoring
-* [IMP] run_odoo_debug: new switch --daemon
-* [IMP] arcangelo: new swicth --string-normalization
-* [FIX] please test / run_odoo_debug: minor fixes
-
-2.0.9 (2023-06-26)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] run_odoo_debug: recognize 'to upgrade' and 'to install' states
-* [FIX] run_odoo_debug: check for dropped DB and abort if still exist
-* [REF] odoo_translation: refactoring
-* [REF] please: refactoring
-* [IMP] deploy_odoo: new brief for status
-* [IMP] deploy_odoo: new action unstaged e new status format
-* [IMP] do_migrate renamed to arcangelo
-* [IMP] gen_readme.py: manage CHANGELOG.rst too
-* [IMP] argangelo: refactoring to run inside pre-commit
 
 |
 |

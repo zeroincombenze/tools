@@ -33,7 +33,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.0.23"
+__version__ = "2.1.0"
 
 MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
 
@@ -68,26 +68,9 @@ XTRA_PREFIX = [
     "website",
 ]
 
-ODOO_VALID_GITORGS = ("oca", "librerp", "zero")
+ODOO_VALID_GITORGS = ("oca", "librerp", "zero", "essetech")
 
 DEFAULT_DATA = {
-    "librerp12": {
-        "PATH": "~/12.0",
-        "URL": "git@github.com:LibrERP-network",
-        "CONFN": "odoo12.conf",
-        "addons_kalamitica": "",
-        "addons_nardo": "",
-        "aeroo_reports": "",
-        "connector-prestashop": "https://github.com/LibrERP",
-        "custom-addons": "git@github.com:LibrERP",
-        "deploy": "git@gitlab.com:powerp1",
-        "double-trouble": "git@github.com:LibrERP",
-        "fixed_modules": "",
-        "generic": "",
-        "profiles": "",
-        "warehouse-logistics-stock": "git@gitlab.com:/powerp1",
-        "zerobug-test": "git@github.com:zeroincombenze",
-    },
     "librerp6": {
         "PATH": "~/librerp6",
         "URL": "https://github.com/iw3hxn",
@@ -125,18 +108,19 @@ INVALID_NAMES = [
 SHORT_NAMES = {
     "zero": "zeroincombenze",
     "oca": "OCA",
+    "essetech": "DueEsseTi",
 }
 REV_SHORT_NAMES = {
     "zeroincombenze": "zero",
     "OCA": "oca",
-    "LibrERP-network": "librerp",
-    "LibrERP": "librerp",
     "iw3hxn": "librerp",
+    "DueEsseTi": "essetech",
 }
 REPO_NAMES = {
     "zero": "zeroincombenze",
     "oca": "OCA",
-    "librerp": "LibrERP-network",
+    "librerp": "iw3hxn",
+    "essetech": "DueEsseTi",
 }
 FMT_PARAMS = {
     "branch": "%(branch)-10.10s",
@@ -471,12 +455,15 @@ class OdooDeploy(object):
                 git_org = pth.basename(item)
             if git_org == "OCA":
                 git_org = "oca"
+            elif git_org == "DueEsseTi":
+                git_org = "essetech"
         else:
             if git_org == "zero":
                 git_org = "zeroincombenze"
-            elif git_org == "librerp" and self.opt_args.odoo_branch == "12.0":
-                git_org = "LibrERP-network"
-            elif git_org == "librerp" and self.opt_args.odoo_branch == "6.0":
+            elif git_org == "essetech":
+                git_org = "DueEsseTi"
+            elif git_org == "librerp":
+                # librerp is valid just for Odoo 6.1
                 git_org = "iw3hxn"
             if self.opt_args.use_git:
                 git_url = "git@github.com:%s" % git_org
@@ -800,6 +787,7 @@ class OdooDeploy(object):
             "odoo": "oca",
             "librerp": "zero",
             "zero": "oca",
+            "essetech": "oca",
         }.get(git_org)
 
     def repo_is_ocb(self, repo):
@@ -1609,7 +1597,8 @@ def main(cli_args=None):
     parser.add_argument(
         "-G",
         "--git-orgs",
-        help="Git organizations, comma separated - " "May be: oca or zero",
+        help="Git organizations, comma separated - "
+        "May be: %s" % ", ".join(ODOO_VALID_GITORGS),
     )
     parser.add_argument(
         "-g",

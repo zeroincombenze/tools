@@ -16,7 +16,7 @@ from arcangelo.scripts import license_mgnt
 
 from zerobug import z0test, z0testodoo                                     # noqa: E402
 
-__version__ = "2.1.0"
+__version__ = "2.1.3"
 
 MODULE_ID = 'wok_code'
 TEST_FAILED = 1

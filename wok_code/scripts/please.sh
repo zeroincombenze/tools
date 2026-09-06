@@ -65,7 +65,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.23
+__version__=2.1.0
 
 
 FIND_EXCL="-not -path '*/build/*' -not -path '*/_build/*' -not -path '*/dist/*' -not -path '*/docs/*' -not -path '*/__to_remove/*' -not -path '*/filestore/*' -not -path '*/.git/*' -not -path '*/html/*' -not -path '*/.idea/*' -not -path '*/latex/*' -not -path '*/__pycache__/*' -not -path '*/.local/*' -not -path '*/.npm/*' -not -path '*/.gem/*' -not -path '*/Trash/*' -not -path '*/VME/*'"
@@ -583,14 +583,12 @@ do_docs() {
       [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v | echo $GIT_URL | awk -F: '{print $2}')))
       [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
-      [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && orgid="powerp"
     elif [[ -z "$opt_branch" && -d $PARENTDIR/.git ]]; then
       pushd $PARENTDIR >/dev/null
       GIT_URL=$(git remote get-url --push origin 2>/dev/null)
       [[ -n "$GIT_URL" ]] && GIT_ORGNM=$(basename $(dirname $(git remote -v | echo $GIT_URL | awk -F: '{print $2}')))
       [[ $GIT_ORGNM == "OCA" ]] && orgid="oca"
       [[ $GIT_ORGNM == "zeroincombenze" ]] && orgid="zero"
-      [[ $GIT_ORGNM =~ (PowERP-cloud|powerp1) ]] && orgid="powerp"
       popd >/dev/null
     fi
     if [[ -f ./__manifest__,py || -f ./__openerp__.py ]]; then
@@ -1151,7 +1149,7 @@ do_test() {
     sts=$?
     if [[ -x tests/logs/show-log.sh ]]; then
       x=$(tests/logs/show-log.sh|grep -E "^TOTAL"|grep -Eo "[0-9]+%?"|tr "\n" " "|awk '{print "* [QUA] Test coverage " $3 " (" $1 ": " $2 "+" ($1 - $2) ")"}')
-      y=$(tests/logs/show-log.sh|grep -E "SUCCESSFULLY completed"|grep -Eo "[0-9]+ tests"|grep -Eo "[0-9]+"|awk '{print "[" $1 " TestPoint]"}')
+      y=$(tests/logs/show-log.sh|grep -E "SUCCESSFULLY completed"|grep -Eo "[0-9]+ assertions"|grep -Eo "[0-9]+"|awk '{print "[" $1 " TestPoint]"}')
       echo ""
       echo "$x $y"
       echo ""
@@ -1401,11 +1399,11 @@ do_config() {
     cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "current" ]; then
     cfgfn=$DIST_CONF
-  elif [ "$sub1" == "zero" -o "$sub1" == "powerp" ]; then
+  elif [ "$sub1" == "zero" ]; then
     cfgfn=
   else
     echo "Missed parameter! use:"
-    echo "\$ please config global|repository|local|current|zero|powerp [def|del]"
+    echo "\$ please config global|repository|local|current|zero [def|del]"
     sts=1
   fi
   if [ $sts -eq 0 ]; then
