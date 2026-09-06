@@ -31,6 +31,7 @@ install_requires = [
 if sys.version_info >= (3, 0):
     install_requires.append("translators")
     install_requires.append("twine")
+    install_requires.append("build")
     if sys.version_info >= (3, 7):
         install_requires.append("distro")
 else:

@@ -390,7 +390,7 @@ do_publish_pypi() {
       n=$(python setup.py --name)
       p=$(find dist -name "${n}-${v}.tar.gz")
       if [[ -z "$p" || $opt_force -gt 0 ]]; then
-        run_traced "python setup.py build sdist"
+        run_traced "python -m build --sdist"
         s=$?; [[ ${s-0} -ne 0 ]] && sts=$s
       fi
       p=$(find dist -name "${n}-${v}.tar.gz")
