@@ -379,7 +379,7 @@ do_publish_pypi() {
   #do_publish_pypi repos
   local sts=0
   local rpt=$1
-  local n p s v
+  local n p s v twine_bin build_python
   [[ -z $rpt || ! $rpt =~ (pypi|testpypi) ]] && rpt=pypi
   if [[ "$PRJNAME" != "Odoo" ]]; then
     if twine --version &>/dev/null; then
@@ -390,8 +390,17 @@ do_publish_pypi() {
       n=$(python setup.py --name)
       p=$(find dist -name "${n}-${v}.tar.gz")
       if [[ -z "$p" || $opt_force -gt 0 ]]; then
-        if python -c "import build" &>/dev/null; then
-          run_traced "python -m build --sdist"
+        # Plain "python" may resolve to an unrelated system interpreter
+        # (e.g. Python 2.7) ahead of the venv providing twine in $PATH.
+        # Prefer the interpreter next to twine so the "build" module
+        # availability check matches the environment twine actually runs in.
+        build_python="python"
+        twine_bin=$(command -v twine)
+        if [[ -n "$twine_bin" && -x "$(dirname "$twine_bin")/python" ]]; then
+          build_python="$(dirname "$twine_bin")/python"
+        fi
+        if "$build_python" -c "import build" &>/dev/null; then
+          run_traced "$build_python -m build --sdist"
         else
           run_traced "python setup.py build sdist"
         fi
