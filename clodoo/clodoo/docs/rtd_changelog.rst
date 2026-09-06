@@ -5,6 +5,12 @@ ChangeLog History
 =================
 
 
+2.1.1 (2026-08-06)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] odoorc for Odoo 19.0
+* [QUA] Test coverage 17% (3472: 2876+596) [0 TestPoints] - quality rating 13 (target 100)
+
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~
 
