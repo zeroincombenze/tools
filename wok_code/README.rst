@@ -1,5 +1,5 @@
 ==============
-wok_code 2.1.1
+wok_code 2.1.0
 ==============
 
 
@@ -184,22 +184,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
-2.1.1 (2026-07-10)
+2.1.0 (2026-07-10)
 ~~~~~~~~~~~~~~~~~~
 
 * [IMP] run_odoo_debug: disable test on depending modules
-
-2.1.0 (2026-05-16)
-~~~~~~~~~~~~~~~~~~
-
 * [FIX] gevent_port in run_odoo_debug.sh for Odoo 16+
 * [FIX] Sometimes wrong db user was used
 * [IMP] Install python2.7 in Ubuntu 26.04
 * [IMP] Quality message on pypi packages
-
-2.0.24 (2025-09-04)
-~~~~~~~~~~~~~~~~~~~
-
 * [IMP] Quality message on pypi packages
 
 2.0.23 (2025-08-14)
@@ -372,10 +364,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.0/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.0/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

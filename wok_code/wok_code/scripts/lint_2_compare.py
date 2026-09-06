@@ -14,7 +14,7 @@ except ImportError:
 from python_plus import _b, _u
 from z0lib import z0lib
 
-__version__ = "2.1.1"
+__version__ = "2.1.0"
 
 
 IGNORE_DIRS_BASE = [".idea", ".git", "egg-info", "setup"]

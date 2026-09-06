@@ -22,7 +22,7 @@ try:
 except ImportError:
     from clodoo import build_odoo_param
 
-__version__ = "2.1.1"
+__version__ = "2.1.0"
 
 BIN_EXTS = ("xls", "xlsx", "png", "jpg")
 RED = "\033[1;31m"

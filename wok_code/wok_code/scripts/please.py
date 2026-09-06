@@ -66,7 +66,7 @@ try:
 except ImportError:
     from .please_python import PleasePython  # noqa: F401
 
-__version__ = "2.1.1"
+__version__ = "2.1.0"
 
 KNOWN_ACTIONS = [
     "help",

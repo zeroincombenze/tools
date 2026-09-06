@@ -33,7 +33,7 @@ import time
 from python_plus import unicodes, str2bool
 from clodoo import transodoo
 
-__version__ = "2.1.1"
+__version__ = "2.1.0"
 
 msg_time = time.time()
 VALID_ACTIONS = ("export-comparable", "export-full", "export-z0bug", "export-group")

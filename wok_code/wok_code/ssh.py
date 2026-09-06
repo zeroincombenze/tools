@@ -4,7 +4,7 @@ import os
 import sys
 from cryptography.fernet import Fernet
 
-__version__ = "2.1.1"
+__version__ = "2.1.0"
 
 
 def spit_host_param(host, param):
