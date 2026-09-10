@@ -2973,21 +2973,52 @@ class MainTest(test_common.TransactionCase):
         Returns:
             default company for user
         """
+        # Odoo <15: account type is the stored model "account.account.type",
+        # referenced by "user_type_id"; the chart template is a stored
+        # "account.chart.template" record reachable via company.chart_template_id,
+        # exposing per-account-purpose fields (i.e. property_account_receivable_id)
+        # whose .code gives the account code prefix to search for.
+        # Odoo >=15: "account.account.type" is gone; account type is the plain
+        # "account_type" selection directly on account.account, so no chart
+        # template lookup is needed to know it.
+        # Odoo >=17: chart templates stopped being stored records altogether
+        # (account.chart.template is now an AbstractModel/Python registry, and
+        # res.company has no chart_template_id field any more), and
+        # account.account moved from a single "company_id" to a multi-company
+        # "company_ids". So for >=15 we just search account.account directly by
+        # account_type (+ whichever company field this version actually has)
+        # instead of deriving a code prefix from a chart template object.
+        acc_type_2_account_type = {
+            "account.data_account_type_receivable": "asset_receivable",
+            "account.data_account_type_payable": "liability_payable",
+            "account.data_account_type_liquidity": "asset_cash",
+        }
+
         def store_acc_alias(xref, acc_type, chart_name):
-            if chart_name.endswith("_prefix"):
-                acc_code = getattr(chart_template, chart_name)
-            else:
-                acc_code = getattr(chart_template, chart_name).code
-            acc_ids = self.env["account.account"].search(
-                [
-                    (
-                        "user_type_id",
-                        "=",
-                        self.env.ref(acc_type).id,
-                    ),
+            if self.odoo_major_version < 15:
+                if chart_name.endswith("_prefix"):
+                    acc_code = getattr(chart_template, chart_name)
+                else:
+                    acc_code = getattr(chart_template, chart_name).code
+                domain = [
+                    ("user_type_id", "=", self.env.ref(acc_type).id),
                     ("code", "like", acc_code),
                 ]
-            )
+            else:
+                company_field = (
+                    "company_ids"
+                    if "company_ids" in self.env["account.account"]._fields
+                    else "company_id"
+                )
+                domain = [
+                    ("account_type", "=", acc_type_2_account_type[acc_type]),
+                    (
+                        company_field,
+                        "in" if company_field == "company_ids" else "=",
+                        [company.id] if company_field == "company_ids" else company.id,
+                    ),
+                ]
+            acc_ids = self.env["account.account"].search(domain)
             self._add_xref(xref, acc_ids[0].id, "account.account")
 
         self.log_stack()
@@ -2999,8 +3030,12 @@ class MainTest(test_common.TransactionCase):
             add_alias = True
         elif values:
             company.write(self.cast_types(res_company, values, fmt="cmd"))
-        chart_template = self.env["account.chart.template"].search(
-            [("id", "=", company.chart_template_id.id)]
+        chart_template = (
+            self.env["account.chart.template"].search(
+                [("id", "=", company.chart_template_id.id)]
+            )
+            if self.odoo_major_version < 15
+            else None
         )
         if xref:
             if not add_alias:

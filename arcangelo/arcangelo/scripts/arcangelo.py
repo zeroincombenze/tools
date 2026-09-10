@@ -24,7 +24,7 @@ try:
 except ImportError:  # pragma: no cover
     from arcangelo_syntax import Syntax, get_config_path
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"

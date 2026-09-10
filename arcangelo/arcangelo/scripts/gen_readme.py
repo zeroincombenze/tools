@@ -126,7 +126,7 @@ except ImportError:
 # standard_library.install_aliases()
 
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -431,7 +431,7 @@ def __init__(ctx):
 
     transodoo.read_stored_dict(ctx)
     ctx["home_devel"] = ctx["home_devel"] or os.environ.get(
-        "home_devel", pth.expanduser("~/devel")
+        "HOME_DEVEL", pth.expanduser("~/devel")
     )
     ctx["odoo_root"] = os_realpath(pth.dirname(ctx["home_devel"]))
     ctx["path_name"] = os_realpath(ctx["path_name"])

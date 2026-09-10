@@ -10,7 +10,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 
 def os_realpath(path):

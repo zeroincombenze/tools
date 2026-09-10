@@ -53,7 +53,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.2
+__version__=2.1.3
 
 #//Only human upgradable code/
 # blk1 => z0librc

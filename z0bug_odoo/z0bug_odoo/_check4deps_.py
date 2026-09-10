@@ -224,7 +224,12 @@ def check_4_depending(cr):
         if uninstallable_reason:
             raise UserError(uninstallable_reason)
 
-    env = api.Environment(cr, SUPERUSER_ID, {})
+    if isinstance(cr_or_env, api.Environment):
+        # Odoo >= 18: pre_init_hook(env) receives an Environment, not a cursor
+        env = cr_or_env
+    else:
+        # Odoo <= 17: pre_init_hook(cr) receives a bare cursor
+        env = api.Environment(cr_or_env, SUPERUSER_ID, {})
     path = __file__
     while path != "/":
         path = os.path.dirname(path)
