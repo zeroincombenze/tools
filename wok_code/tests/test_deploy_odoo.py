@@ -92,7 +92,7 @@ class RegressionTest:
     def test_03_clone_zero(self):
         # create repo 16.0 (zero) w/o l10n-italy
         git_dir = os.path.join(self.odoo_testdir, "16.0")
-        cmd = "deploy_odoo clone -KmTv -b16.0 -gGzero -p %s -r %s" % (
+        cmd = "deploy_odoo clone -KmTv -b16.0 -gzero -Gzero -p %s -r %s" % (
             git_dir,
             "OCB,crm,web",
         )
@@ -114,8 +114,8 @@ class RegressionTest:
     def test_04_amend(self):
         git_dir = os.path.join(self.odoo_testdir, "16.0")
         cmd = (
-            "deploy_odoo amend -KmTv -b16.0 -gGzero -p %s -r OCB,crm,l10n-italy,web"
-            % git_dir
+            "deploy_odoo amend -KmTv -b16.0 -gzero -Gzero -p %s"
+            " -r OCB,crm,l10n-italy,web" % git_dir
         )
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
@@ -126,7 +126,7 @@ class RegressionTest:
 
     def test_05_update(self):
         git_dir = os.path.join(self.odoo_testdir, "16.0")
-        cmd = "deploy_odoo update -Tv -b16.0 -gGzero -p %s" % git_dir
+        cmd = "deploy_odoo update -Tv -b16.0 -gzero -Gzero -p %s" % git_dir
         sts, stdout, stderr = z0lib.os_system_traced(cmd, rtime=False)
         self.assertEqual(sts, 0, msg_info=cmd)
         self.find_cmd_in_stdout(" cd %s.*git pull origin 16.0" % git_dir, stdout)
@@ -134,7 +134,7 @@ class RegressionTest:
     def test_06_checkout(self):
         git_dir = os.path.join(self.odoo_testdir, "oca16")
         new_dir = os.path.join(self.odoo_testdir, "17.0")
-        cmd = "deploy_odoo new-branch -mTv -b%s -gGzero -p %s -o %s" % (
+        cmd = "deploy_odoo new-branch -mTv -b%s -gzero -Gzero -p %s -o %s" % (
             "17.0",
             new_dir,
             git_dir,

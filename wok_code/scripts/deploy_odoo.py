@@ -33,11 +33,13 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
-MANIFEST_FILES = ["__manifest__.py", "__odoo__.py", "__openerp__.py", "__terp__.py"]
+MANIFEST_FILES = ["__manifest__.py", "__openerp__.py"]
 
 ODOO_VALID_VERSIONS = (
+    "20.0",
+    "19.0",
     "18.0",
     "17.0",
     "16.0",
@@ -202,6 +204,7 @@ class OdooDeploy(object):
 
     def __init__(self, opt_args):
         opt_args.git_orgs = opt_args.git_orgs.split(",") if opt_args.git_orgs else []
+        opt_args.use_git = opt_args.use_git.split(",") if opt_args.use_git else []
         opt_args.link_upstream = (
             opt_args.link_upstream.split(",") if opt_args.link_upstream else []
         )
@@ -302,10 +305,19 @@ class OdooDeploy(object):
         if self.opt_args.clean_empty_repo:
             self.remove_empty_repos()
 
+    def set_default_git_org(self):
+        default_git_org = os.environ.get("ODOO_GIT_ORGID", "oca")
+        # ODOO_GIT_ORGID may hold a shell regex like "(zero|oca)": keep 1st term
+        default_git_org = re.sub(r"[()]", "", default_git_org.split("|")[0])
+        print("***** Missing git orgs: %s will be used!" % default_git_org)
+        self.opt_args.git_orgs = [default_git_org]
+        if not self.opt_args.use_git:
+            # Default git organization is cloned via git protocol, not https
+            self.opt_args.use_git = [default_git_org]
+
     def _init_clone(self):
         if not self.opt_args.git_orgs:
-            print("***** Missing git orgs: oca will be used!")
-            self.opt_args.git_orgs = ["oca"]
+            self.set_default_git_org()
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
@@ -360,8 +372,7 @@ class OdooDeploy(object):
 
     def _init_new_branch(self):
         if not self.opt_args.git_orgs:
-            print("***** Missing git orgs: oca will be used!")
-            self.opt_args.git_orgs = ["oca"]
+            self.set_default_git_org()
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
@@ -458,6 +469,7 @@ class OdooDeploy(object):
             elif git_org == "DueEsseTi":
                 git_org = "essetech"
         else:
+            short_git_org = git_org
             if git_org == "zero":
                 git_org = "zeroincombenze"
             elif git_org == "essetech":
@@ -465,7 +477,7 @@ class OdooDeploy(object):
             elif git_org == "librerp":
                 # librerp is valid just for Odoo 6.1
                 git_org = "iw3hxn"
-            if self.opt_args.use_git:
+            if short_git_org in self.opt_args.use_git:
                 git_url = "git@github.com:%s" % git_org
             elif git_org == "oca":
                 git_url = "https://github.com/%s" % git_org.upper()
@@ -479,7 +491,7 @@ class OdooDeploy(object):
         if not url:
             url = DEFAULT_DATA.get(hash_key, {}).get("URL")
         if not url:
-            if self.opt_args.use_git:
+            if git_org in self.opt_args.use_git:
                 url = "git@github.com:%s" % REPO_NAMES.get(git_org, git_org)
             else:
                 url = "https://github.com/%s" % REPO_NAMES.get(git_org, git_org)
@@ -574,6 +586,9 @@ class OdooDeploy(object):
                     multi=self.opt_args.multi,
                 )
             ]
+            if not opt_args.use_git:
+                # Default git organization is cloned via git protocol, not https
+                opt_args.use_git = list(opt_args.git_orgs)
         for git_org in opt_args.git_orgs:
             if git_org not in ODOO_VALID_GITORGS:
                 print("Invalid git organization: %s!" % git_org)
@@ -1121,7 +1136,7 @@ class OdooDeploy(object):
         if os.getcwd() != tgtdir:
             self.run_traced("cd %s" % tgtdir)
         if pth.islink(tgtdir):
-            return self.get_remote_info(sort=True)
+            return self.get_remote_info()
         if repo_branch != branch:
             print(
                 "Current branch %s is different from required branch  %s!"
@@ -1603,8 +1618,9 @@ def main(cli_args=None):
     parser.add_argument(
         "-g",
         "--use-git",
-        action="store_true",
-        help="When clone use git protocol instead of https",
+        dest="use_git",
+        help="Git organizations, comma separated, to clone with git protocol "
+        "instead of https - May be: %s" % ", ".join(ODOO_VALID_GITORGS),
     )
     parser.add_argument(
         "-k",

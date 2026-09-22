@@ -1,3 +1,11 @@
+2.1.1 (2026-09-12)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] deploy_odoo: -g switch now takes the git organizations, comma
+  separated, to clone with git protocol instead of https
+* [IMP] deploy_odoo: when -G is omitted, the default git organization
+  (ODOO_GIT_ORGID, else oca) is now cloned via git protocol by default
+
 2.1.0 (2026-07-10)
 ~~~~~~~~~~~~~~~~~~
 
