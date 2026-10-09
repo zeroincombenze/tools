@@ -15,7 +15,7 @@ from odoo.exceptions import UserError   # pylint: disable=import-error
 _logger = logging.getLogger(__name__)
 
 
-def check_4_depending(cr):
+def check_4_depending(cr_or_env):
     """check_4_depending v2.0.26
     This function check for valid modules which current module depends on.
     Usually Odoo checks for depending on, through "depends" field in the manifest, but
