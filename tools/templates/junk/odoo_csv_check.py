@@ -18,6 +18,7 @@ Uso:
 import argparse
 import configparser
 import csv
+import fnmatch
 import json
 import os
 import re
@@ -31,7 +32,7 @@ try:  # facoltativo: verifica delle partite IVA estere
 except ImportError:
     get_cc_module = None
 
-__version__ = "18.0.0.1.0"
+__version__ = "18.0.0.1.1"
 
 # Nome file conforme alla specifica (il separatore prima della data può
 # essere "_" o "-"); i nomi che non lo rispettano vengono segnalati.
@@ -99,6 +100,8 @@ PUBLIC_EMAIL_DOMAINS = (
 )
 # Campi partita IVA e campo del paese usato per validarla (come base_vat)
 VAT_FIELDS = ("vat",)
+# Codice IVA (posizione fiscale) riportato nell'elenco di [vat_match]
+FISCAL_POSITION_FIELD = "property_account_position_id"
 COUNTRY_FIELD = "country_id"
 RE_VAT_PREFIX = re.compile(r"^([A-Za-z]{2})(.+)$")
 # Codice fiscale: l10n_it_codice_fiscale (Odoo), fiscalcode (OCA l10n_it_fiscalcode)
@@ -151,7 +154,8 @@ FIELD_HEADERS = {
 class Issue:
     """Segnalazione; detail è un'informazione aggiuntiva (es. i record
     suggeriti) che nel PDF non viene raggruppata né abbreviata"""
-    __slots__ = ("row", "field", "base", "detail", "message", "value", "searched")
+    __slots__ = ("row", "field", "base", "detail", "message", "value", "searched",
+                 "ref", "pinned")
 
     def __init__(self, row, field, message, detail="", value="", searched=False):
         self.row = row
@@ -161,6 +165,13 @@ class Issue:
         self.value = value  # valore della cella segnalata
         self.searched = searched  # detail viene dalla ricerca alternativa
         self.message = "%s; %s" % (message, detail) if detail else message
+        self.ref = ""  # codice del record ([row_ref]) per correggere l'origine
+        self.pinned = False  # colonna di [row_ref]: codice anche nei gruppi del PDF
+
+    @property
+    def label(self):
+        """Riga con il codice del record, se noto: 198 (C  1904)"""
+        return "%s (%s)" % (self.row, self.ref) if self.ref else str(self.row)
 
 
 class FileResult:
@@ -368,6 +379,48 @@ class Config:
                 model, _sep, field = key.rpartition(".")
                 if model and field:
                     self.ref_values[(model, field)] = split_list(values)
+        # [unique_only] {NOME} = colonne: il file viene controllato solo per
+        # i valori ripetuti in ciascuna colonna (nessun altro controllo)
+        self.unique_only = {}
+        if cp.has_section("unique_only"):
+            for name, cols in cp.items("unique_only"):
+                self.unique_only[name] = split_list(cols)
+        # [alias] pattern = {NOME} di dirmap: i file il cui {NOME} corrisponde
+        # al pattern (glob, come filename_pattern dell'importatore) usano quella
+        # mappatura; vale prima di prefix_match
+        self.alias = []
+        if cp.has_section("alias"):
+            for pattern, name in cp.items("alias"):
+                self.alias.append((pattern.upper(), name.strip()))
+        # [row_ref] {NOME} = colonna codice: colonne; gli errori sulle colonne
+        # indicate riportano accanto alla riga il codice del record
+        self.row_ref = {}
+        if cp.has_section("row_ref"):
+            for name, value in cp.items("row_ref"):
+                code, _sep, cols = value.partition(":")
+                if code.strip() and cols.strip():
+                    self.row_ref[name] = (code.strip(), split_list(cols))
+        # [unique] {NOME} = colonne: nessuna riga con la stessa combinazione
+        # di valori di tutte le colonne indicate (oltre agli altri controlli)
+        self.unique = {}
+        if cp.has_section("unique"):
+            for name, cols in cp.items("unique"):
+                self.unique[name] = split_list(cols)
+        # [requires] {NOME}.colonna = colonne che devono avere un valore nelle
+        # righe in cui la colonna ha un valore
+        self.requires = {}
+        if cp.has_section("requires"):
+            for key, cols in cp.items("requires"):
+                name, _sep, col = key.rpartition(".")
+                if name and col:
+                    self.requires.setdefault(name, {})[col] = split_list(cols)
+        # [vat_match] {NOME} = altri {NOME}: elenco dei record con la stessa
+        # partita IVA nei due file (es. cliente e fornitore importati come due
+        # partner distinti); non sono errori, hanno una sezione propria
+        self.vat_match = {}
+        if cp.has_section("vat_match"):
+            for name, others in cp.items("vat_match"):
+                self.vat_match[name] = split_list(others)
         self.selections = {}
         if cp.has_section("selection"):
             for key, values in cp.items("selection"):
@@ -563,10 +616,14 @@ class Mappings:
                     parse_selection(cell(row, "selection")))
         return fields
 
-    def resolve(self, name, prefix_match=True):
-        """Restituisce (chiave dirmap, associato per prefisso) per un {NOME}"""
+    def resolve(self, name, prefix_match=True, alias=()):
+        """Restituisce (chiave dirmap, associato per alias o prefisso) per un
+        {NOME}"""
         if name in self.dirmaps:
             return name, False
+        for pattern, key in alias:
+            if key in self.dirmaps and fnmatch.fnmatchcase(name.upper(), pattern):
+                return key, True
         if prefix_match:
             candidates = [d for d in self.dirmaps if name.startswith(d + "_")]
             if candidates:
@@ -694,7 +751,7 @@ class Checker:
         self._row = None  # riga in esame: {colonna: valore} e mappature
         self._models_with_data = set()
         self.dirmap_of = {
-            name: maps.resolve(name, cfg.prefix_match) for name in files}
+            name: maps.resolve(name, cfg.prefix_match, cfg.alias) for name in files}
 
     def model_of(self, name):
         key = self.dirmap_of[name][0]
@@ -703,9 +760,19 @@ class Checker:
     def key_columns(self, name, model):
         key = self.dirmap_of[name][0]
         cols = split_list(self.maps.dirmaps[key].pk) if key else []
-        for extra in (self.cfg.keys.get(model, []), self.cfg.keys.get(name, [])):
+        for extra in (self.cfg.keys.get(model, []), self.cfg.keys.get(key, []),
+                      self.cfg.keys.get(name, [])):
             cols += [c for c in extra if c not in cols]
         return cols
+
+    def option(self, section, result, field):
+        """Valore di una sezione per {NOME}.campo: nome del file, poi {NOME}
+        di dirmap a cui è associato (alias o prefisso), poi modello.campo"""
+        key = self.dirmap_of[result.name][0]
+        for owner in (result.name, key, result.model):
+            if owner and (owner, field) in section:
+                return section[(owner, field)]
+        return None
 
     def norm_key(self, value):
         value = value.strip()
@@ -791,6 +858,66 @@ class Checker:
                             address.split("@")[1], []).append(record)
                 for vat in {normalize_vat(row.get(c, "")) for c in vat_cols} - {""}:
                     index["vat"].setdefault(vat, []).append(record)
+
+    def read_vat_rows(self, wanted):
+        """Righe del file {NOME} (nome o NOME di dirmap) con partita IVA:
+        (colonna chiave, colonna IVA, colonna nome, colonna codice IVA,
+        [(chiave, IVA, IVA normalizzata, nome, codice IVA)]); None se il file
+        non c'è"""
+        name = next((n for n in sorted(self.files) if n == wanted), None) or next(
+            (n for n in sorted(self.files) if self.dirmap_of[n][0] == wanted), None)
+        if not name:
+            return None
+        key = self.dirmap_of[name][0]
+        cols = self.maps.columns.get(key, {}) if key else {}
+        pk_cols = split_list(self.maps.dirmaps[key].pk) if key else []
+        id_col = pk_cols[0] if pk_cols else ""
+        vat_col = next((c for c, mp in cols.items() if mp.field in VAT_FIELDS), "")
+        name_col = next((c for c, mp in cols.items() if mp.field == NAME_FIELD), "")
+        fpos_col = next(
+            (c for c, mp in cols.items() if mp.field == FISCAL_POSITION_FIELD), "")
+        rows = []
+        header = None
+        for _lineno, values, error in read_data_file(self.files[name], self.cfg.encoding):
+            if header is None:
+                header = [normalize_header(h) for h in values]
+                continue
+            if error or len(values) != len(header):
+                continue
+            row = dict(zip(header, (unquote(v) for v in values)))
+            vat = normalize_vat(row.get(vat_col, ""))
+            if vat:
+                rows.append((row.get(id_col, ""), row[vat_col], vat,
+                             row.get(name_col, ""), row.get(fpos_col, "")))
+        return id_col, vat_col, name_col, fpos_col, rows
+
+    def vat_matches(self):
+        """[vat_match]: tabelle [(titolo, intestazione, righe)] dei record
+        con la stessa partita IVA: chiave, IVA e codice IVA dei due file,
+        nome del primo"""
+        tables = []
+        for name, others in self.cfg.vat_match.items():
+            source = self.read_vat_rows(name)
+            if source is None:
+                continue
+            id_col, vat_col, name_col, fpos_col, rows = source
+            for other in others:
+                target = self.read_vat_rows(other)
+                if target is None:
+                    continue
+                index = {}
+                for rec in target[4]:
+                    index.setdefault(rec[2], []).append(rec)
+                header = ["%s %s" % (name, id_col), "%s %s" % (name, vat_col),
+                          "%s %s" % (name, fpos_col),
+                          "%s %s" % (other, target[0]), "%s %s" % (other, target[1]),
+                          "%s %s" % (other, target[3]),
+                          "%s %s" % (name, name_col)]
+                found = [[code, vat, fpos, ocode, ovat, ofpos, desc]
+                         for code, vat, norm, desc, fpos in rows
+                         for ocode, ovat, _norm, _desc, ofpos in index.get(norm, [])]
+                tables.append(("Partita IVA in %s e %s" % (name, other), header, found))
+        return tables
 
     def add_insert_issues(self, results):
         """Aggiunge al file collegato ([ref_insert]) i record da inserire, uno
@@ -943,6 +1070,9 @@ class Checker:
         key, by_prefix = self.dirmap_of[name]
         model = self.model_of(name)
         result = FileResult(name, path, model)
+        unique = self.cfg.unique_only.get(name) or self.cfg.unique_only.get(key)
+        if unique:
+            return self.check_unique(path, unique, result)
         if name in self.nonconforming:
             result.issues.append(Issue(
                 "-", "-",
@@ -960,6 +1090,11 @@ class Checker:
         columns = self.maps.columns.get(key, {}) if key else {}
         if key and not columns:
             result.issues.append(Issue("-", "-", "Nessuna colonna in mapper per %s" % key))
+        unique = self.cfg.unique.get(name) or self.cfg.unique.get(key) or []
+        requires = self.cfg.requires.get(name) or self.cfg.requires.get(key) or {}
+        ref_code, ref_cols = (self.cfg.row_ref.get(name) or self.cfg.row_ref.get(key)
+                              or ("", []))
+        seen = {}  # combinazione normalizzata di [unique] -> prima riga
         header = None
         for lineno, values, error in read_data_file(path, self.cfg.encoding):
             if header is None:
@@ -967,18 +1102,106 @@ class Checker:
                 self.check_header(lineno, header, columns, result)
                 if key:
                     self.check_pk(lineno, header, key, result)
+                for col in unique + [c for c in requires if c not in unique]:
+                    if col not in header:
+                        result.issues.append(Issue(
+                            lineno, col, "Colonna di [%s] assente nel file"
+                            % ("unique" if col in unique else "requires")))
                 continue
             result.records += 1
             if error:
                 issues = [Issue(lineno, "-", error)]
             else:
                 issues = self.check_row(lineno, header, values, columns, result)
+                if len(values) == len(header):
+                    row = dict(zip(header, (unquote(v) for v in values)))
+                    issues += self.check_requires(lineno, row, requires)
+                    issues += self.check_unique_cols(lineno, row, unique, seen)
+                    if row.get(ref_code):
+                        for issue in issues:
+                            issue.ref = row[ref_code]
+                            issue.pinned = issue.field in ref_cols
             if issues:
                 result.bad_records += 1
                 result.issues.extend(issues)
         if header is None:
             result.issues.append(Issue("-", "-", "File vuoto"))
         return result
+
+    def check_unique(self, path, unique, result):
+        """[unique_only]: nessun valore ripetuto in ciascuna delle colonne
+        indicate; il file non viene controllato in altro modo"""
+        header = None
+        seen = {}  # colonna -> {valore normalizzato: prima riga}
+        for lineno, values, error in read_data_file(path, self.cfg.encoding):
+            if header is None:
+                header = [normalize_header(h) for h in values]
+                for col in unique:
+                    if col not in header:
+                        result.issues.append(Issue(
+                            lineno, col, "Colonna da controllare per duplicati "
+                            "assente nel file"))
+                continue
+            result.records += 1
+            if error:
+                issues = [Issue(lineno, "-", error)]
+            elif len(values) != len(header):
+                issues = [Issue(
+                    lineno, "-",
+                    "Numero colonne %d diverso dall'intestazione (%d)"
+                    % (len(values), len(header)))]
+            else:
+                issues = []
+                for col in unique:
+                    if col not in header:
+                        continue
+                    value = unquote(values[header.index(col)])
+                    if not value:
+                        continue
+                    first = seen.setdefault(col, {}).setdefault(
+                        self.norm_key(value), lineno)
+                    if first != lineno:
+                        issues.append(Issue(
+                            lineno, col, "Valore '%s' duplicato (già alla riga %s)"
+                            % (value, first), value=value))
+            if issues:
+                result.bad_records += 1
+                result.issues.extend(issues)
+        if header is None:
+            result.issues.append(Issue("-", "-", "File vuoto"))
+        return result
+
+    def check_unique_cols(self, lineno, row, unique, seen):
+        """[unique]: la combinazione dei valori delle colonne non deve
+        ripetersi in altre righe del file (righe con tutte vuote escluse)"""
+        if not unique or not all(col in row for col in unique):
+            return []
+        values = [row[col] for col in unique]
+        if not any(values):
+            return []
+        first = seen.setdefault(
+            tuple(self.norm_key(v) for v in values), lineno)
+        if first == lineno:
+            return []
+        combo = ", ".join("%s='%s'" % (c, v) for c, v in zip(unique, values))
+        return [Issue(
+            lineno, "+".join(unique),
+            "Combinazione duplicata (già alla riga %s): %s" % (first, combo))]
+
+    @staticmethod
+    def check_requires(lineno, row, requires):
+        """[requires]: se la colonna ha un valore, anche le colonne
+        indicate devono averlo"""
+        issues = []
+        for col, needed in requires.items():
+            if not row.get(col):
+                continue
+            for other in needed:
+                if other in row and not row[other]:
+                    issues.append(Issue(
+                        lineno, other, "Valore mancante: obbligatorio se %s "
+                        "è impostato ('%s')" % (col, row[col]), value=row[col]))
+        return issues
 
     def check_header(self, lineno, header, columns, result):
         seen = set()
@@ -1071,8 +1294,7 @@ class Checker:
             msg = self.check_ref_suffix(mapping, value, result)
             if msg:
                 return msg  # la causa è il suffisso: niente ricerca del riferimento
-            parent_field = (self.cfg.ref_child_email.get((result.name, mapping.field))
-                            or self.cfg.ref_child_email.get((result.model, mapping.field)))
+            parent_field = self.option(self.cfg.ref_child_email, result, mapping.field)
             if parent_field:  # riferimenti per e-mail ai contatti figli
                 return self.check_child_emails(parent_field, value, result)
             refs = split_refs(value) if ttype in X2MANY_TYPES else [value]
@@ -1102,7 +1324,8 @@ class Checker:
         suffisso indicato (es. le categorie prodotto foglia con '.')"""
         suffix = self.cfg.ref_suffix.get(mapping.relation)
         # esclusione per nome esatto del file (CONTATTI non esclude CONTATTI_SUPPLIERS)
-        if not suffix or result.name in self.cfg.ref_suffix_exclude:
+        if not suffix or {result.name, self.dirmap_of[result.name][0]} & \
+                self.cfg.ref_suffix_exclude:
             return None
         refs = split_refs(value) if mapping.ttype in X2MANY_TYPES else [value]
         bad = [r for r in refs if not r.endswith(suffix)]
@@ -1125,8 +1348,7 @@ class Checker:
                     "le chiavi (%s; aggiungerlo a [external] se già in Odoo)"
                     % relation))
             return None
-        only = (self.cfg.ref_files.get((result.name, mapping.field))
-                or self.cfg.ref_files.get((result.model, mapping.field)))
+        only = self.option(self.cfg.ref_files, result, mapping.field)
         if only:  # solo le chiavi dei file indicati in [ref_files]
             cache_key = tuple(only)
             if cache_key not in self._only_keys:
@@ -1138,13 +1360,11 @@ class Checker:
             keys = self.ref_keys.get(relation, set())
             sources = sorted(self.ref_files.get(relation, []))
         missing = [r for r in refs if self.norm_key(r) not in keys]
-        allowed = (self.cfg.ref_values.get((result.name, mapping.field))
-                   or self.cfg.ref_values.get((result.model, mapping.field)))
+        allowed = self.option(self.cfg.ref_values, result, mapping.field)
         if missing and allowed:  # valori sempre validi di [ref_values]
             allowed = {self.norm_key(x) for x in allowed}
             missing = [r for r in missing if self.norm_key(r) not in allowed]
-        target = (self.cfg.ref_insert.get((result.name, mapping.field))
-                  or self.cfg.ref_insert.get((result.model, mapping.field)))
+        target = self.option(self.cfg.ref_insert, result, mapping.field)
         if missing and target:
             # non è un errore di questo file: record da inserire nel file collegato
             self._insert_model[target] = relation
@@ -1380,8 +1600,19 @@ def md_cell(value):
     return str(value).replace("|", "\\|").replace("\n", " ")
 
 
-def write_md(path, run_time, results, skipped):
-    out = ["# Controllo file CSV per Odoo 18.0", ""]
+def md_anchor(title):
+    """Ancora di un titolo come la calcola GitHub / GitLab"""
+    return re.sub(r"[^\w\- ]", "", title.strip().lower()).replace(" ", "-")
+
+
+def write_md(path, run_time, results, skipped, matches=()):
+    out = ["# Controllo file CSV per Odoo 18.0", "", "## Indice", ""]
+    titles = (["Riepilogo file"] + [t for t, _h, _r in matches]
+              + [os.path.basename(r.path) for r in results])
+    if skipped:
+        titles.append("File non esaminati")
+    out += ["- [%s](#%s)" % (md_cell(t), md_anchor(t)) for t in titles]
+    out.append("")
     out += ["| Voce | Valore |", "|---|---|"]
     out += ["| %s | %s |" % (k, md_cell(v)) for k, v in summary_rows(run_time, results)]
     out += ["", "## Riepilogo file", "",
@@ -1390,6 +1621,13 @@ def write_md(path, run_time, results, skipped):
         out.append("| %s | %s | %d | %d | %s |" % (
             md_cell(os.path.basename(r.path)), r.model or "-",
             r.records, r.bad_records, fmt_pct(r.valid_pct)))
+    for title, header, rows in matches:
+        out += ["", "## %s" % title, "",
+                "Record con la stessa partita IVA: %d" % len(rows), ""]
+        if rows:
+            out += ["| %s |" % " | ".join(md_cell(c) for c in header),
+                    "|%s" % ("---|" * len(header))]
+            out += ["| %s |" % " | ".join(md_cell(c) for c in row) for row in rows]
     for r in results:
         out += ["", "## %s" % os.path.basename(r.path), "",
                 "- Nome completo: `%s`" % r.path,
@@ -1399,7 +1637,8 @@ def write_md(path, run_time, results, skipped):
                 "- Percentuale record validi: %s" % fmt_pct(r.valid_pct), ""]
         if r.issues:
             out += ["| Riga | Campo | Errore |", "|--:|---|---|"]
-            out += ["| %s | %s | %s |" % (i.row, md_cell(i.field), md_cell(i.message))
+            out += ["| %s | %s | %s |" % (md_cell(i.label), md_cell(i.field),
+                                          md_cell(i.message))
                     for i in r.issues]
         else:
             out.append("Nessuna segnalazione.")
@@ -1410,7 +1649,7 @@ def write_md(path, run_time, results, skipped):
         fd.write("\n".join(out) + "\n")
 
 
-def report_sheets(run_time, results, skipped):
+def report_sheets(run_time, results, skipped, matches=()):
     """Contenuto del report come fogli: [(nome, [righe])]"""
     summary = [["Voce", "Valore"]] + [list(x) for x in summary_rows(run_time, results)]
     summary += [[], ["File", "Nome completo", "Modello", "Record esaminati",
@@ -1419,17 +1658,21 @@ def report_sheets(run_time, results, skipped):
         summary.append([os.path.basename(r.path), r.path, r.model or "-",
                         r.records, r.bad_records,
                         "" if r.valid_pct is None else r.valid_pct])
-    errors = [["File", "Riga", "Campo", "Errore"]]
+    errors = [["File", "Riga", "Codice", "Campo", "Errore"]]
     for r in results:
         for i in r.issues:
-            errors.append([os.path.basename(r.path), i.row, i.field, i.message])
-    sheets = [("Riepilogo", summary), ("Errori", errors)]
+            errors.append([os.path.basename(r.path), i.row, i.ref, i.field, i.message])
+    # nome del foglio: al massimo 31 caratteri
+    sheets = ([("Riepilogo", summary)]
+              + [(title.replace("Partita IVA in ", "IVA ").replace(" e ", "-")[:31],
+                  [header] + rows) for title, header, rows in matches]
+              + [("Errori", errors)])
     if skipped:
         sheets.append(("Non esaminati", [["File", "Motivo"]] + [list(x) for x in skipped]))
     return sheets
 
 
-def write_xlsx(path, run_time, results, skipped):
+def write_xlsx(path, run_time, results, skipped, matches=()):
     try:
         import openpyxl
         from openpyxl.styles import Font
@@ -1438,7 +1681,7 @@ def write_xlsx(path, run_time, results, skipped):
                          "in alternativa usare .ods o .md")
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
-    for title, rows in report_sheets(run_time, results, skipped):
+    for title, rows in report_sheets(run_time, results, skipped, matches):
         ws = wb.create_sheet(title)
         for row in rows:
             ws.append(row)
@@ -1450,7 +1693,7 @@ def write_xlsx(path, run_time, results, skipped):
     wb.save(path)
 
 
-def write_ods(path, run_time, results, skipped):
+def write_ods(path, run_time, results, skipped, matches=()):
     """Scrive un .ods (OpenDocument) senza dipendenze esterne"""
     def cell(value):
         if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -1460,7 +1703,7 @@ def write_ods(path, run_time, results, skipped):
                 '</table:table-cell>' % escape(str(value)))
 
     tables = []
-    for title, rows in report_sheets(run_time, results, skipped):
+    for title, rows in report_sheets(run_time, results, skipped, matches):
         xml = ['<table:table table:name="%s">' % escape(title)]
         for row in rows:
             xml.append("<table:table-row>%s</table:table-row>"
@@ -1513,6 +1756,7 @@ td.n, th.n { text-align: right; white-space: nowrap; }
 .bad { color: #b3261e; font-weight: bold; }
 .small { font-size: 8pt; color: #555; word-break: break-all; }
 .rows { font-size: 8pt; color: #555; }
+.nb { white-space: pre; }
 .hint { font-size: 8pt; font-style: italic; color: #1f4e79; margin-top: 2pt; }
 tr.grp td { background: #e8eef7; border-top: 1pt solid #2b5797; padding: 4pt 5pt;
             page-break-after: avoid; }
@@ -1549,7 +1793,7 @@ def group_issues(issues):
     for (field, template), items in list(groups.items()):
         if len(items) == 1:
             issue = items[0]
-            single.setdefault((template, issue.row, issue.detail),
+            single.setdefault((template, issue.label, issue.detail),
                               [[], issue.base])[0].append(field)
             del groups[(field, template)]
     result = []
@@ -1561,7 +1805,7 @@ def group_issues(issues):
             # nel PDF solo i suggerimenti che indicano dei record
             detail = ("" if "nessun record" in issue.detail and " riga " not in issue.detail
                       else issue.detail)
-            entries.setdefault((value, detail), []).append(issue.row)
+            entries.setdefault((value, detail), []).append(issue)
         voci = sorted(((compress_rows(rows), value, detail)
                        for (value, detail), rows in entries.items()),
                       key=lambda v: first_row(v[0]))
@@ -1578,8 +1822,17 @@ def first_row(rows):
     return int(match.group()) if match else 0
 
 
-def compress_rows(rows):
-    """[3, 4, 5, 9, '-'] -> '3-5, 9, -' (trattino non divisibile)"""
+def compress_rows(items):
+    """righe (numeri o Issue) [3, 4, 5, 9, '-'] -> '3-5, 9, -' (trattino non
+    divisibile); le righe con il codice del record ([row_ref]) restano
+    singole: '7 (C  12)'; il codice compare per le colonne di [row_ref] e
+    quando la voce ha una sola riga"""
+    issues = [i for i in items if isinstance(i, Issue)]
+    alone = len({i.row for i in issues}) == 1
+    labels = {i.row: i.label for i in issues
+              if i.ref and (i.pinned or alone) and isinstance(i.row, int)}
+    rows = [i.row for i in issues if i.row not in labels]
+    rows += [r for r in items if not isinstance(r, Issue)]
     nums = sorted({r for r in rows if isinstance(r, int)})
     parts = []
     ix = 0
@@ -1589,15 +1842,24 @@ def compress_rows(rows):
             end += 1
         parts.append(str(nums[ix]) if end == ix else "%d\u2011%d" % (nums[ix], nums[end]))
         ix = end + 1
+    parts += [labels[r] for r in labels]
+    parts.sort(key=first_row)
     others = sorted({str(r) for r in rows if not isinstance(r, int)})
     return ", ".join(parts + others)
+
+
+def pdf_rows(rows):
+    """Elenco righe per il PDF: ogni 'riga (codice)' non va a capo e
+    conserva gli spazi interni del codice"""
+    return ", ".join("<span class='nb'>%s</span>" % escape(r) if " (" in r
+                     else escape(r) for r in rows.split(", "))
 
 
 def pdf_hint(detail):
     return "<div class='hint'>%s</div>" % escape(detail) if detail else ""
 
 
-def write_pdf(path, run_time, results, skipped):
+def write_pdf(path, run_time, results, skipped, matches=()):
     """Scrive un PDF tramite wkhtmltopdf (lo stesso usato da Odoo)"""
     import shutil
     import subprocess
@@ -1634,6 +1896,15 @@ def write_pdf(path, run_time, results, skipped):
                pct_class(r.valid_pct), fmt_pct(r.valid_pct), len(r.issues),
                h(r.model or "-")))
     out.append("</tbody></table>")
+    for title, header, rows in matches:
+        out += ["<h2>%s</h2>" % h(title),
+                "<div class='meta'>Record con la stessa partita IVA: %d</div>" % len(rows)]
+        if rows:
+            out.append("<table><thead><tr>%s</tr></thead><tbody>"
+                       % "".join("<th>%s</th>" % h(c) for c in header))
+            out += ["<tr>%s</tr>" % "".join("<td>%s</td>" % h(c) for c in row)
+                    for row in rows]
+            out.append("</tbody></table>")
     for r in results:
         out += [
             "<h2>%s</h2>" % h(os.path.basename(r.path)),
@@ -1661,7 +1932,7 @@ def write_pdf(path, run_time, results, skipped):
                 rows, _value, detail = voci[0]
                 out.append(
                     "<tr class='one'><td class='rows'>%s</td><td>%s</td><td>%s%s</td></tr>"
-                    % (h(rows), h(field), h(full), pdf_hint(detail)))
+                    % (pdf_rows(rows), h(field), h(full), pdf_hint(detail)))
                 continue
             # sottotitolo: campo, messaggio e numero di record
             note = ("<div class='hint'>Ricerca alternativa per e-mail, partita IVA "
@@ -1676,7 +1947,7 @@ def write_pdf(path, run_time, results, skipped):
                 # attraversa il cambio pagina viene tagliata da wkhtmltopdf
                 parts = rows.split(", ")
                 for ix in range(0, len(parts), PDF_ROWS_PER_CELL):
-                    chunk = h(", ".join(parts[ix:ix + PDF_ROWS_PER_CELL]))
+                    chunk = pdf_rows(", ".join(parts[ix:ix + PDF_ROWS_PER_CELL]))
                     cell = ("<span class='small'>(segue)</span>" if ix else
                             "%s%s" % ("<span class='val'>%s</span>" % h(value) if value
                                       else "<span class='small'>(vuoto)</span>",
@@ -1695,16 +1966,18 @@ def write_pdf(path, run_time, results, skipped):
             "w", suffix=".html", encoding="utf-8", delete=False) as fd:
         fd.write("\n".join(out))
         html = fd.name
+    footer = ["--footer-font-size", "7", "--footer-right", "Pagina [page] di [topage]",
+              "--footer-left", "Controllo CSV Odoo 18.0 - %s"
+              % run_time.strftime("%d/%m/%Y %H:%M")]
     try:
         proc = subprocess.run(
             [wkhtmltopdf, "--quiet", "--encoding", "utf-8",
              "--page-size", "A4", "--orientation", "Landscape",
              "--margin-top", "12mm", "--margin-bottom", "14mm",
-             "--margin-left", "10mm", "--margin-right", "10mm",
-             "--footer-font-size", "7", "--footer-right", "Pagina [page] di [topage]",
-             "--footer-left", "Controllo CSV Odoo 18.0 - %s"
-             % run_time.strftime("%d/%m/%Y %H:%M"),
-             html, path],
+             "--margin-left", "10mm", "--margin-right", "10mm"]
+            # indice con i numeri di pagina, generato dai titoli h1/h2
+            + ["toc", "--toc-header-text", "Indice"] + footer
+            + [html] + footer + [path],
             capture_output=True, text=True)
     finally:
         os.unlink(html)
@@ -1747,10 +2020,13 @@ def main(argv=None):
     checker.collect_keys()
     results = [checker.check_file(name, files[name]) for name in sorted(files)]
     checker.add_insert_issues(results)
-    writer(report, run_time, results, skipped)
+    matches = checker.vat_matches()
+    writer(report, run_time, results, skipped, matches)
 
     for label, value in summary_rows(run_time, results):
         print("%-28s %s" % (label + ":", value))
+    for title, _header, rows in matches:
+        print("%-28s %d" % (title + ":", len(rows)))
     print("Report: %s" % report)
     return 1 if any(r.issues for r in results) else 0
 

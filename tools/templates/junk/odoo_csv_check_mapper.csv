@@ -191,8 +191,10 @@
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE","partner_id","DSCAGENTE",,,"0",,"Agente assegnato"
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","embyon_code","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo: OBBLIGATORIO, inserire hash se necessario"
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","agent_ids","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","agent_ids","CODCONTO_FOR",,,"0",,"Codici fornitore (embyon2_code) degli agenti, separati da virgola, paralleli a DSCAGENTE"
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","zip","CAP",,,"0",,
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","assignment_id","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","assignment_id","CODCONTO_FOR",,,"0",,"Codice fornitore (embyon2_code) dell'agente: assegnazione di ASSEGNAZIONE_AGENTE"
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","country_id","NAZIONE",,,"0",,
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","category_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
 "mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","state_ids","PROVINCIA",,,"0",,

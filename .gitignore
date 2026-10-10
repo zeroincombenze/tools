@@ -69,6 +69,10 @@ logs/
 .vs/
 .vscode
 
+# Claude Ai
+.claude
+CLAUDE.md
+
 # OSX Files
 .DS_Store
 
@@ -121,6 +125,7 @@ stdout.log
 /arcangelo/dist/
 /arcangelo/arcangelo/docs/_build/
 /clodoo/build/
+/clodoo/dist/
 /clodoo/clodoo/docs/_build/
 /lisa/lisa/docs/_build/
 /odoo_score/build/
@@ -128,20 +133,17 @@ stdout.log
 /python_plus/build/
 /python_plus/dist/
 /python_plus/python_plus/docs/_build/
-/travis_emulator/build/
+/travis_emulator/dist/
 /travis_emulator/travis_emulator/docs/_build/
 /wok_code/build/
+/wok_code/dist/
 /wok_code/wok_code/docs/_build/
 /z0bug_odoo/build/
-/z0bug_odoo/dist/
 /z0bug_odoo/z0bug_odoo/docs/_build/
 /z0lib/build/
-/z0lib/dist/
 /z0lib/z0lib/docs/_build/
 /zar/build/
-/zar/dist/
 /zar/zar/docs/_build/
 /zerobug/build/
-/zerobug/dist/
 /zerobug/zerobug/docs/_build
 !static/lib/
