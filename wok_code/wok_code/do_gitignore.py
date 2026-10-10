@@ -23,35 +23,38 @@ def do_create_gitignore(path, submodules):
         trig = ""
         for line in fd.read().split("\n"):
             found = line.startswith("!")
-            if trig == "odoo":
-                for x in submodules:
-                    if x == line:
-                        found = True
-                        break
-            elif trig == "pypi":
+            if trig:
                 pypath = os.path.join(*[path] + [x for x in line.split("/") if x])
-                if (
-                    # "/docs/_build/" not in line
-                    ".egg-info/" not in line
-                    and os.path.isdir(pypath)
-                ):
-                    found = True
-            if not trig or found:
+                if os.path.isdir(pypath):
+                    if trig == "odoo":
+                        for x in submodules:
+                            if x == line:
+                                found = True
+                                break
+                    elif trig == "pypi":
+                        if (
+                            "/docs/_build/" in line or ".egg-info/" not in line
+                        ):
+                            found = True
+            if not trig or found or line.startswith("#"):
                 target += "%s\n" % line
             if line.startswith("# odoo repositories"):
                 trig = "odoo"
             if line.startswith("# tools building path"):
                 trig = "pypi"
     if target:
-        ffn = os.path.join(path, ".gitignore")
-        bakfile = "%s~" % ffn
-        if os.path.isfile(bakfile):
-            os.remove(bakfile)
-        if os.path.isfile(ffn):
-            os.rename(ffn, bakfile)
-        with open(ffn, "w") as fd:
-            fd.write(target)
-            print("Created file %s" % ffn)
+        with open(template, "r") as fd:
+            source = fd.read()
+        if target != source:
+            ffn = os.path.join(path, ".gitignore")
+            bakfile = "%s~" % ffn
+            if os.path.isfile(bakfile):
+                os.remove(bakfile)
+            if os.path.isfile(ffn):
+                os.rename(ffn, bakfile)
+            with open(ffn, "w") as fd:
+                fd.write(target)
+                print("Created file %s" % ffn)
 
 
 def main(argv=None):

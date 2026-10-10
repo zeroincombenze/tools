@@ -121,6 +121,7 @@ stdout.log
 *.z0i
 #
 # tools building path
+#
 /arcangelo/build/
 /arcangelo/dist/
 /arcangelo/arcangelo/docs/_build/
@@ -146,4 +147,7 @@ stdout.log
 /zar/zar/docs/_build/
 /zerobug/build/
 /zerobug/zerobug/docs/_build
+#
+# odoo repositories
+#
 !static/lib/
