@@ -13,6 +13,7 @@ import ast
 import os
 import re
 import sys
+import platform
 from subprocess import PIPE, Popen
 
 try:
@@ -116,7 +117,7 @@ REQVERSION = {
         "12.0": "PYVER",
         "3.6": "==2.10.1",
         "3.8": ">=2.11.2,<=2.11.3",
-        "3.10": "==3.1.2",
+        "3.9": "==3.1.2",
     },
     "jupyter-server": {"0": "<1.20.0"},
     "lessc": {"0": ">=3.0.0"},
@@ -133,7 +134,8 @@ REQVERSION = {
         "3.7": ">=4.2.3,<=4.6.5",
         "3.8": ">=4.6.1,<=4.6.5",
         "3.10": "==4.9.2",
-        "3.12": "==5.2.1"
+        "3.12": "==5.2.1",
+        "3.13": "lxml>=5.3,<6",
     },
     "mccabe": {"0": "<0.7.0,>=0.6.0", "3.8": "<0.8.0,>=0.7.0"},
     "Mako": {
@@ -145,7 +147,7 @@ REQVERSION = {
         "14.0": "==1.1.0",
         "15.0": "PYVER",
         "3.8":  ">=1.1.0,<=1.1.1",
-        "3.10":  "==2.1.2",
+        "3.9":  "==2.1.2",
         "3.12":  "==2.1.5",
     },  # Tested 1.0
     "matplotlib": {
@@ -322,7 +324,8 @@ REQVERSION = {
         "15.0": "PYVER",
         "3.7": ">=2.0.0,<2.3.0",
         "3.8": ">=2.0.0,<3.1.0",
-        "3.9": ">=2.0.0",  # Odoo ==2.0.2
+        "3.9": ">=2.0.0,<3.1.0",
+        "3.10": ">=2.0.0",  # Odoo ==2.0.2
     },
     "wkhtmltopdf": {"6.1": "==0.12.1", "10.0": "==0.12.4", "12.0": "==0.12.5"},
     "wok_code": {"6.1": "<2.0.6", "10.0": ">=2.0.0"},
@@ -699,6 +702,21 @@ def get_naked_pkgname(pkg):
     return re.split('[!<=>@#;]', python_plus.qsplit(pkg)[0])[0].strip()
 
 
+def get_numpy_cpu_requirements():
+    cpu_flags = set()
+    if platform.system() == "Linux":
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.startswith("flags"):
+                    cpu_flags = set(line.strip().split(":")[1].split())
+                    break
+    x86_v2 = {"sse", "sse2", "sse3", "pni", "ssse3", "sse4_1", "sse4_2", "popcnt"}
+    missing = x86_v2 - cpu_flags
+    if missing in ({"sse3"}, {"pni"}):
+        missing = set()
+    return missing
+
+
 def get_odoo_majver(odoo_ver):
     return int(odoo_ver.split(".")[0]) if odoo_ver else 0
 
@@ -798,11 +816,16 @@ def name_n_version(full_item, with_version=None, odoo_ver=None, pyver=None):
     if "openupgradelib" not in item_l and item_l in ALIAS:
         full_item = full_item.replace(item, ALIAS[item_l])
         item = ALIAS[item_l]
+    if item_l == "numpy" and get_numpy_cpu_requirements():
+        full_item = item + "<2.0"
     if get_odoo_majver(odoo_ver) > 10:
         if "openupgradelib" not in item and item in ALIAS3:
             full_item = full_item.replace(item, ALIAS3[item])
             item = ALIAS3[item]
-            if item.startswith("jsonlib") and not (pyver or int(pyver.split(".")[1]) > 8):
+            if (
+                    item.startswith("jsonlib")
+                    and not (pyver or int(pyver.split(".")[1]) > 8)
+            ):
                 item = full_item = ""
     if item and (odoo_ver or pyver) and with_version:
         def_v = "0" if "0" in REQVERSION.get(item, {}) else False

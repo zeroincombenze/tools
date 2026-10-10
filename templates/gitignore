@@ -69,6 +69,10 @@ logs/
 .vs/
 .vscode
 
+# Claude Ai
+.claude
+CLAUDE.md
+
 # OSX Files
 .DS_Store
 

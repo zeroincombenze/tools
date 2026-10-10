@@ -5,41 +5,43 @@ export HOSTNAME_DEV="(pc|nb)[0-9]+(shs|z0|lx)"
 export HOSTNAME_PRO="shs[0-9]*pr[do][0-9]*"
 # HOSTNAME_PRO=shsdef16
 
+# Prompt: fg -> host production,devel,other / bg -> user / c2 -> privileged user
 if [ -n "$PS1" ]; then
-  [[ $EUID -eq 0 ]] && fg=";47"
-  [[ $HOSTNAME =~ shs ]] && c2="32" || c2="33"
-  if [[ $EUID -eq 0 ]]; then
-    fg=";47" && c2="31"
-  elif [[ $USER == "postgres" ]]; then
-    c2="34"
-  elif [[ $USER != "odoo" ]]; then
-    fg=";47"
-  fi
+  bg="40"
+  [[ $HOSTNAME =~ (shs|z0) ]] && c2="32" || c2="33"
   if [[ $HOSTNAME =~ $HOSTNAME_PRO && $HOSTNAME_DEV == $HOSTNAME_PRO ]]; then
-    # Host PRO+DEV
-    PS1="\[\033[?25h\033[1;35${fg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
-  elif [[ $HOSTNAME =~ $HOSTNAME_PRO && -z "$HOSTNAME_DEV" ]]; then
-    # Host PRO w/o DEV
-    PS1="\[\033[?25h\033[1;31${fg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
-  elif [[ $HOSTNAME =~ $HOSTNAME_DEV ]]; then
-    # Host DEV
-    PS1="\[\033[?25h\033[1;36${fg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
+    # Host PRO+DEV (MAGENTA)
+    fg="35"
   elif [[ $HOSTNAME =~ $HOSTNAME_PRO ]]; then
-    # Host PRO
-    PS1="\[\033[?25h\033[1;31${fg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
+    # Host PRO w/o DEV (RED)
+    fg="31"
+  elif [[ $HOSTNAME =~ $HOSTNAME_DEV ]]; then
+    # Host DEV (GREEN)
+    fg="32"
   else
-    # Undefined
-    PS1="\[\033[?25h\033[1;33${fg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
+    # Undefined (YELLOW)
+    fg="36"
   fi
+  if [[ $EUID -eq 0 ]]; then
+    bg="47" && c2="31"
+  elif [[ $USER =~ ^(antoniov|zeroadm|vigliotti)$ ]]; then
+    c2="31"
+  elif [[ $USER == "postgres" ]]; then
+    bg="43"
+  elif [[ $USER != "odoo" ]]; then
+    bg="45"
+    [[ $fg -eq 45 ]] && bg="43"
+  fi
+  PS1="\[\033[?25h\033[${fg};${bg}m\][\u@\h:\[\033[${c2}m\]\w]\\$\[\033[0m\] "
 fi
 
-# Postgres / odoo mapping
-# Odoo 6.1 - 7.0 -> psql-9.5: 5435
-# Odoo 7.0 - 10.0 -> psql-10: 5433
-# Odoo 10.0 - 15.0 -> psql-12: 5434
-# Odoo 16.0 - 19.0 -> psql-16: 5436
-# Odoo 18-0 - 19.0 -> psql-18: 5432 *
-alias psql-9.5='psql -p5435'
+# Postgres / odoo mapping: 2026 -> port 5432 reserved for local host default
+# Odoo 6.1 - 7.0 -> psql-9.5: 5435 (deprecated)
+# Odoo 7.0 - 10.0 -> psql-10: 5433 (default for Odoo 7.0 - 10.0)
+# Odoo 7.0 - 15.0 -> psql-12: 5434 (default for Odoo 11.0 -15.0)
+# Odoo 16.0 - 19.0 -> psql-16: 5436 (default for Odoo 16.0 - 17.0)
+# Odoo 18-0 - 19.0 -> psql-18: 5438 (default for Odoo 18.0 - 19.0)
+# alias psql-9.5='psql -p5435'
 alias psql-10='psql -p5433'
 alias psql-12='psql -p5434'
 alias psql-16='psql -p5436'
@@ -67,7 +69,7 @@ if [[ -n $PS1 ]]; then
     alias dir='dir -lh --color=auto'
 fi
 
-export ODOO_GIT_ORGID="(librerp|zero)"
-export ODOO_GIT_SHORT="(oca|librerp)"
-export npm_config_prefix="$HOME/.local"
+export ODOO_GIT_ORGID="(zero)"
+export ODOO_GIT_SHORT="(oca)"
+# export npm_config_prefix="$HOME/.local"
 umask 002

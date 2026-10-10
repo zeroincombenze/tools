@@ -72,6 +72,107 @@ XTRA_PREFIX = [
 
 ODOO_VALID_GITORGS = ("oca", "librerp", "zero", "essetech")
 
+DEFAULT_REPO = [
+    "account-analytic",
+    "account-budgeting",
+    "account-closing",
+    "account-consolidation",
+    "account-financial-reporting",
+    "account-financial-tools",
+    "account-fiscal-rule",
+    "account-invoice-reporting",
+    "account-invoicing",
+    "account-payment",
+    "account-reconcile",
+    "ai",
+    "apps-store",
+    "automation",
+    "bank-payment",
+    "bank-statement-import",
+    "brand",
+    "calendar",
+    "cim",
+    "commission",
+    "community-data-files",
+    "connector",
+    "contract",
+    "credit-control",
+    "crm",
+    "cscs_addons",
+    "currency",
+    "data-protection",
+    "ddmrp",
+    "delivery-carrier",
+    "dms",
+    "e-commerce",
+    "edi",
+    "edi-framework",
+    "e-learning",
+    "event",
+    "field-service",
+    "geospatial",
+    "helpdesk",
+    "hr",
+    "infrastructure",
+    "intrastat-extrastat",
+    "iot",
+    "knowledge",
+    "l10n-italy",
+    "l10n-italy-supplemental",
+    "maintenance",
+    "management-system",
+    "manufacture",
+    "manufacture-reporting",
+    "margin-analysis",
+    "marketplace",
+    "mgmtsystem",
+    "mis-builder",
+    "multi-company",
+    "OCB",
+    # "odoo",
+    "operating-unit",
+    "partner-contact",
+    "product-attribute",
+    "product-kitting",
+    "product-pack",
+    "product-variant",
+    "profiles",
+    "project",
+    "project-reporting",
+    "purchase-reporting",
+    "purchase-workflow",
+    "queue",
+    "reporting-engine",
+    "report-print-send",
+    "rma",
+    "sale-financial",
+    "sale-reporting",
+    "sale-workflow",
+    "search-engine",
+    "server-auth",
+    "server-backend",
+    "server-brand",
+    "server-env",
+    "server-tools",
+    "server-ux",
+    "social",
+    "stock-logistics-barcode",
+    "stock-logistics-reporting",
+    "stock-logistics-tracking",
+    "stock-logistics-transport",
+    "stock-logistics-warehouse",
+    "stock-logistics-workflow",
+    "storage",
+    "timesheet",
+    "uncovered",
+    "web",
+    "webhook",
+    "webkit-tools",
+    "website",
+    "wms",
+    "zerobug-test",
+]
+
 DEFAULT_DATA = {
     "librerp6": {
         "PATH": "~/librerp6",
@@ -82,6 +183,7 @@ DEFAULT_DATA = {
         "zerobug-test": "",
     },
 }
+
 INVALID_NAMES = [
     "build",
     "debian",
@@ -175,7 +277,10 @@ class OdooDeploy(object):
                     with open(tpath, "r") as fd:
                         stdout = fd.read()
                     return 0, stdout, ""
-        elif cmd in ("git remote -v", "git branch") and pth.isdir(".git"):
+        elif cmd.startswith("git ls-remote") or (
+                cmd in ("git remote -v", "git branch") and pth.isdir(".git")):
+            # Avoid github lock due excessive download rate
+            sleep(2 if self.opt_args.dry_run else 0.2)
             return z0lib.run_traced(
                 cmd, verbose=verbose, dry_run=False, disable_alias=True
             )
@@ -203,6 +308,17 @@ class OdooDeploy(object):
             fd.write("origin %s\n" % git_url)
 
     def __init__(self, opt_args):
+        # Never let git ask for credentials: a missing or private repo must fail,
+        # not hang waiting for the username
+        os.environ["GIT_TERMINAL_PROMPT"] = "0"
+        os.environ["GIT_ASKPASS"] = "/bin/true"
+        os.environ.setdefault("GIT_SSH_COMMAND", "ssh -oBatchMode=yes")
+        if (
+                not opt_args.git_orgs
+                and opt_args.use_git
+                and opt_args.use_git.startswith("G")
+        ):
+            raise ValueError("Wrong -g parameter!")
         opt_args.git_orgs = opt_args.git_orgs.split(",") if opt_args.git_orgs else []
         opt_args.use_git = opt_args.use_git.split(",") if opt_args.use_git else []
         opt_args.link_upstream = (
@@ -236,6 +352,8 @@ class OdooDeploy(object):
             and (not opt_args.target_path and not opt_args.config)
         ):
             opt_args.target_path = "./"
+        if opt_args.action in ("clone", "amend") and not opt_args.repos:
+            opt_args.repos = DEFAULT_REPO
         if opt_args.repos and not opt_args.target_path:
             raise ReferenceError(
                 "No path issued for declared repository %s!" % opt_args.repos
@@ -310,14 +428,20 @@ class OdooDeploy(object):
         # ODOO_GIT_ORGID may hold a shell regex like "(zero|oca)": keep 1st term
         default_git_org = re.sub(r"[()]", "", default_git_org.split("|")[0])
         print("***** Missing git orgs: %s will be used!" % default_git_org)
-        self.opt_args.git_orgs = [default_git_org]
+        if not self.opt_args.git_orgs:
+            self.opt_args.git_orgs = [default_git_org]
         if not self.opt_args.use_git:
             # Default git organization is cloned via git protocol, not https
             self.opt_args.use_git = [default_git_org]
 
     def _init_clone(self):
-        if not self.opt_args.git_orgs:
-            self.set_default_git_org()
+        self.set_default_git_org()
+        if self.opt_args.default_gitorg not in self.opt_args.git_orgs:
+            if self.opt_args.default_gitorg == "oca":
+                self.opt_args.git_orgs.append("oca")
+            else:
+                print("***** No %s git_org declared! No standard deployment"
+                      % self.opt_args.default_gitorg)
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
@@ -371,8 +495,7 @@ class OdooDeploy(object):
             self.remove_empty_repos()
 
     def _init_new_branch(self):
-        if not self.opt_args.git_orgs:
-            self.set_default_git_org()
+        self.set_default_git_org()
         self.master_branch = build_odoo_param(
             "FULLVER", odoo_vid=self.opt_args.odoo_branch
         )
@@ -874,16 +997,23 @@ class OdooDeploy(object):
             )
             if sts1 == 0 and stdout:
                 last_date, brief = stdout.split("\n")
-        sts1, stdout, stderr = self.run_traced("git status", verbose=verbose)
+        sts1, stdout, stderr = self.run_traced(
+            "git status --porcelain --branch", verbose=verbose)
         sts = sts or sts1
         if sts1 == 0:
-            git_stat = stdout
+            # Porcelain format is stable and never localized: first line is
+            # "## <branch>[...<upstream> [ahead N, behind N]]", then one line
+            # for every pending file, untracked ones included
+            lines = [ln for ln in stdout.split("\n") if ln]
+            branch_line = (
+                lines.pop(0) if lines and lines[0].startswith("##") else "")
+            git_stat = "\n".join(lines)
             stage = (
                 "staged"
                 if (
-                    "On branch" in stdout
-                    and "Your branch is up to date" in stdout
-                    and "working tree clean" in stdout
+                    "..." in branch_line  # tracked branch, not detached HEAD
+                    and "[" not in branch_line  # neither ahead nor behind
+                    and not lines  # working tree clean
                 )
                 else "unstaged"
             )
@@ -1017,7 +1147,13 @@ class OdooDeploy(object):
         except FileNotFoundError:  # noqa: F821
             # Please do not remove following code: here where current dir was removed
             self.run_traced("cd %s" % root)
-        remote_branch = branch
+        remote_branch = master_branch or branch
+        if remote_branch:
+            sts, stdout, stderr = self.run_traced(
+                "git ls-remote --heads %s %s" % (git_url, remote_branch))
+            if sts != 0 or "refs/heads/%s" % remote_branch not in stdout.split():
+                print("Repo %s %s" % (base, remote_branch))
+                return sts, remote_branch
         if branch:
             alt_branches = self.get_alt_branches(branch, master_branch=master_branch)
         else:
@@ -1043,16 +1179,16 @@ class OdooDeploy(object):
                 if not branch or "devel" in branch:
                     remote_branch = alt_branch
                 break
-            if sts and self.opt_args.verbose:
+            if sts != 0 and self.opt_args.verbose:
                 print(stdout + stderr)
-        if sts and repo in self.opt_args.link_upstream:
+        if sts != 0 and repo in self.opt_args.link_upstream:
             origin_path = pth.join(self.opt_args.origin, repo)
             if pth.isdir(origin_path):
                 sts, stdout, stderr = self.run_traced(
                     "ln -s %s %s" % (origin_path, tgtdir)
                 )
                 remote_branch = branch
-        if sts:
+        if sts != 0:
             print("Invalid branch %s" % branch)
         if sts == 0 and git_url.startswith("git") and self.opt_args.origin:
             rgit_org = False
@@ -1071,6 +1207,20 @@ class OdooDeploy(object):
                 self.set_upstream(self.opt_args.origin, repo)
         return sts, remote_branch
 
+    def git_is_dirty(self, verbose=False):
+        """Return True if index or working tree has something to stash.
+
+        Untracked files are ignored: plain "git stash" would not save them.
+        Parse the porcelain format: "git status" messages are localized.
+        """
+        sts, stdout, stderr = self.run_traced(
+            "git status --porcelain", verbose=verbose)
+        if sts != 0:
+            # Unknown state: stash as before, it is the safe behavior
+            return True
+        return any(
+            ln and not ln.startswith("??") for ln in stdout.split("\n"))
+
     def git_pull(self, repo, tgtdir=None, branch=None):
         tgtdir = self.get_path_of_repo(repo, root_path=tgtdir)
         repo_branch = self.repo_info[repo]["BRANCH"]
@@ -1079,9 +1229,10 @@ class OdooDeploy(object):
             self.run_traced("cd %s" % tgtdir)
         if pth.islink(tgtdir):
             return self.get_remote_info(short=True)
-        cmd = "git stash"
-        self.run_traced(cmd, verbose=False)
-        sleep(1)
+        if self.git_is_dirty():
+            cmd = "git stash"
+            self.run_traced(cmd, verbose=False)
+            sleep(1)
         alt_branches = self.get_alt_branches(branch, master_branch=self.master_branch)
         if repo_branch != branch and not self.opt_args.continue_after_error:
             if (
@@ -1096,7 +1247,7 @@ class OdooDeploy(object):
                 ):
                     return 1, repo_branch
             sts = self.git_checkout(repo, tgtdir, branch)
-            if sts:
+            if sts != 0:
                 return sts, repo_branch
         cmd = "git pull origin %s" % branch
         return self.run_traced(cmd)[0], repo_branch
@@ -1143,32 +1294,36 @@ class OdooDeploy(object):
                 % (repo_branch, branch)
             )
             return 1, repo_branch
-        cmd = "git stash"
-        self.run_traced(cmd, verbose=False)
-        sleep(1)
+        stashed = self.git_is_dirty()
+        if stashed:
+            cmd = "git stash"
+            self.run_traced(cmd, verbose=False)
+            sleep(1)
         cmd = "git fetch upstream %s --no-recurse-submodules" % self.master_branch
         sts, stdout, stderr = self.run_traced(cmd)
-        if sts:
+        if sts != 0:
             print(stdout + stderr)
             print("")
-            cmd = "git stash pop"
-            sts1, stdout, stderr = self.run_traced(cmd)
-            print(stdout + stderr)
-            print("")
+            if stashed:
+                cmd = "git stash pop"
+                sts1, stdout, stderr = self.run_traced(cmd)
+                print(stdout + stderr)
+                print("")
             return sts, repo_branch
         cmd = "git merge upstream/%s" % self.master_branch
         sts, stdout, stderr = self.run_traced(cmd)
-        if sts:
+        if sts != 0:
             print(stdout + stderr)
             print("")
             cmd = "git merge --abort"
             sts1, stdout, stderr = self.run_traced(cmd)
             print(stdout + stderr)
             print("")
-            cmd = "git stash pop"
-            sts1, stdout, stderr = self.run_traced(cmd)
-            print(stdout + stderr)
-            print("")
+            if stashed:
+                cmd = "git stash pop"
+                sts1, stdout, stderr = self.run_traced(cmd)
+                print(stdout + stderr)
+                print("")
         return sts, repo_branch
 
     def git_checkout(self, repo, target_path, branch, new_branch=False):
@@ -1190,7 +1345,7 @@ class OdooDeploy(object):
         if new_branch and repo_branch != branch:
             cmd = ("git checkout -b %s" if new_branch else "git checkout %s") % branch
             sts, stdout, stderr = self.run_traced(cmd)
-            if sts:
+            if sts != 0:
                 print("Invalid branch %s" % branch)
                 print("")
                 if repo_branch != self.master_branch:
@@ -1198,7 +1353,7 @@ class OdooDeploy(object):
                         "git checkout -b %s" if new_branch else "git checkout %s"
                     ) % self.master_branch
                     sts, stdout, stderr = self.run_traced(cmd)
-                    if sts:
+                    if sts != 0:
                         print("Invalid branch %s" % self.master_branch)
                     else:
                         if new_branch:
@@ -1307,12 +1462,12 @@ class OdooDeploy(object):
             tgtdir=tgtdir,
             master_branch=self.get_prior_odoo_version(self.opt_args.from_odoo_version),
         )
-        if sts:
+        if sts != 0:
             return sts, self.opt_args.odoo_branch
         sts = self.git_checkout(
             repo, tgtdir, self.opt_args.odoo_branch, new_branch=True
         )
-        if sts:
+        if sts != 0:
             return sts, self.opt_args.odoo_branch
         self.git_delete_unrelated_branch(tgtdir)
         if self.opt_args.origin not in (".", "./"):
@@ -1472,7 +1627,7 @@ class OdooDeploy(object):
                 if sts == 0:
                     break
             self.repo_info[repo]["STS"] = sts
-            if sts and not self.opt_args.continue_after_error:
+            if sts != 0 and not self.opt_args.continue_after_error:
                 break
         if self.opt_args.verbose:
             self.action_status()
@@ -1503,7 +1658,7 @@ class OdooDeploy(object):
                 sts = self.git_merge(repo)[0]
             else:
                 raise IndexError("")
-            if sts and not self.opt_args.continue_after_error:
+            if sts != 0 and not self.opt_args.continue_after_error:
                 break
         if sts == 0:
             if self.opt_args.verbose and self.addons_path:
@@ -1511,7 +1666,7 @@ class OdooDeploy(object):
         if self.opt_args.verbose:
             self.action_status()
         # Avoid github lock due excessive download rate
-        sleep(3)
+        sleep(2)
         return sts
 
     def action_new_branch(self):
@@ -1538,7 +1693,7 @@ class OdooDeploy(object):
             tgtdir = self.get_path_of_repo(repo, root_path=self.target_path)
             sts, branch = self.git_new_branch(srcdir, tgtdir, repo)
             self.repo_info[repo]["STS"] = sts
-            if sts and not self.opt_args.continue_after_error:
+            if sts != 0 and not self.opt_args.continue_after_error:
                 break
 
         if self.opt_args.verbose:

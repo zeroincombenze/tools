@@ -1,6 +1,6 @@
 #! /bin/bash
 # Import data from refocus (Refocus)
-[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--reset-pwd ]\n[--remote-psql-port=PORT]\n date # $(date +%Y%m%d)" && exit 1
+[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--remote-db=DBNAME]\n[--remote-psql-port=PORT]\n[--reset-pwd]\n date # $(date +%Y%m%d)" && exit 1
 [[ $1 == -V ]] && echo "2.0.0" && exit 1
 
 param=""
@@ -56,21 +56,21 @@ echo ""
 
 if [[ ! -f $HOME/$DB-$DATE.sql && $CONT -eq 0 ]]; then
     [[ -n $REMOTE_PSQL_PORT ]] && opts="-p $REMOTE_PSQL_PORT --no-owner $VERBOSE" || opts="--no-owner $VERBOSE"
-    echo ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
-    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $DB-$DATE.sql $REMOTE_DB"
+    echo ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $REMOTE_DB-$DATE.sql $REMOTE_DB"
+    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo -i -u postgres pg_dump $opts -Fp -f $REMOTE_DB-$DATE.sql $REMOTE_DB"
     [[ -n $VERBOSE ]] && echo -e "\n"
-    echo ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
-    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$DB-$DATE.sql ./"
+    echo ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$REMOTE_DB-$DATE.sql ./"
+    [[ $DRY_RUN -eq 0 ]] && ssh.py $REMOTE_HOST -c "sudo mv /var/lib/postgresql/$REMOTE_DB-$DATE.sql ./"
     [[ -n $VERBOSE ]] && echo -e "\n"
-    echo ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
-    [[ $DRY_RUN -eq 0 ]] && ssh.py -s $REMOTE_HOST:~/$DB-$DATE.sql $HOME
-    echo sudo chown postgres:postgres $HOME/$DB-$DATE.sql
-    [[ $DRY_RUN -eq 0 ]] && sudo chown postgres:postgres $HOME/$DB-$DATE.sql
+    echo ssh.py -s $REMOTE_HOST:~/$REMOTE_DB-$DATE.sql $HOME
+    [[ $DRY_RUN -eq 0 ]] && ssh.py -s $REMOTE_HOST:~/$REMOTE_DB-$DATE.sql $HOME
+    echo sudo chown postgres:postgres $HOME/$REMOTE_DB-$DATE.sql
+    [[ $DRY_RUN -eq 0 ]] && sudo chown postgres:postgres $HOME/$REMOTE_DB-$DATE.sql
 fi
 echo ""
 if [[ $CONT -eq 0 ]]; then
-    [[ $DRY_RUN -eq 0 ]] && echo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
-    [[ $DRY_RUN -eq 0 ]] && sudo sudo mv $HOME/$DB-$DATE.sql /var/lib/postgresql/
+    echo sudo mv $HOME/$REMOTE_DB-$DATE.sql /var/lib/postgresql/$DB-$DATE.sql
+    [[ $DRY_RUN -eq 0 ]] && sudo mv $HOME/$REMOTE_DB-$DATE.sql /var/lib/postgresql/$DB-$DATE.sql
 fi
 echo systemctl stop $SERVICE
 [[ $DRY_RUN -eq 0 ]] && systemctl stop $SERVICE

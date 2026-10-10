@@ -1,0 +1,516 @@
+"type","backend","dirmap","loc_name","ext_name","default","apply4","protection","req","note"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","extra_sale_partner_ids","ACA",,,"0",,
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","active","ATTIVO","True",,"0",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","zip","CAP",,,"0",,"CAP: non inserire ‘00000’"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","mobile","CELLULARE",,,"0",," ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","embyon_code","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo: OBBLIGATORIO, inserire hash se necessario"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","embyon2_code","CODCONTO_FOR",,,"0",,"Codice univoco per identificare il nominativo come fornitore, regole di CODCONTO se impostato"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","parent_id","CODCONTO_REF","contact",,"0",,"Punta ad un altro contatto (Azienda a cui è collegato l’indirizzo"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","country_id","CODICEISO","IT",,"0",,"Codice ISO della nazione"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","lang","CODLINGUA","it_IT",,"0",,"Inserirre codice lingua da utilizzare, esempio fr_CH or de_CH o it_IT: Lasciare vuoto per italiano"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","lastname","COGNOME",,,"0",,"Cognome contatto"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","email","EMAILAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","category_id","ETICHETTA",,,"0",,"Campo libero  riservato a future identificazioni"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","street","INDIRIZZO",,,"0",,"Indirizzo comprensivo di iva, piazza, eccetera e con il numero civico"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","city","LOCALITA",,,"0",,
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","firstname","NOME",,,"0",,"Nome di battesimo contatto"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","comment","NOTE",,,"0",,
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","type","PARTNER_TYPE",,,"0",,"IMPORTANTE: per indirizzo di fatturazione: ""invoice"", per sollecito / follow-up: ""followup"", per  altri: ""other""   "
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","state_id","PROVINCIA",,,"0",,"Sigla della provincia"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","website","SITOWEBAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","phone","TELEFONO",,,"0",,
+"mapper","Embyon Ridix","ALTRI_TIPO_INDIRIZZO","id",,,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","purchase_ok","ACQUISTABILE","1",,"0",,"Impostare a 0 se non è acquistabile"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","is_storable","AGGIORNAMAG","1",,"0",," Impostare a 0 se non viene controllata la giacenza"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","active","ATTIVO","1",,"0",,"Impostare a 0 se solo per archivio; ATTENZIONE! Etichetta cambiata"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","default_code","CODICE",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","embyon_code","CODICE_RIDIX",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","barcode","CODICEBARRE",,,"0",,"Impostare l'eventuale codice a barre, se gestito e noto"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","intrastat_origin_country_id","CODICEISO","get_global(",,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","has_configurable_attributes","CON_VARIANTE","0",,"0",,"Impostare 1 per i prodotti che hanno variante (oli Blaser; lasciare vuoti per tutti gli altri"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","description_purchase","DESC_ACQ",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","description_sale","DESC_VEN",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","name","DESCRIZIONE",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","description","DESCRIZIONE_RIDIX",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","allow_out_of_stock_order","ESAURITO",,,"0",,"Impostare a 1 se prodotto esaurito"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","attribute_line_ids","LISTA_FORMATI",,"prod_attrib(","0",," I codice dei formati sono quelli forniti da tabella importata"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE",,"LISTA_VARIANTI",,"mem_value(","0",,"Impostare l'elenco delle varianti; attualmente l'unico valore concordato è 'FORMATO'"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","env_contribution_percent2","MIN_OIL_PERC",,,"0",,"Percentuale di olio minerale per il calcolo UTIF"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","intrastat_code_id","NC",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","categ_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","weight","PESONETTO",,,"0",," ATTENZIONE! Etichetta con modificata causa nomi multipli (DENSITY"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","is_placeholder","SEGNAPOSTO",,,"0",," Attenzione! sono casi molti particolari usati soprattutto nei prodotti speciali"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","type","TIPO","consu",,"0",,"Inserire 'service' per servizi oppure 'consu' oppure lasciare vuoto per prodotti"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","tracking","TRACKING","none",,"0",," Blaser richiede 'lot', ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","uom_id","UM","L",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","uom_po_id","UM_ACQ","L",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","env_contribution_category_ids","UTIF",,,"0",," Valori ammessi '2710' o '3403'; lasciare vuoto per prodotti diversi da oli"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","env_contribution_category2_ids","UTIF_PARZ",,,"0",," Valori ammessi '2710' o '3403'; utilizzare questo campi invece di UTIF se % olio < 70% e compilare anche MIN_OIL_PERC"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","sale_ok","VENDIBILE","1",,"0",,"Impostare a 0 se non è vendibile"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","hs_code",,,,"0",,"Codice su Embyon per aggancio storico; solitamente è uguale a CODICE"
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","id",,,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","list_price",,0,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","route_ids",,"Acquisto",,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","standard_price",,0,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","supplier_taxes_id",,"Iva 22% A",,"0",,
+"mapper","Embyon Ridix","ANAGRAFICA_PRODOTTI_PADRE","taxes_id",,"Iva 22% V",,"0",,
+"mapper","Embyon Ridix","ANAGRAFICACF","extra_sale_partner_ids","ACA",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICACF","agent_ids","AGENTI",,,"0",,"Lista dei codici agente del cliente, separati da virgola"
+"mapper","Embyon Ridix","ANAGRAFICACF","vendor_payment_approver_ids","APPROVATORI",,,"0",," Attenzione! Non inserire gruppi"
+"mapper","Embyon Ridix","ANAGRAFICACF","active","ATTIVO","True",,"1+",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","ANAGRAFICACF","is_company","AZIENDA","True",,"1+",,"Inserire 1 o True per le aziende, 0 o False per i contatti; lasciare vuoti per indirizzi di spedizione"
+"mapper","Embyon Ridix","ANAGRAFICACF","bank_ids","BANCHE",,,"0",,"Codici IBAN delle banche (si può lasciare vuoto utilizzando il file BANCHE"
+"mapper","Embyon Ridix","ANAGRAFICACF","barcode","BARCODE_IDENTIF",,,"0",,"Barcode assegnato al cliente per gestioni di consegna a magazzino"
+"mapper","Embyon Ridix","ANAGRAFICACF","default_delivery_block","BLOCCO_SPED",,,"0",," ATTENZIONE! Prima si chiamava BLOCCO_SPED"
+"mapper","Embyon Ridix","ANAGRAFICACF","zip","CAP",,,"1+",,"CAP: non inserire ‘00000’"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_inbound_payment_method_line_id","CC_AZI_CLIENTI",,,"0",,"Codice che identifica la banca aziendale su cui sono appoggiate le RIBA o su cui il cliente deve pagare"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_outbound_payment_method_line_id","CC_AZI_FORNITORI",,,"0",,"Codice che identifica la banca aziendale utilizzata per pagare le RIBA fornitori o usate per i bonifici a fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","mobile","CELLULARE",,,"1+",," ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICACF","ateco_category_ids","COD_ATECO",,,"1+",,"Codice ATECO 2024"
+"mapper","Embyon Ridix","ANAGRAFICACF","embyon_code","CODCONTO",,,"1+",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","ANAGRAFICACF","embyon2_code","CODCONTO_FOR",,,"1+",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","parent_id","CODCONTO_REF",,,"1+",,"Punta ad un altro contatto (Azienda a cui è collegata (DDM"
+"mapper","Embyon Ridix","ANAGRAFICACF","l10n_it_codice_fiscale","CODFISCALE",,,"1+",,"Codice fiscale italiano di 16 caratteri o 11 cifre; campo controllato"
+"mapper","Embyon Ridix","ANAGRAFICACF","country_id","CODICEISO","IT",,"1+",,"Codice ISO della nazione"
+"mapper","Embyon Ridix","ANAGRAFICACF","l10n_it_pa_index","CODICESDI",,,"1+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_account_position_id","CODIVA",7,,"1+",,"Codice IVA per Posizione fiscale"
+"mapper","Embyon Ridix","ANAGRAFICACF","lang","CODLINGUA","it_IT",,"1+",,"Inserirre codice lingua da utilizzare, esempio fr_CH or de_CH o it_IT: Lasciare vuoto per italiano"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_payment_term_id","CODPAG",,,"0",,"Termine di pagamento cliente"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_delivery_carrier_id","CORRIERE",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICACF","picking_warn_msg","DDT_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare nelle consegne quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","picking_warn","DDT_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","ANAGRAFICACF","employee","DIPENDENTE",,,"0",,"Attivare quando l’anagrafica è di un dipendente Ridix"
+"mapper","Embyon Ridix","ANAGRAFICACF","currency_id","DIVISA","EUR",,"1+",,"Inserire EUR o CHF (se vuoto implica EUR"
+"mapper","Embyon Ridix","ANAGRAFICACF","name","DSCCONTO1",,,"1+",,"Ragione sociale"
+"mapper","Embyon Ridix","ANAGRAFICACF","invoice_edi_format","E_FATTURA",,,"0",,"Se soggetto a fatturazione elettronica inserire it_edi_xml"
+"mapper","Embyon Ridix","ANAGRAFICACF","l10n_edi_it_admin_ref","EDI_ADMIN_REF",,,"0",,"Riferimento amministrativo da inserire in fattura elettronica"
+"mapper","Embyon Ridix","ANAGRAFICACF","l10n_edi_it_eori_code","EDI_CODICE_EORI",,,"0",,"Codice EORI da inserire in fattura elettronica"
+"mapper","Embyon Ridix","ANAGRAFICACF","email","EMAILAZIENDA",,,"1+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICACF","category_id","ETICHETTA",,,"1+",,"Campo libero  riservato a future identificazioni"
+"mapper","Embyon Ridix","ANAGRAFICACF","invoice_warn_msg","FAT_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare in fatture quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","invoice_warn","FATT_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","ANAGRAFICACF","invoice_frequency_id","FATTFINEMESE",,,"0",,"Inserire ‘Mensile’ o lasciare vuoto"
+"mapper","Embyon Ridix","ANAGRAFICACF","revenue","FATTURATO",,,"0",,"Fatturato in K€; inserire eventualmente un numero indicativo di fascia, esempi 100 o 250 o 100 eccetera"
+"mapper","Embyon Ridix","ANAGRAFICACF","sale_incoterm_id","INCOTERMS",,,"0",,"  ATTENZIONE! Il precedente nome del campo era _transp_type_"
+"mapper","Embyon Ridix","ANAGRAFICACF","street","INDIRIZZO",,,"1+",,"Indirizzo comprensivo di iva, piazza, eccetera e con il numero civico"
+"mapper","Embyon Ridix","ANAGRAFICACF","invoice_sending_method","INVIOFATT",,,"0",,"Inserire ‘email’ se invio fatture tramite mail"
+"mapper","Embyon Ridix","ANAGRAFICACF","processing_ids","LAVORAZIONI",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","property_product_pricelist","LISTINO",,,"0",,"Codice listino personalizzato"
+"mapper","Embyon Ridix","ANAGRAFICACF","city","LOCALITA",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","material_ids","MATERIALI",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","sale_invoicing_grouping_criteria_id","NONRAGGRUPPDOC",,,"0",," Lasciare vuoto per i contatti"
+"mapper","Embyon Ridix","ANAGRAFICACF","comment","NOTE",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","doc_notes_ddt","NOTE_DDT",,,"1+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","ANAGRAFICACF","doc_notes_invoice","NOTE_FATTURE",,,"1+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","ANAGRAFICACF","doc_notes","NOTE_ORDINI",,,"1+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","ANAGRAFICACF","employees","NUM_DIP",,,"0",,"Numero dipendenti (solo aziende"
+"mapper","Embyon Ridix","ANAGRAFICACF","machine_tools","NUM_MAC_UT",,,"0",,"Numero di macchine utensili"
+"mapper","Embyon Ridix","ANAGRAFICACF","product_category_ids","ODOO_CATEGORY",,,"0",,"Categorie prodotti a cui il contatto è interessato; inserire le categoria tra apici separate da virgola, esempio ‘BLASER / MINERARI’,’DIXI / FRESE’"
+"mapper","Embyon Ridix","ANAGRAFICACF","sale_warn_msg","ORC_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare negli ordini clienti quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","sale_warn","ORC_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","ANAGRAFICACF","purchase_warn_msg","ORF_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare negli ordini a fornitore quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","ANAGRAFICACF","purchase_warn","ORF_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","ANAGRAFICACF","vat","PARTITAIVA",,,"1+",," Campo controllato"
+"mapper","Embyon Ridix","ANAGRAFICACF","type","PARTNER_TYPE","contact",,"1+",,"Inserito per la gestione delle diverse destinazioni Per indirizzi di spedizione inserire Delivery atrimenit lasciare vuoto e compilare il campo CODCONTO_REF con il codice cliente ATTENZIONE! Il precedente nome campo era res_partner_type"
+"mapper","Embyon Ridix","ANAGRAFICACF","l10n_it_pec_email","PECAZIENDA",,,"1+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICACF","state_id","PROVINCIA",,,"1+",,"Sigla della provincia"
+"mapper","Embyon Ridix","ANAGRAFICACF","group_riba","RAGGRIBA",,,"0",,"Raggruppa le RiBA di pari scadenza"
+"mapper","Embyon Ridix","ANAGRAFICACF","ref","REF",,,"1+",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","ANAGRAFICACF","is_reseller","RIVENDITORE",,,"0",,"Inserire 1 o True se rivenditore; ATTENZIONE! Se rivenditore non attivare flag cliente ATTENZIONE! Il precedente nome del campo era is_rivenditore"
+"mapper","Embyon Ridix","ANAGRAFICACF","industry_ids","SETTORE",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","website","SITOWEBAZIENDA",,,"1+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","ANAGRAFICACF","phone","TELEFONO",,,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","is_customer","TIPOCONTO","True",,"0",,"Inserire ‘C’ se cliente oppure ‘F’ se fornitore oppure ‘P’ se prospect; ATTENZIONE! Lasciare vuoto per rivenditore"
+"mapper","Embyon Ridix","ANAGRAFICACF","is_prospect","TIPOCONTO",,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICACF","env_contribution_sale_mode","UTIF",,,"0",," GKN (not_charged"
+"mapper","Embyon Ridix","ANAGRAFICACF","id",,,,"0",,
+"mapper","Embyon Ridix","ANAGRAFICACF","is_supplier",,"False",,"1+",,
+"mapper","Embyon Ridix","ANAGRAFICACF","property_account_receivable_id",,,,"0",,"Conto contabile cliente se diverso da standard"
+"mapper","Embyon Ridix","ANAGRAFICACF","property_purchase_currency_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","property_riba_supplier_company_bank_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","property_supplier_payment_term_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","purchase_incoterm_address_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","purchase_incoterm_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","responsible_ids",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","title",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","trust",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","user_id",,,,,,
+"mapper","Embyon Ridix","ANAGRAFICACF","user_ids",,,,,,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","partner_id","CODCONTO_FOR",,,"0",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_id","CODICE",,,"0",,"Codice prodotto da Embyon"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_code","CODICE_FORNITORE",,,"0",,"Codice prodotto da fornitore"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_id","CODICE_RIDIX",,,"0",,"Codice prodotto da Embyon"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_name","DESCRIZIONE",,,"0",,"descrizione"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","price","PREZZOEUR",0,,"0",,"Prezzo"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","min_qty","QTA_MIN",0,,"0",,"Quantità minima"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","sequence","SEQUENCE",,,"0",,"1, 2, o 3"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","company_id",,"get_global(",,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","currency_id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","customer_ids",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","date_end",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","date_start",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","delay",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","discount",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","display_name",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","is_subcontractor",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","last_purchase_date",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","legacy_id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","notes",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","price_discounted",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_uom",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","product_variant_count",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","show_set_supplier_button",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORE_DIXI","string_discount",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","partner_id","CODCONTO_FOR",,,"0",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_id","CODICE",,,"0",,"Codice prodotto da Embyon"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_code","CODICE_FORNITORE",,,"0",,"Codice prodotto da fornitore"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_id","CODICE_RIDIX",,,"0",,"Codice prodotto da Embyon"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_name","DESCRIZIONE",,,"0",,"descrizione"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","price","PREZZOEUR",0,,"0",,"Prezzo"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","min_qty","QTA_MIN",0,,"0",,"Quantità minima"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","sequence","SEQUENCE",,,"0",,"1, 2, o 3"
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","company_id",,"get_global(",,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","currency_id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","customer_ids",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","date_end",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","date_start",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","delay",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","discount",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","display_name",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","is_subcontractor",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","last_purchase_date",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","legacy_id",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","notes",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","price_discounted",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_uom",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","product_variant_count",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","show_set_supplier_button",,,,"0",,
+"mapper","Embyon Ridix","ARTICOLI_DATI_FORNITORI_BLASER ","string_discount",,,,"0",,
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE","partner_id","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","embyon_code","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo: OBBLIGATORIO, inserire hash se necessario"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","agent_ids","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_CLIENTE","agent_ids","CODCONTO_FOR",,,"0",,"Codici fornitore (embyon2_code) degli agenti, separati da virgola, paralleli a DSCAGENTE"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","zip","CAP",,,"0",,
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","assignment_id","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","assignment_id","CODCONTO_FOR",,,"0",,"Codice fornitore (embyon2_code) dell'agente: assegnazione di ASSEGNAZIONE_AGENTE"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","country_id","NAZIONE",,,"0",,
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","category_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
+"mapper","Embyon Ridix","ASSEGNAZIONE_AGENTE_PROVINCIA","state_ids","PROVINCIA",,,"0",,
+"mapper","Embyon Ridix","AUT_BLOCCO","extra_sale_partner_ids","ACA",,,"0",,
+"mapper","Embyon Ridix","AUT_BLOCCO","vendor_payment_approver_ids","APPROVATORI",,,"0",," Attenzione! Non inserire gruppi"
+"mapper","Embyon Ridix","AUT_BLOCCO","default_delivery_block","BLOCCO_SPED",,,"0",," ATTENZIONE! Prima si chiamava BLOCCO_SPED"
+"mapper","Embyon Ridix","AUT_BLOCCO","embyon_code","CODCONTO",,,"1+",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","AUT_BLOCCO","embyon2_code","CODCONTO_FOR",,,"1+",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","AUT_BLOCCO","name","DSCCONTO1",,,"3",,"Ragione sociale"
+"mapper","Embyon Ridix","AUT_BLOCCO","id",,,,"0",,
+"mapper","Embyon Ridix","BANKS","bank_id","BANCA",,,"0",,"Descrizione (facoltativa della banca"
+"mapper","Embyon Ridix","BANKS","partner_id","CODCONTO",,,"0","True","Codice univoco per identificare il cliente della banca"
+"mapper","Embyon Ridix","BANKS",,"CODCONTO_FOR",,,"0",,"Codice univoco per identificare il cliente della banca"
+"mapper","Embyon Ridix","BANKS","acc_number","CODICEIBAN",,,"0","True","IBAN cliente (se non esiste creare fittizzio con IT0AA_cab__abi_000000000000"
+"mapper","Embyon Ridix","BANKS","sequence","SEQUENZA",,,"0",,"Sequenza (priorità del conto bancario; inserire 1 per la banca di appoggio clienti principale; aggiungere 100 alle banche fornitori"
+"mapper","Embyon Ridix","BANKS","id",,,,"0",,
+"mapper","Embyon Ridix","CATEGORIE_PRODOTTI","name","CATEGORIA",,"leaf_name()","0","True","Categoria, percorso completo separato da “ / “"
+"mapper","Embyon Ridix","CATEGORIE_PRODOTTI","parent_id","PADRE",,,"0","True","Categoria padre, percorso completo separato da “ / “"
+"mapper","Embyon Ridix","CATEGORIE_PRODOTTI","id",,,,"0",,
+"mapper","Embyon Ridix","CC_AZIENDALI","name","NOME",,,"0","True","Nome del c/c aziendale da utilizzare nelle anagrafiche"
+"mapper","Embyon Ridix","CC_AZIENDALI","payment_type","TIPO",,,"0","True","Inserire ‘inbound’ se pagamento in entrata (clienti o ‘outbound’ se in uscita (fornitori"
+"mapper","Embyon Ridix","CC_AZIENDALI","id",,,,"0",,
+"mapper","Embyon Ridix","CLIENTI_DI_RIVENDITORI","partner_id","CODCONTO",,,"0","True","Codice cliente"
+"mapper","Embyon Ridix","CLIENTI_DI_RIVENDITORI","name","CODCONTO_REF","contact",,"0","True","Punta ad un altro contatto (Azienda che è il rivenditore"
+"mapper","Embyon Ridix","CLIENTI_DI_RIVENDITORI","category_id","ODOO_CATEGORY",,,"0","True","Categoria, percorso completo separato da “ / “"
+"mapper","Embyon Ridix","CODICI_PAGAMENTO","embyon_code","CODICE","1",,"0",,"Codice Embyon"
+"mapper","Embyon Ridix","CODICI_PAGAMENTO","name","DESCRIZIONE",,,"3",,"Descrizione pagamento"
+"mapper","Embyon Ridix","CODICI_PAGAMENTO","id",,,,"0",,
+"mapper","Embyon Ridix","CODIVA_CF","embyon_code","CODICE","1",,"0",,"Codice Embyon"
+"mapper","Embyon Ridix","CODIVA_CF","name","DESCRIZIONE",,,"3",,"Descrizione pagamento"
+"mapper","Embyon Ridix","CODIVA_CF","id",,,,"0",,
+"mapper","Embyon Ridix","CONTATTI","active","ATTIVO",1,,"0",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","CONTATTI","zip","CAP",,,"0",,"CAP: non inserire ‘00000’"
+"mapper","Embyon Ridix","CONTATTI","mobile","CELLULARE",,,"0",," ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","CONTATTI","embyon_code","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","CONTATTI","parent_id","CODCONTO_REF","contact",,"0","True","Punta ad un altro contatto (Azienda a cui è collegata (DDM"
+"mapper","Embyon Ridix","CONTATTI","l10n_it_codice_fiscale","CODFISCALE",,,"0",,"Codice fiscale italiano di 16 caratteri o 11 cifre; campo controllato"
+"mapper","Embyon Ridix","CONTATTI","country_id","CODICEISO","IT",,"0",,"Codice ISO della nazione"
+"mapper","Embyon Ridix","CONTATTI","lang","CODLINGUA","it_IT",,"0",,"Inserirre codice lingua da utilizzare, esempio fr_CH or de_CH o it_IT: Lasciare vuoto per italiano"
+"mapper","Embyon Ridix","CONTATTI","lastname","COGNOME",,,"0",,"Cognome contatto"
+"mapper","Embyon Ridix","CONTATTI","employee","DIPENDENTE",,,"0",,"Attivare quando l’anagrafica è di un dipendente Ridix"
+"mapper","Embyon Ridix","CONTATTI","email","EMAILAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","CONTATTI","category_id","ETICHETTA",,,"0",,"Campo libero  riservato a future identificazioni"
+"mapper","Embyon Ridix","CONTATTI","street","INDIRIZZO",,,"0",,"Indirizzo comprensivo di iva, piazza, eccetera e con il numero civico"
+"mapper","Embyon Ridix","CONTATTI","additional_info","INFO_CONTATTI",,,"0",,"Informazioni aggiuntive del contatto nel CRM"
+"mapper","Embyon Ridix","CONTATTI","processing_ids","LAVORAZIONI",,,"1+",,
+"mapper","Embyon Ridix","CONTATTI","city","LOCALITA",,,"0",,
+"mapper","Embyon Ridix","CONTATTI","material_ids","MATERIALI",,,"1+",,
+"mapper","Embyon Ridix","CONTATTI","firstname","NOME",,,"0",,"Nome di battesimo contatto"
+"mapper","Embyon Ridix","CONTATTI","comment","NOTE",,,"0",,
+"mapper","Embyon Ridix","CONTATTI","product_category_ids","ODOO_CATEGORY",,,"0",,"Categorie prodotti a cui il contatto è interessato; inserire le categoria tra apici separate da virgola, esempio ‘BLASER / MINERARI’,’DIXI / FRESE’"
+"mapper","Embyon Ridix","CONTATTI","type","PARTNER_TYPE","contact",,"0",,"Inserito per la gestione delle diverse destinazioni Per indirizzi di spedizione inserire Delivery atrimenit lasciare vuoto e compilare il campo CODCONTO_REF con il codice cliente ATTENZIONE! Il precedente nome campo era res_partner_type"
+"mapper","Embyon Ridix","CONTATTI","state_id","PROVINCIA",,,"0",,"Sigla della provincia"
+"mapper","Embyon Ridix","CONTATTI","function","RUOLO",,,"0",,"Ruolo o posizione lavorativa (solo per contatti Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","CONTATTI","industry_id","SETTORE",,,"0",,"Settore in cui opera l’azienda del contatto o l’azienda; fa riferimento ad un tabella personalizzata Ridix"
+"mapper","Embyon Ridix","CONTATTI","website","SITOWEBAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","CONTATTI","phone","TELEFONO",,,"0",,
+"mapper","Embyon Ridix","CONTATTI","title","TITOLO",,,"0",," Dr, eccetera, solo per contatti Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","CONTATTI","id",,,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","extra_sale_partner_ids","ACA",,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","agent_ids","AGENTI",,,"0",,"Lista dei codici agente del cliente, separati da virgola"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","active","ATTIVO","True",,"0",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","is_company","AZIENDA","False",,"0",,"Inserire 1 o True per le aziende, 0 o False per i contatti; lasciare vuoti per indirizzi di spedizione"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","barcode","BARCODE_IDENTIF",,,"0",,"Barcode assegnato al cliente per gestioni di consegna a magazzino"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","zip","CAP",,,"0",,"CAP: non inserire ‘00000’"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","mobile","CELLULARE",,,"0",," ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","embyon_code","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","embyon2_code","CODCONTO_FOR",,,"0",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","parent_id","CODCONTO_REF","contact",,"0",,"Punta ad un altro contatto (Azienda a cui è collegata (DDM"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","l10n_it_codice_fiscale","CODFISCALE",,,"0",,"Codice fiscale italiano di 16 caratteri o 11 cifre; campo controllato"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","country_id","CODICEISO","IT",,"0",,"Codice ISO della nazione"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","lang","CODLINGUA","it_IT",,"0",,"Inserirre codice lingua da utilizzare, esempio fr_CH or de_CH o it_IT: Lasciare vuoto per italiano"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","property_delivery_carrier_id","CORRIERE",,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","name","DSCCONTO1",,,"0",,"Ragione sociale"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","email","EMAILAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","category_id","ETICHETTA",,,"0",,"Campo libero  riservato a future identificazioni"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","sale_incoterm_id","INCOTERMS",,,"0",,"  ATTENZIONE! Il precedente nome del campo era _transp_type_"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","street","INDIRIZZO",,,"0",,"Indirizzo comprensivo di iva, piazza, eccetera e con il numero civico"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","processing_ids","LAVORAZIONI",,,"1+",," “A – ASSEMBLAGGIO,ZZ -ALTRO”"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","city","LOCALITA",,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","material_ids","MATERIALI",,,"1+",," “ACCIAI al piombo,ACCIAI”"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","comment","NOTE",,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","doc_notes_ddt","NOTE_DDT",,,"1+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","doc_notes_invoice","NOTE_FATTURE",,,"1+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","doc_notes","NOTE_ORDINI",,,"2+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","sale_warn_msg","ORC_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare negli ordini clienti quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","sale_warn","ORC_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","type","PARTNER_TYPE","delivery",,"0",,"Inserito per la gestione delle diverse destinazioni Per indirizzi di spedizione inserire Delivery atrimenit lasciare vuoto e compilare il campo CODCONTO_REF con il codice cliente ATTENZIONE! Il precedente nome campo era res_partner_type"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","state_id","PROVINCIA",,,"0",,"Sigla della provincia"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","industry_id","SETTORE",,,"1+",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","website","SITOWEBAZIENDA",,,"0",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","phone","TELEFONO",,,"0",,
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","is_customer","TIPOCONTO","False",,"0",,"Inserire ‘C’ se cliente oppure ‘F’ se fornitore oppure ‘P’ se prospect; ATTENZIONE! Lasciare vuoto per rivenditore"
+"mapper","Embyon Ridix","DIFF_LOCATIONS_CUSTOMERS","id",,,,"0",,
+"mapper","Embyon Ridix","ETICHETTE_CLIENTI","name","ETICHETTA",,,"0","True","Testo del tag/etichetta"
+"mapper","Embyon Ridix","ETICHETTE_CLIENTI","id",,,,"0",,
+"mapper","Embyon Ridix","LAVORAZIONI","name","NOME",,,"0","True"," “A – ASSEMBLAGGIO”"
+"mapper","Embyon Ridix","LAVORAZIONI","id",,,,"0",,
+"mapper","Embyon Ridix","LISTINI","active","ATTIVO","True",,"0",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","LISTINI","name","NOME_LISTINO",,,"0","True","Nome del listino"
+"mapper","Embyon Ridix","LISTINO_PROVVIGIONALE","partner_id","DSCAGENTE",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","LISTINO_PROVVIGIONALE","name","DSCCONTO1",,,"0",,"Agente assegnato"
+"mapper","Embyon Ridix","LISTINO_PROVVIGIONALE","maturity_status","STATO_PAGAMENTO","invoice",,"0",,"Stato pagamento provvigione, vale ‘invoice’ (su fattura o ‘payment’ (al pagamento"
+"mapper","Embyon Ridix","MATERIALI","name","NOME",,,"0","True"," “ACCIAI al piombo”"
+"mapper","Embyon Ridix","MATERIALI","id",,,,"0",,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_cig","CIG",,,,,"Codice CIG, se esiste"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","partner_id","CODCONTO",,,,,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","partner_invoice_id","CODCONTO",,,,,"Usare stesso codice del cliente"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","partner_shipping_id","CODCONTO_DDM",,,,,"Codice cliente + ""_"" + DDM, esempio ""C 6442_6"""
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_cup","CUP",,,,,"Codice CUP, quando esiste"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_origin_document_date","DATA_OFF",,,,,"Data preventivo, se esiste"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","date_order","DATADOC",,,,,"Data ordine"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","client_order_ref_date","DATARIFDOC",,,,,"Data riferimento cliente"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","id","EMBYON_ID",,,,,"ID ordine in DB Embyon"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","origin","NUM_OFF",,,,,"Numero preventivo, se di interesse"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","name","NUM_ORDINE",,,,,"[TIPODOC]+”/“+[NUMERODOC]+”/“+ESERCIZIO"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","pricelist_id","NUMLISTINO",,,,,"Codice listino cliente (opzionale"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","client_order_ref","NUMRIFDOC",,,,,"Riferimento testuale del cliente"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","payment_term_id","PAYMENT_CODE",,,,,"Inserire numero identificativo come da tabella di Guglielmo o lasciare vuoto"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","state","STATO",,,,,"Inserire 'sale'"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","delivery_status","STATO_CONS",,,,,"Inserire 'pending' se non consegnato, 'partial' se parzialmente consegnato (ignorare e 'full' se consegnata"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","invoice_status","STATO_FATT",,,,,"Inserire 'no' se non segue fattura (ignorare, 'to invoice' se da fatturare e'invoiced' se fatturato"
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","user_id","UTENTE_MODIFICA",,,,,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_edi_doi_date",,,,,,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_origin_document_name",,,,,,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","l10n_it_origin_document_type",,,,,,
+"mapper","Embyon Ridix","ORDINI_CLIENTI_TESTE","message_has_sms_error",,,,,,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","active","ATTIVO","1",,"0",,"Impostare a 0 se solo per archivio; ATTENZIONE! Etichetta cambiata"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","default_code","CODICE",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","embyon_code","CODICE_RIDIX",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","barcode","CODICEBARRE",,,"0",,"Impostare l'eventuale codice a barre, se gestito e noto"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","intrastat_origin_country_id","CODICEISO","get_global(",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","description_purchase","DESC_ACQ",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","description_sale","DESC_VEN",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","name","DESCRIZIONE",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","description","DESCRIZIONE_RIDIX",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","allow_out_of_stock_order","ESAURITO",,,"0",,"Impostare a 1 se prodotto esaurito"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","intrastat_code_id","NC",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","categ_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","weight","PESONETTO",,,"0",," ATTENZIONE! Etichetta con modificata causa nomi multipli (DENSITY"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","is_placeholder","SEGNAPOSTO",,,"0",," Attenzione! sono casi molti particolari usati soprattutto nei prodotti speciali"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","type","TIPO","consu",,"0",,"Inserire 'service' per servizi oppure 'consu' oppure lasciare vuoto per prodotti"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","tracking","TRACKING","none",,"0",," Blaser richiede 'lot', ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","uom_id","UM","Units",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","uom_po_id","UM_ACQ","Units",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","env_contribution_category_ids","UTIF",,,"0",," Valori ammessi '2710' o '3403'; lasciare vuoto per prodotti diversi da oli"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","env_contribution_category2_ids","UTIF_PARZ",,,"0",," Valori ammessi '2710' o '3403'; utilizzare questo campi invece di UTIF se % olio < 70% e compilare anche MIN_OIL_PERC"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","sale_ok","VENDIBILE","1",,"0",,"Impostare a 0 se non è vendibile"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","hs_code",,,,"0",,"Codice su Embyon per aggancio storico; solitamente è uguale a CODICE"
+"mapper","Embyon Ridix","PRODUCTS_DIXI","id",,,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","list_price",,0,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","route_ids",,"Acquisto",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","standard_price",,0,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","supplier_taxes_id",,"Iva 22% A",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_DIXI","taxes_id",,"Iva 22% V",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","purchase_ok","ACQUISTABILE","1",,"0",,"Impostare a 0 se non è acquistabile"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","is_storable","AGGIORNAMAG","1",,"0",," Impostare a 0 se non viene controllata la giacenza"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","active","ATTIVO","1",,"0",,"Impostare a 0 se solo per archivio; ATTENZIONE! Etichetta cambiata"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","default_code","CODICE",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","embyon_code","CODICE_RIDIX",,,"0",," '00135-05'"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","barcode","CODICEBARRE",,,"0",,"Impostare l'eventuale codice a barre, se gestito e noto"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","intrastat_origin_country_id","CODICEISO","get_global(",,"3",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","description_purchase","DESC_ACQ",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","description_sale","DESC_VEN",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","name","DESCRIZIONE",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","description","DESCRIZIONE_RIDIX",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","allow_out_of_stock_order","ESAURITO",,,"0",,"Impostare a 1 se prodotto esaurito"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","intrastat_code_id","NC",,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","categ_id","ODOO_CATEGORY",,,"0",,"; ATTENZIONE! Etichetta cambiata"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","weight","PESONETTO",,,"0",," ATTENZIONE! Etichetta con modificata causa nomi multipli (DENSITY"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","is_placeholder","SEGNAPOSTO",,,"0",," Attenzione! sono casi molti particolari usati soprattutto nei prodotti speciali"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","type","TIPO","consu",,"0",,"Inserire 'service' per servizi oppure 'consu' oppure lasciare vuoto per prodotti"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","tracking","TRACKING","none",,"0",," Blaser richiede 'lot', ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","uom_id","UM","Units",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","uom_po_id","UM_ACQ","Units",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","env_contribution_category_ids","UTIF",,,"0",," Valori ammessi '2710' o '3403'; lasciare vuoto per prodotti diversi da oli"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","env_contribution_category2_ids","UTIF_PARZ",,,"0",," Valori ammessi '2710' o '3403'; utilizzare questo campi invece di UTIF se % olio < 70% e compilare anche MIN_OIL_PERC"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","sale_ok","VENDIBILE","1",,"0",,"Impostare a 0 se non è vendibile"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","hs_code",,,,"0",,"Codice su Embyon per aggancio storico; solitamente è uguale a CODICE"
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","id",,,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","list_price",,0,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","route_ids",,"Acquisto",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","standard_price",,0,,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","supplier_taxes_id",,"Iva 22% A",,"0",,
+"mapper","Embyon Ridix","PRODUCTS_EMBYON","taxes_id",,"Iva 22% V",,"0",,
+"mapper","Embyon Ridix","REGOLE_RIORDINO","active","ATTIVO","True",,"0",,"Inserire False per disattivare la regola"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","product_id","CODICE",,,"0","True","Codice Embyon"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","warehouse_id","MAGAZZINO","GX",,"0",,"Codice magazzino se diverso da GX (Grugliasco"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","qty_multiple","QTA_LOTTO_RIORDINO",,,"0",,"Multiplo quantità di riordino (confezionamento"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","product_min_qty","QTA_MIN_RIORDINO",,,"0",,"Quantità minima di riordino (sottoscorta"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","route_id","ROTTA","Acquisto",,"0",,"Rotta di approvvigionamento (se diversa da ‘Acquisto’"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","product_max_qty","SCORTA_MINIMA",,,"0",,"Quantità da riordinare"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","location_id","UBICAZIONE","area principale: 3+4+5o",,"0",,"Ubicazione se diversa da ‘area principale: 3+4+5o’"
+"mapper","Embyon Ridix","REGOLE_RIORDINO","id",,,,"0",,
+"mapper","Embyon Ridix","REGOLE_RIORDINO","name",,,,"0",,"Nome regola"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRODOTTI","product_id","CODART",,,"0",,"Codice prodotto "
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRODOTTI","pricelist_id","NOME_LISTINO",,,"0",,"Listino a cui agganciare i prezzi"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRODOTTI","fixed_price","PREZZOEURO",,,"0",,"Prezzo di listino"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRODOTTI","applied_on",,"0_product_variant",,"0",,"Vale ‘0_product_variant’, ‘1_product’, ‘2_product_category’, ‘3_global’"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRODOTTI","id",,,,"0",,
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRPART","product_id","CODART",,,"0",,"Codice prodotto "
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRPART","pricelist_id","NOME_LISTINO",,,"0",,"Listino a cui agganciare i prezzi"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRPART","fixed_price","PREZZOEURO",,,"0",,"Prezzo di listino"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRPART","applied_on",,"0_product_variant",,"0",,"Vale ‘0_product_variant’, ‘1_product’, ‘2_product_category’, ‘3_global’"
+"mapper","Embyon Ridix","RIGHE_LISTINO_PRPART","id",,,,"0",,
+"mapper","Embyon Ridix","RIGHE_LISTINO1","product_id","CODART",,,"0",,"Codice prodotto "
+"mapper","Embyon Ridix","RIGHE_LISTINO1","pricelist_id","NOME_LISTINO",,,"0",,"Listino a cui agganciare i prezzi"
+"mapper","Embyon Ridix","RIGHE_LISTINO1","fixed_price","PREZZOEURO",,,"0",,"Prezzo di listino"
+"mapper","Embyon Ridix","RIGHE_LISTINO1","applied_on",,"0_product_variant",,"0",,"Vale ‘0_product_variant’, ‘1_product’, ‘2_product_category’, ‘3_global’"
+"mapper","Embyon Ridix","RIGHE_LISTINO1","id",,,,"0",,
+"mapper","Embyon Ridix","RIGHE_LISTINO2","product_id","CODART",,,"0",,"Codice prodotto "
+"mapper","Embyon Ridix","RIGHE_LISTINO2","pricelist_id","NOME_LISTINO",,,"0",,"Listino a cui agganciare i prezzi"
+"mapper","Embyon Ridix","RIGHE_LISTINO2","fixed_price","PREZZOEURO",,,"0",,"Prezzo di listino"
+"mapper","Embyon Ridix","RIGHE_LISTINO2","applied_on",,"0_product_variant",,"0",,"Vale ‘0_product_variant’, ‘1_product’, ‘2_product_category’, ‘3_global’"
+"mapper","Embyon Ridix","RIGHE_LISTINO2","id",,,,"0",,
+"mapper","Embyon Ridix","RIGHE_LISTINO3","product_id","CODART",,,"0",,"Codice prodotto "
+"mapper","Embyon Ridix","RIGHE_LISTINO3","pricelist_id","NOME_LISTINO",,,"0",,"Listino a cui agganciare i prezzi"
+"mapper","Embyon Ridix","RIGHE_LISTINO3","fixed_price","PREZZOEURO",,,"0",,"Prezzo di listino"
+"mapper","Embyon Ridix","RIGHE_LISTINO3","applied_on",,"0_product_variant",,"0",,"Vale ‘0_product_variant’, ‘1_product’, ‘2_product_category’, ‘3_global’"
+"mapper","Embyon Ridix","RIGHE_LISTINO3","id",,,,"0",,
+"mapper","Embyon Ridix","SETTORI_CLIENTI","name","NOME",,,"0","True"," “AERONAUTICA – AEROSPAZIALE”"
+"mapper","Embyon Ridix","SETTORI_CLIENTI","id",,,,"0",,
+"mapper","Embyon Ridix","SUPPLIERS","active","ATTIVO","True",,"2+",,"Inserire False per i nominativi archiviati ma da inserire per storico: Inserire True o lasciare vuoto per i nominatiiv attivi"
+"mapper","Embyon Ridix","SUPPLIERS","is_company","AZIENDA","True",,"2+",,"Inserire 1 o True per le aziende, 0 o False per i contatti; lasciare vuoti per indirizzi di spedizione"
+"mapper","Embyon Ridix","SUPPLIERS","bank_ids","BANCHE",,,"0",,"Codici IBAN delle banche (si può lasciare vuoto utilizzando il file BANCHE"
+"mapper","Embyon Ridix","SUPPLIERS","zip","CAP",,,"2+",,"CAP: non inserire ‘00000’"
+"mapper","Embyon Ridix","SUPPLIERS","mobile","CELLULARE",,,"2+",," ATTENZIONE! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","SUPPLIERS","ateco_category_ids","COD_ATECO",,,"2+",,"Codice ATECO 2024"
+"mapper","Embyon Ridix","SUPPLIERS","embyon_code","CODCONTO",,,"2+",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","SUPPLIERS","embyon2_code","CODCONTO_FOR",,,"2+",,"Codice univoco per identificare il nominativo come fornitore"
+"mapper","Embyon Ridix","SUPPLIERS","parent_id","CODCONTO_REF",,,"2+",,"Punta ad un altro contatto (Azienda a cui è collegata (DDM"
+"mapper","Embyon Ridix","SUPPLIERS","l10n_it_codice_fiscale","CODFISCALE",,,"2+",,"Codice fiscale italiano di 16 caratteri o 11 cifre; campo controllato"
+"mapper","Embyon Ridix","SUPPLIERS","country_id","CODICEISO","IT",,"2+",,"Codice ISO della nazione"
+"mapper","Embyon Ridix","SUPPLIERS","property_account_position_id","CODIVA",7,,"2+",,"Codice IVA per Posizione fiscale"
+"mapper","Embyon Ridix","SUPPLIERS","lang","CODLINGUA","it_IT",,"2+",,"Inserirre codice lingua da utilizzare, esempio fr_CH or de_CH o it_IT: Lasciare vuoto per italiano"
+"mapper","Embyon Ridix","SUPPLIERS","property_supplier_payment_term_id","CODPAG_FOR",,,"0",,"Termine di pagamento da fornitore"
+"mapper","Embyon Ridix","SUPPLIERS","picking_warn_msg","DDT_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare nelle consegne quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","SUPPLIERS","picking_warn","DDT_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","SUPPLIERS","currency_id","DIVISA","EUR",,"2+",,"Inserire EUR o CHF (se vuoto implica EUR"
+"mapper","Embyon Ridix","SUPPLIERS","name","DSCCONTO1",,,"2+",,"Ragione sociale"
+"mapper","Embyon Ridix","SUPPLIERS","email","EMAILAZIENDA",,,"2+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","SUPPLIERS","category_id","ETICHETTA",,,"2+",,"Campo libero  riservato a future identificazioni"
+"mapper","Embyon Ridix","SUPPLIERS","invoice_warn_msg","FAT_CF_MESSAGE",,,"0",,"Testo del messaggio da visualizzare in fatture quando si seleziona il cliente o il fornitore"
+"mapper","Embyon Ridix","SUPPLIERS","invoice_warn","FATT_MESG_LEVEL","no-message",,"0",,"Inserire ‘no-message’ se non il soggetto non ha messaggi, ‘warning’ se il messaggio è solo un avvertimento a video, ‘block’ se il messaggio è bloccante"
+"mapper","Embyon Ridix","SUPPLIERS","purchase_incoterm_id","INCOTERMS_FOR",,,"0",,"Inserire il codice internazionale di incoterms per le condizioni di trasporto da fornitori"
+"mapper","Embyon Ridix","SUPPLIERS","street","INDIRIZZO",,,"2+",,"Indirizzo comprensivo di iva, piazza, eccetera e con il numero civico"
+"mapper","Embyon Ridix","SUPPLIERS","processing_ids","LAVORAZIONI",,,"1+",,
+"mapper","Embyon Ridix","SUPPLIERS","city","LOCALITA",,,"2+",,
+"mapper","Embyon Ridix","SUPPLIERS","material_ids","MATERIALI",,,"1+",,
+"mapper","Embyon Ridix","SUPPLIERS","comment","NOTE",,,"2+",,
+"mapper","Embyon Ridix","SUPPLIERS","doc_notes","NOTE_ORDINI",,,"2+",,"Inserire testo da stampare in ordini"
+"mapper","Embyon Ridix","SUPPLIERS","vat","PARTITAIVA",,,"2+",," Campo controllato"
+"mapper","Embyon Ridix","SUPPLIERS","type","PARTNER_TYPE","contact",,"2+",,"Inserito per la gestione delle diverse destinazioni Per indirizzi di spedizione inserire Delivery atrimenit lasciare vuoto e compilare il campo CODCONTO_REF con il codice cliente ATTENZIONE! Il precedente nome campo era res_partner_type"
+"mapper","Embyon Ridix","SUPPLIERS","l10n_it_pec_email","PECAZIENDA",,,"2+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","SUPPLIERS","state_id","PROVINCIA",,,"2+",,"Sigla della provincia"
+"mapper","Embyon Ridix","SUPPLIERS","ref","REF",,,"2+",,"Codice univoco per identificare il nominativo come cliente o prospect"
+"mapper","Embyon Ridix","SUPPLIERS","industry_id","SETTORE",,,"2+",,
+"mapper","Embyon Ridix","SUPPLIERS","website","SITOWEBAZIENDA",,,"2+",,"Attenzione! Etichetta in maiuscolo"
+"mapper","Embyon Ridix","SUPPLIERS","phone","TELEFONO",,,"2+",,
+"mapper","Embyon Ridix","SUPPLIERS","is_supplier","TIPOCONTO","True",,"2+",,"Inserire ‘C’ se cliente oppure ‘F’ se fornitore oppure ‘P’ se prospect; ATTENZIONE! Lasciare vuoto per rivenditore"
+"mapper","Embyon Ridix","SUPPLIERS","buyer_id","UTENTE_ACQUISTO",,,"0",,"Identificativo utente che gestisce gli acquisti con il fornitore"
+"mapper","Embyon Ridix","SUPPLIERS","id",,,,"0",,
+"mapper","Embyon Ridix","SUPPLIERS","l10n_edi_it_register",,,,,,
+"mapper","Embyon Ridix","SUPPLIERS","l10n_edi_it_register_code",,,,,,
+"mapper","Embyon Ridix","SUPPLIERS","l10n_edi_it_register_province_id",,,,,,
+"mapper","Embyon Ridix","SUPPLIERS","l10n_edi_it_register_regdate",,,,,,
+"mapper","Embyon Ridix","SUPPLIERS","l10n_it_edi_import_detail_level",,,,,,
+"mapper","Embyon Ridix","SUPPLIERS","property_account_payable_id",,,,,,
+"mapper","Embyon Ridix","TABSPEDIZIONIERI","carrier_description","CODICE",,,"0",,"Codice corriere in Embyon"
+"mapper","Embyon Ridix","TABSPEDIZIONIERI","name","RAGIONESOCIALE",,,"0",,"Descrizione corriere o metodo di consegna"
+"mapper","Embyon Ridix","TABSPEDIZIONIERI","delivery_type",,"fixed",,"0",,
+"mapper","Embyon Ridix","TABSPEDIZIONIERI","id",,,,"0",,
+"mapper","Embyon Ridix","TABSPEDIZIONIERI","product_id",,"1",,"0",,"Codice prodotto per rivalsa spese in ordine/fattura"
+"mapper","Embyon Ridix","TITOLO_CONTATTO","name","NOME",,,"0","True"," “Signora”"
+"mapper","Embyon Ridix","TITOLO_CONTATTO","shortcut","SIGLA",,,"0",,"ra”"
+"mapper","Embyon Ridix","TITOLO_CONTATTO","id",,,,"0",,
+"mapper","Embyon Ridix","UM","category_id","CATEG",,,"1","True",
+"mapper","Embyon Ridix","UM","id","ID",,,"1","True",
+"mapper","Embyon Ridix","UM","uom_type","TIPO","smaller",,"1","True",
+"mapper","Embyon Ridix","UM","name","UM",,,"1","True",
+"mapper","Embyon Ridix","UM","factor",,0,,"1","True",
+"mapper","Embyon Ridix","UM","rounding",,1,,"1","True",
+"mapper","Embyon Ridix","UTENTI_RESPONSABILI","partner_id","CODCONTO",,,"0",,"Codice univoco per identificare il nominativo: OBBLIGATORIO"
+"mapper","Embyon Ridix","UTENTI_RESPONSABILI","category_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
+"mapper","Embyon Ridix","UTENTI_RESPONSABILI","name","USER",,,"0",,"E-mail dell’utente responsabile per il cliente per la categoria prodotto"
+"mapper","Embyon Ridix","UTENTI_RESPONSABILI","id",,,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","purchase_ok","ACQUISTABILE","1",,"0",,"Impostare a 0 se non è acquistabile"
+"mapper","Embyon Ridix","VARIANTI_BLASER","is_storable","AGGIORNAMAG","1",,"0",," Impostare a 0 se non viene controllata la giacenza"
+"mapper","Embyon Ridix","VARIANTI_BLASER","active","ATTIVO","1",,"0",,"Impostare a 0 se solo per archivio; ATTENZIONE! Etichetta cambiata"
+"mapper","Embyon Ridix","VARIANTI_BLASER","default_code","CODICE",,,"0",,"Codice identificativo del prodotto"
+"mapper","Embyon Ridix","VARIANTI_BLASER","embyon_code","CODICE_RIDIX",,,"0",,"Codice identificativo del prodotto"
+"mapper","Embyon Ridix","VARIANTI_BLASER","barcode","CODICEBARRE",,,"0",,"Impostare l'eventuale codice a barre, se gestito e noto"
+"mapper","Embyon Ridix","VARIANTI_BLASER","intrastat_origin_country_id","CODICEISO","get_global(",,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","description_purchase","DESC_ACQ",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","VARIANTI_BLASER","description_sale","DESC_VEN",,,"0",," Lasciare vuoto se si utilizza la stessa descrizione del prodotto"
+"mapper","Embyon Ridix","VARIANTI_BLASER","name","DESCRIZIONE",,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","description","DESCRIZIONE_RIDIX",,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","allow_out_of_stock_order","ESAURITO",,,"0",,"Impostare a 1 se prodotto esaurito"
+"mapper","Embyon Ridix","VARIANTI_BLASER","product_template_attribute_value_ids","FORMATO",,,"0","True","Indica il formato da una lista di possibili formati (es ""Fusto 208 L"" per numero_pezzi_imballo = 208 oppure 'CISTERNA 1022L'; il valore è stabilita da tabella formati"
+"mapper","Embyon Ridix","VARIANTI_BLASER","env_contribution_percent2","MIN_OIL_PERC",,,"0",,"Percentuale di olio minerale per il calcolo UTIF"
+"mapper","Embyon Ridix","VARIANTI_BLASER","product_tmpl_id","MODELLO",,,"0","True","Codice padre Blaser, solo per oli Blaser; vedere nota codice padre per formato"
+"mapper","Embyon Ridix","VARIANTI_BLASER","intrastat_code_id","NC",,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","categ_id","ODOO_CATEGORY",,,"0",,"Nuova categoria prodotti come da tabella di Federica; formato 'CATEGOIRE / BLASER /  …'"
+"mapper","Embyon Ridix","VARIANTI_BLASER","weight","PESONETTO",,,"0",," ATTENZIONE! Etichetta con modificata causa nomi multipli (DENSITY"
+"mapper","Embyon Ridix","VARIANTI_BLASER","volume","QTA_CONFEZIONE",,,"0",,"Volume in metri cubi (1000 litri; dividere il valore in litri per mille"
+"mapper","Embyon Ridix","VARIANTI_BLASER","type","TIPO","consu",,"0",,"Inserire 'service' per servizi oppure 'consu' oppure lasciare vuoto per prodotti"
+"mapper","Embyon Ridix","VARIANTI_BLASER","tracking","TRACKING","selection(",,"0",," Blaser richiede 'lot'"
+"mapper","Embyon Ridix","VARIANTI_BLASER","uom_id","UM","L",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","VARIANTI_BLASER","uom_po_id","UM_ACQ","L",,"0",,"Unità di misura; impostare 'L' per litri, 'Unità' per numero o pezzi, 'kg' per Kg, 'KG' per KG convertibili in litri, 'm' per metri"
+"mapper","Embyon Ridix","VARIANTI_BLASER","env_contribution_category_ids","UTIF",,,"0",," Valori ammessi '2710' o '3403'; lasciare vuoto per prodotti diversi da oli"
+"mapper","Embyon Ridix","VARIANTI_BLASER","env_contribution_category2_ids","UTIF_PARZ",,,"0",," Valori ammessi '2710' o '3403'; utilizzare questo campi invece di UTIF se % olio < 70% e compilare anche MIN_OIL_PERC"
+"mapper","Embyon Ridix","VARIANTI_BLASER","sale_ok","VENDIBILE","1",,"0",,"Impostare a 0 se non è vendibile"
+"mapper","Embyon Ridix","VARIANTI_BLASER","hs_code",,,,"0",,"Codice su Embyon per aggancio storico; solitamente è uguale a CODICE"
+"mapper","Embyon Ridix","VARIANTI_BLASER","id",,,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","list_price",,0,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","route_ids",,"Acquisto",,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","standard_price",,0,,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","supplier_taxes_id",,"Iva 22% A",,"0",,
+"mapper","Embyon Ridix","VARIANTI_BLASER","taxes_id",,"Iva 22% V",,"0",,

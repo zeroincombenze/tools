@@ -69,6 +69,10 @@ logs/
 .vs/
 .vscode
 
+# Claude Ai
+.claude
+CLAUDE.md
+
 # OSX Files
 .DS_Store
 
@@ -117,6 +121,10 @@ stdout.log
 *.z0i
 #
 # tools building path
+#
 /z0bug_odoo/build/
 /z0bug_odoo/dist/
+#
+# odoo repositories
+#
 !static/lib/

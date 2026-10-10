@@ -24,36 +24,41 @@ while [[ -n "$1" ]]; do
 done
 
 # Custom values
+PREFIX="OneDrive_1_"
 [[ -z $DATE ]] && DATE=$(date +%d-%m-%Y)
 [[ -z $DRY_RUN ]] && DRY_RUN=0
 [[ -z $NO_CLOUD_PEPPER ]] && NO_CLOUDPEPPER=1 && sts=1
 [[ -z $SOURCE_PATH ]] && SOURCE_PATH="/home/antoniov/Scaricati"
-[[ -z $SOURCE ]] && SOURCE="$SOURCE_PATH/OneDrive_1_$DATE" && SOURCE_PATH=$(dirname $SOURCE)
+[[ -z $SOURCE ]] && SOURCE="$SOURCE_PATH/$PREFIX$DATE" && SOURCE_PATH=$(dirname $SOURCE)
 [[ -z $TARGET ]] && TARGET="/home/odoo/ridix"
 
 if [[ ! -d "$SOURCE" && -f "$SOURCE.zip" ]]; then
-	cd "$SOURCE_PATH/"
-  echo $SOURCE.zip.zip -d $SOURCE
-	[[ $DRY_RUN -ne 0 ]] && unzip $SOURCE.zip -d $SOURCE
+  SRC_FN=$(basename $SOURCE)
+  echo cd "$SOURCE_PATH"
+	cd "$SOURCE_PATH"
+  echo unzip $SRC_FN.zip -d $SRC_FN
+	[[ $DRY_RUN -eq 0 ]] && unzip $SRC_FN.zip -d $SRC_FN
 fi
-[[ ! -d $SOURCE ]]	&& echo "Data $SOURCE not found!" && exit 1
+[[ ! -d "$SOURCE" ]]	&& echo "Data $SOURCE not found!" && ls -l $SOURCE_PATH/$PREFIX* && exit 1
 
 [[ ! -d $TARGET ]]	&& echo "Directory $TARGET not found!" && exit 1
+echo cd $TARGET
 cd $TARGET
-echo sudo rm *.csv
+echo "sudo rm *.csv"
 [[ $DRY_RUN -ne 0 ]] && sudo rm *.csv
-echo sudo cp $SOURCE/*.csv ./
-[[ $DRY_RUN -ne 0 ]] && sudo cp cp $SOURCE/*.csv ./
+echo "sudo cp $SOURCE/*.csv ./"
+[[ $DRY_RUN -eq 0 ]] && sudo cp $SOURCE/*.csv ./
 # echo cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
 # cd /mnt/c/Users/anton/OneDrive/Documenti/Clienti/Ridix/Import\ Dati/Correzioni/
 echo -e "\n"
+echo "===[Contents of local /home/odoo&ridix]==="
 ls /home/odoo/ridix
 echo -e "\n"
 if [[ $NO_CLOUDPEPPER -eq 0 ]]; then
   echo ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
-  [[ $DRY_RUN -ne 0 ]] && ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
+  [[ $DRY_RUN -eq 0 ]] && ssh.py cloudpepper -c "rm /var/odoo/ridix/*.csv"
   for fn in *.csv; do
     echo $fn
-    [[ $DRY_RUN -ne 0 ]] && ssh.py -s $fn cloudpepper:/var/odoo/ridix
+    [[ $DRY_RUN -eq 0 ]] && ssh.py -s $fn cloudpepper:/var/odoo/ridix
   done
 fi
