@@ -4,7 +4,7 @@
 # License LGPL-3.0-or-later (https://www.gnu.org/licenses/lgpl).
 """Controllo di coerenza dei file CSV da importare in Odoo 18.0.
 
-I file hanno nome  {NOME}_[0|1]_{YYYYmmdd}_{HHMM}.csv  con separatore "|";
+I file han,o nome  {NOME}_[0|1]_{YYYYmmdd}_{HHMM}.csv  con separatore "|";
 per ogni {NOME} viene esaminato solo il file più recente.
 
 Le relazioni tra nomi esterni e nomi Odoo vengono da tre file:
@@ -22,6 +22,7 @@ import fnmatch
 import json
 import os
 import re
+import shutil
 import sys
 import zipfile
 from datetime import date, datetime
@@ -385,6 +386,18 @@ class Config:
         if cp.has_section("unique_only"):
             for name, cols in cp.items("unique_only"):
                 self.unique_only[name] = split_list(cols)
+        # [lookup_only] {NOME}.colonna = file: colonna, oppure = modello: il
+        # file viene controllato solo per i valori della colonna, che devono
+        # comparire nella colonna dell'altro file (nome file o {NOME} in
+        # data_dir, separatore | ; , o tab) o tra le chiavi del modello
+        self.lookup_only = {}
+        if cp.has_section("lookup_only"):
+            for key, value in cp.items("lookup_only"):
+                name, _sep, col = key.rpartition(".")
+                source, sep, target = value.partition(":")
+                if name and col and source.strip():
+                    self.lookup_only.setdefault(name, []).append(
+                        (col, source.strip(), target.strip() if sep else None))
         # [alias] pattern = {NOME} di dirmap: i file il cui {NOME} corrisponde
         # al pattern (glob, come filename_pattern dell'importatore) usano quella
         # mappatura; vale prima di prefix_match
@@ -421,6 +434,13 @@ class Config:
         if cp.has_section("vat_match"):
             for name, others in cp.items("vat_match"):
                 self.vat_match[name] = split_list(others)
+        # [purge] {NOME} = data (YYYY-MM-DD): funzione temporanea, solo in
+        # quella data i record con errori vengono tolti dal file (l'originale
+        # resta in .bak)
+        self.purge = {}
+        if cp.has_section("purge"):
+            for name, day in cp.items("purge"):
+                self.purge[name] = day.strip()
         self.selections = {}
         if cp.has_section("selection"):
             for key, values in cp.items("selection"):
@@ -727,6 +747,39 @@ def read_data_file(path, encoding):
         yield rownum, split_record(text), None
 
 
+def match_header(header, column):
+    """Indice della colonna nell'intestazione, senza distinzione
+    maiuscole/minuscole e spazi ripetuti; None se assente"""
+    wanted = " ".join(column.split()).lower()
+    for ix, col in enumerate(header):
+        if " ".join(col.split()).lower() == wanted:
+            return ix
+    return None
+
+
+def read_column(path, column, encoding):
+    """Valori non vuoti di una colonna di un file csv con separatore | ; ,
+    o tab (il più frequente nella prima riga); None se la colonna manca"""
+    with open(path, encoding=encoding, newline="") as fd:
+        first = fd.readline()
+        fd.seek(0)
+        delimiter = max("|;,\t", key=first.count)
+        rows = csv.reader(fd, delimiter=delimiter)
+        header = [normalize_header(h) for h in next(rows, [])]
+        ix = match_header(header, column)
+        if ix is None:
+            return None
+        return [row[ix].strip() for row in rows if ix < len(row) and row[ix].strip()]
+
+
+def lookup_sources(cfg, files):
+    """{NOME} dei file usati come elenco di valori da [lookup_only]"""
+    sources = {src for rules in cfg.lookup_only.values()
+               for _col, src, target in rules if target is not None}
+    return {name for name, path in files.items()
+            if name in sources or os.path.basename(path) in sources}
+
+
 # ---------------------------------------------------------------------------
 # Controlli
 # ---------------------------------------------------------------------------
@@ -750,6 +803,7 @@ class Checker:
         self.alt_index = {}
         self._row = None  # riga in esame: {colonna: valore} e mappature
         self._models_with_data = set()
+        self.lookup_files = {}  # [lookup_only]: {NOME} -> file di soli valori
         self.dirmap_of = {
             name: maps.resolve(name, cfg.prefix_match, cfg.alias) for name in files}
 
@@ -1073,6 +1127,10 @@ class Checker:
         unique = self.cfg.unique_only.get(name) or self.cfg.unique_only.get(key)
         if unique:
             return self.check_unique(path, unique, result)
+        lookup = self.cfg.lookup_only.get(name) or self.cfg.lookup_only.get(key)
+        if lookup:
+            unique = self.cfg.unique.get(name) or self.cfg.unique.get(key) or []
+            return self.check_lookup(path, lookup, unique, result)
         if name in self.nonconforming:
             result.issues.append(Issue(
                 "-", "-",
@@ -1170,6 +1228,115 @@ class Checker:
         if header is None:
             result.issues.append(Issue("-", "-", "File vuoto"))
         return result
+
+    def lookup_values(self, source, target):
+        """Valori validi di una regola di [lookup_only]: colonna target del
+        file source, oppure chiavi del modello source (target None).
+        Restituisce (insieme normalizzato, descrizione) o (None, errore)"""
+        if target is None:
+            if source not in self._models_with_data:
+                return None, "nessun file dati fornisce le chiavi di %s" % source
+            files = ", ".join(sorted(self.ref_files.get(source, [])))
+            return self.ref_keys.get(source, set()), "%s (%s)" % (files, source)
+        path = self.files.get(source) or self.lookup_files.get(source)
+        if not path:
+            path = os.path.join(self.cfg.data_dir, source)
+            if not os.path.isfile(path):
+                path = next(
+                    (os.path.join(self.cfg.data_dir, fn)
+                     for fn in sorted(os.listdir(self.cfg.data_dir))
+                     if fn.lower() == source.lower()), None)
+        if not path:
+            return None, "file %s non trovato in %s" % (source, self.cfg.data_dir)
+        values = read_column(path, target, self.cfg.encoding)
+        if values is None:
+            return None, "colonna '%s' assente in %s" % (target, os.path.basename(path))
+        return ({self.norm_key(v) for v in values},
+                "'%s' di %s" % (target, os.path.basename(path)))
+
+    def check_lookup(self, path, rules, unique, result):
+        """[lookup_only]: i valori delle colonne indicate devono comparire
+        nella colonna di un altro file o tra le chiavi di un modello; il file
+        non viene controllato in altro modo, salvo le colonne di [unique]"""
+        header = None
+        seen = {}  # combinazione normalizzata di [unique] -> prima riga
+        checks = []  # (indice colonna, colonna, valori validi, descrizione)
+        for lineno, values, error in read_data_file(path, self.cfg.encoding):
+            if header is None:
+                header = [normalize_header(h) for h in values]
+                for col, source, target in rules:
+                    valid, where = self.lookup_values(source, target)
+                    if valid is None:
+                        result.issues.append(Issue(
+                            lineno, col, "Valori non verificabili: %s" % where))
+                    elif col not in header:
+                        result.issues.append(Issue(
+                            lineno, col, "Colonna da verificare assente nel file"))
+                    else:
+                        checks.append((header.index(col), col, valid, where))
+                for col in unique:
+                    if col not in header:
+                        result.issues.append(Issue(
+                            lineno, col, "Colonna di [unique] assente nel file"))
+                continue
+            result.records += 1
+            if error:
+                issues = [Issue(lineno, "-", error)]
+            elif len(values) != len(header):
+                issues = [Issue(
+                    lineno, "-",
+                    "Numero colonne %d diverso dall'intestazione (%d)"
+                    % (len(values), len(header)))]
+            else:
+                issues = []
+                for ix, col, valid, where in checks:
+                    value = unquote(values[ix])
+                    if not value:
+                        issues.append(Issue(lineno, col, "Valore mancante"))
+                    elif self.norm_key(value) not in valid:
+                        issues.append(Issue(
+                            lineno, col, "Valore '%s' non trovato in %s"
+                            % (value, where), value=value))
+                row = dict(zip(header, (unquote(v) for v in values)))
+                issues += self.check_unique_cols(lineno, row, unique, seen)
+            if issues:
+                result.bad_records += 1
+                result.issues.extend(issues)
+        if header is None:
+            result.issues.append(Issue("-", "-", "File vuoto"))
+        return result
+
+    def purge_file(self, result):
+        """[purge] (temporaneo): solo nella data indicata riscrive il file
+        senza i record con errori; l'originale è copiato in .bak (una volta
+        sola, per non perderlo con una seconda esecuzione)"""
+        key = self.dirmap_of[result.name][0]
+        day = self.cfg.purge.get(result.name) or self.cfg.purge.get(key)
+        if day != date.today().isoformat():
+            return 0
+        bad = {i.row for i in result.issues if isinstance(i.row, int)}
+        with open(result.path, encoding=self.cfg.encoding, newline="") as fd:
+            text = fd.read()
+        eol = "\r\n" if "\r\n" in text else "\n"
+        kept = []
+        removed = 0
+        for lineno, values, _error in read_data_file(result.path, self.cfg.encoding):
+            if kept and lineno in bad:  # mai l'intestazione
+                removed += 1
+            else:
+                kept.append("|".join(values))
+        if not removed:
+            return 0
+        backup = result.path + ".bak"
+        if not os.path.exists(backup):
+            shutil.copy2(result.path, backup)
+        with open(result.path, "w", encoding=self.cfg.encoding.replace("-sig", ""),
+                  newline="") as fd:
+            fd.write(eol.join(kept) + eol)
+        result.issues.insert(0, Issue(
+            "-", "-", "[purge] %d record con errori rimossi dal file "
+            "(originale in %s)" % (removed, os.path.basename(backup))))
+        return removed
 
     def check_unique_cols(self, lineno, row, unique, seen):
         """[unique]: la combinazione dei valori delle colonne non deve
@@ -2016,9 +2183,23 @@ def main(argv=None):
 
     maps = Mappings(cfg)
     files, skipped, nonconforming = select_files(cfg)
+    # i file usati solo come elenco di valori di [lookup_only] (assenti in
+    # dirmap, es. Agenti.csv) non sono file da importare
+    lookups = {}
+    for name in lookup_sources(cfg, files):
+        if not maps.resolve(name, cfg.prefix_match, cfg.alias)[0]:
+            lookups[name] = files.pop(name)
+            skipped.append((os.path.basename(lookups[name]),
+                            "elenco di valori di [lookup_only]"))
     checker = Checker(cfg, maps, files, nonconforming)
+    checker.lookup_files = lookups
     checker.collect_keys()
     results = [checker.check_file(name, files[name]) for name in sorted(files)]
+    for result in results:
+        removed = checker.purge_file(result)
+        if removed:
+            print("%-28s %d record rimossi da %s" % (
+                "[purge]:", removed, os.path.basename(result.path)))
     checker.add_insert_issues(results)
     matches = checker.vat_matches()
     writer(report, run_time, results, skipped, matches)
