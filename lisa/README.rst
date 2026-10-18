@@ -112,11 +112,6 @@ ChangeLog History
 
 * [FIX] lisa_bld_ods: fixes & improvements
 
-2.0.3 (2023-09-07)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] lisa_bld_ods: fixes & improvements
-
 
 
 Credits

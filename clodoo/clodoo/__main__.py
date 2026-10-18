@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-from clodoo import internal_main, clodoo_main
+from clodoo import internal_main
+from clodoo.clodoo_main import clodoo_main
 
 __version__ = "2.1.1"
 

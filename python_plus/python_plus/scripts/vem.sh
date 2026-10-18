@@ -374,7 +374,7 @@ bin_install() {
   [[ -n $opt_distro ]] && DISTO=${opt_distro,,} || DISTO=$(xuname -d)
   [[ -z $opt_distro ]] && DISTO=${DISTO,,}$(xuname -v | grep --color=never -Eo "[0-9]*" | head -n1)
   local pkg=$1
-  if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+  if [[ -z "$XPKGS_RE" || ! $pkg =~ ^($XPKGS_RE)$ ]]; then
     if [[ $pkg =~ lessc ]]; then
       bin_install_less
       sts=$?
@@ -525,7 +525,7 @@ pip_install() {
     [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
 
     sts=0
-    if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+    if [[ -z "$XPKGS_RE" || ! $pkg =~ ^($XPKGS_RE)$ ]]; then
       srcdir=""
       if [[ $pkg =~ $BIN_PKGS ]]; then
         bin_install "$pkg"
@@ -563,8 +563,8 @@ pip_install() {
         fi
         if [[ $pkg =~ ^(odoo|openerp)$ ]]; then
           [[ -z $opt_oepath ]] && echo -e "${RED}Missed Odoo version to install (please use -o switches)!${CLR}" && return 33
-          [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ]] && srcdir=$opt_oepath/openerp
-          [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ]] && srcdir=$opt_oepath/odoo
+          [[ -d $opt_oepath/openerp && -f $opt_oepath/openerp-server ]] && srcdir=$opt_oepath/openerp
+          [[ -d $opt_oepath/odoo && -f $opt_oepath/odoo-bin ]] && srcdir=$opt_oepath/odoo
           [[ -z $srcdir ]] && echo -e "${RED}Odoo source not found!${CLR}" && exit 1
         fi
       fi
@@ -729,7 +729,7 @@ pip_uninstall() {
   popts=""
   [[ $opt_verbose -eq 0 ]] && popts="$popts -q"
   [[ $opt_yes -ne 0 ]] && popts="$popts -y"
-  if [[ -z "$XPKGS_RE" || ! $pkg =~ ($XPKGS_RE) ]]; then
+  if [[ -z "$XPKGS_RE" || ! $pkg =~ ^($XPKGS_RE)$ ]]; then
     pkg=$(get_pkg_wo_version $(get_actual_pkg "$1"))
     pkg=$(basename ${pkg//-/_})
     if [[ -L $pypath/$pkg ]]; then
@@ -1025,7 +1025,7 @@ find_odoo_path() {
     [[ -z $opt_oepath && -L $p/odoo ]] && opt_oepath=$(dirname $(readlink $p/odoo))
     [[ -z $opt_oepath && -L $p/openerp ]] && opt_oepath=$(dirname $(readlink $p/openerp))
     [[ -n $opt_oepath ]] && opt_oepath=$(readlink -f $opt_oepath)
-    [[ ( -d $opt_oepath/odoo && -f $opt_oepath/odoo/__init__.py ) || ( -d $opt_oepath/openerp && -f $opt_oepath/openerp/__init__.py ) ]] || opt_oepath=""
+    [[ ( -d $opt_oepath/odoo && -f $opt_oepath/odoo-bin ) || ( -d $opt_oepath/openerp && -f $opt_oepath/openerp-server ) ]] || opt_oepath=""
 }
 
 venv_mgr_check_src_path() {
@@ -1099,7 +1099,7 @@ venv_mgr_check_oever() {
   local f p v
   [[ -n $2 ]] && v="$2" || v="$opt_oever"
   [[ -n $1 ]] && p="$1" || p="$opt_oepath"
-  [[ -d $p ]] && p=$(readlink -f $p) && [[ ( -d $p/odoo && -f $p/odoo/__init__.py ) || ( -d $p/openerp && -f $p/openerp/__init__.py ) ]] || p=""
+  [[ -d $p ]] && p=$(readlink -f $p) && [[ ( -d $p/odoo && -f $p/odoo-bin ) || ( -d $p/openerp && -f $p/openerp-server ) ]] || p=""
   if [[ -z "$v" && -n "$p" ]]; then
     [[ -d $p/openerp ]] && f="$p/openerp/release.py" || f="$p/odoo/release.py"
     opt_oever=$(grep "^version_info" $f|cut -d= -f2|tr -d "("|tr -d ")"|tr -d " "|awk -F, '{print $1 "." $2}')
@@ -1510,16 +1510,22 @@ do_venv_pip() {
 validate_py_oe_vers() {
   local odoo_majver
   if [[ -z $opt_pyver && -z $opt_oever ]]; then
-    echo -e "${RED}Missed python version to use!${CLR}" && exit 1
+      echo -e "${RED}Missed python version to use!${CLR}" && exit 1
   elif [[ -n $opt_oever && -z $opt_pyver ]]; then
-    odoo_majver=$(echo $opt_oever|cut -d. -f1)
-    [[ $odoo_majver -le 10 ]] && opt_pyver="2.7" || opt_pyver="3.$(((odoo_majver-9)/2+6))"
+      odoo_majver=$(echo $opt_oever|cut -d. -f1)
+      if [[ $odoo_majver -le 10 ]]; then
+          opt_pyver="2.7"
+      elif [[ $odoo_majver -le 14 ]]; then
+          opt_pyver="3.$(((odoo_majver-9)/2+6))"
+      else
+          opt_pyver="3.$((odoo_majver-6))"
+      fi
   elif [[ -n $opt_oever && -n $opt_pyver ]]; then
-    odoo_majver=$(echo $opt_oever|cut -d. -f1)
-    if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then
-      echo -e "${RED}Invalid python version $opt_pyver for Odoo $opt_oever!${CLR}"
-      exit 1
-    fi
+      odoo_majver=$(echo $opt_oever|cut -d. -f1)
+      if [[ ( $odoo_majver -le 10 && $opt_pyver =~ ^3 ) || ( $odoo_majver -gt 10 && $opt_pyver =~ ^2 ) ]]; then
+        echo -e "${RED}Invalid python version $opt_pyver for Odoo $opt_oever!${CLR}"
+        exit 1
+      fi
   fi
 }
 
@@ -1665,14 +1671,14 @@ if [[ $action == "rm" ]]; then
   unset PYTHON PIP
   exit 0
 elif [[ $action == "create" ]]; then
-  [[ -n $opt_oepath ]] && opt_oepath=$(readlink -f $opt_oepath) && venv_mgr_check_oever
+  [[ -n $opt_oepath ]] && opt_oepath=$(readlink -f $opt_oepath) && venv_mgr_check_oever $opt_oepath
   sts=$?
   [[ $opt_oever =~ ^1 && -z $opt_bins ]] && opt_bins="lessc"
 elif [[ $action != "help" ]]; then
   do_activate "$p2" "-q"
   venv_mgr_check_src_path "$p2"
   [[ -z $opt_oepath ]] && find_odoo_path "$p2"
-  [[ -z $opt_oever ]] && venv_mgr_check_oever
+  [[ -z $opt_oever ]] && venv_mgr_check_oever $opt_oepath
   check_installed_pkgs
   validate_py_oe_vers
   pypi_requirements "$opt_force"
