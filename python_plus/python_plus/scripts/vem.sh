@@ -77,6 +77,8 @@ USE2TO3_PKGS="(vatnumber|feedparser|suds[\-_]jurko)"
 BIN_PKGS="(wkhtmltopdf|lessc)"
 FLT_PKGS="(jwt|FOO)"
 UNISOLATED_PKGS="(.?-|lxml)"
+# caps from list_requirements passed as pip constraints, so later installs cannot break them
+CAPPED_PKGS="(cryptography|pyOpenSSL|Werkzeug|Pillow|reportlab)"
 ERROR_PKGS=""
 LOCAL_PKGS="(clodoo|odoo_score|os0|python_plus|wok_code|z0bug_odoo|z0lib|zerobug)"
 [[ -d $HOME_DEVEL/../tools ]] && LOCAL_PKGS=$(find $HOME_DEVEL/../tools -maxdepth 1 -type d|grep -Ev "(/|.git|.idea|docs|egg-info|license_text|templates|tools|tests|z0tester)$"|sort|cut -d/ -f7|tr "\n" " ")
@@ -522,6 +524,20 @@ pip_install() {
     [[ $PIPVER -eq 21  && ! in-tree-build =~ $popts  ]] && popts="$popts --use-feature=in-tree-build"
     [[ $opt_pyver =~ ^2 && $(uname -r) =~ ^3 ]] && popts="$popts --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org"
     [[ $opt_verbose -lt 2 ]] && popts="$popts -q"
+    # e.g. pysaml2 would silently upgrade cryptography and pyOpenSSL beyond their caps
+    if [[ -n "$opt_oever" && $opt_pyver =~ ^3 && ! ${pkg,,} =~ ^${CAPPED_PKGS,,}$ ]]; then
+      x="$tmpdir/constraints.txt"
+      if [[ $CONSTRAINTS_DONE -eq 0 || ! -f $x ]]; then
+        : > $x
+        for p in ${CAPPED_PKGS//[()|]/ }; do
+          v=$($LIST_REQ -qP -y$opt_pyver -b$opt_oever -j $p)
+          [[ $v =~ ^[\'\"] ]] && v="${v:1: -1}"
+          [[ $v =~ [\<\>=] ]] && echo "$v" >> $x
+        done
+        CONSTRAINTS_DONE=1
+      fi
+      [[ -s $x ]] && popts="$popts -c $x"
+    fi
     [[ $opt_verbose -ne 0 && PRINTED_PIPVER -eq 0 ]] && echo "# $PIP.$PIPVER $popts ..." && PRINTED_PIPVER=1
 
     sts=0
@@ -1657,6 +1673,7 @@ SAVED_HOME=$HOME
 SAVED_HOME_DEVEL=$HOME_DEVEL
 SAVED_PYTHONPATH=$PYTHONPATH
 PRINTED_PIPVER=0
+CONSTRAINTS_DONE=0
 [[ $opt_alone -ne 0 ]] && PYTHONPATH=""
 FLAG=">"
 [[ $opt_dry_run -eq 0 ]] && FLAG="\$"

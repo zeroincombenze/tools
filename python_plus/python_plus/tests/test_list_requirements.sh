@@ -125,7 +125,7 @@ test_03() {
     RES=$(list_requirements.py -b12.0 -tpython -BSP)
     test_result "list_requirements -b12.0 -tpython -BSP" "$TRES" "$RES"
     #
-    TRES="asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,'chardet<5',configparser,'cryptography>38.0.2','decorator>=4.0.10','docutils>=0.16',future,'gevent>=21.8.0,<=22.10.99',html2text,idna,Jinja2==3.1.2,'lessc>=3.0.0',lxml==4.9.2,'Mako>=1.0.4','matplotlib<3.3.0','num2words>=0.5',numpy,'odoo_score>=2.0.0','passlib>=1.7.0','pdfplumber<0.10.2','Pillow>=6.2.1',polib,'psutil>=4.3.1',psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,'pydot>=1.2.3','pyOpenSSL>=21.0.0,<23.0',pyparsing==2.1.10,'pyPDF2<3.0','pyserial>=3.1.1','python-dateutil>=2.5.3','python-ldap>=3.1.0,<=3.4.4',python-plus,'python-stdnum>=1.8.1','pytz>=2016.7','qrcode>=5.3','reportlab>=3.3.0','simplejson>=3.5.3','six>=1.10.0','urllib3<1.27','Werkzeug>=2.0.0',zeep==2.4.0"
+    TRES="asn1crypto,'Babel>=2.6.0,<=2.9.1',certifi,'chardet<5',configparser,'cryptography>38.0.2,<39','decorator>=4.0.10','docutils>=0.16',future,'gevent>=21.8.0,<=22.10.99',html2text,idna,Jinja2==3.1.2,'lessc>=3.0.0',lxml==4.9.2,'Mako>=1.0.4','matplotlib>=3.9.0','num2words>=0.5',numpy,'odoo_score>=2.0.0','passlib>=1.7.0','pdfplumber<0.10.2','Pillow>=6.2.1,<13',polib,'psutil>=4.3.1',psycogreen==1.0,'psycopg2-binary>=2.8.3',pyasn1,'pydot>=1.2.3','pyOpenSSL>=21.0.0,<23.0',pyparsing==2.1.10,'pyPDF2<3.0','pyserial>=3.1.1','python-dateutil>=2.5.3','python-ldap>=3.1.0,<=3.4.4',python-plus,'python-stdnum>=1.8.1','pytz>=2016.7','qrcode>=5.3','reportlab>=3.3.0,<5','simplejson>=3.5.3','six>=1.10.0','urllib3<1.27','Werkzeug>=2.0.0,<3.1.0',zeep==2.4.0"
     RES=$(list_requirements.py -b16.0 -tpython -BSP)
     test_result "list_requirements -b16.0 -tpython -BSP" "$TRES" "$RES"
 }
