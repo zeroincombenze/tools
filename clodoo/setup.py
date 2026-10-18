@@ -56,7 +56,7 @@ else:
 
 setup(
     name=name,
-    version="2.1.1",
+    version="2.1.2",
     description="Do massive operations on Odoo Cloud",
     long_description=long_description,
     long_description_content_type="text/x-rst",
