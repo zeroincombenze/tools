@@ -16,7 +16,7 @@ except IOError:
 
 setup(
     name=name,
-    version="2.1.0",
+    version="2.1.1",
     description="python useful function",
     long_description=long_description,
     long_description_content_type="text/x-rst",

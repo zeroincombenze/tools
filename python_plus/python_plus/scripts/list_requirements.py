@@ -28,7 +28,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -194,6 +194,7 @@ REQVERSION = {
         "3.6": "==4.0.0",
         "3.7": ">=6.1.0,<=6.2.0",
         "3.8": ">=6.2.1",
+        "3.12": ">=10.2.0,<13",  # Odoo 18 pins 10.2.0; Pillow 13 not tested by Odoo
     },
     "postgresql": {
         "6.1": ">=8.0,<=10.0",
@@ -308,7 +309,8 @@ REQVERSION = {
     "reportlab": {
         # On Ubuntu 26.04 reportlab 3.3.0 is no more available
         # "6.1": "==3.1.44", "10.0": "==3.3.0", "14.0": ">=3.3.0",
-        "6.1": "<4.0", "14.0": ">=3.3.0",
+        "6.1": "<4.0", "12.0": "<4.0", "14.0": "PYVER", "2.7": "<4.0", "3.0": ">=3.3.0",
+        "3.12": ">=4.1.0,<5",  # Odoo 18 pins 4.1.0; reportlab 5 not tested by Odoo
     },
     "requests": {
         "6.1": "==2.6.0",
@@ -417,6 +419,7 @@ ALIAS_RHEL = {
     "libffi-dev": "libffi-devel",
     "libgeos-dev": "geos-devel",
     "libldap2-dev": "openldap-devel",
+    "libmariadb-dev": "mariadb-connector-c-devel",
     "libpq-dev": "postgresql-devel",
     "libsasl2-dev": "",
     "libssl-dev": "",
@@ -699,6 +702,7 @@ DEPS = {
     "barcode": {"python": "python-Levenshtein"},
     "gevent": {"bin": "libevent-dev"},
     "Pillow": {"python": "docutils"},
+    "mysqlclient": {"bin": ("pkg-config", "libmariadb-dev")},
     "pycups": {"bin": "libcups2-dev"},
     "shapely": {"bin": "libgeos-dev"},
 }
@@ -1312,7 +1316,7 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
                               "filestore",
                               "history",
                               "howtos",
-                              "images"
+                              "images",
                               "migrations",
                               "redhat",
                               "reference",

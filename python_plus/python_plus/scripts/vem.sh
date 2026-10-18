@@ -62,7 +62,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.0
+__version__=2.1.1
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -649,7 +649,8 @@ pip_install() {
       fi
       [[ $sts -ne 0 && ! $ERROR_PKGS =~ $pkg ]] && ERROR_PKGS="$ERROR_PKGS   '$pkg'"
       # [[ $sts -eq 0 ]] && x=$(which ${pkg}-info) && [[ -x $x ]] && set_shebang "$x" && run_traced "${pkg}-info --copy-pkg-data"
-      [[ $sts -eq 0 ]] && x=$(which ${pkg}-info) && [[ -x $x ]] && run_traced "${pkg}-info --copy-pkg-data"
+      # only our own <pkg>-info inside the venv: e.g. /usr/bin/distro-info is not ours
+      [[ $sts -eq 0 ]] && x=$VIRTUAL_ENV/bin/${pkg}-info && [[ -x $x ]] && run_traced "$x --copy-pkg-data"
       [[ -z $XPKGS_RE ]] && XPKGS_RE="$pkg" || XPKGS_RE="$XPKGS_RE|$pkg"
     fi
     return $sts
@@ -1764,6 +1765,11 @@ if [[ -n "$ERROR_PKGS" ]]; then
     PKGLIST=""
     [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST geos-devel" || PKGLIST="$PKGLIST libgeos-dev"
     echo "$XTAL install $PKGLIST    # shapely"
+  fi
+  if [[ $ERROR_PKGS =~ mysqlclient ]]; then
+    PKGLIST=""
+    [[ $FH == "RHEL" ]] && PKGLIST="$PKGLIST pkgconf-pkg-config mariadb-connector-c-devel" || PKGLIST="$PKGLIST pkg-config libmariadb-dev"
+    echo "$XTAL install $PKGLIST    # mysqlclient"
   fi
   if [[ $ERROR_PKGS =~ psycopg2 ]]; then
     PKGLIST=""
