@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=2.0.8
+#__version__=2.0.9
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -385,9 +385,10 @@ create_db_list_from_pg() {
         cmd="${cmd}zi01234589|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|\\n"
         cmd="${cmd}test|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|\\n"
       else
+
         [[ -n $opt_port ]] && cmd="psql -U$opt_user -p$opt_port -Alt" || cmd="psql -U$opt_user -Alt"
       fi
-      for db in $($cmd|sort -f|awk -F"|" '{ print $1 }'); do
+      for db in $($cmd|sort -f|grep "^[^|]*|$opt_user|"|cut -d"|" -f1); do
         if [[ $db =~ $redb ]]; then
           slog "DB $db is backup copy"
         else

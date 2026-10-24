@@ -33,7 +33,7 @@ try:  # facoltativo: verifica delle partite IVA estere
 except ImportError:
     get_cc_module = None
 
-__version__ = "18.0.0.1.1"
+__version__ = "18.0.0.1.2"
 
 # Nome file conforme alla specifica (il separatore prima della data può
 # essere "_" o "-"); i nomi che non lo rispettano vengono segnalati.
@@ -117,6 +117,28 @@ FC_ODD = dict(zip("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                   [1, 0, 5, 7, 9, 13, 15, 17, 19, 21] +
                   [1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8,
                    12, 14, 16, 10, 22, 25, 24, 23]))
+# IBAN: lunghezza per paese (registro SWIFT); il BBAN italiano è CIN (lettera),
+# ABI (5 cifre), CAB (5 cifre) e conto (12 caratteri alfanumerici)
+IBAN_LENGTHS = {
+    "AD": 24, "AE": 23, "AL": 28, "AT": 20, "AZ": 28, "BA": 20, "BE": 16,
+    "BG": 22, "BH": 22, "BI": 27, "BR": 29, "BY": 28, "CH": 21, "CR": 22,
+    "CY": 28, "CZ": 24, "DE": 22, "DJ": 27, "DK": 18, "DO": 28, "EE": 20,
+    "EG": 29, "ES": 24, "FI": 18, "FK": 18, "FO": 18, "FR": 27, "GB": 22,
+    "GE": 22, "GI": 23, "GL": 18, "GR": 27, "GT": 28, "HN": 28, "HR": 21,
+    "HU": 28, "IE": 22, "IL": 23, "IQ": 23, "IS": 26, "IT": 27, "JO": 30,
+    "KW": 30, "KZ": 20, "LB": 28, "LC": 32, "LI": 21, "LT": 20, "LU": 20,
+    "LV": 21, "LY": 25, "MC": 27, "MD": 24, "ME": 22, "MK": 19, "MN": 20,
+    "MR": 27, "MT": 31, "MU": 30, "NI": 28, "NL": 18, "NO": 15, "OM": 23,
+    "PK": 24, "PL": 28, "PS": 29, "PT": 25, "QA": 29, "RO": 24, "RS": 22,
+    "RU": 33, "SA": 24, "SC": 31, "SD": 18, "SE": 24, "SI": 19, "SK": 24,
+    "SM": 27, "SO": 23, "ST": 25, "SV": 28, "TL": 23, "TN": 24, "TR": 26,
+    "UA": 29, "VA": 22, "VG": 24, "XK": 20, "YE": 30,
+}
+RE_IBAN = re.compile(r"^[A-Z]{2}\d{2}[A-Z0-9]+$")
+RE_IBAN_BBAN = {
+    "IT": re.compile(r"^[A-Z]\d{10}[A-Z0-9]{12}$"),
+    "SM": re.compile(r"^[A-Z]\d{10}[A-Z0-9]{12}$"),
+}
 RE_QUOTED = re.compile(r'^"((?:[^"]|"")*)"$', re.DOTALL)
 RE_REF_TOKEN = re.compile(r'\s*(?:"((?:[^"]|"")*)"|\'([^\']*)\'|([^,]*))\s*(?:,|$)')
 
@@ -441,6 +463,15 @@ class Config:
         if cp.has_section("purge"):
             for name, day in cp.items("purge"):
                 self.purge[name] = day.strip()
+        # [iban] {NOME} = colonna IBAN: prima dei controlli il file viene
+        # riscritto (l'originale resta in .bak) ricalcolando le cifre di
+        # controllo "00" degli IBAN fittizi (es. IT00A...) e togliendo le
+        # righe con IBAN non valido
+        self.iban = {}
+        if cp.has_section("iban"):
+            for name, col in cp.items("iban"):
+                if col.strip():
+                    self.iban[name] = normalize_header(col.strip())
         self.selections = {}
         if cp.has_section("selection"):
             for key, values in cp.items("selection"):
@@ -804,6 +835,7 @@ class Checker:
         self._row = None  # riga in esame: {colonna: valore} e mappature
         self._models_with_data = set()
         self.lookup_files = {}  # [lookup_only]: {NOME} -> file di soli valori
+        self.iban_issues = {}  # [iban]: {NOME} -> segnalazioni della correzione
         self.dirmap_of = {
             name: maps.resolve(name, cfg.prefix_match, cfg.alias) for name in files}
 
@@ -1120,10 +1152,76 @@ class Checker:
         return "ricerca per %s%s: nessun record in %s" % (
             searched, " e per dominio" if domains else "", ", ".join(names))
 
+    def fix_iban(self, name, path):
+        """[iban]: riscrive il file ricalcolando le cifre di controllo "00"
+        degli IBAN fittizi e togliendo le righe con IBAN non valido;
+        l'originale è copiato in .bak (una volta sola). Le righe tolte sono
+        segnalate con il numero di riga del file originale.
+        Restituisce (IBAN corretti, righe tolte)"""
+        key = self.dirmap_of[name][0]
+        col = self.cfg.iban.get(name) or self.cfg.iban.get(key)
+        if not col:
+            return 0, 0
+        issues = self.iban_issues.setdefault(name, [])
+        with open(path, encoding=self.cfg.encoding, newline="") as fd:
+            text = fd.read()
+        eol = "\r\n" if "\r\n" in text else "\n"
+        header = None
+        kept = []
+        fixed = removed = 0
+        removed_rows = []
+        for lineno, values, error in read_data_file(path, self.cfg.encoding):
+            if header is None:
+                header = [normalize_header(h) for h in values]
+                if col not in header:
+                    issues.append(Issue(
+                        lineno, col, "[iban] colonna IBAN assente nel file"))
+                    return 0, 0
+                ix = header.index(col)
+                kept.append("|".join(values))
+                continue
+            if error or len(values) != len(header):
+                kept.append("|".join(values))  # segnalato dai controlli
+                continue
+            raw = values[ix]
+            value = unquote(raw)
+            if not value:
+                kept.append("|".join(values))  # valore mancante: segnalato dai controlli
+                continue
+            iban = fix_iban_check_digits(value)
+            msg = check_iban(iban)
+            if msg:
+                removed += 1
+                removed_rows.append(Issue(
+                    lineno, col, "%s: riga rimossa (riga del file .bak)" % msg,
+                    value=value))
+                continue
+            if iban != value:
+                if iban[2:4] != compact_iban(value)[2:4]:
+                    fixed += 1
+                quoted = RE_QUOTED.match(raw.strip())
+                values[ix] = '"%s"' % iban if quoted else iban
+            kept.append("|".join(values))
+        if not (fixed or removed):
+            return 0, 0
+        backup = path + ".bak"
+        if not os.path.exists(backup):
+            shutil.copy2(path, backup)
+        with open(path, "w", encoding=self.cfg.encoding.replace("-sig", ""),
+                  newline="") as fd:
+            fd.write(eol.join(kept) + eol)
+        issues.append(Issue(
+            "-", col, "[iban] %d IBAN con cifre di controllo 00 ricalcolati, "
+            "%d righe con IBAN non valido rimosse (originale in %s)"
+            % (fixed, removed, os.path.basename(backup))))
+        issues.extend(removed_rows)
+        return fixed, removed
+
     def check_file(self, name, path):
         key, by_prefix = self.dirmap_of[name]
         model = self.model_of(name)
         result = FileResult(name, path, model)
+        result.issues.extend(self.iban_issues.get(name, []))
         unique = self.cfg.unique_only.get(name) or self.cfg.unique_only.get(key)
         if unique:
             return self.check_unique(path, unique, result)
@@ -1645,6 +1743,48 @@ def check_vat(value, country):
                           for v in (country + number, number, vat)):
         return None
     return "Partita IVA '%s' non valida per il paese %s" % (value, country)
+
+
+def compact_iban(value):
+    """IBAN senza spazi, in maiuscolo"""
+    return re.sub(r"\s", "", value).upper()
+
+
+def iban_remainder(iban):
+    """Resto modulo 97 dell'IBAN (paese e cifre di controllo in coda,
+    lettere convertite in numeri: A=10 ... Z=35); 1 se l'IBAN è valido"""
+    text = iban[4:] + iban[:4]
+    return int("".join(str(int(c, 36)) for c in text)) % 97
+
+
+def iban_wellformed(iban):
+    """Formato dell'IBAN compattato: paese noto, lunghezza del paese,
+    caratteri alfanumerici e, per IT/SM, struttura del BBAN"""
+    if not RE_IBAN.match(iban) or IBAN_LENGTHS.get(iban[:2]) != len(iban):
+        return False
+    bban = RE_IBAN_BBAN.get(iban[:2])
+    return not bban or bool(bban.match(iban[4:]))
+
+
+def fix_iban_check_digits(value):
+    """IBAN fittizio con cifre di controllo "00" (es. IT00A...): restituisce
+    l'IBAN compattato con le cifre ricalcolate (98 - resto modulo 97);
+    gli altri valori sono solo compattati. "00" non è mai valido"""
+    iban = compact_iban(value)
+    if iban[2:4] == "00" and iban_wellformed(iban):
+        iban = "%s%02d%s" % (iban[:2], 98 - iban_remainder(iban), iban[4:])
+    return iban
+
+
+def check_iban(value):
+    """IBAN: formato del paese e cifra di controllo modulo 97 (il CIN
+    italiano interno al BBAN non viene verificato)"""
+    iban = compact_iban(value)
+    if not iban_wellformed(iban):
+        return "IBAN '%s' non valido (formato o lunghezza)" % value
+    if iban_remainder(iban) != 1:
+        return "IBAN '%s' non valido (cifre di controllo errate)" % value
+    return None
 
 
 def check_website(value):
@@ -2193,6 +2333,11 @@ def main(argv=None):
                             "elenco di valori di [lookup_only]"))
     checker = Checker(cfg, maps, files, nonconforming)
     checker.lookup_files = lookups
+    for name in sorted(files):  # [iban] prima delle chiavi: IBAN = counterpart_pk
+        fixed, removed = checker.fix_iban(name, files[name])
+        if fixed or removed:
+            print("%-28s %d IBAN ricalcolati, %d righe rimosse da %s" % (
+                "[iban]:", fixed, removed, os.path.basename(files[name])))
     checker.collect_keys()
     results = [checker.check_file(name, files[name]) for name in sorted(files)]
     for result in results:

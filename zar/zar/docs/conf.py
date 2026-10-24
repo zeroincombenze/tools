@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = "zar"
-copyright = "2019-25, Antonio Maria Vigliotti"
+copyright = "2019-26, Antonio Maria Vigliotti"
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version
-version = "2.0.8"
+version = "2.0.9"
 # The full version, including alpha/beta/rc tags
-release = "2.0.8"
+release = "2.0.9"
 
 
 # -- General configuration ---------------------------------------------------

@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2017-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2017-2026 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # Based on template 2.1.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
 READLINK=$(which readlink 2>/dev/null)
@@ -60,7 +60,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.8
+__version__=2.0.9
 
 
 OPTOPTS=(h        b          n            q           t       V           v)
@@ -85,7 +85,7 @@ if [[ "$opt_version" ]]; then
 fi
 if [[ $opt_help -gt 0 ]]; then
   print_help "Backup Odoo filestore (with attachments)"\
-  "(C) 2017-2025 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2017-2026 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

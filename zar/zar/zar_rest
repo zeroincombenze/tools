@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2026 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # Based on template 2.1.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4
@@ -61,7 +61,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.0.8
+__version__=2.0.9
 
 
 kill_process() {
@@ -304,18 +304,19 @@ inherit_options() {
 }
 
 
-OPTOPTS=(h        c        d       e      K        l       m        N         n            o        p        R       T         U          V           v)
-OPTDEST=(opt_help opt_conf seldate opt_ex opt_cron opt_log opt_mail opt_newdb opt_dry_run  opt_name opt_port opt_rst test_mode opt_user   opt_version opt_verbose)
-OPTACTI=("+"      "="      "="     1      1        "="     1        "="       1            "="      "="      1       1         "="        "*>"        1)
-OPTDEFL=(0        ""       ""      1      0        ""      -1       ""        0            ""       ""       0       0         "postgres" ""          0)
-OPTMETA=("help"   "file"   "date"  ""     "cron"   "file" "mail"    "dbname"  "do nothing" "fname"  "dbport" ""      "test"    "username" "version"   "verbose")
+OPTOPTS=(h        c        d       e      K        l       m        N         n            o        p        R          T         U          V           v)
+OPTLONG=(help     config   date    exact  cron     logfile rest-neu new-db    dry-run      out-file port     neutralize test      user       version     verbose)
+OPTDEST=(opt_help opt_conf seldate opt_ex opt_cron opt_log opt_neu2 opt_newdb opt_dry_run  opt_name opt_port opt_neu    test_mode opt_user   opt_version opt_verbose)
+OPTACTI=("+"      "="      "="     1      1        "="     1        "="       1            "="      "="      1          1         "="        "*>"        1)
+OPTDEFL=(0        ""       ""      1      0        ""      -1       ""        0            ""       ""       0          0         "postgres" ""          0)
+OPTMETA=("help"   "file"   "date"  ""     "cron"   "fname" ""       "dbname"  "do nothing" "fname"  "dbport" ""         "test"    "username" "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def zar.conf)"\
  "select date (format yyyymmdd)"\
  "exact DB name (rather matches DB name)"\
  "run in cron environment"\
  "log filename (def /var/log/zar/restdb.log)"\
- "disable mail server on target DB"\
+ "restore and neutralize DB"\
  "new db name"\
  "do nothing (dry-run)"\
  "input filename (def dbname-date)"\
@@ -341,7 +342,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Restore/duplicate postgres DB"\
-  "(C) 2015-2025 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2026 by zeroincombenze®\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -353,13 +354,14 @@ link_cfg $FCONF
 
 init_vars "$olddb"
 
-if [ $opt_rst -gt 0 ]; then
+if [ $opt_neu -gt 0 ]; then
   wlog "=== Starting DB neutralization $__version__ by $opt_user ==="
   dblist="$olddb"
   if [[ -n $olddb ]]; then
     stop_services "$olddb"
   else
-    dblist=$(create_db_list_from_pg ".*" "$PGDIR" "$DBCKDIR" "$REDB")
+    # All databases in the cluster, whatever their owner (db_user) or filter
+    dblist=$($PSQL -Atc "select datname from pg_database where not datistemplate and datname<>'postgres' order by datname;" postgres)
     for olddb in $dblist; do
       stop_services "$olddb"
     done
@@ -482,10 +484,10 @@ if [ $dovalid -gt 0 ]; then
           else
             dtdb="00000000"
           fi
-          if [ $opt_mail -eq -1 ]; then
-            opt_mail=0
+          if [ $opt_neu2 -eq -1 ]; then
+            opt_neu2=0
             if [[ $NEWDB =~ $TEST_DB ]]; then
-              opt_mail=1
+              opt_neu2=1
               wlog "Restored DBs are set for test as classificated"
             fi
           fi
@@ -520,8 +522,8 @@ if [ $dovalid -gt 0 ]; then
           dtdb="00000000"
         fi
         NEWDB="$db"
-        if [ $opt_mail -eq -1 ]; then
-          opt_mail=1
+        if [ $opt_neu2 -eq -1 ]; then
+          opt_neu2=1
           wlog "Restored DBs are set for test because Development Host"
         fi
         get_sqlfname "$db" $dtdb
@@ -544,7 +546,7 @@ if [ $dovalid -gt 0 ]; then
       run_traced "$PSQL -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
       run_traced "reassign_owner \"$NEWDB\" \"$OLD_OWNER\" \"$NEW_OWNER\""
       if [ $opt_dry_run -eq 0 ]; then
-        if [ $opt_mail -gt 0 ]; then
+        if [ $opt_neu2 -gt 0 ]; then
           stop_services "$NEWDB" "quick"
         fi
         rm -f $fsql
