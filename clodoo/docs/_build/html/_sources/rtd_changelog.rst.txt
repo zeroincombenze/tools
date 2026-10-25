@@ -91,11 +91,6 @@ ChangeLog History
 
 * [FIX] Discard odoorpc 0.10 which does not work
 
-2.0.7 (2023-09-26)
-~~~~~~~~~~~~~~~~~~
-
-* [FIX] Some fixes due old wrong code (id -> name)
-
 |
 |
 

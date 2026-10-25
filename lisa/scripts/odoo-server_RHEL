@@ -31,11 +31,11 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 2.0.8 (RHEL)
+# version: 2.0.9 (RHEL)
 # Warning: this is a customized ${xtl_Id} script, running Linux
-# It was tested on: CentOS (6 & 7), Ubuntu (12 & 14 & 16 & 18 & 20), Debian (7 & 8 & 9)
+# It was tested on: CentOS (6 & 7), Ubuntu (12 .. 26), Debian (7 & 8 & 9)
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2025 by zeroincombenze® <http://wiki.zeroincombenze.it>
+# (C) 2015-2026 by zeroincombenze® <http://wiki.zeroincombenze.it>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -87,9 +87,9 @@ else
   CONFIGFILE=""
 fi
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep --color=never -Eo "(oca|librerp|zero|powerp)"|tail -n1)
+xtl_org=$(echo $(basename $0)|grep --color=never -Eo "(oca|librerp|zero)"|tail -n1)
 [[ -z "$xtl_org" ]] && ORG="odoo" || ORG="$xtl_org"
-mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16|17|18)")
+mult=$(echo $(basename $0)|grep --color=never -Eo "(6|7|8|9|10|11|12|13|14|15|16|17|18|19|20)")
 [[ $DRY_RUN -gt 0 ]] && echo "Odoo ver=${xtl_fversion}" && echo "mult=${mult}" && echo "ORG=$ORG"
 DAEMON=""
 VENV_DIR=""
@@ -118,20 +118,10 @@ fi
 p=$(dirname ${DAEMON})
 [[ "$(basename $p)" == "server" ]] && p=$(dirname $p)
 [[ -d "$p" && "$(basename $p)" == "odoo" ]] && p=$(dirname $p)
-if [[ -f $p/bin/activate ]]; then
-  VENV_DIR=$p
-else
-  for dn in venv_odoo venv; do
-    [[ -f $p/$dn/bin/activate ]] && VENV_DIR=$p/$dn && break
-  done
-fi
-if [[ -z "$VENV_DIR" ]]; then
-  [[ $dr =~ /server/ ]] && dr=$(readlink -f $(dirname $DAEMON)/../..) || dr=$(readlink -f $(dirname $DAEMON)/..)
-  [[ $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV*${ORG}*${mult}*\"|head -n1"
-  VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV*${ORG}*${mult}*"|head -n1)
-  [[ -z "$VENV_DIR" && $DRY_RUN -gt 0 ]] && echo "find $dr -maxdepth 1 -type d -name \"VENV-${mult}*\"|head -n1"
-  [[ -z "$VENV_DIR" ]] && VENV_DIR=$(find $dr -maxdepth 1 -type d -name "VENV-${mult}*"|head -n1)
-fi
+dn=$(find $p -maxdepth 3 -path "*venv*/bin/*" -name activate|head -n1)
+[[ -z $dn ]] && dn=$(find $p -maxdepth 3 -path "*VENV*/bin/*" -name activate|head -n1)
+[[ -n $dn ]] && VENV_DIR=$(dirname $(dirname $dn))
+[[ -z $dn && $p/bin/activate ]] && VENV_DIR=$p
 [[ $DRY_RUN -gt 0 ]] && echo "VENV_DIR=$VENV_DIR"
 NAME=${xtl_name}
 DESC="${xtl_Id} Server Daemon ($NAME)"
@@ -366,7 +356,7 @@ replace_module() {
         [[ -f $oldp/$old/__openerp__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__openerp__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ -f $oldp/$old/__manifest__.py ]] && b=$(grep -E "^ *[\"\']bootstrap[\"\'] *: *[a-zA-Z]+" $oldp/$old/__manifest__.py | awk -F: '{gsub(/[ ,]*/,"",$2); print $2}')
         [[ ! -d $oldp/_module_replaced ]] && mkdir $oldp/_module_replaced
-        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" &&  [[ $DRY_RUN -eq 0 ]] && mv $oldp/$old $oldp/_module_replaced/$old
+        [[ ! -d $oldp/_module_replaced/$old ]] && log_mesg "$d $pid DAEMON $opt_db $(basename $0): Module $old replaced by $newp/$new" && [[ $DRY_RUN -eq 0 ]] && mv $oldp/$old $oldp/_module_replaced/$old
         if [[ $DRY_RUN -eq 0 ]]; then
             [[ ! -d $oldp/$old ]] && ln -s $newp/$new $oldp/$old
             [[ -n $a && -f $newp/$new/__openerp__.py ]] && sed -E "s|(.auto_install. *: *)[a-zA-Z]+|\1 $a|" -i $newp/$new/__openerp__.py
@@ -436,13 +426,13 @@ replace_restore_modules() {
             fi
             if [[ -d $d/_module_replaced ]]; then
                 for old in $d/_module_replaced/*; do
-                [[ -n $param ]] && z=1 || z=0
+                    [[ -n $param ]] && z=1 || z=0
                     for prm in ${param//,/ }; do
                         x=$(echo $prm | awk -F: '{gsub(/^ */,"",$1); print $1}')
                         [[ $old == "x" ]] && z=0 && break
-            done
-                [[ $z -ne 0 ]] && continue
-                restore_module "$d" $(basename $old)
+                    done
+                    [[ $z -ne 0 ]] && continue
+                    restore_module "$d" $(basename $old)
                 done
             fi
         done

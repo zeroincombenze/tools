@@ -28,7 +28,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -46,7 +46,10 @@ REQVERSION = {
         "6.1": "==1.3",
         "8.0": "==2.3.4",
         "11.0": ">=2.3.4,<=2.9.1",
-        "16.0": ">=2.6.0,<=2.9.1"
+        "16.0": "PYVER",
+        "3.7": ">=2.6.0,<=2.9.1",
+        "3.11": ">=2.10.3",
+        "3.13": ">=2.17.0",     # older Babel imports cgi, removed in python 3.13
     },
     "beautifulsoup": {"6.1": "==3.2.1"},
     "bokeh": {
@@ -56,6 +59,12 @@ REQVERSION = {
         "14.0": "==2.3.1",
         "15.0": "2.4.2"
     },
+    "chardet": {                # must match the requests version
+        "12.0": "<3.1",         # requests<=2.21
+        "16.0": "PYVER",
+        "3.7": "<5",            # requests 2.25.1
+        "3.11": "<6",           # requests 2.31
+    },
     "codicefiscale": {"6.1": "==0.9"},
     "coverage": {"2.7": "<5.6.0", "3.5": ">=5.0.0"},
     "cryptography": {
@@ -63,11 +72,15 @@ REQVERSION = {
         "16.0": "PYVER",
         "2.7": ">=2.2.2,<3.4",
         "3.7": ">=2.6.1,<38.0",
-        "3.9": ">38.0.2",
-        "3.12": ">41.0.7",
+        "3.9": ">38.0.2,<39",   # pyOpenSSL<23 needs cryptography<39
+        "3.12": ">41.0.7,<43",  # Odoo 16-20 pin 42.0.8 (with pyOpenSSL 24.1.0)
     },
     "decorator": {"6.1": "==3.4.0", "10.0": "==4.0.10", "11.0": ">=4.0.10"},
-    "docutils": {"0": "==0.16", "3.10": ">=0.22"},       # By test pkgs
+    "docutils": {
+        "0": "==0.16",
+        "3.10": ">=0.16",
+        "3.11": ">=0.20.1",     # odoo pins 0.20.1; sphinx/readme_renderer pull newer
+    },
     "ebaysdk": {"6.1": "==2.1.4"},
     "email_validator": {"10.0": "<1.3.0", "12.0": ">=1.3"},
     "ERPpeek": {"0": "==1.6.1"},
@@ -91,8 +104,8 @@ REQVERSION = {
         "3.7": ">=1.5.0,<=22.10.99",
         "3.8": ">=20.9.0,<=22.10.99",
         "3.10": ">=21.8.0,<=22.10.99",
-        "3.12": ">=24.2.1,>=24.2.99",
-        "3.13": ">=24.11.1,>=24.11.99",
+        "3.12": ">=24.2.1,<=24.2.99",
+        "3.13": ">=24.11.1,<=24.11.99",
     },
     "greenlet": {
         "6.1": "==0.4.2",
@@ -135,7 +148,8 @@ REQVERSION = {
         "3.8": ">=4.6.1,<=4.6.5",
         "3.10": "==4.9.2",
         "3.12": "==5.2.1",
-        "3.13": "lxml>=5.3,<6",
+        "3.13": ">=5.3,<6",
+        "3.14": ">=6.0.2",      # first lxml with python 3.14 wheels
     },
     "mccabe": {"0": "<0.7.0,>=0.6.0", "3.8": "<0.8.0,>=0.7.0"},
     "Mako": {
@@ -154,7 +168,8 @@ REQVERSION = {
         "10.0": "==3.0.3",
         "11.0": "PYVER",
         "3.6": "==3.0.3",
-        "3.7": "<3.3.0"     # Experimental!
+        "3.7": "<3.3.0",    # Experimental!
+        "3.9": ">=3.9.0",   # no wheels of <3.3 for py>=3.9; numpy 2; old versioneer
     },
     "mock": {"6.1": "==1.0.1", "8.0": "==2.0.0"},
     "nbconvert": {"0": "==6.0.7"},
@@ -178,7 +193,8 @@ REQVERSION = {
         "15.0": ">=7.0.0",
         "3.6": "==4.0.0",
         "3.7": ">=6.1.0,<=6.2.0",
-        "3.8": ">=6.2.1",
+        "3.8": ">=6.2.1,<13",
+        "3.12": ">=10.2.0,<13",  # Odoo 18 pins 10.2.0; Pillow 13 not tested by Odoo
     },
     "postgresql": {
         "6.1": ">=8.0,<=10.0",
@@ -237,13 +253,19 @@ REQVERSION = {
     "pyOpenSSL": {
         "0": ">=16.2.0,<19.0",
         "3.8": ">=19.0.0,<23.0",
-        "3.9": ">=21.0.0,<23.0"
+        "3.9": ">=21.0.0,<23.0",
+        "3.12": ">=24.1.0,<25",  # cryptography>=42 needs pyOpenSSL>=24; Odoo pins 24.1.0
     },
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.28.4", "3.5": "<2.0", "3.8": "<3.0"},
     "pyrfc3339": {"2.7": "<2.0", "3.5": ">=2.0"},
     "pysftp": {"6.1": ">=0.2.9"},
-    "pyparsing": {"6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10"},
+    "pyparsing": {
+        "6.1": "==1.5.7", "7.0": "==2.0.3", "10.0": "==2.1.10",
+        "16.0": "PYVER",
+        "3.0": "==2.1.10",
+        "3.12": ">=3.1.0",     # required by matplotlib>=3.9 and pydot>=3
+    },
     "pyPdf": {"6.1": "==1.13", "12.0": ">=3.1.0"},
     "pyserial": {"6.1": "==2.7", "10.0": ">=3.1.1"},
     "Python-Chart": {"6.1": "==1.39"},
@@ -287,7 +309,8 @@ REQVERSION = {
     "reportlab": {
         # On Ubuntu 26.04 reportlab 3.3.0 is no more available
         # "6.1": "==3.1.44", "10.0": "==3.3.0", "14.0": ">=3.3.0",
-        "6.1": "<4.0", "14.0": ">=3.3.0",
+        "6.1": "<4.0", "12.0": "<4.0", "14.0": "PYVER", "2.7": "<4.0", "3.0": ">=3.3.0,<5",
+        "3.12": ">=4.1.0,<5",  # Odoo 18 pins 4.1.0; reportlab 5 not tested by Odoo
     },
     "requests": {
         "6.1": "==2.6.0",
@@ -311,7 +334,12 @@ REQVERSION = {
     "unicodecsv": {"6.1": ">=0.14.1"},
     "unidecode": {"6.1": "==0.4.17", "10.0": "<=1.2.0", "11.0": ">1.2.0"},
     "unittest2": {"6.1": "==0.5.1", "11.0": ">=1.0.0"},
-    "urllib3": {"3.5": "<1.26"},
+    "urllib3": {                # must match the requests version
+        "12.0": "<1.25",        # requests<=2.21
+        "15.0": "PYVER",
+        "3.5": "<1.27",         # requests 2.25.1
+        "3.12": ">=2.0.7,<3",   # requests 2.31
+    },
     "validate_email": {"6.1": ">=1.3"},
     "vatnumber": {"6.1": "==1.2"},
     "vobject": {"6.1": "==0.6.6", "7.0": "==0.9.3"},  # Tested 0.9.5
@@ -325,7 +353,7 @@ REQVERSION = {
         "3.7": ">=2.0.0,<2.3.0",
         "3.8": ">=2.0.0,<3.1.0",
         "3.9": ">=2.0.0,<3.1.0",
-        "3.10": ">=2.0.0",  # Odoo ==2.0.2
+        "3.10": ">=2.0.0,<3.1.0",  # Odoo pins 2.0.2/2.2.2/3.0.1 (py3.12+)
     },
     "wkhtmltopdf": {"6.1": "==0.12.1", "10.0": "==0.12.4", "12.0": "==0.12.5"},
     "wok_code": {"6.1": "<2.0.6", "10.0": ">=2.0.0"},
@@ -365,7 +393,6 @@ ALIAS = {
     "python-simplejson": "simplejson",
     "pywebdav": "PyWebDAV",
     "pyyaml": "PyYAML",
-    "requests": "requests[security]",
     "qunitsuite": "QUnitSuite",
     "serial": "pyserial",
     "sphinx": "Sphinx",
@@ -392,6 +419,7 @@ ALIAS_RHEL = {
     "libffi-dev": "libffi-devel",
     "libgeos-dev": "geos-devel",
     "libldap2-dev": "openldap-devel",
+    "libmariadb-dev": "mariadb-connector-c-devel",
     "libpq-dev": "postgresql-devel",
     "libsasl2-dev": "",
     "libssl-dev": "",
@@ -433,7 +461,7 @@ FORCE_ALIAS_OS = {
     "wkhtmltopdf==0.12.5": "wkhtmltopdf==0.12.6",
 }
 PIP_SECURE_PACKAGES = [
-    "urllib3[secure]",
+    "urllib3",
     "cryptography",
     "pyOpenSSL",
     "idna",
@@ -551,7 +579,7 @@ PIP_BASE_PACKAGES = [
     "decorator",
     "docutils",
     "future",
-    "gdata",
+    "gdata; python_version<'3'",
     "gevent",
     "html2text",
     "Jinja2",
@@ -564,7 +592,7 @@ PIP_BASE_PACKAGES = [
     "psycopg2-binary",
     "python-ldap",
     "python-dateutil",
-    "python-openid",
+    "python-openid; python_version<'3'",
     "python-plus",
     "pydot",
     "pyparsing",
@@ -581,7 +609,7 @@ PIP_ODOO_BASE_PACKAGES = [
     "docutils",
     "feedparser; odoo_major<8",
     "future",
-    "gdata",
+    "gdata; odoo_major>=8 and odoo_major<=9",
     "gevent",
     "html2text",
     "Jinja2",
@@ -595,18 +623,19 @@ PIP_ODOO_BASE_PACKAGES = [
     "passlib",
     "pdfplumber; odoo_major>=14",
     "Pillow",
+    "polib; odoo_major>=13",
     "psutil",
     "psycogreen",
     "psycopg2-binary",
-    "Python-Chart",
+    "Python-Chart; odoo_major>=8 and odoo_major<=10",
     "python-ldap",
     "python-dateutil",
-    "python-openid",
+    "python-openid; odoo_major<=10",
     "python-plus",
     "pydot",
     "pyparsing",
-    "pyPdf",
-    "pyPDF2",
+    "pyPdf; odoo_major<=10 or (odoo_major>=16 and python_version>='3.13')",
+    "pyPDF2; odoo_major>=11 and (odoo_major<16 or python_version<'3.13')",
     "pyserial",
     "pytz",
     "qrcode; odoo_major>=16",
@@ -673,6 +702,7 @@ DEPS = {
     "barcode": {"python": "python-Levenshtein"},
     "gevent": {"bin": "libevent-dev"},
     "Pillow": {"python": "docutils"},
+    "mysqlclient": {"bin": ("pkg-config", "libmariadb-dev")},
     "pycups": {"bin": "libcups2-dev"},
     "shapely": {"bin": "libgeos-dev"},
 }
@@ -687,6 +717,7 @@ DEPS2 = {
 }
 DEPS3 = {
     "lxml": {
+        "python": "lxml_html_clean; python_version >= '3.12'",
         "bin": ("PY3_DEV", "python3-lxml", "libxml2-dev", "libxslt1-dev", "zlib1g-dev")
     },
     "python-psycopg2": {"bin": ("PY3_DEV", "libpq-dev")},
@@ -721,13 +752,35 @@ def get_odoo_majver(odoo_ver):
     return int(odoo_ver.split(".")[0]) if odoo_ver else 0
 
 
+class PyVer(str):
+    """Python version string comparing numerically, i.e. '3.9' < '3.12'"""
+
+    def _cmp(self, other):
+        def to_tuple(ver):
+            return tuple(int(x) for x in re.findall(r"\d+", str(ver)))
+        mine, theirs = to_tuple(self), to_tuple(other)
+        return (mine > theirs) - (mine < theirs)
+
+    def __lt__(self, other):
+        return self._cmp(other) < 0
+
+    def __le__(self, other):
+        return self._cmp(other) <= 0
+
+    def __gt__(self, other):
+        return self._cmp(other) > 0
+
+    def __ge__(self, other):
+        return self._cmp(other) >= 0
+
+
 def eval_requirement_cond(line, pyver=None, odoo_ver=None):
     items = line.split('#')[0].split(";")
     if len(items) == 1:
         return get_naked_pkgname(line)
     testenv = {
         "sys_platform": sys.platform,
-        "python_version": pyver,
+        "python_version": PyVer(pyver or python_version),
         "odoo_major": get_odoo_majver(odoo_ver),
     }
     if eval(items[1], testenv):
@@ -1263,7 +1316,7 @@ def walk_dir(cdir, manifests, reqfiles, setups, read_from_manifest, recurse):
                               "filestore",
                               "history",
                               "howtos",
-                              "images"
+                              "images",
                               "migrations",
                               "redhat",
                               "reference",

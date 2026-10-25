@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2018-25 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-26 Zeroincombenze s.r.l.s. (<http://ww.zeroincombenze.it>)
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
@@ -56,23 +56,56 @@ ODOO_VALID_VERSIONS = (
 )
 
 XTRA_PREFIX = [
+    "apps",
+    "ai",
+    "automation",
+    "community",
     "connector",
+    "credit",
+    "ddmrp",
     "edi",
+    "field",
     "hr",
+    "intrastat",
     "l10n",
     "maintainer",
     "manufacture",
     "mis-builder",
     "oca",
     "odoo",
+    "operating",
     "project",
     "vertical",
+    "website",
+]
+EXTRA_REPO = [
+    "apps-store",
+    "ai",
+    "automation",
+    "community-data-files",
+    "connector",
+    "credit",
+    "ddmrp",
+    "edi",
+    "edi-framework",
+    "field-service",
+    "hr",
+    "intrastat-extrastat",
+    "maintainer",
+    "manufacture",
+    "manufacture-reporting",
+    "mis-builder",
+    "operating-unit",
+    "project",
+    "project-reporting",
     "website",
 ]
 
 ODOO_VALID_GITORGS = ("oca", "librerp", "zero", "essetech")
 
+# Repository to load always
 DEFAULT_REPO = [
+    "aaa_oca_replacement",
     "account-analytic",
     "account-budgeting",
     "account-closing",
@@ -84,61 +117,43 @@ DEFAULT_REPO = [
     "account-invoicing",
     "account-payment",
     "account-reconcile",
-    "ai",
-    "apps-store",
-    "automation",
     "bank-payment",
     "bank-statement-import",
     "brand",
     "calendar",
     "cim",
     "commission",
-    "community-data-files",
-    "connector",
     "contract",
-    "credit-control",
     "crm",
     "cscs_addons",
     "currency",
     "data-protection",
-    "ddmrp",
     "delivery-carrier",
     "dms",
     "e-commerce",
-    "edi",
-    "edi-framework",
     "e-learning",
     "event",
-    "field-service",
     "geospatial",
     "helpdesk",
-    "hr",
     "infrastructure",
-    "intrastat-extrastat",
     "iot",
     "knowledge",
     "l10n-italy",
     "l10n-italy-supplemental",
     "maintenance",
     "management-system",
-    "manufacture",
-    "manufacture-reporting",
     "margin-analysis",
     "marketplace",
     "mgmtsystem",
-    "mis-builder",
     "multi-company",
     "OCB",
     # "odoo",
-    "operating-unit",
     "partner-contact",
     "product-attribute",
     "product-kitting",
     "product-pack",
     "product-variant",
     "profiles",
-    "project",
-    "project-reporting",
     "purchase-reporting",
     "purchase-workflow",
     "queue",
@@ -168,7 +183,6 @@ DEFAULT_REPO = [
     "web",
     "webhook",
     "webkit-tools",
-    "website",
     "wms",
     "zerobug-test",
 ]
@@ -353,7 +367,15 @@ class OdooDeploy(object):
         ):
             opt_args.target_path = "./"
         if opt_args.action in ("clone", "amend") and not opt_args.repos:
-            opt_args.repos = DEFAULT_REPO
+            opt_args.repos = DEFAULT_REPO[:]
+            if opt_args.extra_repo:
+                prefixes = tuple(opt_args.extra_repo.split(","))
+                opt_args.repos += [
+                    repo
+                    for repo in EXTRA_REPO
+                    if ("all" in prefixes or repo.startswith(prefixes))
+                    and repo not in opt_args.repos
+                ]
         if opt_args.repos and not opt_args.target_path:
             raise ReferenceError(
                 "No path issued for declared repository %s!" % opt_args.repos
@@ -1636,7 +1658,7 @@ class OdooDeploy(object):
     def action_download_or_pull_repo(self):
         sts = 0
         if not self.opt_args.verbose:
-            # These info will be printed at the end by ation_status
+            # These info will be printed at the end by action_status
             print("Odoo main version..........: %s" % self.master_branch)
             print("Odoo root path.............: %s" % self.target_path)
             if self.opt_args.config:
@@ -1653,7 +1675,19 @@ class OdooDeploy(object):
                 if pth.isdir(tgtdir):
                     self.run_traced("rm -fR %s" % tgtdir)
             elif self.opt_args.action == "update":
+                if self.opt_args.verbose:
+                    print(" ... pulling %s/%s" % (self.repo_info[repo]["URL"],
+                                                  self.repo_info[repo]["BRANCH"]))
                 sts = self.git_pull(repo)[0]
+                if sts:
+                    sts, stdout, stderr = self.run_traced(
+                        "git ls-remote --heads %s %s" % (
+                            self.repo_info[repo]["URL"],
+                            self.repo_info[repo]["BRANCH"]))
+                    if sts:
+                        print("*** Remote repository %s/%s no more available"
+                              % (self.repo_info[repo]["URL"],
+                                 self.repo_info[repo]["BRANCH"]))
             elif self.opt_args.action == "merge":
                 sts = self.git_merge(repo)[0]
             else:
@@ -1704,7 +1738,8 @@ class OdooDeploy(object):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Manage Odoo repositories", epilog="© 2021-2025 by SHS-AV s.r.l."
+        description="Manage Odoo repositories",
+        epilog="© 2021-2026 by Zeroincombenze s.r.l.s."
     )
     parser.add_argument(
         "-A",

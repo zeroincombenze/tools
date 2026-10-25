@@ -1,3 +1,8 @@
+2.1.1 (2026-10-16)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] Rules to create virtual environment for Odoo with python 3.12+
+
 2.1.0 (2026-05-16)
 ~~~~~~~~~~~~~~~~~~~
 
