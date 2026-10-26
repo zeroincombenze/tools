@@ -20,14 +20,8 @@ COPY = {
         "github-user": "odoo",
     },
     "zero": {
-        "author": "SHS-AV s.r.l.",
+        "author": "Zeroincombenze srls",
         "website": "https://www.zeroincombenze.it",
-        "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
-        "github-user": "zeroincombenze",
-    },
-    "shs-av": {
-        "author": "SHS-AV s.r.l.",
-        "website": "https://www.shs-av.com",
         "devman": "Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>",
         "github-user": "zeroincombenze",
     },
@@ -78,6 +72,16 @@ COPY = {
 }
 ALIAS = {
     "zeroincombenze": "zero",
+    "zeroincombenzesrl": "zero",
+    "zeroincombenzesrls": "zero",
+    "www.zeroincombenze.org": "zero",
+    "zeroincombenze.org": "zero",
+    # SHS-AV s.r.l. sold its software to Zeroincombenze srls
+    "shs-av": "zero",
+    "shsav": "zero",
+    "shsavsrl": "zero",
+    "www.shs-av.com": "zero",
+    "shs-av.com": "zero",
     "odooitaliancommunity": "odoo-italia",
     "odooitaliaassociazione": "odoo-italia",
     "Agile Business Group": "agilebg.com",
@@ -361,7 +365,7 @@ class License:
     def summary_authors(self, summarize=False):
         author = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "didotech"):
                 if org_id in self.org_ids:
                     author = self.org_ids[org_id][0]
                     break
@@ -386,7 +390,7 @@ class License:
         if org_id in self.org_ids:
             website = self.org_ids[org_id][1]
         elif self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "didotech"):
                 if org_id in self.org_ids:
                     website = self.org_ids[org_id][1]
                     break
@@ -412,7 +416,7 @@ class License:
     def get_maintainer(self):
         maintainer = ""
         if self.org_ids:
-            for org_id in ("oca", "librerp", "zero", "shs-av", "didotech"):
+            for org_id in ("oca", "librerp", "zero", "didotech"):
                 if org_id in self.org_ids:
                     maintainer = COPY[org_id].get("devman", "")
                     if maintainer:
@@ -430,6 +434,21 @@ class License:
             else:
                 license = "lgpl"
         return license
+
+    def upgrade_copyright_holder(self, line):
+        """Replace the retired holder SHS-AV s.r.l. with Zeroincombenze srls"""
+        if not re.search(r"shs-av", line, flags=re.I):
+            return line
+        org_id = self.extract_info_from_line(line, add_copy=False)[0]
+        if org_id != "zero":
+            return line
+        line = re.sub(
+            r"https?://(www\.)?shs-av\.com/?", COPY["zero"]["website"], line,
+            flags=re.I)
+        line = re.sub(
+            r"\bSHS-AV(\s+s\.?\s?r\.?\s?l\.?)?", COPY["zero"]["author"], line,
+            flags=re.I)
+        return line
 
     def license_text(self, gpl):
         return self.gpl2license.get(gpl, "AGPL-3")

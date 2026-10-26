@@ -7,7 +7,7 @@ Credits
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* `Zeroincombenze srls <https://www.zeroincombenze.it>`__
 
 Contributors
 ------------

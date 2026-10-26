@@ -10,6 +10,7 @@ ChangeLog History
 
 * [FIX] Quality message date
 * [FIX] gen_readme home
+* [FIX] Copyright holder SHS-AV s.r.l. replaced by Zeroincombenze srls
 
 2.1.2 (2026-05-22)
 ~~~~~~~~~~~~~~~~~~

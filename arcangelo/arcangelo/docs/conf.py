@@ -21,7 +21,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "arcangelo"
-copyright = "2019-25, SHS-AV s.r.l."
+copyright = "2019-26, Zeroincombenze srls"
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version

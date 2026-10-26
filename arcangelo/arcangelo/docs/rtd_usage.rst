@@ -67,7 +67,7 @@ Usage
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     
-    © 2021-2025 by SHS-AV s.r.l.
+    © 2021-2026 by Zeroincombenze srls
     
 
 

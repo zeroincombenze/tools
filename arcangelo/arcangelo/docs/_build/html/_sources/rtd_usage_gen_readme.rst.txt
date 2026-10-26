@@ -380,7 +380,7 @@ Example:
 
 ::
 
-    TRUE(1)                                           User Commands                                           TRUE(1)
+    TRUE(1)                                            User Commands                                            TRUE(1)
     
     NAME
            true - do nothing, successfully
@@ -397,7 +397,7 @@ Example:
            --version
                   output version information and exit
     
-           Your  shell may have its own version of true, which usually supersedes the version described here.  Please
+           Your  shell  may  have its own version of true, which usually supersedes the version described here.  Please
            refer to your shell's documentation for details about the options it supports.
     
     AUTHOR
@@ -417,7 +417,7 @@ Example:
            This is free software: you are free to change and redistribute it.
            There is NO WARRANTY, to the extent permitted by law.
     
-    GNU coreutils 9.7                                  August 2026                                            TRUE(1)
+    GNU coreutils 9.7                                   August 2026                                             TRUE(1)
     
 
 
@@ -480,7 +480,7 @@ gen_readme.py command line
       -X, --write-office    write openoffice/libreoffic fragment help
       -Y, --write-man-page
     
-    © 2018-2025 by SHS-AV s.r.l.
+    © 2018-2026 by Zeroincombenze srls
     
 
 |

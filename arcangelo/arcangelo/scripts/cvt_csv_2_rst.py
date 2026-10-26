@@ -189,7 +189,7 @@ def main(cli_args=None):
     #     cli_args = sys.argv[1:]
     parser = z0lib.parseoptargs(
         "Convert csv file into xml file",
-        "© 2018-2023 by SHS-AV s.r.l.",
+        "© 2018-2026 by Zeroincombenze srls",
         version=__version__,
     )
     parser.add_argument('-h')

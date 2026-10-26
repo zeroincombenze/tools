@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio Maria Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2025 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2026 by Zeroincombenze srls - https://www.zeroincombenze.it
 #
 # Based on template 2.1.1
 [ $BASH_VERSINFO -lt 4 ] && echo "This script $0 requires bash 4.0+!" && exit 4

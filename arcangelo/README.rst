@@ -86,7 +86,7 @@ Usage
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     
-    © 2021-2025 by SHS-AV s.r.l.
+    © 2021-2026 by Zeroincombenze srls
     
 
 
@@ -390,6 +390,7 @@ ChangeLog History
 
 * [FIX] Quality message date
 * [FIX] gen_readme home
+* [FIX] Copyright holder SHS-AV s.r.l. replaced by Zeroincombenze srls
 
 2.1.2 (2026-05-22)
 ~~~~~~~~~~~~~~~~~~
@@ -467,7 +468,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* `Zeroincombenze srls <https://www.zeroincombenze.it>`__
 
 
 

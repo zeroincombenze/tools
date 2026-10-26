@@ -1475,6 +1475,8 @@ class MigrateFile(MigrateEnv):
             if old_years != cur_years:
                 self.statements[stmtno] = self.statements[stmtno].replace(
                     old_years, cur_years, 1)
+            self.statements[stmtno] = License.upgrade_copyright_holder(
+                self.statements[stmtno])
         return True
 
     def do_upgrade_file(self):
@@ -1778,7 +1780,7 @@ def green(text):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Beautiful source file", epilog="© 2021-2025 by SHS-AV s.r.l."
+        description="Beautiful source file", epilog="© 2021-2026 by Zeroincombenze srls"
     )
     parser.add_argument(
         '-A', '--analyze',
