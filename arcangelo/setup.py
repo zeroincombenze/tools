@@ -29,7 +29,7 @@ install_requires = [
 
 setup(
     name=name,
-    version="2.1.2",
+    version="2.1.3",
     description="Source code mass automatic upgrade",
     long_description_content_type="text/x-rst",
     long_description=long_description,

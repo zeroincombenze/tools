@@ -695,7 +695,7 @@ class MigrateEnv(MigrateMeta):
     Rules language is "path"
     """
     def __init__(self, opt_args):
-        super().__init__()
+        super(MigrateEnv, self).__init__()
         self.init_env_file()
         if hasattr(self, "fqn") and self.fqn and any(
                 [x in self.fqn for x in opt_args.path]):
@@ -863,7 +863,7 @@ class MigrateFile(MigrateEnv):
     """
     def __init__(self, opt_args, fqn, language=None, source=None):
         self.fqn = fqn
-        super().__init__(opt_args)
+        super(MigrateFile, self).__init__(opt_args)
         self.init_env_file()
         self.out_fn = None
         self.sts = 0

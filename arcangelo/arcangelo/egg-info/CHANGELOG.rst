@@ -3,6 +3,7 @@
 
 * [FIX] Quality message date
 * [FIX] gen_readme home
+* [FIX] arcangelo: super() with arguments, Python 2.7 compatible
 * [FIX] Copyright holder SHS-AV s.r.l. replaced by Zeroincombenze srls
 
 2.1.2 (2026-05-22)

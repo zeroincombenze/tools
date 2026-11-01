@@ -1,10 +1,10 @@
 .. arcangelo documentation master file, created by
-   gen_readme.py on 2026-10-26 06:48:08
+   gen_readme.py on 2026-11-01 16:22:30
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 =========================================
-Welcome to arcangelo 2.1.2 documentation!
+Welcome to arcangelo 2.1.3 documentation!
 =========================================
 
 .. toctree::
@@ -38,10 +38,10 @@ Welcome to arcangelo 2.1.2 documentation!
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
