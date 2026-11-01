@@ -33,7 +33,7 @@ except ImportError:
     from clodoo import build_odoo_param
 
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 MANIFEST_FILES = ["__manifest__.py", "__openerp__.py"]
 

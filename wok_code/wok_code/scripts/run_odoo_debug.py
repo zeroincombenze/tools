@@ -18,7 +18,7 @@ except ImportError:
 from z0lib import z0lib
 import psycopg2
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 GIT_ORGIDS = ("oca", "odoo", "zero", "librerp")
 
 
@@ -335,8 +335,10 @@ class RunOdoo(object):
             opts += "K"
         if self.opt_args.keep:
             opts += "k"
-        if self.opt_args.import_i18n:
+        if self.opt_args.install:
             opts += "I"
+        if self.opt_args.import_i18n:
+            opts += "i"
         if self.opt_args.multi:
             opts += "M"
         if self.opt_args.dry_run:
@@ -360,7 +362,7 @@ class RunOdoo(object):
         if self.opt_args.database:
             cmd += " -d" + self.opt_args.database
         if self.opt_args.lang:
-            opts += "l" + self.opt_args.lang
+            cmd += " -l" + self.opt_args.lang
         if self.opt_args.log_level:
             cmd += " -L" + self.opt_args.log_level
         if self.opt_args.modules:
