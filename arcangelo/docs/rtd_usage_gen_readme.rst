@@ -354,7 +354,7 @@ Other predefined symbols are:
 Macro
 ~~~~~
 
-Text macro is replaced by macro contents. For current version 2.1.2 of
+Text macro is replaced by macro contents. For current version 2.1.3 of
 gen_readme.py, macro is enclosed by double braces.
 
 .. raw:: html
@@ -380,7 +380,7 @@ Example:
 
 ::
 
-    TRUE(1)                                              User Commands                                              TRUE(1)
+    TRUE(1)                                            User Commands                                            TRUE(1)
     
     NAME
            true - do nothing, successfully
@@ -397,8 +397,8 @@ Example:
            --version
                   output version information and exit
     
-           Your  shell may have its own version of true, which usually supersedes the version described here.  Please refer
-           to your shell's documentation for details about the options it supports.
+           Your  shell  may  have its own version of true, which usually supersedes the version described here.  Please
+           refer to your shell's documentation for details about the options it supports.
     
     AUTHOR
            Written by Jim Meyering.
@@ -417,7 +417,7 @@ Example:
            This is free software: you are free to change and redistribute it.
            There is NO WARRANTY, to the extent permitted by law.
     
-    GNU coreutils 9.7                                     August 2026                                               TRUE(1)
+    GNU coreutils 9.7                                   August 2026                                             TRUE(1)
     
 
 
@@ -480,7 +480,7 @@ gen_readme.py command line
       -X, --write-office    write openoffice/libreoffic fragment help
       -Y, --write-man-page
     
-    © 2018-2025 by SHS-AV s.r.l.
+    © 2018-2026 by Zeroincombenze srls
     
 
 |
@@ -496,10 +496,10 @@ gen_readme.py command line
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

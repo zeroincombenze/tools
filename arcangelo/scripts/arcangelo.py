@@ -24,7 +24,7 @@ try:
 except ImportError:  # pragma: no cover
     from arcangelo_syntax import Syntax, get_config_path
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
@@ -695,7 +695,7 @@ class MigrateEnv(MigrateMeta):
     Rules language is "path"
     """
     def __init__(self, opt_args):
-        super().__init__()
+        super(MigrateEnv, self).__init__()
         self.init_env_file()
         if hasattr(self, "fqn") and self.fqn and any(
                 [x in self.fqn for x in opt_args.path]):
@@ -863,7 +863,7 @@ class MigrateFile(MigrateEnv):
     """
     def __init__(self, opt_args, fqn, language=None, source=None):
         self.fqn = fqn
-        super().__init__(opt_args)
+        super(MigrateFile, self).__init__(opt_args)
         self.init_env_file()
         self.out_fn = None
         self.sts = 0
@@ -1475,6 +1475,8 @@ class MigrateFile(MigrateEnv):
             if old_years != cur_years:
                 self.statements[stmtno] = self.statements[stmtno].replace(
                     old_years, cur_years, 1)
+            self.statements[stmtno] = License.upgrade_copyright_holder(
+                self.statements[stmtno])
         return True
 
     def do_upgrade_file(self):
@@ -1778,7 +1780,7 @@ def green(text):
 def main(cli_args=None):
     cli_args = cli_args or sys.argv[1:]
     parser = argparse.ArgumentParser(
-        description="Beautiful source file", epilog="© 2021-2025 by SHS-AV s.r.l."
+        description="Beautiful source file", epilog="© 2021-2026 by Zeroincombenze srls"
     )
     parser.add_argument(
         '-A', '--analyze',

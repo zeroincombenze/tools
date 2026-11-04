@@ -48,7 +48,16 @@
 <section id="changelog-history">
 <h1>ChangeLog History<a class="headerlink" href="#changelog-history" title="Link to this heading"></a></h1>
 <section id="id1">
-<h2>2.1.1 (2026-09-12)<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2>2.1.2 (2026-11-01)<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>[FIX] run_odoo_debug: -I switch now updates the module list of the database
+before installing, so modules just added to addons_path are found</p></li>
+<li><p>[FIX] run_odoo_debug: python wrapper forwarded -i (import translation) as -I
+(install) and ignored -I and -l switches</p></li>
+</ul>
+</section>
+<section id="id2">
+<h2>2.1.1 (2026-09-12)<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[IMP] deploy_odoo: -g switch now takes the git organizations, comma
 separated, to clone with git protocol instead of https</p></li>
@@ -56,8 +65,8 @@ separated, to clone with git protocol instead of https</p></li>
 (ODOO_GIT_ORGID, else oca) is now cloned via git protocol by default</p></li>
 </ul>
 </section>
-<section id="id2">
-<h2>2.1.0 (2026-07-10)<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="id3">
+<h2>2.1.0 (2026-07-10)<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[IMP] run_odoo_debug: disable test on depending modules</p></li>
 <li><p>[FIX] gevent_port in run_odoo_debug.sh for Odoo 16+</p></li>
@@ -67,8 +76,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] Quality message on pypi packages</p></li>
 </ul>
 </section>
-<section id="id3">
-<h2>2.0.23 (2025-08-14)<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="id4">
+<h2>2.0.23 (2025-08-14)<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[IMP] arcangelo became a pypi package</p></li>
 <li><p>[IMP] please install python: now can install python 3.12</p></li>
@@ -79,8 +88,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[FIX] License declaration compatible with pypi</p></li>
 </ul>
 </section>
-<section id="id4">
-<h2>2.0.22 (2025-05-31)<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<section id="id5">
+<h2>2.0.22 (2025-05-31)<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] arcangelo: sometimes wrong format .rst files</p></li>
 <li><p>[FIX] please translate: new algorithm</p></li>
@@ -91,15 +100,15 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[UPD] Esteem quality rate: new algorithm</p></li>
 </ul>
 </section>
-<section id="id5">
-<h2>2.0.21 (2025-04-26)<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id6">
+<h2>2.0.21 (2025-04-26)<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[IMP] please translation: modified algorithm</p></li>
 <li><p>[FIX] run_odoo_debug: module replacements</p></li>
 </ul>
 </section>
-<section id="id6">
-<h2>2.0.20 (2025-03-01)<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id7">
+<h2>2.0.20 (2025-03-01)<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] gen_readme.py: read-only repositories</p></li>
 <li><p>[FIX] gen_readme.py: new odoo14+ nomenclature</p></li>
@@ -107,8 +116,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[FIX] run_odoo_debug: new odoo14+ nomenclature</p></li>
 </ul>
 </section>
-<section id="id7">
-<h2>2.0.19 (2025-03-01)<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<section id="id8">
+<h2>2.0.19 (2025-03-01)<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] please python 3.9+</p></li>
 <li><p>[FIX] install_python_3_from_source.sh: fix bugs and improvements</p></li>
@@ -120,8 +129,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] please clen db: remove filestore directories too</p></li>
 </ul>
 </section>
-<section id="id8">
-<h2>2.0.18 (2024-07-10)<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<section id="id9">
+<h2>2.0.18 (2024-07-10)<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] please python 3.9+</p></li>
 <li><p>[FIX] deploy_odoo update addons_path in config file</p></li>
@@ -138,8 +147,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] Python 3.6 deprecated</p></li>
 </ul>
 </section>
-<section id="id9">
-<h2>2.0.17 (2024-05-11)<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h2>2.0.17 (2024-05-11)<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] odoo_translate.py various fixes</p></li>
 <li><p>[IMP] Log file of daemon process of test in tests/logs</p></li>
@@ -147,8 +156,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] deploy_odoo now download empy repositories (to compatibility use –clean-empy-repo)</p></li>
 </ul>
 </section>
-<section id="id10">
-<h2>2.0.16 (2024-03-26)<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h2>2.0.16 (2024-03-26)<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] odoo_translation.py: case correction</p></li>
 <li><p>[FIX] run_odoo_debug: sometimes crashes on OCB/addons modules</p></li>
@@ -161,8 +170,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[FIX] deploy_odoo/wget_odoo_repositories: store github query in cache</p></li>
 </ul>
 </section>
-<section id="id11">
-<h2>2.0.15 (2024-02-17)<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h2>2.0.15 (2024-02-17)<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] do_git_checkout_new_branch: ignore symbolic links</p></li>
 <li><p>[FIX] deploy_odoo: minor fixes</p></li>
@@ -179,8 +188,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] arcangelo: new switch -R to select rules to apply</p></li>
 </ul>
 </section>
-<section id="id12">
-<h2>2.0.14 (2024-02-07)<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
+<section id="id13">
+<h2>2.0.14 (2024-02-07)<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[FIX] Quality rating formula</p></li>
 <li><p>[FIX] please install python –python=3.7</p></li>
@@ -193,8 +202,8 @@ separated, to clone with git protocol instead of https</p></li>
 <li><p>[IMP] run_odoo_debug improvements</p></li>
 </ul>
 </section>
-<section id="id13">
-<h2>2.0.13 (2023-11-27)<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
+<section id="id14">
+<h2>2.0.13 (2023-11-27)<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>[IMP] please install python, now can install python 3.10</p></li>
 <li><p>[IMP] arcangelo: new python version assignment from odoo version</p></li>
@@ -231,19 +240,20 @@ separated, to clone with git protocol instead of https</p></li>
     <h3><a href="index.html">Table of Contents</a></h3>
     <ul>
 <li><a class="reference internal" href="#">ChangeLog History</a><ul>
-<li><a class="reference internal" href="#id1">2.1.1 (2026-09-12)</a></li>
-<li><a class="reference internal" href="#id2">2.1.0 (2026-07-10)</a></li>
-<li><a class="reference internal" href="#id3">2.0.23 (2025-08-14)</a></li>
-<li><a class="reference internal" href="#id4">2.0.22 (2025-05-31)</a></li>
-<li><a class="reference internal" href="#id5">2.0.21 (2025-04-26)</a></li>
-<li><a class="reference internal" href="#id6">2.0.20 (2025-03-01)</a></li>
-<li><a class="reference internal" href="#id7">2.0.19 (2025-03-01)</a></li>
-<li><a class="reference internal" href="#id8">2.0.18 (2024-07-10)</a></li>
-<li><a class="reference internal" href="#id9">2.0.17 (2024-05-11)</a></li>
-<li><a class="reference internal" href="#id10">2.0.16 (2024-03-26)</a></li>
-<li><a class="reference internal" href="#id11">2.0.15 (2024-02-17)</a></li>
-<li><a class="reference internal" href="#id12">2.0.14 (2024-02-07)</a></li>
-<li><a class="reference internal" href="#id13">2.0.13 (2023-11-27)</a></li>
+<li><a class="reference internal" href="#id1">2.1.2 (2026-11-01)</a></li>
+<li><a class="reference internal" href="#id2">2.1.1 (2026-09-12)</a></li>
+<li><a class="reference internal" href="#id3">2.1.0 (2026-07-10)</a></li>
+<li><a class="reference internal" href="#id4">2.0.23 (2025-08-14)</a></li>
+<li><a class="reference internal" href="#id5">2.0.22 (2025-05-31)</a></li>
+<li><a class="reference internal" href="#id6">2.0.21 (2025-04-26)</a></li>
+<li><a class="reference internal" href="#id7">2.0.20 (2025-03-01)</a></li>
+<li><a class="reference internal" href="#id8">2.0.19 (2025-03-01)</a></li>
+<li><a class="reference internal" href="#id9">2.0.18 (2024-07-10)</a></li>
+<li><a class="reference internal" href="#id10">2.0.17 (2024-05-11)</a></li>
+<li><a class="reference internal" href="#id11">2.0.16 (2024-03-26)</a></li>
+<li><a class="reference internal" href="#id12">2.0.15 (2024-02-17)</a></li>
+<li><a class="reference internal" href="#id13">2.0.14 (2024-02-07)</a></li>
+<li><a class="reference internal" href="#id14">2.0.13 (2023-11-27)</a></li>
 </ul>
 </li>
 </ul>

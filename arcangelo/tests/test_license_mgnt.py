@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa - pylint: skip-file
-# Copyright (C) 2015-2023 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2026 Zeroincombenze srls (<https://www.zeroincombenze.it>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -126,7 +126,7 @@ class RegressionTest:
             # devman = license.get_maintainer()
         self.assertEqual(
             author,
-            "SHS-AV s.r.l.",
+            "Zeroincombenze srls",
             msg_info="License author"
         )
         # self.assertEqual(
@@ -147,7 +147,7 @@ class RegressionTest:
             # devman = license.get_maintainer()
         self.assertEqual(
             author,
-            "SHS-AV s.r.l.",
+            "Zeroincombenze srls",
             msg_info="License author"
         )
         # self.assertEqual(

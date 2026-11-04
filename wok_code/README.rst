@@ -1,5 +1,5 @@
 ==============
-wok_code 2.1.1
+wok_code 2.1.2
 ==============
 
 
@@ -184,6 +184,14 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.1.2 (2026-11-01)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: -I switch now updates the module list of the database
+  before installing, so modules just added to addons_path are found
+* [FIX] run_odoo_debug: python wrapper forwarded -i (import translation) as -I
+  (install) and ignored -I and -l switches
+
 2.1.1 (2026-09-12)
 ~~~~~~~~~~~~~~~~~~
 
@@ -349,7 +357,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* `Zeroincombenze srls <https://www.zeroincombenze.it>`__
 
 
 
@@ -372,10 +380,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

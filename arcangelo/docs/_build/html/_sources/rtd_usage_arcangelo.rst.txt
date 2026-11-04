@@ -67,7 +67,7 @@ Digest of arcangelo
       --add-rule-group ADD_RULE_GROUP
                             Add rule group form file, default is .arcangelo.yml
     
-    © 2021-2025 by SHS-AV s.r.l.
+    © 2021-2026 by Zeroincombenze srls
     
 
 
@@ -268,10 +268,10 @@ Follow rule replace "@api.one" with "# @api.one" and adds comment line:
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 # import sys
 # import os
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 
 class Lex(object):

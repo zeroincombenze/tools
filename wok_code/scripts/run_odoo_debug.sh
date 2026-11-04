@@ -51,7 +51,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.0
+__version__=2.1.2
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -64,6 +64,32 @@ run_traced_debug() {
 
 log_mesg() {
     echo -e $1
+}
+
+
+update_module_list() {
+# update_module_list(db): register new modules found in addons_path into db
+    local db py cmd args
+    [[ -n "$1" ]] && db="$1" || db="$opt_db"
+    [[ -z "$db" ]] && return 0
+    [[ $opt_dry_run -eq 0 ]] && ! $PSQL -Atl|cut -d"|" -f1|grep -qx "$db" && return 0
+    [[ -n "$TEST_VDIR" && -x $TEST_VDIR/bin/python ]] && py="$TEST_VDIR/bin/python" || py="python"
+    [[ $opt_verbose -ne 0 ]] && log_mesg "# Updating module list of database $db ..."
+    if [[ $odoo_maj -ge 9 ]]; then
+        # odoo shell executes the code read from stdin when it is not a tty
+        [[ -f "$CONFN" ]] && args="--config=$CONFN" || args=""
+        # No workers and no http: do not bind ports already used by running Odoo
+        args="$args --workers=0 --max-cron-threads=0"
+        [[ $odoo_maj -ge 11 ]] && args="$args --no-http" || args="$args --no-xmlrpc"
+        cmd="(cd $ODOO_RUNDIR && echo \"env['ir.module.module'].update_list(); env.cr.commit()\" | $py $SCRIPT shell $args -d $db --log-level=warn)"
+    else
+        # Odoo 7.0 / 8.0 have no shell command
+        [[ -f "$CONFN" ]] && args="'--config=$CONFN', '-d', '$db'" || args="'-d', '$db'"
+        cmd="(cd $ODOO_RUNDIR && $py -c \"import openerp; openerp.tools.config.parse_config([$args]); r = openerp.modules.registry.RegistryManager.get('$db'); cr = r.cursor(); r['ir.module.module'].update_list(cr, 1); cr.commit(); cr.close()\")"
+    fi
+    run_traced "$cmd"
+    [[ $? -ne 0 ]] && log_mesg "Warning: module list of database $db not updated!"
+    return 0
 }
 
 
@@ -771,6 +797,7 @@ if [[ -n "$opt_modules" ]]; then
         [[ $opt_test -eq 0 && $odoo_maj -eq 6 ]] && OPTS="$OPTS --test-disable"
         [[ $opt_test -ne 0 && $odoo_maj -ge 12 && ! $opt_modules =~ "," ]] && OPTS="$OPTS --test-tags=/$opt_modules"
     else
+        [[ $opt_xtl -ne 0 ]] && update_module_list "$opt_db"
         check_for_modules
         OPTSIU="$OPTI $OPTU"
         if [[ $opt_exp -ne 0 && -n "$opt_ofile" ]]; then
@@ -979,7 +1006,8 @@ if [[ $create_db -gt 0 ]]; then
 fi
 
 [[ $opt_keep -ne 0 ]] && export ODOO_COMMIT_TEST="1"
-check_for_modules "$opt_db" "$depmods"
+# Check dependencies are installed in test db (depmods is empty out of test)
+[[ -n "$depmods" ]] && check_for_modules "$opt_db" "$depmods"
 if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     run_traced "pip list --format=freeze > $LOGDIR/requirements.txt"
     coverage_erase

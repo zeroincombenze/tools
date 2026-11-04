@@ -1,3 +1,11 @@
+2.1.2 (2026-11-01)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] run_odoo_debug: -I switch now updates the module list of the database
+  before installing, so modules just added to addons_path are found
+* [FIX] run_odoo_debug: python wrapper forwarded -i (import translation) as -I
+  (install) and ignored -I and -l switches
+
 2.1.1 (2026-09-12)
 ~~~~~~~~~~~~~~~~~~
 

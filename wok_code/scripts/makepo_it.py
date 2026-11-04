@@ -10,7 +10,7 @@ import sys
 import argparse
 import re
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 
 PO_DEFAULT = r"""# Translation of Odoo Server.
 # This file contains the translation of the following modules:

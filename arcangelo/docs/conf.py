@@ -21,13 +21,13 @@
 # -- Project information -----------------------------------------------------
 
 project = "arcangelo"
-copyright = "2019-25, SHS-AV s.r.l."
+copyright = "2019-26, Zeroincombenze srls"
 author = "Antonio Maria Vigliotti"
 
 # The short X.Y version
-version = "2.1.2"
+version = "2.1.3"
 # The full version, including alpha/beta/rc tags
-release = "2.1.2"
+release = "2.1.3"
 
 
 # -- General configuration ---------------------------------------------------
