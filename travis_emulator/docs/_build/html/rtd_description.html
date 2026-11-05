@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Features" href="rtd_features.html" />
-    <link rel="prev" title="Welcome to travis_emulator 2.1.0 documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to travis_emulator 2.1.1 documentation!" href="index.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="Related">
       <h3>Navigation</h3>
@@ -31,7 +31,7 @@
           <a href="rtd_features.html" title="Features"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to travis_emulator 2.1.0 documentation!"
+          <a href="index.html" title="Welcome to travis_emulator 2.1.1 documentation!"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.1.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Overview</a></li> 
@@ -108,7 +108,7 @@ If you want to see the log use one of following command:</p>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-even"><td><p>Execute build code <cite>before_script</cite></p></td>
+<tr class="row-even"><td><p>Execute build code <cite>before_script</cite> (or <cite>before_test.sh</cite>)</p></td>
 <td></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
@@ -118,48 +118,58 @@ If you want to see the log use one of following command:</p>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-even"><td><p>Execute build <cite>before_cache</cite> (only if cache is effective)</p></td>
+<tr class="row-even"><td><p>Execute <cite>after_test.sh</cite> (local only)</p></td>
+<td></td>
+<td><p>✔</p></td>
+<td><p>✗</p></td>
+</tr>
+<tr class="row-odd"><td><p>Execute build <cite>before_cache</cite> (only if cache is effective)</p></td>
 <td></td>
 <td><p>✗</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-odd"><td><p>Execute build code <cite>after_success</cite></p></td>
+<tr class="row-even"><td><p>Execute build code <cite>after_success</cite></p></td>
 <td></td>
 <td><p>✔</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-even"><td><p>Or execute <cite>after_failure</cite></p></td>
-<td></td>
-<td><p>✗</p></td>
-<td><p>✔</p></td>
-</tr>
-<tr class="row-odd"><td><p>Optional code <cite>before_deploy</cite> (only if deployment is effective)</p></td>
+<tr class="row-odd"><td><p>Or execute <cite>after_failure</cite></p></td>
 <td></td>
 <td><p>✗</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-even"><td><p>Optional code <cite>deploy</cite></p></td>
+<tr class="row-even"><td><p>Optional code <cite>before_deploy</cite> (only if deployment is effective)</p></td>
 <td></td>
 <td><p>✗</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-odd"><td><p>Optional code <cite>after_deploy</cite> (only if deployment is effective)</p></td>
+<tr class="row-odd"><td><p>Optional code <cite>deploy</cite></p></td>
 <td></td>
 <td><p>✗</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-even"><td><p>Execute code <cite>after_script</cite></p></td>
+<tr class="row-even"><td><p>Optional code <cite>after_deploy</cite> (only if deployment is effective)</p></td>
 <td></td>
 <td><p>✗</p></td>
 <td><p>✔</p></td>
 </tr>
-<tr class="row-odd"><td><p>Wep from local .travis.conf</p></td>
+<tr class="row-odd"><td><p>Execute code <cite>after_script</cite></p></td>
+<td></td>
+<td><p>✗</p></td>
+<td><p>✔</p></td>
+</tr>
+<tr class="row-even"><td><p>Wep from local .travis.conf</p></td>
 <td></td>
 <td><p>✔</p></td>
 <td><p>✗</p></td>
 </tr>
 </tbody>
 </table>
+<p>If the tests directory contains an executable <code class="docutils literal notranslate"><span class="pre">before_test.sh</span></code>, it is run
+instead of the <code class="docutils literal notranslate"><span class="pre">before_script</span></code> code; an executable <code class="docutils literal notranslate"><span class="pre">after_test.sh</span></code> is run
+at the end of test, after the <code class="docutils literal notranslate"><span class="pre">script</span></code> code, even if the test failed.</p>
+<p>Testing a pypi package, the requirements declared in <code class="docutils literal notranslate"><span class="pre">install_requires</span></code> of its
+<code class="docutils literal notranslate"><span class="pre">setup.py</span></code> are installed in the fresh test virtual environment before the test.</p>
 <p>Read furthermore info read <a class="reference external" href="https://docs.travis-ci.com/user/job-lifecycle/">travis-ci phase</a></p>
 <section id="difference-between-local-travis-and-web-site">
 <h2>Difference between local travis and web site<a class="headerlink" href="#difference-between-local-travis-and-web-site" title="Link to this heading"></a></h2>
@@ -213,7 +223,7 @@ Please, install manually all the global packages using apt-get, yum, dnf or your
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="index.html"
-                          title="previous chapter">Welcome to travis_emulator 2.1.0 documentation!</a></p>
+                          title="previous chapter">Welcome to travis_emulator 2.1.1 documentation!</a></p>
   </div>
   <div>
     <h4>Next topic</h4>
@@ -254,7 +264,7 @@ Please, install manually all the global packages using apt-get, yum, dnf or your
           <a href="rtd_features.html" title="Features"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to travis_emulator 2.1.0 documentation!"
+          <a href="index.html" title="Welcome to travis_emulator 2.1.1 documentation!"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">travis_emulator 2.1.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Overview</a></li> 

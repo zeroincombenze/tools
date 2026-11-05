@@ -62,7 +62,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.0
+__version__=2.1.1
 
 
 store_cfg_param_value() {
@@ -586,6 +586,18 @@ process_yaml_before_script() {
   return $sts
 }
 
+process_yaml_after_test() {
+  # process_yaml_after_test(): run $TESTDIR/after_test.sh at the end of test,
+  # symmetric to $TESTDIR/before_test.sh run by process_yaml_before_script
+  local sts=0
+  if [[ -x $TESTDIR/after_test.sh ]]; then
+    wlog "\e[${PS_HDR2_COLOR}m===== [After test] =====\e[0m"
+    run_traced "$TESTDIR/after_test.sh"
+    sts=$?
+  fi
+  return $sts
+}
+
 process_yaml_after_success() {
   local sts=0
   local i
@@ -833,7 +845,7 @@ msg_python_ver() {
 process_yaml() {
   # process_yaml ()
   local sts=0
-  local i s p v X x
+  local i s p v X x test_started
   local line lne line1 lne1 python_matrix ymtrx
   load_colors
   export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
@@ -980,9 +992,11 @@ process_yaml() {
         process_yaml_install "$line1"
         s=$?; [[ ${s-1} -ne 0 && $sts -eq 0 ]] && sts=$s
       fi
+      test_started=0
       if [[ $sts -eq $STS_SUCCESS ]]; then
         process_yaml_before_script "$line1"
         s=$?; [[ ${s-1} -ne 0 && $sts -eq 0 ]] && sts=$s
+        test_started=1
       fi
       if [[ $sts -eq 0 ]]; then
         wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[0m"
@@ -997,6 +1011,11 @@ process_yaml() {
             break
           fi
         done
+      fi
+      # after_test.sh runs whenever before_script ran, even if test failed
+      if [[ $test_started -ne 0 ]]; then
+        process_yaml_after_test
+        s=$?; [[ ${s-1} -ne 0 && $sts -eq 0 ]] && sts=$s
       fi
       if [[ $sts -eq 0 ]]; then
         wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[0m"

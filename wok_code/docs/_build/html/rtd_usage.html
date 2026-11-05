@@ -150,6 +150,17 @@ If current directory is a module directory you can use ‘.’ (dot) for module 
 <li><p>publish tar      -&gt; write a tarball with package files</p></li>
 </ul>
 </div></blockquote>
+<p><strong>Test hooks</strong></p>
+<p>A module can declare commands to run around its test in <code class="docutils literal notranslate"><span class="pre">readme/__manifest__.rst</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.. $set before_test before_test.sh
+.. $set after_test after_test.sh
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">before_test</span></code>: run before the test starts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">after_test</span></code>: run at the end of the test, before the test database is dropped</p></li>
+</ul>
+<p>The command is searched in the module <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory, then in PATH.</p>
 <div class="line-block">
 <div class="line"><br /></div>
 <div class="line"><br /></div>

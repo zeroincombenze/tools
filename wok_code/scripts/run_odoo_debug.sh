@@ -51,7 +51,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.2
+__version__=2.1.3
 
 run_traced_debug() {
     if [[ $opt_verbose -gt 1 ]]; then
@@ -473,19 +473,33 @@ run_odoo_server() {
     run_traced "popd &>/dev/null"
 }
 
+exec_hook() {
+# exec_hook(hook,act): run command declared in readme/__manifest__.rst by
+#   .. $set <hook> <command> [args]
+# command is searched in module tests/ directory, then in PATH;
+# with act=="set" command is just echoed, not executed
+    local cmd
+    cmd=$(grep -E "^\.\. +.set +$1 " $mod_test_cfg|awk '{print $4 " " $5 " " $6 " " $7 " " $8  " " $9}')
+    cmd=$(echo $cmd)
+    if [[ -n $cmd && -x "$PKGPATH/tests/$cmd" ]]; then
+        cmd="$PKGPATH/tests/$cmd"
+    elif [[ -n $cmd ]]; then
+        cmd=$(which "$cmd")
+    fi
+    if [[ -n $cmd ]]; then
+        [[ $2 == "set" ]] && echo "$cmd"
+        [[ $2 != "set" ]] && run_traced "$cmd"
+    fi
+}
+
 exec_before() {
-# exec_before(cmd,act)
-    bef_test=$(grep -E "^\.\. +.set +$1 " $mod_test_cfg|awk '{print $4 " " $5 " " $6 " " $7 " " $8  " " $9}')
-    bef_test=$(echo $bef_test)
-    if [[ -n $bef_test && -x "$PKGPATH/tests/$bef_test" ]]; then
-        bef_test="$PKGPATH/tests/$bef_test"
-    elif [[ -n $bef_test ]]; then
-        bef_test=$(which "$bef_test")
-    fi
-    if [[ -n $bef_test ]]; then
-        [[ $2 == "set" ]] && echo "$bef_test"
-        [[ $2 != "set" ]] && run_traced "$bef_test"
-    fi
+# exec_before(hook,act): run hook before test, i.e. before_test
+    exec_hook "$1" "$2"
+}
+
+exec_after() {
+# exec_after(hook,act): run hook at the end of test, i.e. after_test
+    exec_hook "$1" "$2"
 }
 
 
@@ -1013,6 +1027,7 @@ if [[ $opt_test -ne 0 && $opt_debug -eq 0 ]]; then
     coverage_erase
     run_odoo_server
     [[ -n $ext_test ]] && test_with_external_process
+    [[ -n $mod_test_cfg ]] && exec_after "after_test"
 elif [[ opt_debug -gt 1 ]]; then
     echo ""
     echo "Now you can test module $opt_modules on pycharm"

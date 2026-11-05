@@ -1,3 +1,10 @@
+2.1.1 (2026-11-05)
+~~~~~~~~~~~~~~~~~~~
+
+* [IMP] New tests/after_test.sh run at the end of test, symmetric to before_test.sh
+* [FIX] pypi package: requirements (install_requires of setup.py) are installed
+  in the fresh test virtual env
+
 2.1.0 (2026-05-15)
 ~~~~~~~~~~~~~~~~~~~
 

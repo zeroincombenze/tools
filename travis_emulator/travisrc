@@ -2,7 +2,7 @@
 #
 # Common file for travis emulator scripts
 #
-#__version__=2.1.0
+#__version__=2.1.1
 
 [[ "${BASH_SOURCE-}" == "$0" ]] && echo "You must source this script: \$ source $0" >&2 && exit 33
 XRGI="^(.*\/|)conf\/.*sample$"
@@ -350,6 +350,8 @@ create_virtual_env() {
     [[ $HOME_DEVEL =~ /devel$ ]] && run_traced "cp $TRAVIS_SAVED_HOME_DEVEL/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/ -o"
   fi
   [[ $PWD != $TRAVIS_BUILD_DIR ]] && run_traced "cd $TRAVIS_BUILD_DIR"
+  # Fresh test virtual env: install the packages required by package under test
+  install_pkg_requirements "$TRAVIS_SAVED_PKGPATH/../setup.py"
   get_pypi_param "ALL"
   if [[ -n "$opt_pybrk" ]]; then
     IFS=":" read f t <<<"$opt_pybrk"
@@ -370,6 +372,45 @@ with open('$x', 'w') as fd:
 EOF
   fi
   ((Z0_STACK=Z0_STACK-2))
+}
+
+install_pkg_requirements() {
+  # install_pkg_requirements(setup_py): install the requirements of package under test
+  # (install_requires of setup.py) into the fresh test virtual env
+  local setup_py="$1" r reqs cmd
+  [[ $PRJNAME == "Odoo" || -z $setup_py || ! -f $setup_py || -z $TRAVIS_HOME ]] && return 0
+  [[ -x $TRAVIS_HOME/bin/python ]] || return 0
+  # Run setup.py with setup() replaced, to read install_requires without building
+  reqs=$(cd $(dirname $setup_py) && $TRAVIS_HOME/bin/python - "$setup_py" <<'EOF' 2>/dev/null
+import sys
+args = {}
+
+
+def setup(**kwargs):
+    args.update(kwargs)
+
+
+import setuptools
+setuptools.setup = setup
+try:
+    import distutils.core
+    distutils.core.setup = setup
+except ImportError:
+    pass
+sys.argv = [sys.argv[1], "--name"]
+with open(sys.argv[0]) as fd:
+    code = compile(fd.read(), sys.argv[0], "exec")
+exec(code, {"__file__": sys.argv[0], "__name__": "__main__"})
+for req in args.get("install_requires") or []:
+    print(req)
+EOF
+)
+  [[ -z $reqs ]] && return 0
+  cmd="$TRAVIS_HOME/bin/python -m pip install -q"
+  while IFS= read -r r; do
+    [[ -n $r ]] && cmd="$cmd '$r'"
+  done <<<"$reqs"
+  run_traced "$cmd"
 }
 
 drop_virtual_env() {

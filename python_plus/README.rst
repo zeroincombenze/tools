@@ -1,5 +1,5 @@
 =================
-python_plus 2.1.1
+python_plus 2.1.2
 =================
 
 
@@ -306,6 +306,12 @@ Current version via Git
 ChangeLog History
 -----------------
 
+2.1.2 (2026-11-05)
+~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem cp: scripts of copied virtual env kept the source python (shebang
+  python3.12 not replaced), so pip installed into the source virtual env
+
 2.1.1 (2026-10-16)
 ~~~~~~~~~~~~~~~~~~
 
@@ -392,7 +398,7 @@ SHS-AV s.r.l. <https://www.shs-av.com/>
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it>`__
+* `Zeroincombenze srls <https://www.zeroincombenze.it>`__
 
 
 
@@ -416,10 +422,10 @@ Contributors
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.1/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.2/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.1/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.2/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it
