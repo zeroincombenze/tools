@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Evolve Simulator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <style>
+        td, th { font-size: 0.85rem; }
+        .state-ok { color: #257942; }
+        .state-ko { color: #cc0f35; }
+        .state-wip { color: #946c00; }
+    </style>
+</head>
+<body>
+<section class="section">
+    <div class="container is-fluid">
+        <div id="app"></div>
+    </div>
+</section>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

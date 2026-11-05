@@ -62,7 +62,7 @@ CYAN="\e[1;36m"
 GREEN="\e[1;32m"
 CLR="\e[0m"
 
-__version__=2.1.1
+__version__=2.1.2
 
 declare -A PY3_PKGS
 NEEDING_PKGS="configparser future python_plus z0lib"
@@ -271,7 +271,8 @@ set_hashbang() {
     V="$1"
     d=$(find $V \( -type f -executable -o -name "*.py" \)|tr "\n" " ")
     for f in $d; do
-      grep -Eq "^#\!.*/bin.*python[23]?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python[23]?|#\!$PYTHON|\" -i $f" && chmod +x $f
+      # Match python, python3 and python3.12 alike (venv writes the full version)
+      grep -Eq "^#\!.*/bin.*python([23][.0-9]*)?$" $f &>/dev/null && run_traced "sed -E \"s|^#\!.*/bin.*python([23][.0-9]*)?$|#\!$PYTHON|\" -i $f" && chmod +x $f
     done
 }
 

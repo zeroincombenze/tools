@@ -28,7 +28,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 python_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -103,7 +103,8 @@ REQVERSION = {
         "15.0": "PYVER",
         "3.7": ">=1.5.0,<=22.10.99",
         "3.8": ">=20.9.0,<=22.10.99",
-        "3.10": ">=21.8.0,<22.0",  # Odoo pins 21.8.0 + greenlet 1.1.2; gevent 22 needs greenlet>=2
+        # Odoo pins 21.8.0 + greenlet 1.1.2; gevent 22 needs greenlet>=2
+        "3.10": ">=21.8.0,<22.0",
         "3.11": ">=22.10.2,<=22.10.99",  # Odoo pins 22.10.2 + greenlet 2.0.2
         "3.12": ">=24.2.1,<=24.2.99",
         "3.13": ">=24.11.1,<=24.11.99",
@@ -223,7 +224,8 @@ REQVERSION = {
         "12.0": ">=2.8.3",
         "0": ">=2.7.4",
     },
-    # Odoo 16/17 pin 1.4.2 for any python; pydot>=2 needs pyparsing>=3; Odoo 18+ does not use pydot
+    # Odoo 16/17 pin 1.4.2 for any python; pydot>=2 needs pyparsing>=3;
+    # Odoo 18+ does not use pydot
     "pydot": {"6.1": "==1.0.2", "8.0": "==1.2.3", "11.0": ">=1.2.3,<2"},
     "Pygments": {
         "10.0": "==2.2.0",
@@ -256,7 +258,8 @@ REQVERSION = {
         "0": ">=16.2.0,<19.0",
         "3.8": ">=19.0.0,<23.0",
         "3.9": ">=21.0.0,<23.0",
-        "3.12": ">=24.1.0,<25",  # cryptography>=42 needs pyOpenSSL>=24; Odoo pins 24.1.0
+        # cryptography>=42 needs pyOpenSSL>=24; Odoo pins 24.1.0
+        "3.12": ">=24.1.0,<25",
     },
     "pyotp": {"2.7": "==2.3.0", "3.5": ">=2.4.0"},
     "pyPDF2": {"2.7": "==1.26.0", "3.5": "<2.0", "3.8": "<3.0"},
@@ -311,7 +314,11 @@ REQVERSION = {
     "reportlab": {
         # On Ubuntu 26.04 reportlab 3.3.0 is no more available
         # "6.1": "==3.1.44", "10.0": "==3.3.0", "14.0": ">=3.3.0",
-        "6.1": "<4.0", "12.0": "<4.0", "14.0": "PYVER", "2.7": "<4.0", "3.0": ">=3.3.0,<5",
+        "6.1": "<4.0",
+        "12.0": "<4.0",
+        "14.0": "PYVER",
+        "2.7": "<4.0",
+        "3.0": ">=3.3.0,<5",
         "3.12": ">=4.1.0,<5",  # Odoo 18 pins 4.1.0; reportlab 5 not tested by Odoo
     },
     "requests": {

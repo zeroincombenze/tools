@@ -1,3 +1,9 @@
+2.1.3 (2026-11-05)
+~~~~~~~~~~~~~~~~~~
+
+* [IMP] run_odoo_debug: new after_test hook, run at the end of test,
+  symmetric to before_test
+
 2.1.2 (2026-11-01)
 ~~~~~~~~~~~~~~~~~~
 

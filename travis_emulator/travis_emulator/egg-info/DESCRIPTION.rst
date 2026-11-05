@@ -18,6 +18,13 @@ A travis build executes the following steps:
 
 .. $include travis_phases.csv
 
+If the tests directory contains an executable ``before_test.sh``, it is run
+instead of the ``before_script`` code; an executable ``after_test.sh`` is run
+at the end of test, after the ``script`` code, even if the test failed.
+
+Testing a pypi package, the requirements declared in ``install_requires`` of its
+``setup.py`` are installed in the fresh test virtual environment before the test.
+
 Read furthermore info read `travis-ci phase <https://docs.travis-ci.com/user/job-lifecycle/>`__
 
 

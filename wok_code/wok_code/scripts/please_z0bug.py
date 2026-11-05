@@ -8,7 +8,7 @@ import re
 from z0lib import Package
 
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 
 
 RMODE = "rU" if sys.version_info[0] == 2 else "r"

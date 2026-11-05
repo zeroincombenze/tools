@@ -1,3 +1,9 @@
+2.1.2 (2026-11-05)
+~~~~~~~~~~~~~~~~~~~
+
+* [FIX] vem cp: scripts of copied virtual env kept the source python (shebang
+  python3.12 not replaced), so pip installed into the source virtual env
+
 2.1.1 (2026-10-16)
 ~~~~~~~~~~~~~~~~~~~
 

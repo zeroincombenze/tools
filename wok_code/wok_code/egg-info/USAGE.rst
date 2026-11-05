@@ -78,3 +78,15 @@ Action is one of:
     * publish pypi     -> publish package to pypi website (from odoo user)
     * publish svg      -> publish test result svg file (require system privileges)
     * publish tar      -> write a tarball with package files
+
+**Test hooks**
+
+A module can declare commands to run around its test in ``readme/__manifest__.rst``::
+
+    .. $set before_test before_test.sh
+    .. $set after_test after_test.sh
+
+* ``before_test``: run before the test starts
+* ``after_test``: run at the end of the test, before the test database is dropped
+
+The command is searched in the module ``tests/`` directory, then in PATH.
