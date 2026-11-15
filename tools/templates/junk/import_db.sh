@@ -1,6 +1,6 @@
 #! /bin/bash
 # Import DB from remote host
-[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[--craft=CRAFT]\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--remote-db=DBNAME]\n[--remote-psql-port=PORT]\n[--reset-pwd]\n date # $(date +%Y%m%d)" && exit 1
+[[ -z $1 || $1 == -h || $1 == --help ]] && echo -e "$(basename $0)\n[--craft=CRAFT]\n[-c FILE][--conf=FILE]\n[--cont]\n[-d DB]\n[--db-user=USER]\n[-k]\n[-n] [--dry-run]\n[-p PORT]\n[--remote-host=HOST]\n[--remote-db=DBNAME]\n[--remote-psql-port=PORT]\n[--reset-pwd]\n date # $(date +%Y%m%d)" && exit 1
 [[ $1 == -V ]] && echo "2.0.0" && exit 1
 
 param=""
