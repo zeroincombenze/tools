@@ -1,6 +1,6 @@
 type,backend,dirmap,loc_name,ext_name,default,apply4,protection,counterpart_pk,hierarchy_control,note
 dirmap,Embyon Ridix,,res.partner,ALTRI_TIPO_INDIRIZZO,,,,CODCONTO,inside,"Altri tipi di indirizzo, esempio sollecito/follow-up o fatturazione"
-dirmap,Embyon Ridix,,product.template,ANAGRAFICA_PRODOTTI_PADRE,,,,CODICE_RIDIX,,Anagrafica prodotti madre (modelli)
+dirmap,Embyon Ridix,,product.template,ANAGRAFICA_PRODOTTI_PADRE,,,,CODICE,,Anagrafica prodotti madre (modelli)
 dirmap,Embyon Ridix,,res.partner,ANAGRAFICACF,,,,CODCONTO,top,Anagrafiche clienti
 dirmap,Embyon Ridix,,product.supplierinfo,ARTICOLI_DATI_FORNITORE_DIXI,,,,CODICE_RIDIX,,Informazioni da Dixi per prodotti
 dirmap,Embyon Ridix,,product.supplierinfo,ARTICOLI_DATI_FORNITORI_BLASER ,,,,CODICE_RIDIX,,Informazioni da Blaser per prodotti
