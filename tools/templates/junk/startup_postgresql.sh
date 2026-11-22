@@ -15,22 +15,41 @@ touch $PID
 trap 'rm -f $PID' EXIT
 
 # download_file host remote_path
+# Skip the download when the local copy has the same size and mtime of the remote
+# one (the local mtime is aligned to the remote one after each download), so a
+# repeated run after a crash does not download again the files already loaded.
 download_file() {
-    local host=$1 rpath=$2 name dest age
+    local host=$1 rpath=$2 name dest age rinfo rsize rmtime
     name=$(basename "$rpath")
     dest="$HOME/backups/$name"
+    rinfo=$(ssh.py $host -c "stat -c '%s %Y' $rpath" 2>/dev/null | grep -E "^[0-9]+ [0-9]+$" | tail -n1)
+    read rsize rmtime <<<"$rinfo"
     if [[ -f $dest ]]; then
-        ((age=$(date +%s)-$(stat -c %Y "$dest")))
-        if [[ $age -lt $MARGIN ]]; then
-	    rm -f ~/backups/.part/"$name"
-            echo "$name scaricato ${age}s fa -> skip"
-            return 0
+        if [[ -n $rsize ]]; then
+            if [[ $(stat -c %s "$dest") == "$rsize" && $(stat -c %Y "$dest") == "$rmtime" ]]; then
+                rm -f ~/backups/.part/"$name"
+                echo "$name gia' scaricato (stessa dimensione/data) -> skip"
+                return 0
+            fi
+        else
+            # remote info not available: fall back on the age of the local copy
+            ((age=$(date +%s)-$(stat -c %Y "$dest")))
+            if [[ $age -lt $MARGIN ]]; then
+                rm -f ~/backups/.part/"$name"
+                echo "$name scaricato ${age}s fa -> skip"
+                return 0
+            fi
         fi
     fi
     mkdir -p ~/backups/.part
     rm -f ~/backups/.part/"$name"
     ssh.py -sr "$host:$rpath" ~/backups/.part/ || return 1
-    mv -f ~/backups/.part/"$name" "$dest" && touch "$dest"
+    mv -f ~/backups/.part/"$name" "$dest" || return 1
+    if [[ -n $rmtime ]]; then
+        touch -d "@$rmtime" "$dest"
+    else
+        touch "$dest"
+    fi
 }
 
 restore_dbs() {
@@ -47,7 +66,7 @@ CONFN="$HOME/.$(basename $0).conf"
 ((DIFF=NOW-LAST))
 if [[ $DIFF -gt 79200 || $1 == "-f" ]]; then
     ERR=0
-    for host in shs23pro zavixtech refocus metalpack; do
+    for host in shs23pro metalpack; do
         files=$(ssh.py $host -c 'ls -1 ~/backups/*.gz') || { echo "Errore: $host non raggiungibile"; ERR=1; continue; }
         for f in $files; do
             download_file $host "$f" || { echo "Errore download $f da $host"; ERR=1; continue; }

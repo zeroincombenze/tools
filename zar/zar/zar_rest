@@ -448,6 +448,24 @@ if [ -z "$NDAYSB" ]; then
     NDAYSB=today
   fi
 fi
+if [[ -n $opt_port && -z $opt_newdb && $test_mode -eq 0 ]]; then
+  # Port issued: manage only the DBs which exist on that postgres port
+  PORTDBS=" $($PSQL -Atc "select datname from pg_database where not datistemplate and datname<>'postgres' order by datname;" postgres 2>/dev/null | tr '\n' ' ') "
+  wlog "- DBs on port $opt_port:$PORTDBS"
+  x=""
+  if [ "$BCK_ENV" == "PRD" ]; then
+    for db in ${NEWDBS//,/ }; do
+      [[ $PORTDBS =~ [[:space:]]$db[[:space:]] ]] && x="$x,$db" || wlog "DB $db not found on port $opt_port, skipped"
+    done
+    NEWDBS=${x#,}
+    [[ -z $NEWDBS ]] && dblist=""
+  else
+    for db in $dblist; do
+      [[ $PORTDBS =~ [[:space:]]$db[[:space:]] ]] && x="$x $db" || wlog "DB $db not found on port $opt_port, skipped"
+    done
+    dblist="${x# }"
+  fi
+fi
 dovalid=0
 for sfx in A B C D E F G H; do
   x=DB${sfx}

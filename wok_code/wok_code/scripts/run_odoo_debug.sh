@@ -321,7 +321,8 @@ set_confn() {
       if [[ $? == 0 ]]; then
           run_traced_debug "sed -e \"s|^logfile *=.*|logfile = False|\" -i $TEST_CONFN"
       else
-          run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $ve_root/$$.log|\" -i $TEST_CONFN"
+          [[ $opt_test -ne 0 && -n "$LOGDIR" ]] && lf="$LOGDIR/$$.log" || lf="$ve_root/$$.log"
+          run_traced_debug "sed -e \"s|^logfile *=.*|logfile = $lf|\" -i $TEST_CONFN"
       fi
     fi
     if [[ $opt_debug -ne 0 || $opt_test -ne 0 ]]; then
