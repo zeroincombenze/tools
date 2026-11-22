@@ -85,6 +85,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 # import ast
 import os
+import glob
 import os.path as pth
 import re
 import sys
@@ -1024,6 +1025,28 @@ def totroff(text):
     return text
 
 
+RE_UNICODE_SUBST = re.compile(
+    r"^\.\. \|(\w+)\| unicode:: (?:U\+|0x|&#x)([0-9A-Fa-f]+);?[ \t]*(?:\n|$)",
+    flags=re.M,
+)
+
+
+def get_unicode_substs(ctx):
+    """Return {name: hex code} of ".. |name| unicode:: U+XXXX" of all the fragments"""
+    if "unicode_substs" not in ctx:
+        substs = {}
+        for docdir in ("readme", "egg-info"):
+            for fqn in sorted(glob.glob(pth.join(ctx["path_name"], docdir, "*.rst"))):
+                try:
+                    with open(fqn, "r", encoding="utf-8") as fd:
+                        for name, code in RE_UNICODE_SUBST.findall(fd.read()):
+                            substs[name] = code
+                except (IOError, OSError, UnicodeDecodeError):
+                    pass
+        ctx["unicode_substs"] = substs
+    return ctx["unicode_substs"]
+
+
 def rst2html(ctx, text, draw_button=False):
 
     def get_tag_image(ctx):
@@ -1077,7 +1100,9 @@ def rst2html(ctx, text, draw_button=False):
     def get_inline_tag(ctx, line):
         # Parse single-line rst tag: <``>CODE<``>
         while True:
-            x = re.search(r"``[^`]+``", line)
+            # Code may contain single backticks, e.g. ``[`Save`]``; in a run of 3 the
+            # first one is code and the last 2 end it, e.g. ``x```
+            x = re.search(r"``(?:(?!``).)+`?``", line)
             if not x:
                 break
             line = "%s<code>%s</code>%s" % (
@@ -1137,6 +1162,15 @@ def rst2html(ctx, text, draw_button=False):
         return line
 
     def get_graphical_elements(ctx, line):
+        # Symbols inside inline code (``...``) are literal: no tab or button there.
+        # The tab syntax [``TAB``] is not a code span and is kept
+        parts = re.split(r"(\[``[\w ]+``\]|``(?:(?!``).)+`?``)", line)
+        return "".join(
+            part if part.startswith("``") else get_graphical_symbols(ctx, part)
+            for part in parts
+        )
+
+    def get_graphical_symbols(ctx, line):
         # Parse single-line tabbed: [``TABBED``]
         x = re.search(r"\[``[\w ]+``\]", line)
         while x:
@@ -1233,6 +1267,16 @@ def rst2html(ctx, text, draw_button=False):
             value = '<img src="%s"/>' % expand_macro(ctx, "grymb_image_%s" % token)
             text = text[0: start] + value + text[start + len(tok):]
             start = text.find(tok)
+
+    # Parse rst substitution ".. |name| unicode:: U+XXXX": drop the definition line
+    # and replace |name| with the character. The definitions of every fragment of
+    # the project are shared, so a fragment may use a symbol defined in another one
+    substs = get_unicode_substs(ctx)
+    for name, code in RE_UNICODE_SUBST.findall(text):
+        substs[name] = code
+    text = RE_UNICODE_SUBST.sub("", text)
+    for name, code in substs.items():
+        text = text.replace("|%s|" % name, "&#x%s;" % code.upper())
 
     # Parse single line rst tags; remove heading and trailing empty lines
     lines = text.split("\n")
