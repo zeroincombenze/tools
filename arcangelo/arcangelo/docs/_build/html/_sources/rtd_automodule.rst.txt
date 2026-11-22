@@ -4,10 +4,50 @@
 Code documentation
 ------------------
 
-arcangelo.gen_addons_table
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+arcangelo.scripts.main
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: arcangelo.gen_addons_table
+.. automodule:: arcangelo.scripts.main
+
+arcangelo.scripts.license_mgnt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.license_mgnt
+
+arcangelo.scripts.gen_addons_table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.gen_addons_table
+
+arcangelo.scripts.arcangelo_syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.arcangelo_syntax
+
+arcangelo.scripts.arcangelo_lex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.arcangelo_lex
+
+arcangelo.scripts.arcangelo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.arcangelo
+
+arcangelo.scripts.gen_readme
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.gen_readme
+
+arcangelo.scripts.cvt_script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.cvt_script
+
+arcangelo.scripts.cvt_csv_2_rst
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: arcangelo.scripts.cvt_csv_2_rst
 
 |
 |
@@ -22,10 +62,10 @@ arcangelo.gen_addons_table
     :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
     :alt: License: OPL
 .. |Tech Doc| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-2.svg
-    :target: https://wiki.zeroincombenze.org/en/Odoo/2.0.22/dev
+    :target: https://wiki.zeroincombenze.org/en/Odoo/2.1.3/dev
     :alt: Technical Documentation
 .. |Help| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-2.svg
-    :target: https://wiki.zeroincombenze.org/it/Odoo/2.0.22/man
+    :target: https://wiki.zeroincombenze.org/it/Odoo/2.1.3/man
     :alt: Technical Documentation
 .. |Try Me| image:: https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-2.svg
     :target: https://erp2.zeroincombenze.it

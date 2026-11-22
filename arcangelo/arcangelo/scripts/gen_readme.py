@@ -1137,29 +1137,29 @@ def rst2html(ctx, text, draw_button=False):
         return line
 
     def get_graphical_elements(ctx, line):
-        # Parse single-line tebbed: <[`>TABBED<`]>
-        x = re.search(r"\[`[\w ]+`\]", line)
+        # Parse single-line tabbed: [``TABBED``]
+        x = re.search(r"\[``[\w ]+``\]", line)
         while x:
-            tabbed_text = " " + line[x.start() + 2: x.end() - 2] + " "
+            tabbed_text = " " + line[x.start() + 3: x.end() - 3] + " "
             tabbed_text = tabbed_text.replace(" ", "&#160;")
             line = (
                 '%s<span style="border-style:solid;border-width:1px 1px 0px 1px">'
                 "%s</span>%s" % (line[0: x.start()], tabbed_text, line[x.end():])
             )
-            x = re.search(r"\[`[\w ]+`\]", line)
+            x = re.search(r"\[``[\w ]+``\]", line)
 
-        # Parse single-line button: <[>BUTTON<]>
-        x = re.search(r"\[\w[\w ]+\w\]", line)
+        # Parse single-line button: [`BUTTON`]
+        x = re.search(r"\[`\w[\w ]+\w`\]", line)
         while x:
-            button_text = line[x.start() + 1: x.end() - 1]
+            button_text = line[x.start() + 2: x.end() - 2]
             if len(button_text) <= 12:
                 button_text = " " + button_text + " "
             button_text = button_text.replace(" ", "&#160;")
             line = (
-                '%s<span style="color:white;background-color:#7C7BAD">%s</span>%s'
+                '%s<span style="border-style:solid;border-width:1px">%s</span>%s'
                 % (line[0: x.start()], button_text, line[x.end():])
             )
-            x = re.search(r"\[\w[\w ]+\w\]", line)
+            x = re.search(r"\[`\w[\w ]+\w`\]", line)
         return line
 
     def close_opened_tag(ctx, lines, lineno, excl_tag=None):
@@ -1213,10 +1213,11 @@ def rst2html(ctx, text, draw_button=False):
         return lineno
 
     def parse_all_single_line_tags(ctx, line, draw_button):
-        line = get_inline_tag(ctx, line)
-        line = get_navicon(ctx, line)
+        # Graphical elements first: [``Tab``] must not become inline code
         if draw_button:
             line = get_graphical_elements(ctx, line)
+        line = get_inline_tag(ctx, line)
+        line = get_navicon(ctx, line)
         return line
 
     if not text:
@@ -1887,24 +1888,33 @@ def sort_history(source):
     return target
 
 
+def read_imported_names(py_file, excluded=("scripts", "travis", "_travis")):
+    imported_names = []
+    with open(py_file, "r") as fd:
+        for ln in fd.read().split("\n"):
+            if re.match(r"^ *from \. import", ln):
+                tokens = ln.strip().split()
+                name = tokens[3]
+                if len(tokens) == 4 and name not in excluded:
+                    imported_names.append(name)
+    return imported_names
+
+
 def extract_imported_names(ctx):
     py_file = pth.join("./__init__.py")
-    imported_names = []
     if not pth.isfile(py_file):
         print_red_message("Python file %s not found!" % py_file)
         print()
-    else:
-        with open(py_file, "r") as fd:
-            for ln in fd.read().split("\n"):
-                if re.match(r"^ *from \. import", ln):
-                    tokens = ln.strip().split()
-                    name = tokens[3]
-                    if len(tokens) == 4 and name not in (
-                        "scripts",
-                        "travis",
-                        "_travis",
-                    ):
-                        imported_names.append(name)
+        return []
+    imported_names = read_imported_names(py_file)
+    # Directive ".. $set automodule_scripts 1" (egg-info/__manifest__.rst) documents
+    # also the modules imported by scripts/__init__.py
+    scripts_file = pth.join("./scripts", "__init__.py")
+    if ctx.get("automodule_scripts", "0") not in ("", "0", "False") and pth.isfile(
+        scripts_file
+    ):
+        for name in read_imported_names(scripts_file):
+            imported_names.append("scripts.%s" % name)
     return imported_names
 
 

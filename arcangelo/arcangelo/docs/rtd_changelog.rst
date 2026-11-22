@@ -70,11 +70,6 @@ ChangeLog History
 * [FIX] Quality rating formula
 * [IMP] arcangelo improvements
 
-2.0.13 (2023-11-27)
-~~~~~~~~~~~~~~~~~~~
-
-* [IMP] arcangelo: new python version assignment from odoo version
-
 |
 |
 

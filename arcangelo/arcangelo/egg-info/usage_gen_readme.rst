@@ -292,17 +292,17 @@ Graphical button (only for Odoo documentation):
 
 ::
 
-    Click on [Button] to do something
+    Click on [`Button`] to do something
 
 .. raw:: html
 
-    Click on <span style="color:white;background-color:#7C7BAD">Button</span> to do something
+    Click on <span style="border-style:solid;border-width:1px">Button</span> to do something
 
 Page tabbed (only for Odoo documentation):
 
 ::
 
-    Click on [`Tabbed`] to see other information
+    Click on [``Tabbed``] to see other information
 
 .. raw:: html
 
